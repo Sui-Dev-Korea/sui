@@ -1,0 +1,25 @@
+---
+title: RPC Best Practices
+description: RPC 설정을 구성할 때 RPC 모범 사례를 고려한다.
+keywords:
+  - rpc best practice
+  - rpc provision
+  - rpc guidelines
+  - configure rpc
+  - rpc provisioning
+  - rpc settings
+---
+
+이 주제에서는 Sui 기반 프로젝트와 서비스에 대한 안정적인 인프라를 보장하기 위해 RPC 설정을 구성하는 몇 가지 모범 사례를 제공한다.
+
+<importcontent source="warn-ml-rpcs.mdx" mode="snippet"></importcontent>
+
+## RPC provisioning guidance
+
+provider와 협력할 때 다음 사항을 고려한다:
+
+- **SLA and 24-hour support:**  요구 사항을 충족하는 SLA와 24시간 지원을 제공하는 provider를 선택한다.
+- **Onboarding call:** 선택한 서비스 provider와 항상 Onboarding call을 통해 요구에 맞는 서비스를 제공할 수 있는지 확인한다. NFT 민팅 이벤트와 같이 트래픽이 많은 이벤트가 예정된 경우, 최소 48시간 전에 RPC provider에 예상 트래픽 증가량을 알린다.
+- **Redundancy:** NFT 마켓플레이스나 DeFi 프로토콜처럼 트래픽이 많고 시간에 민감한 앱의 경우, RPC를 위해 단일 provider에만 의존하지 않도록 하는 것이 중요하다. 많은 프로젝트가 기본적으로 단일 provider만 사용하지만, 이는 매우 위험하므로 중복성을 제공하기 위해 다른 provider를 사용해야 한다.
+- **Traffic estimate:** 예상 트래픽 양과 유형을 정확히 파악하고 RPC provider에게 해당 정보를 사전에 전달해야한다. 트래픽이 많은 이벤트가 발생하는 경우(가령 NFT 민팅), RPC provider에 미리 용량 증가를 요청한다. 봇 완화 - Sui가 발전함에 따라 네트워크에 많은 봇이 등장할 것이다. Sui dApp 개발자는 인프라 수준에서 봇 완화를 고려해야 한다. 이는 사용 사례에 따라 크게 달라진다. NFT 민팅의 경우 봇은 부적절하다. 그러나 특정 DeFi 사용 사례에서는 봇이 필수적이다. 봇이 미치는 영향을 고려하고 그에 따라 인프라를 준비해야한다.
+- **Provisioning notice:** 최소 1주일 전에 RPC Provisioning 요청을 한다. 이 경우, operator와 provider가 필요에 따라 하드웨어/서버 구성을 준비할 수 있도록 미리 알릴 수 있다. 뜻하지 않게 예상치 못한 수요가 발생할 경우, 우리에게 연락하면 긴급 상황에 대비할 수 있는 provider를 연결해 줄 수 있다.
