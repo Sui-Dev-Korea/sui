@@ -1,0 +1,63 @@
+---
+title: Custom Transfer Rules
+description: 사용자 정의 전송 규칙(Custom transfer rules)은 Sui가 transfer 연산을 유효하다고 판단하기 전에 충족되어야 하는 일련의 규칙을 정의할 수 있게 한다.
+---
+
+모든 Sui object는 반드시 `key` ability를 가져야 한다. 반면 `store` ability는 Sui object에 선택적으로 추가할 수 있는 optional ability이다. <br>store ability를 가진 object는 다음과 같다:
+
+- `transfer::public_transfer` 함수를 사용하면 누구나 전송할 수 있다.
+- 또한 다른 object 안에 wrap될 수 있다.
+
+custom transfer rules의 관점에서 중요한 점은, Sui object `Object`가 `store` ability를 가지지 않는 경우 `sui::transfer::public_transfer` 함수를 호출하여 해당 object를 전송할 수 없다는 것이다.`Object`를 정의한 Move module만이 `sui::transfer::transfer` 함수를 사용하여 그 타입의 object를 전송할 수 있는 유일한 entity이다.결과적으로 `Object`를 정의하는 module은 `Object`에 대해 원하는 수의 argument를 받을 수 있는 custom transfer function을 정의할 수 있으며, transfer 연산 수행에 필요한 모든 제약사항을 강제할 수 있다 (예: object를 전송하기 위해서는 fee를 지불해야 한다).
+
+## The store ability and transfer rules
+
+object에 대한 Custom transfer rules는 유효한 transfer 연산을 위해 반드시 충족되어야 하는 transfer 조건을 정의할 수 있게 한다.`store` ability를 object에 추가할 때는 신중해야 하며, 이는 해당 object를 정의한 module을 거치지 않고도 그 object에 제한 없이 접근할 수 있게 되기 때문이다. object에 대해 public transfer를 활성화한 이후에는 해당 object의 transfer에 대해 custom transfer rules나 그 어떤 형태의 제한도 다시 적용할 수 없다.
+
+## Example
+
+이 예시는 내부의 `unlocked` 플래그가 `true`로 설정된 경우에만 전송 가능한 object 타입 `Object`를 생성한다:
+
+```move
+public struct Object has key {
+    id: UID,
+        // 이 필드가 `true`인 경우에만 `Object` object는 전송될 수 있다
+    unlocked: bool,
+}
+```
+
+`Object`를 정의한 동일한 module 내에서, transfer 대상 `Object`와 전송 대상 address를 인자로 받고, 전송 전에 해당 object가 unlocked 상태인지 확인한 후 지정한 address로 전송하는 custom transfer rule인 `transfer_unlocked`를 정의할 수 있다.
+
+```move
+module examples::custom_transfer;
+
+// locked 상태의 object를 전송하려 할 때 발생시키는 error code
+const EObjectLocked: u64 = 0;
+
+public struct Object has key {
+    id: UID,
+    // 이 필드가 `true`인 경우에만 `Object` object는 전송될 수 있다
+
+    unlocked: bool,
+}
+
+// 전송 전에 `Object`가 unlocked 상태인지 확인한다
+public fun transfer_unlocked(object: Object, to: address) {
+    assert!(object.unlocked, EObjectLocked);
+    transfer::transfer(object, to)
+}
+```
+
+custom transfer rules를 사용하면 동일한 object에 대해 서로 다른 transfer rule을 여러 개 정의할 수 있다. 각 rule은 transaction 실행 시 동적으로 강제될 수 있는 서로 다른 제약사항을 가질 수 있다. 따라서 특정 address로는 locked 상태의 object만 전송되도록 하고 싶다면, 이전 module에 아래 함수를 추가할 수 있다:
+
+```move
+const EObjectNotLocked: u64 = 1;
+const HOME_ADDRESS = @0xCAFE;
+
+public fun transfer_locked(object: Object) {
+    assert!(!object.unlocked, EObjectNotLocked);
+    transfer::transfer(object, HOME_ADDRESS)
+}
+```
+
+이러한 rule이 정의되면 어떤 `Object`에 대해서도 두 가지 custom transfer rule이 존재하게 된다: unlocked 상태이면 누구나 전송할 수 있고, locked 상태이면 `0xCAFE`로만 전송할 수 있다. 중요한 점은, `Object` 타입의 object를 전송할 수 있는 방법은 오직 이 두 가지 방식뿐이라는 것이다. 특히 `Object`는 `store` ability를 가지지 않으므로 `sui::transfer::public_transfer` 함수를 사용해 전송할 수 없다. 실제로 `Object` 를 전송할 수 있는 방법은 `examples::custom_transfer::transfer_unlocked` 및 `examples::custom_transfer::transfer_locked`를 사용하는 방법뿐이다.
