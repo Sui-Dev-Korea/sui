@@ -1,0 +1,92 @@
+---
+title: Shared Objects
+description: Sui 네트워크의 shared object는 누구나 접근할 수 있으므로, 필요할 경우 접근을 보호하기 위한 주의가 필요하다.
+keywords:
+  - shared objects
+  - sharing objects
+  - objects that are shared
+  - public objects
+  - accessing shared objects
+  - accessing public objects
+---
+
+`sui::transfer::share_object` 함수를 사용하여 shared object를 생성하면, 네트워크 상에서 공개적으로 접근할 수 있다. shared object의 확장된 기능과 접근성은 필요할 경우 접근을 보호하기 위한 추가 작업이 필요하다.
+
+shared object에는 `key` ability가 필요하다.
+
+## Usage Example
+
+다음 예시는 디지털 도넛을 판매하는 상점을 생성한다. 모두가 이 상점에 접근하여 도넛을 구매할 수 있어야 하므로, 예시는 <code>sui::transfer::share_object</code>를 사용하여 상점을 shared object로 생성한다.
+
+```move
+module examples::donuts;
+
+use sui::sui::SUI;
+use sui::coin::{Self, Coin};
+use sui::balance::{Self, Balance};
+
+/// Coin 잔액이 너무 낮을 때를 위한 상수이다.
+const ENotEnough: u64 = 0;
+
+/// 소유자에게 수익을 회수할 권리를 부여하는 Capability이다.
+public struct ShopOwnerCap has key { id: UID }
+
+/// 구매 가능한 Donut이다. 단순화를 위해 구현은 생략한다.
+public struct Donut has key { id: UID }
+
+/// shared object이다. `key` ability가 필요하다.
+public struct DonutShop has key {
+    id: UID,
+    price: u64,
+    balance: Balance<SUI>
+}
+
+/// Init 함수는 한 번만 호출되므로
+/// shared object를 초기화하기에 적합한 위치이다.
+fun init(ctx: &mut TxContext) {
+    transfer::transfer(ShopOwnerCap {
+        id: object::new(ctx)
+    }, ctx.sender());
+
+    // 모든 사용자가 접근할 수 있도록 object를 공유한다!
+    transfer::share_object(DonutShop {
+        id: object::new(ctx),
+        price: 1000,
+        balance: balance::zero()
+    })
+}
+
+/// Coin을 보유한 모든 사용자가 호출할 수 있는 entry 함수이다.
+public fun buy_donut(
+    shop: &mut DonutShop, payment: &mut Coin<SUI>, ctx: &mut TxContext
+) {
+    assert!(coin::value(payment) >= shop.price, ENotEnough);
+
+    // Coin<SUI>에서 shop.price만큼 차감한다.
+    let paid = payment.balance_mut.split(shop.price);
+
+    // 상점의 잔액에 해당 금액을 추가한다.
+    shop.balance.join(paid);
+
+    transfer::transfer(Donut {
+        id: object::new(ctx)
+    }, ctx.sender())
+}
+
+/// 도넛을 소비하고 아무것도 얻지 않는다.
+public fun eat_donut(d: Donut) {
+    let Donut { id } = d;
+    id.delete();
+}
+
+/// `DonutShop`의 코인을 회수하여 tx sender에게 전송한다.
+/// `ShopOwnerCap`의 권한이 필요하다.
+public fun collect_profits(
+    _: &ShopOwnerCap, shop: &mut DonutShop, ctx: &mut TxContext
+) {
+    let amount = shop.balance.value();
+    let profits = shop.balance.split(amount).into_coin(ctx);
+
+    transfer::public_transfer(profits, ctx.sender())
+}
+```
