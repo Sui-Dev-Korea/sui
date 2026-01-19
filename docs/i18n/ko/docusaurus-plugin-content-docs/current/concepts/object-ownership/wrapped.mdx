@@ -1,0 +1,252 @@
+---
+title: Wrapped Objects
+description: Wrapped object는 다른 object 데이터 구조 내부에 중첩된 object 데이터 구조이다. Object는 직접, `Option`을 통해, 또는 `vector` 필드를 통해 wrapped될 수 있다.
+keywords:
+  - wrapped objects
+  - wrapping objects
+  - unwrapping objects
+  - direct wrapping
+  - wrap directly
+  - wrap object directly
+  - wrap object option
+  - option wrap
+  - vector wrap
+  - wrap object vector
+---
+
+Move에서 struct를 중첩하여 데이터 구조를 구성할 수 있다. 이 예제는 기본적인 wrapper 패턴을 보여준다:
+
+```move
+public struct Foo has key {
+    id: UID,
+    bar: Bar,
+}
+
+public struct Bar has store {
+    value: u64,
+}
+```
+
+Struct 타입을 (`key` ability가 있는) Sui object struct에 임베드하려면, 해당 struct 타입은 `store` ability를 가져야 한다.
+
+앞의 예제에서 `Bar`는 일반 struct이지만, `key` ability가 없으므로 Sui object가 아니다.
+
+다음 코드는 `Bar`를 object로 바꾸며, 이는 여전히 `Foo` 안에 wrap할 수 있다:
+
+```move
+public struct Bar has key, store {
+    id: UID,
+    value: u64,
+}
+```
+
+이제 `Bar` 또한 Sui object 타입이다. `Bar` 타입의 Sui object를 `Foo` 타입의 Sui object에 넣는다면, `Foo` object 타입은 `Bar` object 타입을 wrap한다. `Foo` object 타입은 wrapper 또는 wrapping object이다.
+
+Sui object를 다른 object로 wrapping하는 것에는 몇 가지 흥미로운 결과가 따른다. Object가 wrapped되면, 해당 object는 더 이상 온체인에 독립적으로 존재하지 않는다. 더 이상 ID로 object를 조회할 수 없다. 해당 object는 그것을 wrap하는 object의 데이터 일부가 된다. 가장 중요하게, Sui Move 호출에서 wrapped된 object를 어떤 방식으로도 인수로 전달할 수 없다. 유일한 접근 지점은 wrapping object를 통하는 것이다.
+
+A가 B를 wrap하고, B가 C를 wrap하며, C 또한 A를 wrap하는 순환 wrapping 동작을 생성하는 것은 불가능하다.
+
+어느 시점에, wrapped된 object를 꺼내서 address로 전송하거나, 수정, 삭제 또는 동결할 수 있다. 이를 **unwrapping**이라고 한다. Object가 **unwrapped**되면, 이는 다시 독립적인 object가 되며 온체인에서 직접 접근할 수 있다. 또한 Wrapping과 unwrapping에 대한 중요한 속성이 있다: object의 ID는 wrapping과 unwrapping 전후에도 동일하게 유지된다.
+
+Sui object를 다른 Sui object로 wrap하는 몇 가지 방법이 있으며, 이들의 사용 사례는 일반적으로 다르다. 이 섹션에서는 일반적인 사용 사례와 함께 Sui object를 wrap하는 세 가지 다른 방법을 설명한다.
+
+### Direct wrapping
+
+**Direct wrapping**은 Sui object 타입이 다른 Sui object 타입을 직접 필드로 포함할 때 발생한다. Direct wrapping으로 얻을 수 있는 가장 중요한 특성은 다음과 같다:
+
+- Wrapped object는 wrapper를 파괴하지 않고는 추출할 수 없다
+- 강력한 캡슐화 보장을 제공한다
+- Object 잠금 패턴을 구현하는 데 이상적이다
+- 접근을 수정하기 위해 명시적인 contract 호출이 필요하다
+
+다음 신뢰할 수 있는 스왑의 구현 예제는 direct wrapping 사용 방법을 보여준다. `scarcity`와 `style`을 가진 NFT 스타일의 `Object` 타입이 있다고 가정한다. 이 예제에서 `scarcity`는 object의 희귀도를 결정하며 (아마도 더 희귀할수록 시장 가치가 높을 것이다), `style`은 object 콘텐츠/타입 또는 렌더링 방식을 결정한다. 여러 object를 보유하고 있으며 이를 다른 사람과 교환하려는 경우, 공정한 거래임을 보장하고 싶을 것이다. 동일한 `scarcity`를 가진 다른 object와만 교환하고 싶지만, 다른 `style`을 원한다 (더 많은 스타일을 수집할 수 있도록).
+
+먼저, 이러한 object 타입을 정의한다:
+
+```move
+public struct Object has key, store {
+    id: UID,
+    scarcity: u8,
+    style: u8,
+}
+```
+
+실제 애플리케이션에서는 object의 공급량이 제한되도록 하고, 소유자 목록에 민트하는 메커니즘이 있을 수 있다. 단순화된 데모 목적상 이 예제는 생성 과정을 간소화한다:
+
+```move
+public fun new(scarcity: u8, style: u8, ctx: &mut TxContext): Object {
+    Object { id: object::new(ctx), scarcity, style }
+}
+
+```
+
+자신의 object와 다른 사람의 object 간의 스왑/거래를 활성화할 수도 있다. 예를 들어, 두 주소에서 두 object를 가져와 소유권을 교환하는 함수를 정의한다. 그러나 이는 Sui에서 작동하지 않는다. Object 소유자만이 object를 변경하는 transaction을 보낼 수 있기 때문이다. 따라서 한 사람이 자신의 object와 다른 사람의 object를 스왑하는 transaction을 보낼 수 없다.
+
+또 다른 일반적인 해결책은 object를 NFT 마켓플레이스나 staking pool과 같은 pool로 보내고, 그곳에서 스왑을 수행하는 것이다 (즉시 또는 나중에 수요가 있을 때). 다른 챕터에서는 누구나 변경할 수 있는 shared object의 개념을 다루며, 이를 통해 누구나 shared object pool에서 작업할 수 있는 방법을 설명한다. 이 챕터는 owned object를 사용해 동일한 효과를 달성하는 방법에 초점을 맞춘다. Owned object만 사용하는 transaction은 Sui에서 합의가 필요하지 않기 때문에, shared object를 사용하는 것보다 더 빠르고 (가스 측면에서) 저렴하다.
+
+Object를 스왑하려면, 동일한 address가 두 object를 모두 소유해야 한다. 자신의 object를 스왑하려는 사용자는 스왑 서비스를 제공하는 사이트와 같은 제3자에게 object를 보낼 수 있으며, 제3자는 스왑을 수행하고 object를 적절한 owner에게 보내는 것을 돕는다. (코인 및 NFT 같은) Object에 대한 수탁을 유지하고 제3자에게 완전한 수탁을 넘기지 않기 위해 direct wrapping을 사용한다. Wrapper object 타입을 다음과 같이 정의한다:
+
+```move
+public struct SwapRequest has key {
+    id: UID,
+    owner: address,
+    object: Object,
+    fee: Balance<SUI>,
+}
+```
+
+`SwapRequest`는 Sui object 타입을 정의하며, 스왑할 `object`를 wrap하고, object의 원래 `owner`를 추적한다. 또한 이 스왑에 대해 제3자에게 일정 수수료를 지불해야 할 수도 있다. `Object`를 소유한 사람이 스왑을 요청하는 인터페이스를 정의한다:
+
+```move
+public fun request_swap(
+    object: Object,
+    fee: Coin<SUI>,
+    service: address,
+    ctx: &mut TxContext,
+) {
+    assert!(coin::value(&fee) >= MIN_FEE, EFeeTooLow);
+
+    let request = SwapRequest {
+        id: object::new(ctx),
+        owner: ctx.sender(),
+        object,
+        fee: coin::into_balance(fee),
+    };
+
+    transfer::transfer(request, service)
+}
+
+```
+
+위 함수에서는 object를 값으로 전달해야 하며, 이를 완전히 소비하여 `SwapRequest`에 wrapped 되어야 스왑 요청이 만들어진다. 이 예제는 또한 수수료를 (`Coin<SUI>` 타입으로) 제공하고 수수료가 충분한지 확인한다. 이 예제는 `Coin`이 `wrapper` object에 들어갈 때 `Coin`을 `Balance`로 바꾼다. 이는 `Coin`이 Sui object 타입이며 (transaction 입력 또는 address로 전송된 object와 같은) Sui object로 전달하기 위해서만 사용되기 때문이다. 다른 구조체에 임베드되어야 하는 코인 잔액의 경우, 불필요한 `UID` 필드를 가지고 다니는 오버헤드를 피하기 위해 대신 `Balance`를 사용한다.
+
+그러면 wrapper object는 호출에 `service`로 지정된 address를 가진 서비스 운영자에게 전송된다.
+
+서비스 운영자가 두 주소에서 보낸 두 object 간의 스왑을 수행하기 위해 호출할 수 있는 함수에 대한 함수 인터페이스는 다음과 유사하다:
+
+```move
+public fun execute_swap(s1: SwapRequest, s2: SwapRequest): Balance<SUI>;
+```
+
+여기서 `s1`  `s2`는 서로 다른 object 소유자로부터 서비스 운영자에게 전송된 두 wrapped object이다. 두 wrapped object는 결국 [unpacked](https://move-book.com/move-basics/struct.html#destructing-structures) 되어야 하므로 값으로 전달된다.
+
+먼저, 두 object를 unpack하여 내부 필드를 얻는다:
+
+```move
+let SwapRequest {id: id1, owner: owner1, object: o1, fee: fee1} = s1;
+let SwapRequest {id: id2, owner: owner2, object: o2, fee: fee2} = s2;
+```
+
+그런 다음, 스왑이 적법한지 확인한다 (두 object의 희귀도가 동일하고 스타일이 다름):
+
+```move
+assert!(o1.scarcity == o2.scarcity, EBadSwap);
+assert!(o1.style != o2.style, EBadSwap);
+```
+
+실제 스왑을 수행한다:
+
+```move
+transfer::transfer(o1, owner2);
+transfer::transfer(o2, owner1);
+```
+
+위 코드는 `o1`을 `o2`의 원래 소유자에게 전송하고, `o2`를 `o1`의 원래 소유자에게 전송한다. 그 후 서비스는 wrapping `SwapRequest` object들을 삭제할 수 있다:
+
+```move
+id1.delete();
+id2.delete();
+```
+
+마지막으로, 서비스는 `fee1`과 `fee2`를 함께 병합하고 반환한다. 서비스 제공자는 이것을 코인으로 바꾸거나, 모든 수수료를 수집하는 더 큰 pool로 병합할 수 있다:
+
+```move
+fee1.join(fee2);
+```
+
+이 호출 후, 두 object는 스왑되고 서비스 제공자는 서비스 수수료를 받는다.
+
+Contract가 `SwapRequest`를 처리하는 유일한 방법 - `execute_swap` - 만을 정의했기 때문에, 서비스 운영자는 소유권이 있음에도 불구하고 `SwapRequest`와 상호작용할 다른 방법이 없다.
+
+전체 소스 코드는 [trusted_swap](https://github.com/MystenLabs/sui/blob/main/examples/move/trusted_swap) 예제에서 확인할 수 있다.
+
+Direct wrapping을 사용하는 더 복잡한 예제를 보려면, [escrow](https://github.com/MystenLabs/sui/tree/main/examples/move/escrow) 예제를 참조한다.
+
+### Wrapping through `Option`
+
+Sui object 타입 `Bar`가 `Foo`로 직접 wrapped될 때, 유연성은 많지 않다: `Foo` object에는 반드시 `Bar` object가 있어야 하며, `Bar` object를 꺼내기 위해서는 `Foo` object를 파괴해야 한다. 그러나, 더 높은 유연성을 위해, wrapping 타입이 항상 wrapped object를 포함하지 않을 수도 있으며, wrapped object가 다른 object로 교체될 수도 있다.
+
+이 사용 사례를 보여주기 위해, 간단한 게임 캐릭터를 설계하자: 검과 방패를 든 전사이다. 전사는 검과 방패를 가지고 있을 수도, 없을 수도 있다. 전사는 언제든 검과 방패를 추가하고 기존 장비를 교체할 수 있어야 한다. 이를 설계하기 위해 `SimpleWarrior` 타입을 정의한다:
+
+```move
+public struct SimpleWarrior has key {
+    id: UID,
+    sword: Option<Sword>,
+    shield: Option<Shield>,
+}
+```
+
+각 `SimpleWarrior` 타입은 다음과 같이 정의된 선택적 `sword`와 `shield`를 wrap한다:
+
+```move
+public struct Sword has key, store {
+    id: UID,
+    strength: u8,
+}
+
+public struct Shield has key, store {
+    id: UID,
+    armor: u8,
+}
+```
+
+새 전사를 생성할 때, `sword`와 `shield`를 `none`으로 설정하여 아직 장비가 없음을 나타낸다:
+
+```move
+public fun create_warrior(ctx: &mut TxContext) {
+    let warrior = SimpleWarrior {
+        id: object::new(ctx),
+        sword: option::none(),
+        shield: option::none(),
+    };
+    transfer::transfer(warrior, ctx.sender())
+}
+```
+
+그런 다음 새 검이나 새 방패를 장착하는 함수를 정의할 수 있다:
+
+```move
+public fun equip_sword(warrior: &mut SimpleWarrior, sword: Sword, ctx: &mut TxContext) {
+    if (warrior.sword.is_some()) {
+        let old_sword = warrior.sword.extract();
+        transfer::transfer(old_sword, ctx.sender());
+    };
+    warrior.sword.fill(sword);
+}
+```
+
+앞의 예시의 함수는 `warrior`를 `SimpleWarrior`의 mutuable reference로 전달하고, `sword`를 값으로 전달하여 그것을 `warrior` 안에 wrap한다.
+
+`Sword`는 `drop` ability가 없는 Sui object 타입이므로, 전사가 이미 검을 장착한 경우 그 검을 drop 할 수 없다. 만약 당신이 기존 sword를 먼저 확인하고 꺼내지 않고 `option::fill`을 호출하면 오류가 발생한다. `equip_sword`에서는 먼저 이미 장착된 검이 있는지 확인한다. 있다면 꺼내서 sender에게 다시 보낸다. 플레이어 입장에서는 새 검을 장착할 때 기존 검이 인벤토리로 돌아오는 것이다.
+
+소스코드는 [simple_warrior](https://github.com/MystenLabs/sui/tree/main/examples/move/simple_warrior) 예제에서 찾을 수 있다.
+
+더 복잡한 예제를 보려면, [hero](https://github.com/MystenLabs/sui/tree/main/examples/move/hero)를 참조한다.
+
+### Wrapping through `vector`
+
+다른 Sui object의 vector 필드에 object를 wrapping하는 개념은 `Option`을 통해 wrapping하는 것과 매우 유사하다: 하나의 object가 동일한 타입의 wrapped object를 0개, 1개 또는 여러 개 포함할 수 있다. Vector를 통한 wrapping은 다음과 유사하다:
+
+```move
+public struct Pet has key, store {
+    id: UID,
+    cuteness: u64,
+}
+
+public struct Farm has key {
+    id: UID,
+    pets: vector<Pet>,
+}
+```
+
+ 위 예시는 `Pet`의 vector를 `Farm` 안에 wrap하며, `Farm` object를 통해서만 접근할 수 있다.
