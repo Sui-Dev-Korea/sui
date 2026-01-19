@@ -1,0 +1,122 @@
+---
+title: Orders
+description: DeepBookV3를 사용하여 지정가 주문 및 시장가 주문을 생성하고, 주문을 수정하거나 취소한다.
+keywords:
+  - limit orders
+  - market orders
+  - modify orders
+  - cancel orders
+  - balancemanager
+  - deepbookv3
+  - pay_with_deep
+  - DEEP token
+  - reduce order size
+  - lower expiration time
+  - order options
+  - self-matching options
+  - orderinfo
+  - orderdeepprice
+  - fill
+  - events
+  - place market order
+  - withdraw amount
+  - withdraw settled amount
+---
+
+사용자는 지정가 주문 또는 시장가 주문을 생성하고, 주문을 수정하고, 주문을 취소할 수 있다. `BalanceManager`는 주문을 처리하기 위해 필요한 자금을 보유해야 한다. DeepBookV3는 4가지 주문 옵션과 3가지 자체 매칭 옵션을 제공한다. `pay_with_deep` 플래그를 `true`로 설정하면 거래 수수료가 DEEP 토큰으로 지불된다. `pay_with_deep` 플래그를 `false`로 설정하면 거래 수수료가 입력 토큰으로 지불된다.
+
+사용자는 기존 주문을 수정하여 크기를 줄이거나 만료 시간을 낮추거나 둘 다 할 수 있다. 사용자는 주문 크기를 늘리거나 만료 시간을 늘리기 위해 주문을 수정할 수 없다. 그렇게 하려면 원래 주문을 취소하고 새 주문을 해야 한다.
+
+사용자는 단일 주문을 취소하거나 모든 주문을 취소할 수 있다.
+
+## API
+
+다음은 <code>Pool</code>이 제공하는 주문 관련 엔드포인트이다.
+
+### Order options
+
+다음 상수는 주문에 사용 가능한 옵션을 정의한다.
+
+<importcontent source="packages/deepbook/sources/helper/constants.move" mode="code" org="MystenLabs" repo="deepbookv3" variable="NO_RESTRICTION,IMMEDIATE_OR_CANCEL,FILL_OR_KILL,POST_ONLY"></importcontent>
+
+### Self-matching options
+
+다음 상수는 자체 매칭 주문에 사용 가능한 옵션을 정의한다.
+
+<importcontent source="packages/deepbook/sources/helper/constants.move" mode="code" org="MystenLabs" repo="deepbookv3" variable="SELF_MATCHING_ALLOWED,CANCEL_TAKER,CANCEL_MAKER"></importcontent>
+
+### OrderInfo struct
+
+지정가 주문 또는 시장가 주문을 하면 <code>OrderInfo</code> object가 생성되고 반환된다. DeepBookV3는 주문이 완료되거나 주문서에 배치된 후 이 object를 자동으로 삭제한다. <code>OrderInfo</code>는 모든 주문 정보를 나타내므로 요청의 실행 세부 정보를 검사하는 데 사용한다. DeepBookV3는 어떤 종류의 오류도 포착하지 않으므로 어떤 종류의 실패가 있으면 전체 transaction이 실패한다.
+
+<importcontent source="packages/deepbook/sources/book/order_info.move" org="MystenLabs" repo="deepbookv3" mode="code" struct="OrderInfo"></importcontent>
+
+### OrderDeepPrice struct
+
+<code>OrderDeepPrice</code> struct는 주문이 배치된 시점의 DEEP 변환율을 나타낸다.
+
+<importcontent source="packages/deepbook/sources/vault/deep_price.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderDeepPrice"></importcontent>
+
+### Fill struct
+
+<code>Fill</code> struct는 두 주문 간의 매칭 결과를 나타낸다. 이 struct를 사용하여 상태를 업데이트한다.
+
+<importcontent source="packages/deepbook/sources/book/fill.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="Fill"></importcontent>
+
+### Events
+
+DeepBookV3는 메이커 주문이 체결될 때 <code>OrderFilled</code>를 발생시킨다.
+
+<importcontent source="packages/deepbook/sources/book/order_info.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderFilled"></importcontent>
+
+DeepBookV3는 메이커 주문이 취소될 때 <code>OrderCanceled</code>를 발생시킨다.
+
+<importcontent source="packages/deepbook/sources/book/order.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderCanceled"></importcontent>
+
+DeepBookV3는 메이커 주문이 수정될 때 <code>OrderModified</code>를 발생시킨다.
+
+<importcontent source="packages/deepbook/sources/book/order.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderModified"></importcontent>
+
+DeepBookV3는 메이커 주문을 주문서에 주입할 때 <code>OrderPlaced</code>를 발생시킨다.
+
+<importcontent source="packages/deepbook/sources/book/order_info.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderPlaced"></importcontent>
+
+### Place limit order
+
+지정가 주문을 한다. 수량은 베이스 자산 기준이다. 현재 버전에서는 <code>pay_with_deep</code>가 true여야 하므로 수수료가 DEEP 토큰으로 지불된다.
+
+주문을 하기 전에 <code>BalanceManager</code> 호출로 <code>TradeProof</code>를 생성하는 것을 결합해야 한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="place_limit_order" nocomments></importcontent>
+
+### Place market order
+
+시장가 주문을 한다. 수량은 베이스 자산 기준이다. 매수 주문의 경우 <code>MAX_PRICE</code>, 매도 주문의 경우 <code>MIN_PRICE</code>로 <code>place_limit_order</code>를 호출한다. DeepBookV3는 체결되지 않은 수량에 대해 주문을 취소한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="place_market_order" nocomments></importcontent>
+
+### Modify order
+
+<code>order_id</code>와 <code>new_quantity</code>가 주어진 주문을 수정한다. 새 수량은 원래 수량보다 작고 체결된 수량보다 많아야 한다. 주문은 아직 만료되지 않았어야 한다.
+
+<code>modify_order</code> 함수는 아무것도 반환하지 않는다. transaction이 성공하면 수정이 성공한 것으로 간주한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="modify_order" nocomments></importcontent>
+
+### Cancel order
+
+주문을 취소한다. 주문은 <code>balance_manager</code>가 소유해야 한다. 주문은 주문서와 <code>balance_manager</code>의 미체결 주문에서 제거된다. <code>balance_manager</code> 잔액은 주문의 남은 수량으로 업데이트된다.
+
+수정과 유사하게 <code>cancel_order</code>는 아무것도 반환하지 않는다. DeepBookV3는 <code>OrderCanceled</code> 이벤트를 발생시킨다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="cancel_order" nocomments></importcontent>
+
+### Withdraw settled amounts
+
+<code>balance_manager</code>로 정산된 금액을 인출한다. 모든 주문은 자동으로 정산된 금액을 인출한다. 이것은 풀에서 모든 정산된 자금을 명시적으로 인출하기 위해 호출할 수 있다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="withdraw_settled_amounts" nocomments></importcontent>
+
+## Related links
+
+<relatedlink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub."></relatedlink>
