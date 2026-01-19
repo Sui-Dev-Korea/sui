@@ -1,0 +1,110 @@
+---
+title: Move Analyzer VS Code Extension
+sidebar_label: Move Analyzer
+description: Move extension은 Move source code에 대해 code navigation, completion, 그리고 diagnostics와 같은 언어 지원 기능을 제공한다.
+keywords:
+  - move analyzer
+  - analyze move
+  - syntax highlighting
+  - move syntax highlight
+  - move syntax
+  - code completion
+  - vs code
+  - analyze in vs code
+  - visual studio code
+  - move extension
+  - vs code extension
+  - move vs code extension
+  - analyzing
+  - analyze interface
+---
+
+Move Analyzer extension은 Visual Studio Code에서 Move 프로그래밍 언어를 위한 언어 지원 기능을 제공한다. 이는 syntax highlighting, code completion, 그리고 정의 연결 및 타입 검사와 같은 고급 기능을 활성화한다.
+
+## Install
+
+Visual Studio Code Marketplace에서 Move extension을 설치할 수 있다.
+
+1. VS Code를 연다.
+2. **Extensions** 뷰를 연다(macOS에서는 <kbd>⇧</kbd> + <kbd>⌘</kbd> + <kbd>X</kbd>, Windows/Linux에서는 <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>X</kbd>).
+3. `mysten.move`를 검색한다.
+4. Mysten Labs의 Move extension에서 **Install**을 클릭한다.
+
+대체 설치 방법은 다음을 포함한다.
+
+- <kbd>Ctrl</kbd> + <kbd>P</kbd> 또는 <kbd>⌘</kbd> + <kbd>P</kbd>를 사용하여 `ext install mysten.move`를 입력한다.
+
+- 명령줄을 사용한다.
+
+    ```sh
+    $ code --install-extension mysten.move
+    ```
+
+다음 extension들이 Move extension 설치에 포함된다:
+
+- [Move Syntax](https://marketplace.visualstudio.com/items?itemName=damirka.move-syntax)
+- [Move Trace Debugger](https://marketplace.visualstudio.com/items?itemName=mysten.move-trace-analyze)
+
+### Install move-analyzer
+
+Move extension은 플랫폼에 적합한 `move-analyzer`를 설치하려고 시도한다. 이 방법이 작동하지 않거나 수동 설치를 선호하는 경우 Cargo로 빌드한다:
+
+```sh
+$ cargo install --git https://github.com/MystenLabs/sui.git sui-move-lsp
+```
+
+기본적으로 Move extension은 `~/.sui/bin`에서 `move-analyzer`를 찾을 것으로 예상한다. binary를 이 위치로 복사하거나 extension이 다른 경로를 사용하도록 설정할 수 있다.
+
+## Features
+
+Move extension은 대부분의 Language Server Protocol 기능과 함께 Move code를 빌드, 테스트, trace하기 위한 기본 명령을 지원한다.
+
+### Build, test, and trace
+
+Move extension은 Move code를 빌드, 테스트, trace하기 위한 명령 팔레트 명령을 설치한다.
+
+![Move commands in the command palette](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/ide/images/commands.png?raw=true)
+
+이러한 명령은 열려 있는 Move source file에 대한 `Move.toml` 파일을 찾아 적절한 `sui move` command를 실행하기 위해 터미널을 연다.
+
+trace를 생성하려면 trace 생성이 가능한 `sui` binary가 있어야 한다. 자세한 내용은 [Debugger](./debugger.mdx)를 참조한다.
+
+### Syntax highlighting
+
+[Move Syntax](https://marketplace.visualstudio.com/items?itemName=damirka.move-syntax) extension은 syntax highlighting을 제공한다.
+
+### Hover information
+
+식별자 위에 마우스를 올리면 해당 식별자의 타입 정보, struct 필드 및 속성, 그리고 docstring(있는 경우)이 표시된다. 이는 macro를 포함한 모든 Move symbol에 대해 작동한다.
+
+-  struct 위에 마우스를 올리면 구조와 정의를 확인할 수 있다.
+
+    ![Struct hoverover](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/ide/images/hover_struct.png?raw=true)
+
+- 함수 위에 마우스를 올리면 세부 정보와 정의를 확인할 수 있다.
+
+    ![Function hoverover](https://gitlocalize.com/repo/10485/ko/docs/content/references/ide/images/hover_fun.png)
+
+-  macro 위에 마우스를 올리면 해당 기능을 확인할 수 있다.
+
+    ![Macro hoverover](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/ide/images/hover_macros.png?raw=true)
+
+### Code completion
+
+Move extension은 dot operator 입력 시 자동 완성을 제공하며 해당 타입에서 사용 가능한 method와 field를 표시한다.
+
+![Code completion](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/ide/images/dot_completion.png?raw=true)
+
+Move extension은 `::` operator 이후에도 자동 완성을 제공한다.
+
+![Type completion](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/ide/images/colon_completion.png?raw=true)
+
+마지막으로 Move extension은 *inlay hints*를 제공하며, 플러그인은 변수 선언, unpack, 함수 매개변수 및 기타 위치 뒤에 올바른 타입을 자동으로 삽입한다.
+
+![Inlay hints](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/ide/images/inlay_hint.png?raw=true)
+
+### Navigation
+
+Move extension은 `move-analyzer`가 마지막으로 파일을 빌드했을 때 해당 타입이 존재했던 경우에 한해 타입, 함수, macro를 포함한 모든 Move symbol에 대해 `go-to-definition` navigation을 지원한다.
+
+또한 extension은 함수, macro, 상수, 타입에 대해 `find-references`를 지원한다.
