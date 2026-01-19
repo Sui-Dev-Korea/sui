@@ -1,0 +1,34 @@
+---
+title: Staking and Unstaking
+description: Validator와 함께 SUI를 staking하거나 unstaking할 경우, 해당 validator가 가스 수수료로 획득한 보상의 일정 비율을 보상으로 받게 된다.
+keywords:
+  - token staking
+  - token unstaking
+  - SUI staking
+  - SUI unstaking
+  - unstake SUI
+  - stake SUI
+  - validator staking
+  - validator unstaking
+---
+
+Sui는 네트워크를 보안하고 운영하기 위해 위임 지분 증명 (DPoS) 방식을 사용한다. 이는 네트워크 내에서 각 validator의 voting power가 SUI 토큰 보유자로부터 위임받은 staking 수량에 따라 결정된다는 것을 의미한다. SUI 토큰 보유자는 자신의 토큰을 특정 validator에게 위임할 수 있으며, 위임된 staking 수량이 많을수록 해당 validator의 투표권도 커진다. Validator는 transaction을 처리하고 합의에 참여하는 대가로, 네트워크에서 발생한 가스 수수료를 기반으로 보상을 획득한다. 이러한 보상은 이후 staking 보상의 형태로 staker들에게 분배된다.
+
+## Staking
+
+SUI 토큰은 시스템 Move 패키지의 일부로 구현된 staking 함수를 호출하는 transaction을 네트워크에 전송함으로써 stake한다. 이 transaction은 SUI 토큰을 셀프 커스터디 stake object로 wrap한다. 해당 stake object에는 validator의 staking pool ID와 staking이 활성화되는 epoch 등 staking과 관련된 정보가 포함된다. [SIP-6](https://blog.sui.io/liquid-staking-coming-sui/)가 도입되면서, 사용자는 자신이 보유한 staking object를 활용해 liquid staking protocol에 참여할 수 있다.
+
+Sui 호환 crypto 지갑과 explorer는 일반적으로 수수료율과 APY와 같은 validator 정보를 제공한다. SUI staking을 시작하려면 각 기능의 해당 문서를 참고하라.
+
+## Unstaking
+
+Staking과 유사하게, 사용자는 system Move package의 unstaking 함수를 호출하는 transaction을 전송하여 validator로부터 자신의 stake를 인출한다. 이 transaction은 stake object의 wrapping을 해제하고 원금과 누적 보상을 SUI 토큰으로 사용자에게 전송한다. 사용자는 stake가 전체 epoch 동안 활성 상태였던 epoch에서만 보상을 적립한다. Validator의 rewards pool에서 인출되는 보상은 해당 stake의 activation epoch과 unstaking epoch을 기준으로 계산된다.
+
+## Choosing a validator for staking
+
+Sui에서 staking할 때는 함께 staking할 특정 validator를 선택해야 한다. validator의 선택은 사용자가 받는 staking 보상의 양에 잠재적으로 영향을 미칠 수 있다. 이 양을 결정하는 요인은 다음을 포함하되 이에 국한되지 않는다.
+
+- Validator commission rate: validator는 staker의 staking 보상에서 가져가는 비율을 지정하는 0이 아닌 수수료율을 설정하도록 선택할 수 있다. 예를 들어 validator의 수수료율이 10%이면 모든 staker의 staking 보상 중 10%가 validator에게 지급된다. validator는 사전 고지 없이 향후 시점에 자신의 수수료율을 선택할 수 있음을 이해해야 한다.
+- Validator performance: 성능이 좋지 않은 validator는 집계 규칙에 따라 패널티를 받을 수 있다. 패널티를 받은 validator는 해당 패널티가 적용된 epoch 동안 어떤 staking 보상도 받지 못하며, 사용자가 그 validator로부터 자신의 stake를 인출할 때에도 그 epoch의 보상을 받지 못한다.
+
+Sui 호환 crypto 지갑과 explorer는 일반적으로 수수료율과 APY와 같은 validator 정보를 제공한다. 이 데이터를 조회하는 방법은 해당 도구의 문서를 참조한다.
