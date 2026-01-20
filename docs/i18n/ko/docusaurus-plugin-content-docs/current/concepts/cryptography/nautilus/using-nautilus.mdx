@@ -1,0 +1,463 @@
+---
+title: Using Nautilus
+description: 재현 가능한 빌드 템플릿과 함께 Nautilus를 사용하는 방법에 대한 세부사항이다.
+---
+
+[Nautilus 프레임워크](https://github.com/MystenLabs/nautilus) 는 재현 가능한 빌드, 서명 포맷팅, HTTPS 트래픽 포워딩과 같은 스캐폴딩을 통해 AWS Nitro Enclave 배포를 돕는다. 이는 enclave 내부의 오프체인 계산 로직 구현에 집중할 수 있게 해준다.
+
+이 프레임워크는 Nautilus 인스턴스와 해당 공개 키를 등록하는 데 필요한 최소 스마트 컨트랙트 코드가 포함된 온체인 템플릿도 제공한다.<br>dApp에서 Nautilus를 사용하려면 다음을 수행한다:
+
+1. 원하는 계산 로직으로 Rust로 enclave를 구현한다.
+2. 예상 플랫폼 구성 레지스터(PCRs)를 저장하고 컨트랙트 배포자가 업데이트할 수 있도록 하는 Move 스마트 컨트랙트를 배포한다.
+3. AWS에 enclave 인스턴스를 배포하고 해당 attestation 문서를 사용해 온체인에 등록한다.
+4. 등록된 enclave에서 서명된 응답을 업로드하고 이를 온체인에서 검증한 다음, 스마트 컨트랙트에서 결과를 사용한다.
+
+## Purpose of this guide
+
+이 가이드는 다음 단계를 안내한다:
+
+1. AWS Nitro Enclaves를 사용하여 기본 Nautilus 오프체인 인스턴스를 작성하고 배포한다. 예제 인스턴스는 특정 위치의 날씨 데이터를 가져오는 서버를 실행한다.
+2. Attestation과 public key를 검증하여 enclave를 등록하고, 온체인에서 Nautilus 응답(서명과 페이로드)을 검증한 다음 위치와 온도 데이터로 NFT를 민트하는 Move 스마트 컨트랙트를 작성한다.
+
+설정 스크립트는 다음 작업을 수행한다:
+
+- 사전 구성된 EC2 인스턴스를 시작하고 Nitro Enclave를 할당한다.
+- Rust 기반 템플릿 애플리케이션을 enclave image format(EIF) 바이너리로 빌드하고 enclave 내부에서 실행한다.
+- Enclave 자체는 인터넷에 접근할 수 없으므로 상위 EC2 인스턴스를 통해 외부 API에 접근할 수 있도록 필요한 HTTP 도메인을 구성한다.
+- 클라이언트 측에서 enclave와 통신할 수 있도록 세 개의 엔드포인트를 노출한다.
+
+Enclave가 시작되면 새로운 키 쌍을 생성하고 다음 엔드포인트를 노출한다:
+
+- `health_check`: Enclave 내부에서 허용된 도메인을 점검한다. 이 로직은 템플릿에 내장되어 있으며 수정이 필요하지 않다.
+- `get_attestation`: Enclave의 public key에 대한 서명된 attestation 문서를 반환한다. 온체인 등록 시 사용한다. 이 로직은 템플릿에 내장되어 있으며 수정이 필요하지 않다.
+- `process_data`: 외부 API에서 날씨 데이터를 가져오고 enclave 키로 서명한 뒤 결과를 반환한다. 이 커스터마이즈 가능한 로직은 사용자가 구현해야 한다.
+
+## Code structure
+
+최신 구조와 관련 지침은 [GitHub repository](https://github.com/MystenLabs/nautilus)를 참조한다.
+
+```sh
+/move
+  /enclave          # Enclave 구성 및 public key 등록을 위한 유틸리티 함수
+  /weather-example  # Enclave 함수를 사용하는 온체인 로직 예제
+  /twitter-example  # 대체 온체인 로직 예제
+
+/src
+  /aws              # AWS 보일러플레이트로, 수정이 필요하지 않다.
+  /init             # AWS 보일러플레이트로, 수정이 필요하지 않다.
+  /system           # AWS 보일러플레이트로, 수정이 필요하지 않다.
+  /nautilus-server  # Enclave 내부에서 실행되는 Nautilus 서버.
+    /src
+      /apps
+        /weather-example    # 예제 디렉터리로, 필요에 따라 자체 애플리케이션 로직으로 교체한다.
+          mod.rs            # process_data 엔드포인트와 관련 로직을 정의한다. 오프체인 계산 로직으로 교체한다.
+          allowed_endpoints.yaml  # Enclave가 접근할 수 있는 모든 엔드포인트를 나열한다. 기본적으로 enclave는 인터넷 접근 권한이 없다. 구성 중 이 파일은 트래픽 포워딩을 위한 코드를 생성한다.
+        /twitter-example    # 유사한 구조의 또 다른 예제 디렉터리.
+    run.sh           # Enclave 내부에서 Rust 서버를 실행한다. 수정하지 않는다.
+    common.rs        # Attestation을 가져오는 공통 코드이다. 수정하지 않는다.
+```
+
+핵심 구현 파일:
+
+- `allowed_endpoints.yaml`: 외부 API 접근 권한을 정의한다.
+- `mod.rs`: 애플리케이션별 계산 로직을 포함한다.
+- `run.sh`: 서버 시작과 구성을 처리한다.
+- `common.rs`: attestation 가져오기를 관리한다.
+
+자신만의 Nautilus 앱을 만들려면:
+
+- Move 모듈용 디렉터리를 `move/my_app` 아래에 추가한다.
+- Rust 서버 로직용 디렉터리를 `src/nautilus-server/src/apps/my_app` 아래에 추가한다.
+- 기존 앱 디렉터리를 참고한다.
+- 배포된 Move 컨트랙트와 enclave에서 호스팅되는 Rust 서버와 상호작용하는 프런트엔드 로직을 구축한다.
+
+템플릿의 대부분은 수정 없이 유지할 수 있으므로, 앱별 로직에 대한 완전한 제어를 유지하면서 개발을 간소화할 수 있다.
+
+:::info Frontend 코드는 이 가이드에 포함되어 있지 않다. Move 호출은 CLI를 사용해 시연한다. :::
+
+## Run the example enclave
+
+1. AWS 개발자 계정을 설정하고 AWS CLI를 설치한다. 자세한 지침은  [AWS Nitro Enclaves getting started guide](https://docs.aws.amazon.com/enclaves/latest/user/getting-started.html#launch-instance)를 참조한다.
+
+2. 다음 스크립트를 실행하고 프롬프트를 따른다. 스크립트는 일부 값을 입력하도록 요청한다-이 예제를 그대로 실행하려면 다음 단계를 참조한다. 스크립트가 성공적으로 완료되면 로컬에 생성된 코드를 커밋해야 한다. 문제가 발생하면 이어지는 정보 상자를 참조하는데, AWS 계정 설정에 따라 지침이 달라질 수 있다.
+
+    ```sh
+    $ export KEY_PAIR=<your-key-pair-name>
+    $ export AWS_ACCESS_KEY_ID=<your-access-key>
+    $ export AWS_SECRET_ACCESS_KEY=<your-secret-key>
+    $ export AWS_SESSION_TOKEN=<your-session-token>
+    $ sh configure_enclave.sh <APP> # 예: `sh configure_enclave.sh weather-example`
+    ```
+
+    :::info
+
+    - 추가 지침은 `sh configure_enclave.sh -h`를 실행하여 확인한다.
+
+    - AWS 계정이 `us-east-1`,가 아닌 경우, 지역별로 `REGION` 과 `AMI_ID` 값을 구성해야 할 수 있다. 적합한 Amazon Linux 이미지 ID를 찾기 위해 이 [guide](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/finding-an-ami.html)를 참조한다.
+
+        ```sh
+        $ export REGION=<your-region>
+        $ export AMI_ID=<find-an-amazon-linux-ami-for-your-region>
+        ```
+
+    -  `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`,`AWS_SESSION_TOKEN`의 값을 찾으려면 이 [AWS guide](https://docs.aws.amazon.com/streams/latest/dev/setting-up.html) 를 참조한다.
+
+    - `KEY_PAIR` 는 기존 AWS 키 페어 이름 또는 생성할 키 페어 이름으로 설정한다. 키 페어를 생성하려면 이 [AWS guide](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html)를 참조한다.
+
+    - 공개 서브넷이 있는 VPC를 생성해야 할 수도 있다. 지침은 이 [AWS guide](https://000058.awsstudygroup.com/2-prerequiste/2.1-createec2/2.1.2-createpublicsubnet/) 를 참조한다.
+
+    :::
+
+3. 날씨 예제를 그대로 실행하려면 `allowed_endpoints.yaml`을 수정할 필요가 없는데, 이미 `api.weatherapi.com`이 포함되어 있기 때문이다. 프롬프트에 따라 필요한 값을 입력한다. 이 단계는 AWS Secrets Manager를 사용하여 시크릿(API 키)을 저장하는 방법을 시연하므로, 공개 애플리케이션 코드에 시크릿을 포함하지 않아도 된다.
+
+    ```sh
+    Enter EC2 instance base name: weather # 원하는 아무 값이나 된다
+    Do you want to use a secret? (y/n): y
+    Do you want to create a new secret or use an existing secret ARN? (new/existing): new
+    Enter secret name: weather-api-key # 원하는 아무 값이나 된다
+    Enter secret value: 045a27812dbe456392913223221306 # 이는 예시 API 키이며, weatherapi.com에서 본인의 키를 받을 수 있다
+    ```
+
+    Twitter 예제의 경우, 이 시크릿 값은 Twitter Developer 계정과 연결된 API Bearer Token을 의미한다.
+
+4. 성공적으로 완료되면 `/src/nautilus-server/run.sh` 와 `expose_enclave.sh`에 변경 사항이 생성된다. Enclave 이미지를 빌드할 때 필요하므로 이 변경 사항을 커밋한다.
+
+    :::info
+
+    - Enclave가 추가 외부 도메인에 접근하도록 허용하려면 `allowed_endpoints.yaml` 에 도메인을 추가한다. 이 파일을 업데이트하면 엔드포인트 목록이 enclave 빌드에 컴파일되므로 새 인스턴스를 생성하기 위해 `configure_enclave.sh`를 다시 실행해야 한다.
+    - 코드베이스에 포함하고 싶지 않은 민감한 값을 저장하기 위해 시크릿을 선택적으로 생성할 수 있다. 시크릿은 환경 변수로 enclave에 전달된다. 새로 생성된 시크릿을 검증하거나 기존 ARN을 찾으려면 [AWS Secrets Manager console](https://us-east-1.console.aws.amazon.com/secretsmanager/listsecrets?region=%3CREGION%3E)을 확인한다.
+
+    :::
+
+5. 인스턴스에 접속하여 저장소를 클론한다. 자세한 지침은 AWS 문서의 [Connect to your Linux instance using SSH](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/connect-linux-inst-ssh.html#connect-linux-inst-sshClient)를 참조한다.
+
+6. 이제 이전 단계에서 커밋한 파일 변경 사항을 포함하여 서버 코드가 있는 디렉터리 안에 있어야 한다. 다음으로 enclave 이미지를 빌드하고 실행한 뒤, 포트 3000에서 HTTP 엔드포인트를 노출한다.
+
+    ```sh
+    $ cd nautilus/
+    $ make ENCLAVE_APP=<APP> && make run ## 이는 enclave를 빌드하고 실행한다. 예: `make ENCLAVE_APP=weather-example`
+    $ sh expose_enclave.sh # 트래픽을 위해 포트 3000을 인터넷으로 노출한다
+    ```
+
+    :::info
+
+    `make run` 대신 `make run-debug`를 사용해 디버그 모드에서 enclave를 실행한다. 이는 프로덕션 빌드와 달리 모든 로그를 출력한다. 디버그 모드에서는 PCR 값이 모두 0이며 프로덕션 용도로 유효하지 않다.
+
+    :::
+
+7. 축하한다. 🎉 이제 외부에서 enclave와 상호작용할 수 있다. `PUBLIC_IP`는 AWS 콘솔에서 확인할 수 있다.
+
+    ```sh
+    $ curl -H 'Content-Type: application/json' -X GET http://<PUBLIC_IP>:3000/health_check
+    $ curl -H 'Content-Type: application/json' -X GET http://<PUBLIC_IP>:3000/get_attestation
+    $ curl -H 'Content-Type: application/json' -d '{"payload": { "location": "San Francisco"}}' -X POST http://<PUBLIC_IP>:3000/process_data
+    ```
+
+8. 선택적으로, EC2 인스턴스에 대해 AWS Certificate Manager(ACM)의 SSL/TLS 인증서를 사용하는 애플리케이션 로드 밸런서(ALB)를 설정하고 Amazon Route 53으로 DNS 라우팅을 구성할 수 있다. 자세한 내용은 [ACM User Guide](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-request-public.html)와 [ALB Guide](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html)를 참조한다.
+
+## Develop your own Nautilus server
+
+Nautilus 서버 로직은 `src/nautilus-server`에 있다. 애플리케이션을 커스터마이즈하려면 `apps/weather-example` 또는 `apps/twitter-example`을 템플릿으로 참조한다:
+
+- 애플리케이션이 접근해야 하는 외부 도메인을 지정하기 위해 `allowed_endpoints.yaml`을 정의한다.
+- `process_data` 로직을 정의하고 필요한 추가 엔드포인트를 등록하기 위해 `mod.rs`를 생성한다.
+
+다음 파일은 일반적으로 수정이 필요하지 않다:
+
+- `common.rs` 는 `get_attestation` 엔드포인트를 처리한다.
+- `main.rs` 는 임시 키 쌍을 초기화하고 HTTP 서버를 설정한다.
+
+대부분의 기능은 로컬에서 서버를 실행하여 테스트할 수 있다. 그러나 `get_attestation`엔드포인트는 Nitro Secure Module(NSM) 드라이버에 대한 접근이 필요하므로 로컬에서는 동작하지 않으며, 이는 구성된 EC2 인스턴스 내부에서 코드를 실행할 때만 사용할 수 있다. 이 엔드포인트는 설정 단계에서 설명한 대로 enclave 내부에서 서버가 실행될 때 정상 동작한다.
+
+로컬에서 `process_data`  엔드포인트를 테스트하려면 다음을 실행한다:
+
+```sh
+$ cd src/nautilus-server/
+$ RUST_LOG=debug API_KEY=045a27812dbe456392913223221306 cargo run --features=weather-example --bin nautilus-server
+$ curl -H 'Content-Type: application/json' -d '{"payload": { "location": "San Francisco"}}' -X POST http://localhost:3000/process_data
+```
+
+<details></details>
+
+<summary>Output</summary>
+
+```json
+{
+  "response":
+    {
+      "intent":0,
+      "timestamp_ms":1744041600000,
+      "data":
+        {
+          "location":"San Francisco",
+          "temperature":13
+        }
+    },
+  "signature":"b75d2d44c4a6b3c676fe087465c0e85206b101e21be6cda4c9ab2fd4ba5c0d8c623bf0166e274c5491a66001d254ce4c8c345b78411fdee7225111960cff250a"
+}
+```
+
+
+
+### Troubleshooting
+
+- **Traffic forwarder error:** 대상 도메인이 모두 `allowed_endpoints.yaml`.에 나열되어 있는지 확인한다. 모든 도메인에 대한 enclave 연결을 테스트하려면 다음 명령을 사용한다.
+
+```sh
+$ curl -H 'Content-Type: application/json' -X GET http://<PUBLIC_IP>:3000/health_check
+```
+
+<details></details>
+
+<summary>Output</summary>
+
+```json
+{
+  "pk":"f343dae1df7f2c4676612368e40bf42878e522349e4135c2caa52bc79f0fc6e2",
+  "endpoints_status":
+    {
+      "api.weatherapi.com":true
+    }
+}
+```
+
+
+
+- **Docker is not running:** EC2 인스턴스가 아직 시작 중일 수 있다. 잠시 기다린 뒤 다시 시도한다.
+
+- **Cannot connect to enclave:**이는 VSOCK 통신 문제일 수 있다. Enclave가 실행 중이며  `sh expose_enclave.sh`로 올바르게 노출되었는지 확인한다.
+
+### Reset
+
+```sh
+$ cd nautilus/
+$ sh reset_enclave.sh
+```
+
+그런 다음 이미지 빌드 단계를 다시 수행한다.
+
+## Build locally to check reproducibility
+
+동일한 소스 코드(`/src`의 모든 것)에서 빌드된 모든 enclave는 재현 가능한 빌드를 통해 동일한 PCR을 생성할 수 있다.<br>이는 ``run.sh``에서 수행된 트래픽 포워딩 변경 사항도 포함한다(브랜치 ``example-configuration`` 참조).
+
+```sh
+$ cd nautilus/
+$ make ENCLAVE_APP=weather-example
+$ cat out/nitro.pcrs
+```
+
+<details></details>
+
+<summary>Output</summary>
+
+```sh
+911c87d0abc8c9840a0810d57dfb718865f35dc42010a2d5b30e7840b03edeea83a26aad51593ade1e47ab6cced4653e PCR0
+911c87d0abc8c9840a0810d57dfb718865f35dc42010a2d5b30e7840b03edeea83a26aad51593ade1e47ab6cced4653e PCR1
+21b9efbc184807662e966d34f390821309eeac6802309798826296bf3e8bec7c10edb30948c90ba67310f7b964fc500a PCR2
+```
+
+
+
+```sh
+# 이후 enclave 등록 시 사용할 env var를 추가한다.
+$ PCR0=911c87d0abc8c9840a0810d57dfb718865f35dc42010a2d5b30e7840b03edeea83a26aad51593ade1e47ab6cced4653e
+$ PCR1=911c87d0abc8c9840a0810d57dfb718865f35dc42010a2d5b30e7840b03edeea83a26aad51593ade1e47ab6cced4653e
+$ PCR2=21b9efbc184807662e966d34f390821309eeac6802309798826296bf3e8bec7c10edb30948c90ba67310f7b964fc500a
+```
+
+## Register the enclave on chain
+
+Rust 코드를 최종 확정한 후, dApp 관리자는 해당 PCR과 public key로 enclave를 등록할 수 있다.
+
+```sh
+# 선택적으로
+$ sui client switch --env testnet # 또는 적당한 네트워크
+$ sui client faucet
+$ sui client gas
+# Enclave package를 배포한다.
+$ cd move/enclave
+$ sui move build
+$ sui client publish
+
+# ENCLAVE_PACKAGE_ID를 publish 출력에서 환경 변수로 기록
+$ ENCLAVE_PACKAGE_ID=0x3b009f952e11f0fa0612d0a8e07461fb69edc355d732e5d6e39267b1b4fd7138
+
+# dApp 로직을 배포한다.
+$ cd ../<APP>
+$ sui move build
+$ sui client publish
+
+#  publish 출력에서 CAP_OBJECT_ID (owned object of type Cap), ENCLAVE_CONFIG_OBJECT_ID (shared object), APP_PACKAGE_ID (p날씨 모듈을 포함하는 package)을 환경 변수로 기록한다
+$ CAP_OBJECT_ID=0xb232d20245ba2d624d1c1628c4fc062bd1d3249601385476d9736fc60c897d2b
+$ ENCLAVE_CONFIG_OBJECT_ID=0x9a50017ab37090ef4b5704eb24201c88b2e4bbad2aad1d4e69ecf1bdfbae9ccb
+$ APP_PACKAGE_ID=0x097b551dec72f0c47e32e5f8114d0d12a98ab31762d21adff295f6d95d353154
+
+# 배포된 enclave URL을 기록한다(예: http://<PUBLIC_IP>:3000)
+$ ENCLAVE_URL=<DEPLOYED_URL>
+
+# dApp 생성에 사용한 모듈 이름과 OTW 이름으로, Move 코드 `fun init`에 정의되어 있다.
+$ MODULE_NAME=weather
+$ OTW_NAME=WEATHER
+
+# 모든 환경 변수가 채워졌는지 확인한다
+$ echo $APP_PACKAGE_ID
+$ echo $ENCLAVE_PACKAGE_ID
+$ echo $CAP_OBJECT_ID
+$ echo $ENCLAVE_CONFIG_OBJECT_ID
+$ echo 0x$PCR0
+$ echo 0x$PCR1
+$ echo 0x$PCR2
+$ echo $MODULE_NAME
+$ echo $OTW_NAME
+$ echo $ENCLAVE_URL
+
+# =======
+# 이후에 이어지는 두 단계(update pcrs, register enclave)는 enclave 서버가 업데이트되면 재사용할 수 있다
+# =======
+
+# 이는 enclave cap과 빌드된 PCR로 온체인에서 update_pcrs를 호출하며, Rust 서버 코드가 업데이트되면 PCR을 업데이트하는 데 재사용할 수 있다
+$ sui client call --function update_pcrs --module enclave --package $ENCLAVE_PACKAGE_ID --type-args "$APP_PACKAGE_ID::$MODULE_NAME::$OTW_NAME" --args $ENCLAVE_CONFIG_OBJECT_ID $CAP_OBJECT_ID 0x$PCR0 0x$PCR1 0x$PCR2
+
+# 선택 사항으로, 원하는 이름을 부여한다
+$ sui client call --function update_name --module enclave --package $ENCLAVE_PACKAGE_ID --type-args "$APP_PACKAGE_ID::$MODULE_NAME::$OTW_NAME" --args $ENCLAVE_CONFIG_OBJECT_ID $CAP_OBJECT_ID "weather enclave, updated 2025-05-13"
+
+# 이 스크립트는 enclave URL에서 get_attestation 엔드포인트를 호출하고 이를 사용해 온체인에서 register_enclave를 호출하여 public key를 등록하며, 그 결과로 enclave object가 생성된다.
+된다
+$ sh ../../register_enclave.sh $ENCLAVE_PACKAGE_ID $APP_PACKAGE_ID $ENCLAVE_CONFIG_OBJECT_ID $ENCLAVE_URL $MODULE_NAME $OTW_NAME
+
+# register 출력에서 생성된 shared object ENCLAVE_OBJECT_ID를 환경 변수로 기록한다
+$ ENCLAVE_OBJECT_ID=0x1c9ccfc0f391f5e679e1f9f7d53c7fa455bf977e0f6dc71222990401f359c42a
+```
+
+PCR 값이 포함된 [example enclave config object](https://testnet.suivision.xyz/object/0x58a6a284aaea8c8e71151e4ae0de2350ae877f0bd94adc2b2d0266cf23b6b41d)를 SuiScan에서 확인할 수 있다.<br>Enclave의 등록된 public key가 포함된 [example enclave object](https://testnet.suivision.xyz/object/0xe0e70df5347560a1b43e5954267cadd1386a562095cb4285f2581bf2974c838d)도 확인할 수 있다.
+
+### Artifacts for Twitter example
+
+```sh
+$ cd nautilus/
+$ make ENCLAVE_APP=twitter-example
+$ cat out/nitro.pcrs
+```
+
+<details> <summary>Output</summary> </details>
+
+```sh
+968f1266150cf8c4d62c9692b9f9b8fd6889d9331019d323f67a6ae6ab88b9378ad23f49f58c349526b9fdd5865da879 PCR0
+968f1266150cf8c4d62c9692b9f9b8fd6889d9331019d323f67a6ae6ab88b9378ad23f49f58c349526b9fdd5865da879 PCR1
+21b9efbc184807662e966d34f390821309eeac6802309798826296bf3e8bec7c10edb30948c90ba67310f7b964fc500a PCR2
+```
+
+
+
+```sh
+# 이후 enclave 등록 시 사용할 환경 변수를 추가한다.
+$ PCR0=968f1266150cf8c4d62c9692b9f9b8fd6889d9331019d323f67a6ae6ab88b9378ad23f49f58c349526b9fdd5865da879
+$ PCR1=968f1266150cf8c4d62c9692b9f9b8fd6889d9331019d323f67a6ae6ab88b9378ad23f49f58c349526b9fdd5865da879
+$ PCR2=21b9efbc184807662e966d34f390821309eeac6802309798826296bf3e8bec7c10edb30948c90ba67310f7b964fc500a
+
+$ MODULE_NAME=twitter
+$ OTW_NAME=TWITTER
+
+# 등록한 enclave로 바꾼다
+$ ENCLAVE_PACKAGE_ID=0xcca410b231d0acfa92c7709d490ab2f15fb5619be719ee0786099ffc3f6c9ab8
+$ APP_PACKAGE_ID=0x652875162b566bb04187c76f93215e56c28aa05487393056279e331598ba4978
+$ CAP_OBJECT_ID=0x44f3b57aa3870762ad334424cccb7f4c785cac007baab7e987c6d6a43c6aa100
+$ ENCLAVE_CONFIG_OBJECT_ID=0xe33641a2dae5eb4acad3859e603ec4e25641af05f837c85058645c7d8d9d831a
+$ ENCLAVE_OBJECT_ID=0x53db077721140910697668f9b2ee80fbecd104ac076d60fc1fb49ae57cd96c0d
+
+# 자신의 enclave IP로 바꾼다
+$ ENCLAVE_URL=http://<PUBLIC_IP>:3000
+```
+
+PCR 값이 포함된 [example enclave config object](https://testnet.suivision.xyz/object/0xe33641a2dae5eb4acad3859e603ec4e25641af05f837c85058645c7d8d9d831a) 를 확인할 수 있다.<br>등록된 enclave의 public key가 포함된  [example enclave object](https://testnet.suivision.xyz/object/0x53db077721140910697668f9b2ee80fbecd104ac076d60fc1fb49ae57cd96c0d)도 확인할 수 있다.
+
+Twitter 예제의 frontend 코드는  [in this repository](https://github.com/MystenLabs/nautilus-twitter/tree/main/frontend)에서 확인할 수 있다.
+
+### Enclave management
+
+이 템플릿은 관리자가 PCR을 정의하는 하나의 `EnclaveConfig` 와 연결된 여러 `Enclave` object를 등록할 수 있도록 한다.<br>각 `Enclave` object는 고유한 public key를 가진 특정 enclave 인스턴스를 나타내며, `EnclaveConfig`는 PCR 값과 관련 버전을 추적한다.<br>최신 `config_version`으로 모든 새로운 `Enclave` 인스턴스를 등록하여 일관성을 보장할 수 있다.
+
+이 설계는 관리자가 서로 다른 public key를 가진 동일한 enclave의 여러 인스턴스를 실행할 수 있도록 한다.<br>`Enclave` object를 생성할 때 `config_version`을 최신 버전으로 설정한다.<br>관리자는 자신의 `Enclave` object를 등록하거나 삭제할 수 있다.
+
+### Update PCRs
+
+스마트 컨트랙트 배포자는 `EnclaveCap`을 보유하며, Nautilus 서버 코드가 수정된 경우 PCR과 enclave의 public key를 업데이트할 수 있다.<br>`make ENCLAVE_APP=<APP> && cat out/nitro.pcrs`를 사용해 새로운 PCR을 가져올 수 있다.<br>PCR을 업데이트하거나 enclave를 다시 등록하려면 이전 섹션의 단계를 재사용한다.
+
+## Using the verified computation in Move
+
+이제 계산을 위해 enclave와 상호작용하는 프런트엔드 코드를 작성하고, 결과 데이터를 Move 컨트랙트로 전송하여 사용할 수 있다.<br>날씨 예제의 경우, 특정 위치의 날씨 데이터를 가져오도록 enclave에 요청할 수 있다:
+
+```sh
+$ curl -H 'Content-Type: application/json' -d '{"payload": { "location": "San Francisco"}}' -X POST http://<PUBLIC_IP>:3000/process_data
+```
+
+<details></details>
+
+<summary>Output</summary>
+
+```json
+{
+  "response":
+    {
+      "intent":0,
+      "timestamp_ms":1744683300000,
+      "data":
+        {
+          "location":"San Francisco",
+          "temperature":13
+        }
+    },
+  "signature":"77b6d8be225440d00f3d6eb52e91076a8927cebfb520e58c19daf31ecf06b3798ec3d3ce9630a9eceee46d24f057794a60dd781657cb06d952269cfc5ae19500"
+}
+```
+
+
+
+그런 다음 enclave 응답의 값 `signature`, `timestamp`, `location`, and `temperature`를 사용하여 Move 컨트랙트에서 `update_weather`를 호출한다.<br>이 예제에서는 스크립트를 사용해 호출을 시연하지만, dApp 프런트엔드에 통합해야 한다.
+
+```sh
+$ sh ../../update_weather.sh \
+    $APP_PACKAGE_ID \
+    $MODULE_NAME \
+    $OTW_NAME \
+    $ENCLAVE_OBJECT_ID \
+    "77b6d8be225440d00f3d6eb52e91076a8927cebfb520e58c19daf31ecf06b3798ec3d3ce9630a9eceee46d24f057794a60dd781657cb06d952269cfc5ae19500" \
+    1744683300000 \
+    "San Francisco" \
+    13
+```
+
+네트워크 스캐너에서 [created weather NFT](https://testnet.suivision.xyz/object/0xa78e166630c0ed004b3115b474fed15d71f27fc80b68e37d451494c6e815931e)예제를 확인할 수 있다
+
+### Signing payload
+
+Move에서의 서명 페이로드는 Binary Canonical Serialization(BCS)을 사용해 구성된다.<br>이는 서명을 생성할 때 enclave의 Rust 코드에서 지정된 구조와 일치해야 하며, 그렇지 않으면 `enclave.move`에서 서명 검증이 실패할 수 있다.
+
+일관성을 보장하기 위해 Move와 Rust 모두에서 단위 테스트를 작성한다.<br>`src/nautilus-server/src/app.rs`의 `test_serde()`와 `move/enclave/enclave.move`의 예제를 참조한다.
+
+## FAQs
+
+커뮤니티에서 자주 묻는 질문에 대한 답변은 다음 섹션에서 확인할 수 있다.
+
+### Why did Sui choose AWS Nitro Enclaves initially?
+
+사용 가능한 TEE 공급자는 많지만, AWS Nitro Enclaves는 성숙도와 재현 가능한 빌드에 대한 지원 때문에 초기 지원 대상으로 선택되었다.<br>추가 TEE 공급자에 대한 지원을 향후 고려할 수 있다.
+
+<importcontent source="contact-nautilus.mdx" mode="snippet"></importcontent>
+
+### Where is the root of trust of AWS?
+
+이는 the Sui framework의 일부로 저장되며 AWS attestation 문서를 검증하는 데 사용된다.[AWS](https://docs.aws.amazon.com/enclaves/latest/user/verify-root.html#validation-process)에 설명된 단계를 따라 해시를 검증할 수 있다.
+
+```sh
+$ curl https://raw.githubusercontent.com/MystenLabs/sui/refs/heads/main/crates/sui-types/src/nitro_root_certificate.pem -o cert_sui.pem
+$ sha256sum cert_sui.pem
+
+6eb9688305e4bbca67f44b59c29a0661ae930f09b5945b5d1d9ae01125c8d6c0
+
+$ curl https://aws-nitro-enclaves.amazonaws.com/AWS_NitroEnclaves_Root-G1.zip -o cert_aws.zip
+$ unzip cert_aws.zip
+$ sha256sum root.pem
+
+6eb9688305e4bbca67f44b59c29a0661ae930f09b5945b5d1d9ae01125c8d6c0 # check it matches from the one downloaded from the Sui repo
+```

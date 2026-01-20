@@ -1,0 +1,48 @@
+---
+title: Sui Framework
+description: Sui framework 라이브러리에는 Sui와 그 표준의 로직을 제공하는 Move 모듈이 포함되어 있다. Rust 프로세스는 코드 내 주석으로부터 직접 모듈의 문서를 생성한다.
+keywords:
+  - sui framework
+  - sui libraries
+  - move modules
+  - sui standards
+  - rust
+  - documentation from modules
+  - generate framework documentation
+  - crate documentation
+  - build documentation locally
+  - build docs
+---
+
+이 섹션의 문서는 Rust의 `cargo doc` 프로세스로 생성된다. 이 프로세스는 소스 코드의 주석에서 콘텐츠를 빌드한다.
+
+## Framework documentation
+
+이 항목의 하위 페이지는 다음 라이브러리의 모듈 멤버를 설명한다:
+
+- <unsafelink href="/references/framework/sui_bridge"><code>sui:bridge</code></unsafelink>
+- <unsafelink href="/references/framework/sui_std"><code>sui:std</code></unsafelink>
+- <unsafelink href="/references/framework/sui_sui"><code>sui:sui</code></unsafelink>
+- <unsafelink href="/references/framework/sui_sui_system"><code>sui:sui_system</code></unsafelink>
+
+## Source code
+
+이 Move 모듈들의 소스 코드는 GitHub의 `sui` 저장소 내 [crates/sui-framework/packages](https://github.com/MystenLabs/sui/tree/main/crates/sui-framework/packages) 디렉터리에서 찾을 수 있다. 앞서 언급한 바와 같이, 코드에 포함된 주석은 정의된 로직에 대한 맥락을 제공한다.
+
+## Crate documentation
+
+다음 문서의 원시 `cargo doc` 출력은 `sui` 저장소에서 확인할 수 있다. .md 파일은 `crates/sui-framework/docs` 디렉터리에 위치한다. 온라인에서는 https://github.com/MystenLabs/sui/tree/main/crates/sui-framework/docs 에서 확인할 수 있다.
+
+## Build documentation locally
+
+가장 최신 문서는 항상 `sui` 저장소의 `main` 브랜치에서 확인할 수 있다. 일반적으로 로컬에서 문서를 빌드할 필요는 없지만, 필요할 경우 다음 단계를 수행할 수 있다:
+
+1. `sui/crates/sui-framework` 디렉터리에서 터미널 또는 콘솔을 연다.
+2. `cargo doc --workspace --exclude "sui-benchmark" --no-deps`를 실행한다.
+3. 문서는 `crates/sui-framework/docs`의 각 하위 디렉터리별로 빌드된다.
+
+:::info
+
+만약 `cargo doc` 프로세스가 기대한 대로 작동하지 않으면 다시 시도하기 전에 `cargo clean`을 실행해본다.
+
+:::

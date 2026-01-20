@@ -1,0 +1,443 @@
+---
+title: Move Conventions
+description: Sui 개발을 위한 Move 2024 권장 모범 사례.
+---
+
+이 가이드는 Sui에서 Move 스마트 컨트랙트를 작성하기 위한 권장되는 규칙과 모범 사례를 설명한다. 이러한 지침을 따르면 생태계 표준에 부합하며 유지보수 가능하고, 안전하고, 조합 가능한 코드를 작성하는 데 도움이 된다.
+
+이러한 규칙은 엄격한 규칙이라기보다는 권장 사항이지만, 많은 Sui 프로젝트에서 효과가 입증된 패턴을 나타낸다. 이는 생태계 전반의 일관성을 생성하고 코드를 더 쉽게 이해하고 유지보수할 수 있도록 돕는다.
+
+## Organization principles
+
+### Package
+
+Sui 패키지는 다음으로 구성된다:
+
+- 블록체인에 업로드될 Move 코드를 포함하는`sources` 디렉토리
+- 패키지의 의존성과 기타 정보를 선언하는 `Move.toml` 매니페스트 파일
+- Sui Move 툴체인이 자동으로 생성하는 `Move.lock` 파일로, 의존성 버전을 고정하고 서로 다른 네트워크에 존재하는 패키지의 게시 및 업그레이드 버전을 추적한다.
+
+이러한 이유로 `Move.lock` 파일은 항상 패키지에 포함되어야 한다 (`.gitignore` 파일에 추가하지 말아야 한다). 매니페스트 파일의 이전 `published-at` 필드 대신 [automated address management](https://docs.sui.io/concepts/sui-move-concepts/packages/automated-address-management)를 사용한다.
+
+선택적으로, 패키지 테스트를 포함하는 `tests` 디렉터리와 패키지 사용 사례를 제공하는 `examples` 디렉터리를 추가할 수 있다. 두 디렉터리 모두 패키지를 게시할 때 온체인에 업로드되지 않는다.
+
+```
+sources/
+    my_module.move
+    another_module.move
+    ...
+tests/
+    my_module_tests.move
+    ...
+examples/
+    using_my_module.move
+Move.lock
+Move.toml
+```
+
+패키지 매니페스트에서 패키지 이름은 PascalCase여야 한다: `name = "MyPackage"`. 이상적으로, 패키지를 나타내는 명명된 address는 패키지 이름과 동일하되, snake_case를 사용해야 한다: `my_package = 0x0`.
+
+### Modules
+
+모듈은 Move 코드의 주요 구성 요소이다. 모듈은 관련된 기능을 조직화하고 캡슐화하는 데 사용된다. 하나의 object 또는 데이터 구조체를 중심으로 모듈을 설계한다. 변형 구조체는 복잡성과 버그를 피하기 위해 자체 모듈을 가져야 한다.
+
+모듈 선언은 더 이상 중괄호가 필요하지 않으며 컴파일러가 널리 사용되는 모듈에 대한 기본 `use` 문을 제공하므로 모든 모듈을 선언할 필요가 없다.
+
+```move
+module conventions::wallet;
+
+public struct Wallet has key, store {
+    id: UID,
+    amount: u64
+}
+```
+
+### Body
+
+주석을 사용하여 Move 코드 파일의 섹션을 만들어 코드를 구조화한다. 제목 양쪽에 `===`를 사용하여 제목을 구조화한다.
+
+```move
+module conventions::comments;
+
+// === Imports ===
+
+// === Errors ===
+
+// === Constants ===
+
+// === Structs ===
+
+// === Events ===
+
+// === Method Aliases ===
+
+// === Public Functions ===
+
+// === View Functions ===
+
+// === Admin Functions ===
+
+// === Package Functions ===
+
+// === Private Functions ===
+
+// === Test Functions ===
+```
+
+여기서 public 함수는 상태를 수정하는 함수이고 view 함수는 종종 온체인 게터 또는 오프체인 헬퍼이다. 후자는 object를 쿼리하여 데이터를 읽을 수 있으므로 필요하지 않다. `init` 함수는 모듈에 존재하는 경우 모듈의 첫 번째 함수여야 한다.
+
+가독성을 높이기 위해 함수는 목적과 사용자 흐름에 따라 정렬하는 것이 좋다. 또한 `admin_set_fees`와 같이 명시적인 함수 이름을 사용하여 함수가 수행하는 작업을 명확하게 할 수 있다.
+
+이상적으로, 테스트 함수는 `tests` 디렉터리에 있는 실제 테스트를 위한 `[test_only]` 헬퍼로만 구성되어야 한다.
+
+종속성별로 import를 그룹화한다, 예를 들면:
+
+```move
+use std::string::String;
+use sui::{
+    coin::Coin,
+    balance,
+    table::Table
+};
+use my_dep::battle::{Battle, Score};
+```
+
+## Naming conventions
+
+코드에서 명명 규칙을 준수하면 가독성이 높아지고 궁극적으로 코드베이스를 더 쉽게 유지보수할 수 있다. 다음 섹션에서는 Move 코드를 작성할 때 따라야 할 주요 명명 규칙을 간략하게 설명한다.
+
+### Constants
+
+상수는 대문자여야 하며 snake case 형식을 사용해야 한다. 오류는 PascalCase를 사용하고 E로 시작하는 특정 상수이다. 의미가 명확하게 드러나도록 작성한다.
+
+```move
+module conventions::constants;
+
+// 올바른 오류 아닌 상수
+const MAX_NAME_LENGTH: u64 = 64;
+
+// 올바른 오류 상수
+const EInvalidName: u64 = 0;
+
+// 잘못된 오류 상수
+const E_INVALID_NAME: u64 = 0;
+```
+
+### Structs
+
+항상 다음 순서로 구조체 abilities를 선언한다: `key`, `copy`, `drop`, `store`.
+
+구조체 이름에 'potato'를 사용하지 않는다. Abilities가 없는 것은 potato 패턴으로 정의된다.
+
+구조체는 간단한 wrapper, dynamic field key 또는 튜플로 사용할 수 있는 위치 필드를 지원한다.
+
+이벤트를 발생시키는 구조체 이름에는 `Event` 접미사를 사용한다.
+
+```move
+module conventions::request;
+
+// dynamic field keys
+public struct ReceiptKey(ID) has copy, drop, store;
+
+// dynamic field
+public struct Receipt<Data> has key, store {
+    id: UID,
+    data: Data
+}
+
+// 올바른 이름 지정
+public struct Request();
+
+// 잘못된 이름 지정
+public struct RequestPotato {}
+```
+
+### CRUD function names
+
+다음 함수는 표준 CRUD (생성, 읽기, 업데이트, 삭제) 명명 규칙을 따른다:
+
+- `new`: 빈 object를 생성한다.
+- `empty`: 빈 구조체를 생성한다.
+- `create`: 초기화된 object 또는 구조체를 생성한다.
+- `add`: 값을 추가한다.
+- `remove`: 값을 제거한다.
+- `exists`: 키가 존재하는지 확인한다.
+- `contains`: 컬렉션에 값이 포함되어 있는지 확인한다.
+- `borrow`: 구조체 또는 object의 불변 참조를 반환한다.
+- `borrow_mut`: 구조체 또는 object의 가변 참조를 반환한다.
+- `property_name`: 필드의 불변 참조 또는 복사본을 반환한다.
+- `property_name_mut`: 필드의 가변 참조를 반환한다.
+- `drop`: 구조체를 드롭한다.
+- `destroy`: **drop** ability가 있는 값을 가진 object 또는 데이터 구조체를 파괴한다.
+- `destroy_empty`:  **drop** ability가 있는 값을 가진 빈 object 또는 데이터 구조체를 파괴한다
+- `to_name`: 타입 X를 타입 Y로 변환한다.
+- `from_name`: 타입 Y를 타입 X로 변환한다.
+
+### Generics
+
+단일 문자 이름 또는 전체 이름을 사용하여 제네릭을 선언한다. 관례적으로 개발자는 제네릭 타입에 `T`와 `U`를 사용하지만, 다른 타입과 혼동되지 않는다면 더 서술적인 이름을 사용할 수 있다. 항상 가독성을 우선시한다.
+
+```move
+module conventions::generics;
+
+// 단일 문자 이름
+public struct Receipt<T> has store { ... }
+
+// 전체 이름
+public struct Receipt<Data> has store { ... }
+```
+
+## Code Structure
+
+다음 섹션에서는 object 소유권 모델 및 함수 설계 원칙을 포함하여 Sui에서 Move 개발에 특화된 일반적인 패턴과 모범 사례를 다룬다.
+
+### Shared objects
+
+Object를 공유하는 라이브러리 모듈은 두 가지 함수를 제공해야 한다: object를 인스턴스화하고 반환하는 함수와 이를 공유하는 함수. 이를 통해 호출자는 이를 다른 함수에 전달하고 공유하기 전에 사용자 정의 기능을 실행할 수 있다.
+
+```move
+module conventions::shop;
+
+public struct Shop has key {
+    id: UID
+}
+
+public fun new(ctx: &mut TxContext): Shop {
+    Shop {
+        id: object::new(ctx)
+    }
+}
+
+public fun share(shop: Shop) {
+    transfer::share_object(shop);
+}
+```
+
+### Pure functions
+
+구성 가능성을 유지하기 위해 함수를 순수하게 유지한다. Object가 전송 불가능하고 수정되어서는 안 되는 특정 경우를 제외하고는 핵심 함수 내에서 `transfer::transfer` 또는 `transfer::public_transfer`를 사용하지 않는다.
+
+```move
+module conventions::amm;
+
+use sui::coin::Coin;
+
+public struct Pool has key {
+    id: UID
+}
+
+// 올바른 방식 -> 값이 0이더라도 초과 코인을 반환한다.
+public fun add_liquidity<CoinX, CoinY, LpCoin>(pool: &mut Pool, coin_x: Coin<CoinX>, coin_y: Coin<CoinY>): (Coin<LpCoin>, Coin<CoinX>, Coin<CoinY>) {
+    // 구현 생략됨.
+    abort(0)
+}
+
+// 올바르지만 권장되지 않음
+public fun add_liquidity_and_transfer<CoinX, CoinY, LpCoin>(pool: &mut Pool, coin_x: Coin<CoinX>, coin_y: Coin<CoinY>, recipient: address) {
+    let (lp_coin, coin_x, coin_y) = add_liquidity<CoinX, CoinY, LpCoin>(pool, coin_x, coin_y);
+    transfer::public_transfer(lp_coin, recipient);
+    transfer::public_transfer(coin_x, recipient);
+    transfer::public_transfer(coin_y, recipient);
+}
+
+// 잘못된 방식
+public fun impure_add_liquidity<CoinX, CoinY, LpCoin>(pool: &mut Pool, coin_x: Coin<CoinX>, coin_y: Coin<CoinY>, ctx: &mut TxContext): Coin<LpCoin> {
+    let (lp_coin, coin_x, coin_y) = add_liquidity<CoinX, CoinY, LpCoin>(pool, coin_x, coin_y);
+    transfer::public_transfer(coin_x, tx_context::sender(ctx));
+    transfer::public_transfer(coin_y, tx_context::sender(ctx));
+
+    lp_coin
+}
+```
+
+### Coin argument
+
+프론트엔드에서 transaction 가독성을 높이기 위해 정확한 양의 `Coin` object를 값으로 직접 전달한다.
+
+```move
+module conventions::amm;
+
+use sui::coin::Coin;
+
+public struct Pool has key {
+    id: UID
+}
+
+// 올바른 방식
+public fun swap<CoinX, CoinY>(coin_in: Coin<CoinX>): Coin<CoinY> {
+    // 구현 생략됨.
+    abort(0)
+}
+
+// 잘못된 방식
+public fun exchange<CoinX, CoinY>(coin_in: &mut Coin<CoinX>, value: u64): Coin<CoinY> {
+    // 구현 생략됨.
+    abort(0)
+}
+```
+
+### Access control
+
+구성 가능성을 유지하기 위해 접근 제어에는 address 배열 대신 capability object를 사용한다.
+
+```move
+module conventions::access_control;
+
+use sui::sui::SUI;
+use sui::balance::Balance;
+use sui::coin::{Self, Coin};
+use sui::table::{Self, Table};
+
+public struct Account has key, store {
+    id: UID,
+    balance: u64
+}
+
+public struct State has key {
+    id: UID,
+    // 상태가 Account object에 존재하므로 필드가 필요하지 않다
+    accounts: Table<address, u64>,
+    balance: Balance<SUI>
+}
+
+// 올바른 방식 -> 이 함수를 사용하면 다른 프로토콜이 사용자를 대신하여 `Account`를 보유할 수 있다.
+public fun withdraw(state: &mut State, account: &mut Account, ctx: &mut TxContext): Coin<SUI> {
+    let authorized_balance = account.balance;
+
+    account.balance = 0;
+
+    coin::take(&mut state.balance, authorized_balance, ctx)
+}
+
+// 잘못된 방식 -> 이것은 구성 가능성이 낮다.
+public fun wrong_withdraw(state: &mut State, ctx: &mut TxContext): Coin<SUI> {
+    let sender = tx_context::sender(ctx);
+
+    let authorized_balance = table::borrow_mut(&mut state.accounts, sender);
+    let value = *authorized_balance;
+    *authorized_balance = 0;
+    coin::take(&mut state.balance, value, ctx)
+}
+```
+
+### Data storage in owned vs shared objects
+
+DApp 데이터가 일대일 관계를 갖는 경우 owned object를 사용하는 것이 가장 좋다.
+
+```move
+module conventions::vesting_wallet;
+
+use sui::sui::SUI;
+use sui::coin::Coin;
+use sui::table::Table;
+use sui::balance::Balance;
+
+public struct OwnedWallet has key {
+    id: UID,
+    balance: Balance<SUI>
+}
+
+public struct SharedWallet has key {
+    id: UID,
+    balance: Balance<SUI>,
+    accounts: Table<address, u64>
+}
+
+
+// 베스팅 지갑은 일정 기간 동안 일정량의 코인을 릴리스한다.
+// 전체 잔액이 한 명의 사용자에게 속하고 지갑에 추가 기능이 없는 경우, owned object에 저장하는 것이 가장 좋다.
+public fun new(deposit: Coin<SUI>, ctx: &mut TxContext): OwnedWallet {
+    // 구현 생략됨.
+    abort(0)
+}
+
+// 베스팅 지갑에 추가 기능을 추가하려면 object를 공유하는 것이 가장 좋다.
+// 예를 들어, 지갑 발행자가 나중에 계약을 취소할 수 있기를 원하는 경우이다.
+public fun new_shared(deposit: Coin<SUI>, ctx: &mut TxContext) {
+    // 구현 생략됨.
+    // `SharedWallet`를 공유한다.
+    abort(0)
+}
+```
+
+### Admin capability
+
+관리자 전용 함수에서 첫 번째 매개변수는 capability여야 한다. 이는 사용자 타입 자동 완성을 돕는다.
+
+```move
+module conventions::social_network;
+
+use std::string::String;
+
+public struct Account has key {
+    id: UID,
+    name: String
+}
+
+public struct Admin has key {
+    id: UID,
+}
+
+// 올바른 방식 -> cap.update(&mut account, b"jose".to_string());
+public fun update(_: &Admin, account: &mut Account, new_name: String) {
+    // 구현 생략됨.
+    abort(0)
+}
+
+// 잘못된 방식 -> account.update(&cap, b"jose".to_string());
+public fun set(account: &mut Account, _: &Admin, new_name: String) {
+    // 구현 생략됨.
+    abort(0)
+}
+```
+
+## Documentation
+
+잘 작성되고 잘 문서화된 코드베이스보다 더 만족스러운 것은 없다. 어떤 사람들은 깔끔한 코드가 스스로 문서를 대체할 수 있다고 주장하지만, 잘 문서화된 코드는 스스로를 설명한다.
+
+### Comments
+
+함수와 구조체를 간단히 설명하기 위해`///` 구문(doc 주석)을 사용해 코드를 문서화한다. 코드를 사용할 개발자를 위해 기술적인 통찰을 추가하고 싶다면, `//` 구문(일반 주석)을 사용한다.
+
+필드 주석을 사용하여 구조체의 속성을 설명한다. 복잡한 함수에서는 매개변수와 반환 값도 설명할 수도 있다.
+
+```move
+module conventions::hero;
+
+use std::string::String;
+use sui::kiosk::{Kiosk, KioskOwnerCap};
+
+public struct Hero has key, store {
+    id: UID,
+    // nft의 파워
+    power: u64
+}
+
+/// 새로운 Hero object를 생성하고 반환한다
+public fun new(ctx: &mut TxContext): Hero {
+    Hero {
+        id: object::new(ctx),
+        power: 0
+    }
+}
+
+// 공유하기 전에 초기화되어야 한다
+public fun initialize_hero(hero: &mut Hero) {
+    hero.power = 100;
+}
+
+public fun start_battle(
+    self: &mut Kiosk, // 사용자 키오스크
+    cap: &KioskOwnerCap, // 사용자 키오스크 소유자 cap
+    _policy: &TransferPolicy<Hero>, // 게임의 전송 정책
+    hero_id: ID, // 사용할 히어로
+    battle_id: String // 시작할 배틀의 id
+) {
+    // 구현 생략됨.
+    abort(0)
+}
+```
+
+### README
+
+패키지의 루트에 `README.md` 파일을 생성한다. 패키지에 대한 설명, 패키지의 목적, 사용 방법을 포함한다.

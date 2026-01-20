@@ -1,0 +1,117 @@
+---
+title: Automated Address Management
+description: Mainnet, Testnet, Devnet에 게시된 패키지는 각각 다른 address를 가진다. Automated address management는 이러한 address를 추적한다.
+keywords:
+  - track address
+  - track package address
+  - package addresses
+  - managing package addresses
+  - managing addresses
+  - tracking addresses
+  - tracking packages
+  - tracking mainnet address
+  - track mainnet address
+  - track testnet address
+  - tracking testnet address
+  - track devnet address
+  - tracking devnet address
+  - conflicting addresses
+  - conflicting package addresses
+---
+
+패키지를 게시하거나 업그레이드할 때, 해당 address(패키지 ID라고도 함)는 `Move.lock` 파일에서 추적된다. 이는 자동으로 발생하므로, (예를 들어 `Move.toml` 파일에서) 16진수 address를 수동으로 기록하거나 업데이트할 필요가 없다.
+
+여러 Sui 네트워크(Mainnet, Testnet, Devnet)에서 패키지를 게시하거나 업그레이드할 때, automated address management는 각 체인에 대해 별도의 address를 추적한다. 추적은 활성 환경을 기반으로 한다 (확실하지 않은 경우 `sui client active-env` 실행). 예를 들어, 활성 환경이 `testnet`에 연결된 RPC로 설정되어 있고 패키지를 게시하면, `Move.lock`은 해당 패키지의 address를 기록하고 이를 `testnet`과 연결한다.
+
+Automated address management는 하나 이상의 Sui 네트워크에 게시된 하나의 패키지에 대해 작동한다. 패키지가 네트워크에 다시 게시되면 해당 네트워크에 대해 추적된 address를 덮어쓰게 된다.
+
+## Adopting automated address management
+
+이전에는 `Move.toml`의 `published-at` 항목이 **필수**였다. 데이터가 `Move.lock`에서 추적되는 경우에는 더 이상 필요하지 않다. 기존 패키지의 경우 다음과 같이 자동 추적으로 마이그레이션할 수 있다:
+
+1. 패키지가 게시된 체인의 활성 환경으로 전환한다:
+
+    ```sh
+    sui client --switch --env <YOUR-CHAIN-ENVIRONMENT>
+    ```
+
+2. 게시된 패키지의 세부 정보와 함께 `manage-package` 명령을 실행한다:
+
+    ```sh
+    sui move manage-package --environment "$(sui client active-env)" \
+                            --network-id "$(sui client chain-identifier)" \
+                            --original-id 'ORIGINAL-ADDRESS' \
+                            --latest-id 'LATEST-ADDRESS' \
+                            --version-number 'VERSION-NUMBER'
+    ```
+
+    - `ORIGINAL-ADDRESS`: 패키지가 처음 게시된 address이다. 업그레이드한 적이 없다면, 이는  `Move.toml`의 `published-at` address와 일치한다.
+    - `LATEST-ADDRESS`: 최신 패키지 address이다. 업그레이드한 적이 없다면, 이는 `ORIGINAL-ADDRESS`와 일치한다. 업그레이드한 경우, 현재의 `published-at` address와 일치한다.
+    - `VERSION-NUMBER`: 업그레이드한 적이 없다면 `1`이다. 그렇지 않은 경우, 업그레이드 횟수로 설정한다. `LATEST-ADDRESS`에서 패키지를 조회하여 버전 번호를 확인한다.
+
+3. `Move.toml`에서 `published-at` 줄을 삭제한다.
+
+4. `[addresses]` 섹션에서 패키지의 address를 `0x0`으로 설정한다:
+
+    ```toml
+    [package]
+    name = "Kiosk"
+
+    [dependencies]
+    # ... your dependencies ...
+
+    [addresses]
+    kiosk = "0x0"
+    ```
+
+이제 패키지가 추적된다. 추가 환경의 address를 추적하려면 이 단계를 반복한다.
+
+## Package upgrade guidance
+
+- [upgrading](./upgrade#upgrade-requirements) 시, 패키지의 `UpgradeCap` ID가 필요하다. Automated address management는 `UpgradeCap`을 추적하지 않는다.
+- [upgrading](./upgrade#example) 시, `Move.toml`에서 패키지의 `[addresses]` 값을 `0x0`으로 설정하고, 업그레이드 후 `ORIGINAL-ADDRESS`로 복원한다.
+
+## Troubleshooting
+
+패키지 데이터가 일치하지 않게 되면 address 충돌이 발생할 수 있다.
+
+예를 들어, 패키지가 `Move.lock`에서도 추적되는 동시에 `Move.toml`에 `published-at` 값을 여전히 가지고 있을 수 있다. 이 불일치는 게시 또는 업그레이드 시 오류를 발생시킨다.
+
+충돌을 해결하려면:
+
+- **자신의 패키지의 경우:**
+
+    - 더 이상 필요하지 않은 경우 `Move.toml`에서 `published-at` 값을 삭제한다. 그런 다음 `[addresses]`에서 패키지의 address를 `0x0`으로 설정한다.
+    - 또는, 위의 [adoption steps](#adopting-automated-address-management)를 따른다.
+
+- **종속성 패키지의 경우:**
+
+    - 동일한 단계를 사용하여 로컬에서 문제를 해결하거나, 패키지 관리자에게 연락하여 업스트림에서 업데이트하도록 요청한다.
+
+## Internal reference
+
+이 섹션은 `Move.lock`에서 추적되는 address의 스키마와 내부 동작을 설명한다. 대부분의 개발자에게는 이 세부 정보가 필요하지 않다.
+
+`Move.lock` 파일의 예시 스키마:
+
+```toml
+[env]
+
+[env.testnet]
+chain-id = "4c78adac"
+original-published-id = "0xa6041ac57f9151d49d00dcdc4f79f8c5ba1e399e1005dcb0fdd1c8632020d5a6"
+latest-published-id = "0xa6041ac57f9151d49d00dcdc4f79f8c5ba1e399e1005dcb0fdd1c8632020d5a6"
+published-version = "1"
+
+[env.mainnet]
+chain-id = "35834a8a"
+original-published-id = "0xaee5759aedf6c533634cdd2de412f6e6dfc754a89b0ec554a73597348f334477"
+latest-published-id = "0xaee5759aedf6c533634cdd2de412f6e6dfc754a89b0ec554a73597348f334477"
+published-version = "1"
+```
+
+:::info
+
+- 각 `[env]` 테이블 항목은 하나의 환경을 나타낸다. 패키지가 게시되면 해당 항목이 추가되거나 업데이트된다.
+- 항목은 `[env.NAME]`이 아닌 `chain-id`를 키로 사용한다. 이는 사용자가 임의의 환경 이름을 할당하더라도 address가 일관되게 확인되도록 보장한다.
+- 키-값 쌍은 [adopting automated address management](#adopting-automated-address-management)에서 설명된 데이터에 해당한다. 이 값을 수정하려면 `sui move manage-package` 명령을 프론트엔드로 사용한다.<br> :::

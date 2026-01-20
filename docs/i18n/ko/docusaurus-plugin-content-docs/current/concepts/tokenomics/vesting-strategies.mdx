@@ -1,0 +1,212 @@
+---
+title: Token Vesting Strategies
+description: Sui에서 토큰을 출시할 계획이라면, 토큰의 장기적인 전망을 강화하기 위해 베스팅 전략을 구현하는 것을 고려할 수 있다.
+keywords:
+  - vesting strategies
+  - token vesting strategies
+  - designing a token launch
+  - designing token vesting
+  - how to design token vesting
+  - vesting options
+  - token vest strategies
+  - how to vest tokens
+  - how to design token vest
+---
+
+Sui에서 토큰을 출시할 계획이라면, 토큰의 장기적 전망을 강화하기 위해 베스팅 전략을 구현하는 것을 고려할 수 있다. 베스팅 전략은 일반적으로 토큰을 한 번에 전부 배포하는 대신, 팀 구성원, 투자자 또는 기타 초기 이해관계자에게 시간을 두고 순차적으로 토큰을 배포한다.
+
+베스팅 전략을 구현하고 그 세부 사항을 공개하는 것은 다음과 같은 효과가 있다:
+
+- 토큰에 대한 장기적인 참여를 보장한다.
+- 시장 덤핑을 방지한다.
+- 대량의 초기 토큰을 즉시 인출하여 토큰 가치를 떨어뜨리는 러그 풀(토큰 가치를 해치는 초기 토큰의 대량 즉시 인출)에 대한 우려를 완화한다.
+- 이해관계자의 인센티브를 프로젝트의 성공과 정렬시킨다.
+
+## Vesting options
+
+토큰 출시 시 사용할 수 있는 다양한 베스팅 전략이 있다. 프로젝트에 가장 적합한 옵션은 프로젝트와 그 목표에 고유한 여러 요소에 따라 달라진다.
+
+다음 섹션에서는 Sui 네트워크에서 토큰을 출시할 때 고려할 수 있는 몇 가지 옵션을 설명한다.
+
+### Cliff vesting
+
+클리프 베스팅은 전체 토큰 또는 자산이 일정 기간(“cliff”)이 지난 후 한 번에 사용 가능해지는 상황을 의미한다. 클리프 기간이 도래하기 전까지는 어떠한 토큰도 Release되지 않는다.
+
+:::info Example scenario
+
+한 프로젝트의 10명 직원 각각은 1년 클리프 조건으로 1,000개의 토큰을 부여받는다. 1년이 지나면 이들은 1,000개의 토큰 전체를 받는다. 1년이 지나기 전에는 이 토큰에 접근할 수 없다.
+
+:::
+
+다음 smart contract는 토큰 Release를 위한 클리프 베스팅 일정을 구현한다. 이 모듈에는 베스팅할 코인의 총합과 클리프 시점을 타임스탬프로 전달하는 `new_wallet` 함수가 포함돼 있다. 그 후 클리프 날짜가 과거 시점이라면 `claim` 함수를 호출해 Wallet에서 토큰을 회수할 수 있다.
+
+위 예시 시나리오를 고려하면, 각 직원마다 별도의 wallet이 존재하도록 `new_wallet`을 10번 호출하면 된다. 각 호출마다 1,000개의 토큰을 포함해 wallet에 필요한 자금을 적재하면 된다.  해당 wallet을 사용한 이후의 `claim`호출은 현재 시각과 `Wallet` object의 `cliff_time`을 비교해, 클리프 시간이 현재 시각보다 늦은 경우 wallet에서 토큰을 반환한다.
+
+<details></details>
+
+<summary>
+</summary>
+
+`cliff.move`
+
+
+
+<importcontent source="examples/vesting/sources/cliff.move" mode="code"></importcontent>
+
+
+
+### Graded vesting
+
+점진적 베스팅은 베스팅 기간 동안 토큰을 종종 동일한 비율로 점진적으로 Release할 수 있도록 한다.
+
+:::info Example scenario
+
+한 직원이 1,200개의 토큰을 받으며, 4년에 걸쳐 매년 300개의 토큰이 베스팅된다. 매년 말마다 300개의 토큰이 사용 가능해진다.
+
+:::
+
+다음 [Hybrid vesting](#hybrid-vesting) 섹션에는 점진적 베스팅을 수행하는 방법을 보여 주는 smart contract가 포함돼 있다.
+
+### Hybrid vesting
+
+하이브리드 베스팅은 클리프 베스팅과 단계적 베스팅과 같은 서로 다른 베스팅 모델을 결합한다. 이를 통해 토큰이 시간에 따라 어떻게 풀릴지에 대한 유연성을 제공한다.
+
+:::info Example scenario
+
+전체 토큰의 50%는 1년 클리프 이후에 풀리고, 나머지는 이후 3년에 걸쳐 선형적으로 분배된다.
+
+:::
+
+다음 smart contract는 하이브리드 베스팅 모델을 생성한다. 클리브 베스팅 smart contract와 마찬가지로, 하이브리드 모델은 각 이해관계자의 모든 토큰을 보관하기 위한  `Wallet`struct를 정의한다. 그러나 이 월렛은 실제로 서로 다른 베스팅 규칙을 따르는 두 개의 별도 월렛을 포함하고 있다. 이 contract에 대해`new_wallet`을 호출할 때는 클리프가 종료되는 타임스탬프, 선형 스케줄이 시작되는 타임스탬프, 그리고 선형 베스팅이 종료되어야 하는 타임스탬프를 제공한다. 이후 `claim` 을 호출하면 이 파라미터 범위에 해당하는 토큰의 합계를 반환한다.
+
+<details></details>
+
+<summary></summary>
+
+`hybrid.move`
+
+
+
+<importcontent source="examples/vesting/sources/hybrid.move" mode="code"></importcontent>
+
+
+
+### Backloaded vesting
+
+Backloaded vesting은 시간에 걸쳐 균등하게 분배하기보다는 베스팅 기간 말에 대부분의 토큰을 분배한다. 이 접근 방식은 다량의 토큰이 언락되기 전에 생태계가 더 성숙해지도록 돕는다. 팀 구성원과 이해관계자는 초기에도 보상을 받을 수 있지만, 프로젝트와 더 오랜 기간을 함께한 사람일수록 가장 큰 보상이 주어진다.
+
+:::info Example scenario
+
+한 직원의 토큰은 다음 스케줄에 따라 Release된다:
+
+- 첫 3년 동안 10%
+- 4년 차에 90%
+
+:::
+
+Backloaded vesting을 위한 smart contract는 베스팅할 모든 토큰을 담고 있는 상위 wallet 안에 두 개의 `Wallet` object들을 생성한다. 각 자식 wallet은 자신의 베스팅 스케줄을 담당한다.  `new_wallet`을 호출할 때는 베스팅할 코인과 `start_front`, `start_back`, `duration`, `back_percentage` 값을 함께 전달한다. 제공한 값에 따라, wallet 소유자가 `claim` 함수를 호출했을 때 contract는 얼마나 많은 토큰을 반환할지를 결정한다.
+
+예시 시나리오에서는 frontload 시작 타임스탬프와 backload의 시작 타임스탬프(frontload 시작 후 3년)를 전달할 수 있다. 또한 4년의 기간 (`126230400000`)과 `back_percentage` 값으로 `90`을 전달한다.
+
+<details></details>
+
+<summary></summary>
+
+`backloaded.move`
+
+
+
+<importcontent source="examples/vesting/sources/backloaded.move" mode="code"></importcontent>
+
+
+
+### Milestone- or performance-based vesting {#milestone}
+
+성과 기반 베스팅에서는 매출 목표 달성이나 프로젝트 단계 진행과 같이 특정 목표나 지표를 달성할 때 베스팅 이벤트가 발생한다.
+
+:::info Example scenario
+
+한 팀의 토큰은 월간 활성 사용자(MAU) 수에 비례해 베스팅된다. 플랫폼이 1,000만 MAU 목표를 달성하면 모든 토큰이 베스팅된다.
+
+:::
+
+마찬가지로 마일스톤 기반 베스팅은 시간 기반 조건이 아니라 특정 프로젝트 또는 개인 마일스톤이 달성될 때 베스팅 이벤트를 생성한다.
+
+:::info Example scenario
+
+블록체인 프로젝트의 Mainnet이 출시될 때 토큰이 언락된다.
+
+:::
+
+다른 예와 마찬가지로, 다음 스마트 컨트랙트는 분배할 코인을 보관할 월렛을 생성한다. 그러나 다른 예와 달리 이 `Wallet` object에는 마일스톤 진행 상황을 업데이트할 권한을 가진 계정의 address를 설정하는 `milestone_controller` 필드가 포함된다. 무결성 검사로 지갑이 마일스톤 업데이트 권한이 있는 엔티티와 동일한 address를 갖는 경우 `new_wallet` 함수 호출은 오류로 중단된다.
+
+마일스톤 업데이트 권한을 가진 주체는 `update_milestone_percentage` 를 호출해 완료 비율 값을 갱신할 수 있다. 베스팅된 토큰 월렛의 소유자는 현재 완료 비율 값에 따라 언락된 토큰을 얻기 위해 `claim`을 호출할 수 있다. 첫 번째 예시 시나리오를 기준으로 할 때, 프로젝트가 MAU 100만 명을 달성할 때마다 마일스톤 값을 10퍼센트씩 갱신할 수 있다. 두 번째 시나리오에서도 같은 컨트랙트를 사용하되, mainnet이 출시된 이후에 한 번만 비율을 100으로 업데이트할 수 있다.
+
+<details></details>
+
+<summary></summary>
+
+`milestone.move`
+
+
+
+<importcontent source="examples/vesting/sources/milestone.move" mode="code"></importcontent>
+
+
+
+### Linear vesting
+
+선형 베스팅에서는 미리 정해진 기간에 걸쳐 토큰이 점진적으로 풀린다.
+
+:::info Example scenario
+
+한 프로젝트의 10명 직원 각각은 1년 클리프 조건으로 1,000개의 토큰을 부여받는다.
+
+:::
+
+선형 베스팅 smart contract는  `start`와 `duration` 필드를 가진  `Wallet` object를 생성한다. Contract는 이러한 값과 현재 시간을 함께 사용해 베스팅된 토큰의 수를 결정한다. 이 경우 현재 시간은 월렛 소유자가 `claim` 함수를 호출하는 시점을 의미한다.
+
+예시 시나리오에서는 1,000개의 토큰, 직원 시작일의 타임스탬프, 그리고 1년(`31557600000`)의 기간을 동안 wallet( `new_wallet`)을 생성한다.
+
+<details></details>
+
+<summary></summary>
+
+`linear.move`
+
+
+
+<importcontent source="examples/vesting/sources/linear.move" mode="code"></importcontent>
+
+
+
+### Immediate vesting
+
+즉시 베스팅에서는 모든 토큰이 할당되는 즉시 베스팅되며, 곧바로 전량이 사용 가능해진다.
+
+:::info Example scenario
+
+초기 투자자는 구매 시점에 할당된 토큰 전량을 받는다.
+
+:::
+
+즉시 베스팅에서는 언제든지 토큰을 수동으로 address로 전송하는 방식으로 처리할 수 있다. 그러나 smart contract 방식을 선택하면 수동 전송보다 여러 가지 이점을 얻을 수 있다.
+
+- Transaction이 온체인에 저장되어 이해관계자가 검증할 수 있으므로 투명성과 책임성이 향상된다. Smart contract 로직이 Transaction의 정확한 목적을 식별한다.
+- 특정 조건을 강제할 수 있다. 예를 들어 계약 조건 수락과 같은 일부 조건이 충족된 이후에만 100% 완료로 업데이트하는 [milestone-based vesting](#milestone) contract를 만들 수 있다.
+- 규정 준수 및 보고를 위한 감사 가능한 기록을 제공한다.
+- agreement 조건이 변경될 때 claim 이전에 다른 토큰으로 변환하는 등의 다른 작업을 수행할 수 있는 유연성을 제공한다.
+
+다음 테스트는 [linear vesting](#linear-vesting) smart contract 예제를 활용하여, 다른 베스팅 전략 smart contract 중 하나를 사용해 즉시 베스팅을 지원하는 방법을 보여 준다. 이 테스트는 `vesting::linear`의 `Wallet` object와 `new_wallet` 함수를 사용해 즉시 베스팅 시나리오를 수행한다. 테스트는 `duration` 값을 0으로 설정함으로써 이를 구현한다.
+
+<details></details>
+
+<summary></summary>
+
+`immediate_tests.move`
+
+
+
+<importcontent source="examples/vesting/tests/immediate_tests.move" mode="code"></importcontent>
+
+
