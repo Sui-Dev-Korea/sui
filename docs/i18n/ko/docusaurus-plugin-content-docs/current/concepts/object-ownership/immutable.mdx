@@ -65,7 +65,7 @@ public fun copy_into(from: &ColorObject, into: &mut ColorObject);
 
 ## Test immutable object
 
-Unit test에서 immutable object와 상호작용하기 위해서는   <br />`test_scenario::take_immutable<T>`를 사용하여 global storage에서 immutable object wrapper를 가져오고, `test_scenario::return_immutable` 을 사용하여 wrapper를 global storage로 다시 반환한다.
+Unit test에서 immutable object와 상호작용하기 위해서는 `test_scenario::take_immutable<T>`를 사용하여 global storage에서 immutable object wrapper를 가져오고, `test_scenario::return_immutable` 을 사용하여 wrapper를 global storage로 다시 반환한다.
 
 Immutable object는 오직 read-only reference를 통해서만 접근할 수 있기 때문에 `test_scenario::take_immutable<T>` 함수가 필요하다. `test_scenario` runtime은 이 immutable object의 사용을 추적한다. Compiler가 다음 transaction이 시작되기 전 `test_scenario::return_immutable`을 통해 object를 반환하지 않으면 테스트가 중단된다.
 

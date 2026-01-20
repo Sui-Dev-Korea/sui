@@ -217,7 +217,7 @@ const config = {
   i18n: {
     defaultLocale: "en",
     locales: ["en", "ko"],
-    path: "i18n",
+    path: "../i18n",
     localeConfigs: {
       en: { label: "English", htmlLang: "en-US" },
       ko: { label: "한국어", htmlLang: "ko-KR" },

@@ -30,6 +30,6 @@ Validator가 새로운 프로토콜 버전으로 전환할 때, 그들은 특별
 
 Sui의 모든 새로운 기능이 Validator 코드 변경에서 비롯되는 것은 아니다. 개발자들은 Sui Framework를 확장하기도 한다. 예를 들어, Smart Contract에서 새로운 기능을 활용할 수 있도록 Native Function을 추가하기도 한다. Framework Upgrade Process는 Protocol Upgrade와 유사하다.
 
-Sui Object는 기능 플래그 대신 Framework의 변경 사항을 조정한다. Sui Framework는 `0x2`<br />라는 ID를 가진 특별한 객체이다. Framework의 Move 소스 코드는 Validator Binary에 내장되어 있다.
+Sui Object는 기능 플래그 대신 Framework의 변경 사항을 조정한다. Sui Framework는 `0x2`라는 ID를 가진 특별한 객체이다. Framework의 Move 소스 코드는 Validator Binary에 내장되어 있다.
 
-만약 Validator가 내장된 Framework가 객체 `0x2`의 Framework와 상이함을 인지할 경우, 해당 Validator는 다른 Validator들에게 Framework를 신규 버전으로 업그레이드할 것을 요청한다.<br /><br /><code>ProtocolConfig</code>와 마찬가지로, 충분한 수의 Validator들이 동의하면, 새로운 Framework 객체는 현재 Epoch 종료 시점에 기록된다. 이후 새로운 Epoch에서 실행되는 Transaction들은 해당 Framework의 신규 버전을 사용하게 된다.
+만약 Validator가 내장된 Framework가 객체 `0x2`의 Framework와 상이함을 인지할 경우, 해당 Validator는 다른 Validator들에게 Framework를 신규 버전으로 업그레이드할 것을 요청한다. <code>ProtocolConfig</code>와 마찬가지로, 충분한 수의 Validator들이 동의하면, 새로운 Framework 객체는 현재 Epoch 종료 시점에 기록된다. 이후 새로운 Epoch에서 실행되는 Transaction들은 해당 Framework의 신규 버전을 사용하게 된다.
