@@ -1,0 +1,190 @@
+---
+title: Object and Package Versioning
+description: Versioning은 Sui 네트워크에서 패키지와 object를 업그레이드할 수 있는 기능을 제공한다.
+keywords:
+  - object versioning
+  - object versions
+  - versioning objects
+  - package versioning
+  - package versions
+  - versioning packages
+---
+
+온체인에 저장된 모든 object는 ID와 버전으로 참조한다. Transaction이 object를 수정하면 온체인 참조에 동일한 ID이지만 더 이후 버전으로 새 내용을 기록한다. 이는 하나의 object(ID가 `I`인)가 분산 저장소에서 여러 엔트리로 나타날 수 있음을 의미한다:
+
+```
+(I, v0) => ...
+(I, v1) => ...  # v0 < v1
+(I, v2) => ...  # v1 < v2
+```
+
+저장소에 여러 번 나타나더라도 transaction에서 사용할 수 있는 object의 버전은 하나뿐이며, 최신 버전(앞선 예의 v2)이다. 또한 해당 버전의 object를 수정하여 새 버전을 만들 수 있는 transaction은 하나뿐이어서 선형적인 히스토리를 보장한다(`v1`은 `I`가 `v0`인 상태에서 생성되었고, `v2`는 `I`가 `v1`인 상태에서 생성되었다).
+
+버전은 엄격한 방식으로 증가하며 (ID, version) 쌍은 재사용되지 않는다. 이 구조는 노드 운영자가 원하면, 접근할 수 없는 오래된 object 버전을 저장소에서 정리하도록 한다. 하지만 이는 필수는 아니며 노드 운영자가 다른 노드의 동기화 요청이나 RPC 요청에 대비해 object의 과거 버전을 남겨둘 수도 있다.
+
+## Move objects
+
+Sui는 object의 버전 관리 알고리즘에서 Lamport timestamps를 사용한다. Lamport timestamps의 사용은 transaction이 다루는 object의 새 버전이 해당 transaction의 모든 입력 object 중 최신 버전보다 1 더 크기 때문에 버전이 결코 재사용되지 않음을 보장한다. 예를 들어 버전 5의 object `O`를 버전 3의 gas object `G`로 전송하는 transaction은 `O` 와 `G`의 버전을 모두 `1 + max(5, 3) = 6`(버전 6)으로 업데이트한다.
+
+다음 절에서는 Lamport 버전이 "no (ID, version) re-use" 불변식을 유지하거나 transaction 입력으로 object에 접근하는 방식이 해당 object의 소유권에 따라 어떻게 달라지는지 설명한다.
+
+### Address-owned objects
+
+Address-owned transaction 입력은 특정 ID와 버전으로 참조해야 한다. Validator가 특정 버전의 owned object 입력을 가진 transaction에 서명하면 해당 버전의 object는 그 transaction에 잠긴다. validator는 동일한 입력(같은 ID와 버전)을 요구하는 다른 transaction의 서명 요청을 거부한다.
+
+만약 `F + 1` validator가 object를 입력으로 받는 한 transaction에 서명하고, 다른 `F + 1`validator가 동일한 object를 입력으로 받는 다른 transaction에 서명하면, 그 object(그리고 두 transaction의 다른 모든 입력)는 equivocated되어 해당 epoch에서 더 이상 어떤 transaction에도 사용할 수 없게 된다. 이는 어느 transaction도 이미 object를 다른 transaction에 커밋한 validator의 서명에 의존하지 않고서는 정족수를 형성할 수 없기 때문이며, 그런 서명은 받을 수 없다. 모든 잠금은 epoch 끝에서 재설정되어 object가 다시 해제된다.
+
+:::info
+
+Object의 소유자만 이를 equivocate할 수 있지만, 이는 바람직한 일이 아니다. Address-owned 입력 object의 버전을 신중히 관리하면 equivocation을 피할 수 있으며, 동일한 object를 사용하는 서로 다른 transaction 두 개를 실행하려고 해서는 안 된다. Transaction에 대해 네트워크로부터 명확한 성공 또는 실패 응답을 받지 못하면 transaction이 처리되었을 수도 있다고 가정하고, 해당 object를 다른 transaction에 재사용하지 않아야 한다.
+
+:::
+
+### Immutable objects
+
+Address-owned object처럼 immutable object도 ID와 버전으로 참조하지만, 내용과 버전이 변하지 않으므로 잠글 필요가 없다. 그들의 버전은 frozen되기 전에 address-owned object로 시작했을 수 있기 때문에 의미가 있다. 주어진 버전은 그것들이 immutable해진 시점을 식별한다.
+
+### Shared objects
+
+Shared transaction 입력을 지정하는 일은 약간 더 복잡하다. 이는 ID, shared된 버전, 그리고 mutable로 접근하는지 여부를 나타내는 플래그로 참조한다. Transaction이 접근하는 정확한 버전은 transaction 스케줄링 중에 합의가 결정하므로 지정하지 않는다. 동일한 shared object를 건드리는 여러 transaction을 스케줄링할 때 validator는 그 transaction의 순서에 합의하고, 그에 따라 shared object에 대한 각 transaction의 입력 버전을 선택한다(하나의 transaction 출력 버전이 다음 transaction의 입력 버전이 되는 식이다).
+
+Immutable로 참조한 shared transaction 입력도 스케줄링에는 참여하지만 object를 수정하거나 버전을 증가시키지는 않는다.
+
+### Wrapped objects
+
+Wrapped object는 object store에서 ID로 접근할 수 없고, 이를 감싸는 object를 통해 접근해야 한다. 다음 예시는 `Inner` object를 `Outer` object에 wrapped하여 `make_wrapped` 함수를 만들고 이를 transaction sender에게 반환한다.
+
+```move
+module example::wrapped {
+    use sui::object::{Self, UID};
+    use sui::transfer;
+    use sui::tx_context::{Self, TxContext};
+
+    struct Inner has key, store {
+        id: UID,
+        x: u64,
+    }
+
+    struct Outer has key {
+        id: UID,
+        inner: Inner,
+    }
+
+    entry fun make_wrapped(ctx: &mut TxContext) {
+        let inner = Inner {
+            id: object::new(ctx),
+            x: 42,
+        };
+
+        let outer = Outer {
+            id: object::new(ctx),
+            inner,
+        };
+
+        transfer::transfer(outer, tx_context::sender(ctx));
+    }
+}
+```
+
+이 예시의 `Outer` 소유자는 이를 transaction 입력으로 지정한 다음 `inner` 필드에 접근해 `Inner`인스턴스를 읽어야 한다. Validator는 wrapped object(예: `Outer`의 `inner`)를 입력으로 직접 지정하는 transaction에 서명을 거부한다. 그 결과 해당 object를 읽는 transaction에서는 wrapped object의 버전을 지정할 필요가 없다.
+
+Wrapped object는 결국 unwrapped될 수 있으며, 이는 ID로 다시 접근할 수 있음을 의미한다:
+
+```move
+module example::wrapped {
+    // ...
+
+    entry fun unwrap(outer: Outer, ctx: &TxContext) {
+        let Outer { id, inner } = outer;
+        object::delete(id);
+        transfer::transfer(inner, tx_context::sender(ctx));
+    }
+}
+```
+
+`unwrap` 함수는 `Outer` 인스턴스를 받아 이를 파괴하고 `Inner` 를 sender에게 다시 보낸다. 이 함수를 호출한 뒤에는 `Outer`의 이전 소유자가 이제 unwrapped된 `Inner`를 ID로 직접 접근할 수 있다. Object의 wrapping과 unwrapping은 수명 동안 여러 번 일어날 수 있으며, object는 그 모든 이벤트에서 ID를 유지한다.
+
+Lamport timestamp 기반 버전 관리 체계는 object가 unwrapped될 때의 버전이 wrapped될 때의 버전보다 항상 더 크도록 보장하여 버전 재사용을 방지한다.
+
+- Object `I`가 object `O`에 의해 wrapped되는 transaction `W`이후에는 `O` 버전이 `I`  버전보다 크거나 같아진다. 이는 다음 조건 중 하나가 참임을 의미한다:
+    - <code>I</code> 는 입력이므로 버전이 엄격히 더 낮다.
+    - <code>I</code> 는 새로 생성되어 버전이 같다.
+- 이후 `O`에서 `I`를 unwrapping하는 transaction 이후에는 다음이 참이어야 한다:
+    - `O`입력 버전은 더 늦은 transaction이므로 `W` 이후의 버전보다 크거나 같아야 하며, 따라서 버전은 증가할 수밖에 없다.
+    - 출력의 `I` 버전은 `O` 입력 버전보다 엄격히 더 커야 한다.
+
+이는 wrapping 이전의 I 버전에 대해 다음과 같은 부등식 연쇄로 이어진다:
+
+- Wrapping 이후 O 버전보다 작거나 같다.
+- Unwrapping 이전 O 버전보다 작거나 같다.
+- Unwrapping 이후 I 버전보다 작다.
+
+따라서 wrapping 이전의 `I` 버전은 unwrapping 이후의 `I` 버전보다 작다.
+
+### Dynamic fields
+
+버전 관리 관점에서 dynamic fields에 들어 있는 값은 wrapped object처럼 동작한다:
+
+- 그 값은 필드의 부모 object를 통해서만 접근할 수 있으며, transaction 입력으로는 직접 접근할 수 없다.
+- 이전 항목에 근거하면 transaction 입력에 그들의 ID나 버전을 제공할 필요가 없다.
+- Lamport timestamp 기반 버전 관리는 필드가 object를 포함하고 transaction이 그 필드를 제거할 때 그 값이 ID로 접근 가능해지고 값의 버전이 이전에 사용되지 않은 버전으로 증가했음을 보장한다.
+
+:::info
+
+Dynamic fields와 wrapped object의 차이점 중 하나는 transaction이 dynamic object 필드를 수정하면 그 transaction에서 버전이 증가하지만 wrapped object의 버전은 그렇지 않다는 점이다.
+
+:::
+
+부모 object에 새 dynamic field를 추가하면 해당 부모에 필드 이름과 값을 연결하는 `Field` object도 생성된다. 다른 새 object와 달리 결과로 생성되는 `Field` 인스턴스의 ID는 `sui::object::new`로 생성되지 않는다. 대신 부모 object ID와 필드 이름의 타입 및 값을 해시한 값으로 계산되며, 이를 통해 부모와 이름으로 `Field`를 조회할 수 있다.
+
+필드를 제거하면 Sui가 연결된 `Field`를 삭제하고, 같은 이름의 새 필드를 추가하면 Sui가 같은 ID로 새 인스턴스를 생성한다. Lamport timestamps를 사용하는 버전 관리와 dynamic fields가 부모 object를 통해서만 접근된다는 점이 결합되어, 이 과정에서 (ID, 버전) 쌍이 재사용되지 않음을 보장한다:
+
+- 원래 필드를 삭제하는 transaction은 부모의 버전을 삭제된 필드의 버전보다 크게 증가시킨다.
+- 같은 필드의 새 버전을 생성하는 transaction은 부모의 버전보다 큰 버전으로 필드를 생성한다.
+
+따라서 새 `Field` 인스턴스의 버전은 삭제된 `Field`의 버전보다 크다.
+
+## Packages
+
+Move 패키지도 버전이 지정되어 온체인에 저장되지만, 처음부터 immutable이기 때문에 object와는 다른 버전 관리 체계를 따른다. 이는 패키지 transaction 입력(예: Move call transaction에서 함수가 속한 패키지)을 ID만으로 참조하며 항상 최신 버전으로 로드된다는 의미다.
+
+### User packages
+
+패키지를 게시하거나 업그레이드할 때마다 Sui는 새 ID를 생성한다. 새로 게시된 패키지는 버전이 1로 설정되지만, 업그레이드된 패키지의 버전은 업그레이드 대상 패키지보다 1 더 크다. Object와 달리 패키지의 이전 버전은 업그레이드 이후에도 접근 가능하다. 예를 들어 두 번 게시되고 업그레이드된 패키지 `P`를 상상해 볼 수 있다. 이는 저장소에서 다음과 같이 표현될 수 있다:
+
+```
+(0x17fb7f87e48622257725f584949beac81539a3f4ff864317ad90357c37d82605, 1) => P v1
+(0x260f6eeb866c61ab5659f4a89bc0704dd4c51a573c4f4627e40c5bb93d4d500e, 2) => P v2
+(0xd24cc3ec3e2877f085bc756337bf73ae6976c38c3d93a0dbaf8004505de980ef, 3) => P v3
+```
+
+이 예시에서 동일한 패키지의 세 버전은 서로 다른 ID에 있다. 패키지의 버전은 증가하지만 `v2`와 `v3`가 온체인에 존재하더라도 `v1`을 호출할 수 있다.
+
+### Framework packages
+
+프레임워크 패키지(예: `0x1`의 Move standard library, `0x2`의 the Sui Framework, `0x3`의 Sui System, `0xdee9`의 Deepbook)는 업그레이드 전후에도 ID가 안정적으로 유지되어야 하므로 특별한 경우이다. 네트워크는 system transaction을 통해 ID를 유지한 채 프레임워크 패키지를 업그레이드할 수 있지만, 다른 패키지와 마찬가지로 immutable로 간주되므로 epoch 경계에서만 이 작업을 수행할 수 있다. 프레임워크 패키지의 새 버전은 이전 버전과 동일한 ID를 유지하지만 버전은 1 증가한다:
+
+```
+(0x1, 1) => MoveStdlib v1
+(0x1, 2) => MoveStdlib v2
+(0x1, 3) => MoveStdlib v3
+```
+
+앞선 예시는 Move standard library의 첫 세 버전이 온체인에서 표현되는 방식을 보여준다.
+
+### Package versions
+
+Sui smart contract는 업그레이드 가능한 패키지로 구성되며, 그 결과 특정 패키지의 여러 버전이 온체인에 존재할 수 있다. 누군가 온체인 패키지를 사용하려면 먼저 그 첫 번째 원본 버전을 게시해야 한다. 패키지를 업그레이드하면 그 패키지의 새 버전을 생성한다. 패키지의 각 업그레이드는 버전 이력에서 바로 이전 버전을 기반으로 한다. 즉 패키지의 `nth`버전은 `nth - 1` 버전에서만 업그레이드할 수 있다. 예를 들어 버전 1에서 2로는 패키지를 업그레이드할 수 있지만 그 이후에는 버전 2에서 3으로만 업그레이드할 수 있으며, 버전 1에서 3으로 업그레이드하는 것은 허용되지 않는다.
+
+패키지 매니페스트 파일에는 패키지 섹션과 dependencies 섹션 모두에 버전 관리 개념이 존재한다. 예를 들어 다음의 매니페스트 코드를 생각해 볼 수 있다:
+
+```toml
+[package]
+name = "some_pkg"
+version = "1.0.0"
+
+[dependencies]
+another_pkg = { git = "https://github.com/another_pkg/another_pkg.git" , version = "2.0.0"}
+```
+
+이 시점에서 매니페스트의 버전 참조는 `publish` 와 `upgrade` 명령이 이 정보를 활용하지 않으므로 사용자 수준 문서화에만 사용된다. 매니페스트 파일에 특정 패키지 버전을 지정한 패키지를 게시한 뒤 동일한 패키지를 수정해 다른 버전으로 다시 게시하면(`upgrade` 명령이 아니라 `publish` 명령을 사용하는 경우), 두 패키지는 동일한 패키지의 온체인 버전이 아니라 서로 다른 패키지로 간주된다. 이들 패키지 중 어느 것도 다른 하나를 대신하는 dependency override로 사용할 수 없다. 패키지를 빌드할 때 이런 유형의 override를 지정할 수는 있지만, 온체인에서 게시하거나 업그레이드할 때는 오류가 발생한다.
