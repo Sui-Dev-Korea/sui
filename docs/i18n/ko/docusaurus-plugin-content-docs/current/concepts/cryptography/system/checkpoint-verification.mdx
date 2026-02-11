@@ -1,0 +1,46 @@
+---
+title: Checkpoint Verification
+description: Sui 네트워크에서 checkpoints는 블록체인의 이력을 정의한다. Checkpoint verification은 풀 노드와 기타 clients가 자신의 상태가 Sui 네트워크와 정확히 동일함을 보장하는 방식이다.
+---
+
+Sui 네트워크에서 checkpoints는 블록체인의 이력을 정의한다. 실행 이전에 블록을 생성하는 전통적인 블록체인과 달리, Sui는 transaction 실행 이후에 checkpoints를 생성하여 체인 이력에 대한 인증된 기록을 제공한다.
+
+Checkpoints에는 다음이 포함된다:
+
+- 이전 checkpoint의 암호학적 해시.
+- checkpoint에 포함된 모든 transaction digest(및 이에 대응하는 transaction effects digest)의 목록.
+- checkpoint가 생성될 당시 위원회를 구성하던 validators의 quorum(3분의 2 초과)으로부터의 서명 집합.
+
+Validators와 풀 노드는 모두 네트워크와의 동기화를 유지하기 위해 checkpoints를 소비한다.
+
+## Verifying checkpoints
+
+풀 노드와 validators는 checkpoint를 신뢰하기 위해 이를 검증한다. 이 검증은 Sui validator 위원회가 해당 checkpoint를 생성했으며 그것이 진본임을 확인한다.
+
+Checkpoint verification에는 서로 의존적인 두 단계가 필요하다:
+
+1. Validator 위원회의 공개 키를 보유한 client는 checkpoint에 대한 서명을 확인할 수 있다. Checkpoints는 위원회의 quorum에 의한 집계된 BLS 서명으로 서명된다. 서명이 유효하다면 client는 해당 checkpoint가 다른 주체가 아닌 validator 위원회에 의해 생성되었음을 알 수 있다.
+2. Checkpoints를 검증함으로써 client는 위원회의 구성을 학습할 수 있다. 각 epoch의 마지막 checkpoint에는 다음 epoch의 validator 위원회와 해당 공개 키가 포함된다.
+
+이 과정은 겉보기에는 순환 의존성을 형성한다. Client는 checkpoints를 검증하기 위해 위원회를 알아야 하지만, 동시에 checkpoint 검증을 통해 위원회를 학습하기 때문이다. 이 과정은 Sui 네트워크에서 가장 이른 checkpoint인 genesis checkpoint로부터 부트스트랩된다. Genesis checkpoint에는 초기 validator 위원회가 포함되어 있으며, 이를 통해 client는 다음 과정을 따라 모든 이력상의 checkpoints를 검증할 수 있다:
+
+1. Client는 신뢰할 수 있는 출처로부터 genesis checkpoint를 획득한다.
+2. Client는 genesis checkpoint로부터 초기 위원회를 로드한다.
+3. Client는 state sync 네트워크 또는 Sui archive를 사용하여 다음 checkpoint를 획득한다.
+4. Client는 현재 위원회의 공개 키를 사용하여 checkpoint의 서명을 검증하고, checkpoint의 이전 checkpoint 해시가 client가 검증한 이전 checkpoint의 해시와 동일한지 검증한다.
+5. Checkpoint가 유효하지 않다면 client는 오류를 발생시킨다.
+6. 그렇지 않다면 client는 해당 checkpoint가 현재 epoch의 마지막인지 확인한다.
+    - 그렇다면 해당 checkpoint로부터 다음 위원회를 로드하고 이를 현재 위원회로 사용한다.
+    - 그렇지 않다면 3단계로 돌아가 계속 진행한다.
+
+이 과정은 client가 현재 시점까지의 모든 checkpoints를 검증할 수 있도록 한다.
+
+## Checkpoint commitments
+
+Client가 checkpoint를 검증한 이후에는 해당 정보를 사용하여 transaction을 실행하고 결과를 확인할 수 있다.
+
+Checkpoint에는 transaction 목록이 포함되어 있으므로 풀 노드는 이를 가져와 실행할 수 있다. Transactions는 digest(암호학적 해시)로 식별되므로 client는 그것들이 변조되지 않았음을 확신할 수 있다.
+
+Checkpoint에는 또한 각 transaction의 effects digest가 포함된다.<br>Effects digest는 `TransactionEffects` 구조체의 암호학적 해시이며, 여기에는 transaction에 의해 작성된 모든 object의 digest를 포함하여 모든 transaction 입력과 출력이 나열된다. 이를 통해 풀 노드는 checkpoint에 서명한 validators와 동일한 실행 결과를 가지고 있음을 확인할 수 있다.
+
+Checkpoints를 실행하고 transaction 출력을 검증함으로써 풀 노드는 Sui 네트워크의 전체 상태, 즉 네트워크 내 object들의 집합을 구축할 수 있으며, 모든 object의 모든 바이트가 정확하다는 것을 신뢰할 수 있다.
