@@ -1,0 +1,34 @@
+---
+title: Multisig
+description: multisig transaction은 단일 키가 아닌 인증을 위해 여러 키를 필요로 한다. Sui는 순수 Ed25519, ECDSA Secp256k1, ECDSA Secp256r1 암호화 키에 대한 multisig transaction을 지원한다.
+keywords:
+  - multi-signature
+  - multi-sig
+  - multisig
+  - multiple signatures
+  - pure Ed25519
+  - ECDSA Secp256k1
+  - ECDSA Secp256r1
+---
+
+Sui는 단일 키 서명이 아닌 인증을 위해 여러 키를 필요로 하는  다중 서명 (multisig) transaction을 지원한다. 기술적으로 Sui는 `n`개 중 `k`개의 서명이 필요한 형태의  multisig transaction을 지원하며, 여기서 `k`는 임계값이고 `n`은 모든 참여 당사자의 총 가중치이다. 최대 참여 당사자 수는 10명이다. Sui가 지원하는 단일 키 서명에 대해 자세히 알아보려면 [Signatures](./signatures.mdx)를 참고한다.
+
+Multisig에 유효한 참여 키는 순수 Ed25519, ECDSA Secp256k1, ECDSA Secp256r1이다. 각 참여 키에 대해 ([u8](https://doc.rust-lang.org/std/primitive.u8.html)) 가중치가 설정되고 임계값은 [u16](https://doc.rust-lang.org/std/primitive.u16.html)으로 설정할 수 있다. 직렬화된 multisig에 가중치 합이 임계값을 통과하는 충분한 유효 서명이 포함되어 있으면 Sui는 multisig를 유효한 것으로 간주하고 transaction이 실행된다.
+
+## Applications of multisig
+
+Sui는 단일 multisig 계정에서 키 체계를 혼합하여 사용할 수 있게 한다. 예를 들어 단일 Ed25519 니모닉 기반 키와 두 개의 ECDSA Secp256r1 키를 선택하여 항상 Ed25519 키를 필요로 하면서도 ECDSA Secp256r1 키 중 하나도 서명해야 하는 multisig 계정을 만들 수 있다. 이 구조를 2단계 인증으로 모바일 보안 enclave에 저장된 키에 사용할 수 있다.
+
+:::info
+
+현재 iPhone과 하이엔드 Android 기기는 ECDSA Secp256r1 enclave 저장 키만 지원한다.
+
+:::
+
+임계 서명과 비교할 때 multisig 계정은 일반적으로 더 유연하고 구현 및 사용이 간단하며, 복잡한 다자간 계산(MPC) 계정 설정 절차와 관련 소프트웨어, 그리고 임계 암호화 제공자에 대한 의존성이 필요하지 않다. 또한 키 체계를 혼합하고 각 키에 다른 가중치를 설정할 수 있는 기능(임계 암호화에서는 복잡함) 외에도 multisig 계정은 설계상 책임성과 투명성을 가지는데, 참여 당사자와 관찰자 모두 누가 각 transaction에 서명했는지 볼 수 있기 때문이다. 반면 임계 서명은 임계 정책을 숨기는 이점을 제공하지만, 단일 서명 페이로드를 생성하여 단일 키 계정과 구분할 수 없게 만든다.
+
+![Multisig structure diagram](images/sui_multisig_structures.png "Supported multisig configurations in Sui") *Sui에서 지원되는 multisig 구조.*
+
+## Related links
+
+<relatedlink to="/guides/developer/cryptography/multisig.mdx"></relatedlink>
