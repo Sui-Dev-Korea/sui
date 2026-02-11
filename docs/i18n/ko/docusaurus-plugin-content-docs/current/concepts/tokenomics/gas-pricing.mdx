@@ -1,6 +1,6 @@
 ---
 title: Sui Gas Pricing
-description: "Sui's gas pricing is designed to deliver low, predictable fees and protect against DDoS attacks while incentivizing validators to optimize processing operations. Separate gas fees are paid for computation and transaction data storage."
+description: Sui의 가스 가격 책정 방식은 낮고 예측 가능한 수수료를 제공하고 DDoS 공격으로부터 보호하는 동시에 검증자들이 처리 작업을 최적화하도록 유도한다. 연산과 거래 데이터 저장에 대해 별도의 가스 수수료가 부과된다.
 keywords:
   - sui gas pricing
   - how gas pricing works
@@ -16,42 +16,42 @@ keywords:
   - transaction data storage gas
 ---
 
-The Sui gas-pricing mechanism achieves three outcomes: delivering low, predictable transaction fees, incentivizing the network's operators (validators) to optimize their transaction processing operations, and preventing denial of service attacks.
+Sui 가스 가격 책정 메커니즘은 낮고 예측 가능한 transaction 수수료 제공, 네트워크 운영자(validator)가 transaction 처리 작업을 최적화하도록 장려, 서비스 거부 공격 방지라는 세 가지 결과를 달성한다.
 
-This enables you to focus on using the Sui network to provide the best user experience without needing to forecast the current market price of gas fees. Since validators agree on a network-wide reference price at the start of each epoch, you can use the reference price as a credible anchor when submitting transactions. Moreover, the price setting mechanism rewards good validator behavior, thus aligning incentives between SUI token holders, validators, and Sui users.
+이를 통해 현재 가스비 시장 가격을 예측할 필요 없이 최고의 사용자 경험을 제공하기 위해 Sui 네트워크를 사용하는 데 집중할 수 있다. 각 epoch 시작 시 validator가 네트워크 전체 참조 가격에 동의하므로, transaction 제출 시 참조 가격을 신뢰할 수 있는 기준으로 사용할 수 있다. 또한 가격 설정 메커니즘은 좋은 validator 행동에 보상을 제공하여 SUI 토큰 보유자, validator, Sui 사용자 간의 인센티브를 일치시킨다.
 
-A unique feature of the Sui gas price mechanism is that users pay separate fees for transaction execution and for storing the data associated with each transaction. The gas fees associated with an arbitrary transaction $\tau$ equal:
+Sui 가스 가격 메커니즘의 독특한 특징은 사용자가 transaction 실행과 각 transaction과 연관된 데이터 저장에 대해 별도의 수수료를 지불한다는 점이다.<br>임의의 transaction $\tau$와 연관된 가스비는 다음과 같다.
 
 $$ GasFees[\tau] \ = \ ComputationUnits[\tau] \times ComputationPrice[\tau] \ + \ StorageUnits[\tau] \times StoragePrice $$
 
-The gas functions $ComputationUnits[\tau]$ and $StorageUnits[\tau]$ measure the amount of computation and storage resources, respectively, required to process and store the data associated with $\tau$. The gas prices $ComputationPrice[\tau]$ and $StoragePrice$ translate the cost of computation and storage, respectively, into SUI units. The decoupling between gas units and gas prices is useful since SUI market price will fluctuate over time in accordance with supply and demand.
+가스 함수 $ComputationUnits[\tau]$와 $StorageUnits[\tau]$는 $\tau$와 관련된 데이터를 처리하고 저장하는 데 필요한 연산 및 저장 리소스의 양을 각각 측정한다. 가스 가격 $ComputationPrice[\tau]$와 $StoragePrice$는 각각 연산 및 저장 비용을 SUI 단위로 변환한다. SUI 시장 가격이 수요와 공급에 따라 시간이 지남에 따라 변동하기 때문에, 가스 단위와 가스 가격의 분리하여 생각할 수 있다.
 
 ## Computation gas prices {#computation}
 
-The computation gas price $ComputationPrice[\tau]$ captures the cost of one unit of computation in SUI units. This price is set at the transaction level and submitted by the user as the transaction's gas price. Conceptually, it is useful to think about this gas price in two parts:
+연산 가스 가격 $ComputationPrice[\tau]$는 연산 1단위의 비용을 SUI 단위로 나타낸다. 이 가격은 transaction 수준에서 설정되며 사용자가 transaction의 가스 가격으로 제출한다. 개념적으로 이 가스 가격을 두 부분으로 생각할 수 있다.
 
 $$ ComputationPrice[\tau] \ = \ ReferencePrice \ + \ Tip[\tau] $$
 
-On the Sui network, a single $ReferencePrice$ exists throughout each epoch, with Sui validators updating the $ReferencePrice$ at each epoch boundary. Hence, in practice, when a user submits a gas price above the $ReferencePrice$, it is useful to think of the difference as a tip paid to the network in order to get higher priority. During moments of regular network operations, users are not expected to pay tips and the vast majority of transactions have gas prices equal to $ReferencePrice$.
+Sui 네트워크에서는 각 epoch 동안 단일 $ReferencePrice$가 존재하며, Sui validator들은 각 epoch 경계에서 $ReferencePrice$를 업데이트한다. 따라서 실제로 사용자가 $ReferencePrice$보다 높은 가스 가격을 제출할 때, 그 차액은 더 높은 우선순위를 얻기 위해 네트워크에 지불하는 팁으로 생각할 수 있다. 일반적인 네트워크 운영 중에는 사용자가 팁을 지불할 것으로 예상되지 않으며, 대다수의 transaction은 $ReferencePrice$와 동일한 가스 가격을 갖는다.
 
-More generally, the Sui gas price mechanism makes the $ReferencePrice$ a credible anchor for you to reference when submitting transactions to the network. Providing reasonable confidence that transactions submitted with gas prices at or close to the reference price are executed in a timely manner. This is achieved through three core steps:
+더 일반적으로, Sui 가스 가격 메커니즘은 $ReferencePrice$를 네트워크에 transaction을 제출할 때 참조할 수 있는 신뢰가능한 기준으로 만든다. 가스 가격이 참조 가격과 같거나 가까운 transaction이 적절한 시기에 실행될 것이라는 합리적인 확신을 제공한다.<br>이는 세 가지 핵심 단계를 통해 달성된다.
 
-- **Gas price survey:** All validators are surveyed at the start of each epoch, and every validator submits their reservation price. That is, each validator states the minimum gas price at which they are willing to process transactions. The protocol orders these quotes and chooses the 2/3 percentile by stake as the reference price. The gas price survey goal is to set a reference price under which a [quorum](../../guides/operator/validator/validator-committee.mdx#quorums) of validators are willing to promptly process transactions.
-- **Tallying rule:** Throughout the epoch, validators obtain signals over the operations of other validators. Each validator uses these signals to build a (subjective) evaluation over the performance of every other validator. Specifically, each validator constructs a multiplier for the stake rewards of every other validator such that validators who behave well receive boosted rewards, and validators who do not receive reduced rewards. The tallying rule goal is to create a community-enforced mechanism for encouraging validators to honor the reference gas price.
-- **Incentivized stake reward distribution rule:** At the end of the epoch, the distribution of stake rewards across validators is adjusted using information from the tallying rule. Specifically, a global multiplier is built for every validator using the median value (weighted by stake) out of the set of individual multipliers constructed during the tallying rule. All else equal, validators that operated performantly receive their regular stake rewards, whereas validators who did not operate performantly at the reference gas price receive slashed rewards. Since stake rewards are influenced by the amount of stake each validator owns, validators are encouraged to obtain more stake by lowering gas fees and pricing out inefficient validators. This benefits Sui end users since the stake reward distribution rule incentivizes validators to deliver a more cost-efficient network.
+- **Gas price survey:** 모든 validator는 각 epoch 시작 시 조사를 받으며, 모든 validator는 예약 가격을 제출한다. 즉, 각 validator는 transaction을 처리할 의향이 있는 최소 가스 가격을 명시한다. 프로토콜은 이 견적들을 정렬하고 stake 기준 2/3 백분위수를 참조 가격으로 선택한다. 가스 가격 조사의 목적은 검증자 [과반수](../../guides/operator/validator/validator-committee.mdx#quorums) 가 신속하게 transaction을 처리할 의향이 있는 참조 가격을 설정하는 것이다.
+- **Tallying rule:** epoch 동안 validator는 다른 validator의 운영에 대한 신호를 얻는다. 각 validator는 이 신호를 사용하여 다른 모든 validator의 성능에 대한 (주관적인) 평가를 구축한다. 구체적으로, 각 validator는 다른 모든 validator의 stake 보상에 대한 승수를 구성하여 잘 행동하는 validator는 부스트된 보상을 받고, 그렇지 않은 validator는 감소된 보상을 받도록 한다. 집계 규칙의 목표는 validator가 참조 가스 가격을 준수하도록 장려하는 커뮤니티 시행 메커니즘을 만드는 것이다.
+- **Incentivized stake reward distribution rule:** epoch가 끝날 때, 집계 규칙의 정보를 사용하여 validator 간의 stake 보상 분배가 조정된다. 구체적으로, 집계 규칙 동안 구성된 개별 승수 세트 중 중앙값(stake로 가중치 적용)을 사용하여 모든 validator에 대한 전역 승수가 구축된다. 다른 조건이 동일할 때, 성능 좋게 운영한 validator는 정규 stake 보상을 받는 반면, 참조 가스 가격에서 성능 좋게 운영하지 않은 validator는 삭감된 보상을 받는다. stake 보상은 각 validator가 소유한 stake 양에 영향을 받으므로, validator는 가스비를 낮추고 비효율적인 validator를 가격 경쟁에서 배제함으로써 더 많은 stake를 확보하도록 장려된다. 이는 stake 보상 분배 규칙이 validator가 더 비용 효율적인 네트워크를 제공하도록 인센티브를 제공하므로 Sui 최종 사용자에게 이익이 된다.
 
-In sum, the gas price mechanism has two main forces: the tallying rule incentivizes validators to honor the quotes submitted during the gas survey, while the distribution rule incentivizes validators to submit low reservations prices. The interaction of these two forces delivers a mechanism encouraging validators to set a low network-level reference gas price - but not too low, because they face penalties if they cannot honor their quotes. In other words, the gas price mechanism encourages a healthy competition for fair prices.
+요약하면, 가스 가격 메커니즘은 크게 두 가지 요소로 구성된다. 첫째, 집계 규칙은 validator가 가스 설문조사 중에 제출한 견적을 준수하도록 유도하고, 둘째, 분배 규칙은 validator가 낮은 예약 가격을 제출하도록 유도한다. 이 두 요소의 상호작용을 통해 validator는 네트워크 수준의 기준 가스 가격을 낮게 설정하게 되지만, 견적을 준수하지 못할 경우 불이익을 받게 되므로 지나치게 낮은 가격으로 설정하는 것은 바람직하지 않게 된다. 즉, 가스 가격 메커니즘은 공정한 가격을 위한 건전한 경쟁을 촉진한다.
 
 ## Storage gas prices {#storage}
 
-The storage gas price $StoragePrice$ captures the costs of covering one unit of storage in perpetuity, in SUI units. This price is set through governance proposals and is updated infrequently. The goal is to ensure Sui users pay for their use of on-chain data storage by depositing these fees into the storage fund and then redistributing these fees to future validators. In contrast to the computation gas price, storage prices are fixed and common for all transactions both within an epoch and across epochs until the storage price is updated.
+저장 가스 가격 $StoragePrice$는 저장 공간 1단위를 영구적으로 커버하는 비용을 SUI 단위로 나타낸다. 이 가격은 거버넌스 제안을 통해 설정되며 드물게 업데이트된다. 목표는 Sui 사용자가 온체인 데이터 저장 사용에 대한 비용을 저장 펀드에 예치하고 추후 이 수수료를 미래의 validator에게 재분배함으로써 비용을 지불하도록 보장하는 것이다. 연산 가스 가격과 대조적으로, 저장 가격은 저장 가격이 업데이트될 때까지 한 epoch 내에서 그리고 여러 epoch에 걸쳐 모든 transaction에 대해 고정되고 공통적이다.
 
-The $StoragePrice$ is set exogenously through the governance proposal with the goal of targeting the off-chain dollar cost of data storage. In the long run, as the costs of storage fall due to technological improvements and the dollar price of the SUI token evolves, governance proposals will update the price in order to reflect the new dollar target price.
+$StoragePrice$는 데이터 저장의 오프체인 달러 비용을 목표로 하는 거버넌스 제안을 통해 외생적으로 설정된다. 장기적으로 기술 발전으로 저장 비용이 하락하고 SUI 토큰의 달러 가격이 변동함에 따라, 거버넌스 제안은 새로운 달러 목표 가격을 반영하기 위해 가격을 업데이트할 것이다.
 
 ## Gas prices as a coordination mechanism {#coordination-mechanism}
 
-Overall, when you submit transactions with computation gas prices at or close to the current epoch $ReferencePrice$ and storage gas prices at the targeted $StoragePrice$, you have the best user experience. The Sui gas price mechanism provides you with credible reference prices for submitting your transactions. By incentivizing validators to elicit their true reservation prices and honor these quotes, you can credibly assume your transactions are processed in a timely manner.
+전반적으로, 현재 epoch $ReferencePrice$와 같거나 가까운 연산 가스 가격과 목표 $StoragePrice$의 저장 가스 가격으로 transaction을 제출할 때 최고의 사용자 경험을 얻을 수 있다. Sui 가스 가격 메커니즘은 transaction 제출을 위한 신뢰할 수 있는 참조 가격을 제공한다. validator가 실제 예약 가격을 도출하고 이 견적을 준수하도록 인센티브를 제공함으로써, 사용자는 transaction이 적절한 시기에 처리될 것이라고 볼 수 있다.
 
-After Sui enables horizontal scaling, validators can add more workers as demand for on-chain activity scales. This increases their costs linearly at the same pace of network activity and lets them process more transactions at the same low gas prices. In cases of extreme network congestion where validators cannot scale fast enough, the tip presence provides a market-based congestion pricing mechanism that discourages further demand spikes by increasing the cost of transacting on the Sui platform.
+Sui가 수평적 확장을 활성화한 후, validator는 온체인 활동 수요가 증가함에 따라 더 많은 워커를 추가할 수 있다. 이는 네트워크 활동 속도와 동일하게 비용을 선형적으로 증가시키고 동일한 낮은 가스 가격으로 더 많은 transaction을 처리할 수 있게 한다. Validator가 충분히 빠르게 확장할 수 없는 극심한 네트워크 혼잡의 경우, 팁의 존재는 Sui 플랫폼의 거래 비용을 증가시켜 추가적인 수요 급증을 억제하는 시장 기반 혼잡 가격 책정 메커니즘을 제공한다.
 
-In the long run, the Sui gas price mechanism creates incentives for validators to optimize their hardware and operations. Validators that invest in becoming more efficient are able to honor lower gas prices and obtain a stake reward boost. Sui validators are thus encouraged to innovate and improve the experience of end users.
+장기적으로 Sui 가스 가격 메커니즘은 validator가 하드웨어와 운영을 최적화하도록 인센티브를 생성한다. 효율성을 높이기 위해 투자하는 validator는 더 낮은 가스 가격을 준수하고 stake 보상 부스트를 얻을 수 있다. 따라서 Sui validator는 최종적으로 혁신적이고 향상된 경험을 할 수 있다.
