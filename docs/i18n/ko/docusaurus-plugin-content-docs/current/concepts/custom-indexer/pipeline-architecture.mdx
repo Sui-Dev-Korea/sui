@@ -26,28 +26,21 @@ keywords:
 
 대부분의 사용 사례에서 여기서 시작한다. 더 직관적인 구현과 유지보수를 제공한다.
 
-<ul classname="list-none pl-2">
-<li>
-<span classname="text-sui-success-dark">✓</span> 직접적인 커밋과 간단한 쿼리로 직관적인 구현을 원한다.</li>
-<li>
-<span classname="text-sui-success-dark">✓</span> 팀이 예측 가능하고 디버깅하기 쉬운 동작을 선호한다.</li>
-<li>
-<span classname="text-sui-success-dark">✓</span> 현재 성능이 요구사항을 충족한다.</li>
-<li>
-<span classname="text-sui-success-dark">✓</span> 운영의 단순성을 중시한다.</li>
+<ul className="list-none pl-2">
+<li><span className="text-sui-success-dark">✓</span> 직접적인 커밋과 간단한 쿼리로 직관적인 구현을 원한다.</li>
+<li><span className="text-sui-success-dark">✓</span> 팀이 예측 가능하고 디버깅하기 쉬운 동작을 선호한다.</li>
+<li><span className="text-sui-success-dark">✓</span> 현재 성능이 요구사항을 충족한다.</li>
+<li><span className="text-sui-success-dark">✓</span> 운영의 단순성을 중시한다.</li>
 </ul>
 
 ### concurrent pipeline
 
 다음과 같은 경우 concurrent pipeline 구현을 고려한다:
 
-<ul classname="list-none pl-2">
-<li>
-<span classname="text-sui-success-dark">✓</span> 성능 최적화가 필수적이다.</li>
-<li>
-<span classname="text-sui-success-dark">✓</span> 시퀀셜 처리가 데이터 볼륨을 따라갈 수 없다.</li>
-<li>
-<span classname="text-sui-success-dark">✓</span> 팀이 성능 이점을 위해 추가적인 구현 복잡성을 처리할 의향이 있다.</li>
+<ul className="list-none pl-2">
+<li><span className="text-sui-success-dark">✓</span> 성능 최적화가 필수적이다.</li>
+<li><span className="text-sui-success-dark">✓</span> 시퀀셜 처리가 데이터 볼륨을 따라갈 수 없다.</li>
+<li><span className="text-sui-success-dark">✓</span> 팀이 성능 이점을 위해 추가적인 구현 복잡성을 처리할 의향이 있다.</li>
 </ul>
 
 순서와 관계없는 커밋을 지원하면 파이프라인에 몇 가지 추가 복잡성이 생긴다:
