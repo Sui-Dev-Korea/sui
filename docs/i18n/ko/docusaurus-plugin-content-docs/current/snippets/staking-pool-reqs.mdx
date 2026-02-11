@@ -1,0 +1,19 @@
+### Validator staking pool requirements
+
+Validator가 활성 validator 세트에 참여하고 유지하려면 최소 스테이킹 요건을 충족해야 한다.
+
+##### Stake requirements
+
+Sui 네트워크는 validator 진입 장벽을 크게 낮추는 [SIP-39](https://github.com/sui-foundation/sips/blob/main/sips/sip-39.md)를 운영하고 있다. 최소 SUI 토큰 보유량 대신 최소 *voting power* 만 있으면 validator가 될 수 있다.
+
+SIP-39가 완전히 시행되면 다음과 같은 validator 요구 사항이 적용된다:
+
+- Validator 후보는 validator 세트에 참여를 요청하기 전에 최소 3표의 voting power를 확보해야 한다.
+- 활성 validator의 스테이크가 2표 미만의 voting power를 갖게 되면, validator 세트에서 제외되기 전에 7 epoch의 유예 기간 동안 스테이크를 회복해야 한다.
+- 활성 validator의 스테이크가 1 voting power 미만으로 떨어지면, 해당 validator는 현재 epoch 종료 시점에 validator 세트에서 제거된다. Sui는 24시간 epoch을 사용한다.
+
+Voting power에 대한 자세한 내용은 ['Understanding the voting power formula'](/concepts/tokenomics.mdx#understanding-the-voting-power-formula)를 참조한다.
+
+:::tip Want to be a Sui validator?
+
+필요한 지분을 확보하고 Sui에서 validator를 운영할 계획이라면, 당신의 참여를 환영한다. Sui는 당신의 온보딩을 적극적으로 지원할 것이다. Validator Discord에 참여하고 향후 validator 출시 및 기술 지원 소식을 받아보려면 [this form](https://docs.google.com/forms/d/e/1FAIpQLSf6ZngRJ6Q5RdEiBfnbpUq4Htj8ShL58I6JRkmRTwTVSzeNtQ/viewform)을 작성하라. :::
