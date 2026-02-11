@@ -1,0 +1,106 @@
+---
+title: Intent Signing
+description: 인텐트 서명은 사용자와 authority 서명 모두가 서명하는 데이터에 간결한 도메인 구분자를 제공한다. 각 서명이 커밋하는 데이터는 인텐트 메시지라고 하며, Sui의 모든 서명은 이를 포함해야 한다.
+keywords:
+  - intent
+  - signing
+  - intent signatures
+  - intent message
+  - domain separators
+  - compact structs
+  - signing standard
+  - compact domain separator
+  - user signatures
+  - authority signatures
+  - proof of possession
+  - generate proof of possession
+---
+
+Sui에서 인텐트는 서명이 커밋하는 메시지의 도메인 구분자 역할을 하는 간결한 struct이다. 서명이 커밋하는 데이터는 인텐트 메시지이다. Sui의 모든 서명은 메시지 자체가 아닌 인텐트 메시지에 커밋해야 한다.
+
+## Motivation
+
+이전 릴리스에서 Sui는 직렬화된 데이터에 Rust struct 이름을 접두사로 붙이는 특별한 `Signable` trait을 사용했다. 이것은 다음의 이유로 이상적이지 않다:
+
+- **간결하지 않음:** `TransactionData::` 접두사는 1바이트보다 상당히 크다.
+- **사용자 친화적이지 않음:** Rust가 아닌 애플리케이션은 Rust struct 이름 목록을 유지해야 한다.
+
+인텐트 서명 표준은 사용자 서명과 authority 서명 모두에 대해 서명되는 데이터에 간결한 도메인 구분자를 제공한다. 이것은 다음을 포함한 여러 이점을 가진다:
+
+- 인텐트 scope(범위)는 Rust struct 태그 이름 문자열 대신 u8 표현으로 대체된다.
+- 인텐트 scope 외에도 다른 중요한 도메인 구분자들도 커밋될 수 있다(예: 인텐트 버전 및 앱 ID).
+- 데이터 자체는 더 이상 `Signable` trait을 구현할 필요가 없고, `Serialize`만 구현하면 된다.
+- 모든 서명은 사용자 서명(`TransactionData`에만 커밋)과 authority 서명(`TransactionEffects`, `ProofOfPossession`, `SenderSignedTransaction`과 같은 모든 내부 인텐트 scope에 커밋)을 포함하여 동일한 인텐트 메시지 구조를 채택할 수 있다.
+
+## Structs
+
+`IntentMessage` struct는 인텐트와 직렬화된 데이터 값으로 구성된다.
+
+```rust
+pub struct IntentMessage<T> {
+  pub intent: Intent,
+  pub value: T,
+}
+```
+
+인텐트 struct를 생성하려면 `IntentScope`(메시지의 타입이 무엇인지), `IntentVersion`(네트워크가 지원하는 버전이 무엇인지), 그리고 `AppId`(서명이 어떤 애플리케이션을 참조하는지)를 포함한다.
+
+```rust
+pub struct Intent {
+  scope: IntentScope,
+  version: IntentVersion,
+  app_id: AppId,
+}
+```
+
+상세한 필드 정의는 소스 코드의 enum 정의를 참고한다:
+
+<importcontent source="crates/shared-crypto/src/intent.rs" mode="code" enumeration="IntentScope,IntentVersion,AppId,HashingIntentScope"></importcontent>
+
+`Intent`의 직렬화는 각 필드가 바이트로 표현되는 3바이트 배열이다.
+
+`IntentMessage<T>`의 직렬화는 인텐트의 3바이트와 BCS로 직렬화된 메시지를 연결한 것이다.
+
+## User signature
+
+사용자 서명을 생성하려면, 먼저 인텐트 메시지를 구성하고, transaction 데이터의 인텐트 메시지(`intent || message`)를 BCS로 직렬화한 값의 32바이트 Blake2b 해시에 대해 서명을 생성한다.
+
+다음은 Rust 예제이다:
+
+```rust
+let intent = Intent::default();
+let intent_msg = IntentMessage::new(intent, data);
+let signature = Signature::new_secure(&intent_msg, signer);
+```
+
+다음은 TypeScript 예제이다:
+
+```typescript
+const intentMessage = messageWithIntent('TransactionData', transactionBytes);
+const signature = await this.sign(intentMessage);
+```
+
+내부적으로, Rust의 `new_secure` 메서드와 TypeScript의 `signData` 메서드는 다음을 수행한다:
+
+1. 인텐트 메시지를 3바이트 인텐트와 transaction 데이터의 BCS 직렬화된 바이트를 연결한 것으로 직렬화한다.
+2. Blake2b 해시를 적용하여 32바이트 digest를 얻는다.
+3. digest를 서명자의 해당 체계에 대한 서명 API에 전달한다. 지원되는 서명 방식은 순수 Ed25519, ECDSA Secp256k1, ECDSA Secp256r1이다. 각 서명 방식의 요구사항은 [Sui Signatures](./signatures.mdx#signature-requirements)를 참조한다.
+
+## Authority signature
+
+Authority 서명은 프로토콜 키를 사용하여 생성된다. 커밋하는 데이터도 인텐트 메시지 `intent || message`이다. 사용 가능한 모든 인텐트 scope는 [in the source code](https://github.com/MystenLabs/sui/blob/0dc1a38f800fc2d8fabe11477fdef702058cf00d/crates/sui-types/src/intent.rs#L66)에서 확인한다.
+
+### How to generate proof of possession for an authority
+
+Authority가 네트워크 참여를 요청할 때, 프로토콜 공개 키와 소유 증명(PoP)을 제출해야 한다. PoP는 [rogue key attack](https://crypto.stanford.edu/~dabo/pubs/papers/BLSmultisig.html)을 방지하기 위해 필요하다.
+
+소유 증명은 authority의 프로토콜 개인 키를 사용하여 생성된 BLS 서명으로, 다음 메시지에 커밋한다: `intent || pubkey || address || epoch`. 여기서 `intent`는 scope가 `Proof of Possession`, 버전이 `V0`, app_id가 `Sui`인 인텐트를 나타내는 `[5, 0, 0]`으로 직렬화된다. `pubkey`는 authority의 BLS 프로토콜 키의 직렬화된 공개 키 바이트이다. `address`는 authority의 계정 키와 연결된 계정 address이다. `epoch`는 `[0, 0, 0, 0, 0, 0, 0, 0]`으로 직렬화된다.
+
+Rust에서 소유 증명을 생성하려면, `fn generate_proof_of_possession`의 구현을 참고한다. 테스트 벡터는 `fn test_proof_of_possession`을 참고한다.
+
+# Implementation
+
+1. [Struct and enum definitions](https://github.com/MystenLabs/sui/blob/0dc1a38f800fc2d8fabe11477fdef702058cf00d/crates/sui-types/src/intent.rs)
+2. [Test](https://github.com/MystenLabs/sui/blob/d009e82fa35bda4f2b3e7a86a9529d36c32a8159/crates/sui-types/src/unit_tests/intent_tests.rs)
+3. 사용자 transaction 인텐트 서명 [PR 1](https://github.com/MystenLabs/sui/pull/6445), [PR 2](https://github.com/MystenLabs/sui/pull/8321)
+4. Authority 인텐트 서명 [PR 1](https://github.com/MystenLabs/sui/pull/8154), [PR 2](https://github.com/MystenLabs/sui/pull/8726)

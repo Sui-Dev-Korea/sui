@@ -1,0 +1,151 @@
+---
+title: Query the Pool
+description: Pool은 SUI/USDC와 같은 고유한 시장 페어를 나타내는 공유 객체이다.
+keywords:
+  - deepbook
+  - deepbookv3
+  - pool
+  - balancemanager
+  - tradeproof
+  - query a pool
+  - query pool
+  - whitelist status
+  - base quantity against quote
+  - quote quantity against base
+  - DEEP fees
+  - input token fees
+  - quote quantity against quote or base
+  - check fee required
+  - reserve mid price
+  - reserve pool mid price
+---
+
+`Pool` shared object는 SUI/USDC 시장과 같은 시장을 나타낸다. 해당 `Pool` 은 해당 고유 페어링(SUI/USDC)을 나타내는 유일한 것이며, 페어링은 해당 특정 `Pool`의 유일한 구성원이다. 풀 구조에 대한 자세한 내용은 [DeepBookV3 Design](./design.mdx#pool) 을 참조하라.
+
+거래를 수행하려면 관련 `Pool`에 `BalanceManager`와 `TradeProof` 를 전달한다. `Pool`과 달리 `BalanceManager` shared objects는 모든 유형의 토큰을 포함할 수 있어, 동일한 `BalanceManager` 가 여러 `Pool`에 액세스하여 다양한 거래 페어링과 상호작용할 수 있다. 자세한 내용은 [BalanceManager](./balance-manager.mdx)  참조하라.
+
+## API
+
+DeepBookV3는 모든 풀을 쿼리하는 데 사용할 수 있는 엔드포인트 세트를 제공한다.
+
+### Check whitelist status
+
+풀이 화이트리스트에 등록되어 있는지 확인하는 접근자이다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="whitelisted" nocomments></importcontent>
+
+### Check quote quantity against base (DEEP fees)
+
+주어진 기준 수량에 대한 인용 수량 출력을 결정하는 드라이 런이다. 수수료로 DEEP를 사용한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_quote_quantity_out" nocomments></importcontent>
+
+### Check base quantity against quote (DEEP fees)
+
+주어진 인용 수량에 대한 기준 수량 출력을 결정하는 드라이 런이다. 수수료로 DEEP를 사용한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_base_quantity_out" nocomments></importcontent>
+
+### Check quote quantity against base (input token fees)
+
+주어진 기준 수량에 대한 인용 수량 출력을 결정하는 드라이 런이다. 수수료로 입력 토큰을 사용한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_quote_quantity_out_input_fee" nocomments></importcontent>
+
+### Check base quantity against quote (input token fees)
+
+주어진 인용 수량에 대한 기준 수량 출력을 결정하는 드라이 런이다. 수수료로 입력 토큰을 사용한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_base_quantity_out_input_fee" nocomments></importcontent>
+
+### Check quote quantity against quote or base
+
+주어진 기준 또는 인용 수량에 대한 수량 출력을 결정하는 드라이 런이다. 기준 또는 인용 수량 중 하나만 0이 아니어야 한다. (`base_quantity_out`, `quote_quantity_out`, `deep_quantity_required`)를 반환한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_quantity_out" nocomments></importcontent>
+
+### Check fee required
+
+수량과 가격이 주어진 테이커 또는 메이커 주문에 필요한 DEEP를 반환한다  (`deep_required_taker`, `deep_required_maker`).
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_order_deep_required" nocomments></importcontent>
+
+### Retrieve mid price for a pool
+
+풀의 중간 가격을 반환한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="mid_price" nocomments></importcontent>
+
+### Retrieve order IDs
+
+풀의 `balance_manager` 에 대한 모든 미결 주문의 `order_id` 를 반환한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="account_open_orders" nocomments></importcontent>
+
+### Retrieve prices and quantities for an order book
+
+레벨2 오더북의 가격 (`price_vec`) 과 수량(`quantity_vec`)을 보유하는 벡터를 반환한다.  The `price_low` 와 `price_high` 는 포함적이며, 범위 내의 모든 주문이 반환된다. `is_bid` 는 매수 주문의 경우 `true` 이고 매도 주문의 경우`false` 이다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_level2_range" nocomments></importcontent>
+
+레벨2 오더북의 가격 (`price_vec`)과 수량(`quantity_vec`) 을 보유하는 벡터를 반환한다.`ticks` 는 최고 매수와 최고 매도부터 시작하여 반환할 최대 틱 수이다. (`bid_price`, `bid_quantity`, `ask_price`, `ask_quantity`)는 네 개의 벡터로 반환된다. 가격 벡터는 매수 주문의 경우 내림차순으로 정렬되고 매도 주문의 경우 오름차순으로 정렬된다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_level2_ticks_from_mid" nocomments></importcontent>
+
+### Retrieve balances
+
+이 풀에 보유된 모든 잔액을 가져온다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="vault_balances" nocomments></importcontent>
+
+### Retrieve pool ID
+
+자산 유형이 주어진 풀의 ID를 가져온다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_pool_id_by_asset" nocomments></importcontent>
+
+### Retrieve order information
+
+주문 ID를 사용하여 `Order` 구조체를 반환한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_order" nocomments></importcontent>
+
+주문 ID 벡터를 사용하여 `Order` 구조체의 벡터를 반환한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_orders" nocomments></importcontent>
+
+풀의 `BalanceManager` 에 속한 모든 주문에 대한`Order`  구조체의 벡터를 반환한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_account_order_details" nocomments></importcontent>
+
+### Retrieve locked balance
+
+풀의 `BalanceManager` 에 대한 잠금 잔액을 반환한다(`base_quantity`, `quote_quantity`, `deep_quantity`).
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="locked_balance" nocomments></importcontent>
+
+### Retrieve pool parameters
+
+풀의 거래 매개변수를 반환한다(`taker_fee`, `maker_fee`, `stake_required`).
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="pool_trade_params" nocomments></importcontent>
+
+풀의 현재 선도 제안에 대한 다음 에포크의 거래 매개변수를 반환한다 (`taker_fee`, `maker_fee`, `stake_required`).
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="pool_trade_params_next" nocomments></importcontent>
+
+현재 에포크에서 제안을 통과시키는 데 필요한 정족수를 반환한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="quorum" nocomments></importcontent>
+
+풀의 북 매개변수를 반환한다 (`tick_size`, `lot_size`, `min_size`).
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="pool_book_params" nocomments></importcontent>
+
+풀의 `OrderDeepPrice`  구조체를 반환하며, 이는 DEEP 수수료의 변환을 결정한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_order_deep_price" nocomments></importcontent>
+
+## Related links
+
+<relatedlink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub."></relatedlink>

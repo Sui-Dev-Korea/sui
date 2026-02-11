@@ -1,0 +1,82 @@
+---
+title: Object Model
+description: Sui 블록체인 위의 모든 것은 메타데이터, 소유권 유형, 그리고 reference 체계를 가진 object이다.
+keywords:
+  - object model
+  - objects on sui
+  - sui move package
+  - sui move object
+  - move objects
+  - move packages
+  - objects
+  - packages
+  - referring to objects
+  - object metadata
+  - transaction-objects
+  - transaction objects
+  - relating objects and transactions
+---
+
+Sui의 기본 스토리지 단위는 object이다. 키-값 저장소를 포함하는 계정을 스토리지의 중심으로 삼는 많은 다른 블록체인과 달리, Sui의 스토리지는 고유 ID로 온체인에서 주소 지정 가능한 object를 중심으로 한다. 스마트 컨트랙트는 object(Sui Move package라고 불림)이며, 이러한 스마트 컨트랙트는 Sui 네트워크에서 object를 조작한다:
+
+- Sui Move package: Sui Move 바이트코드 모듈의 집합이다. 각 모듈은 포함하는 패키지 내에서 고유한 이름을 가진다. 패키지의 온체인 ID와 모듈 이름의 조합이 모듈을 고유하게 식별한다. Sui에 스마트 컨트랙트를 게시할 때, 패키지가 게시 단위이다. 패키지 object를 게시하면, 이는 불변하며 변경하거나 제거할 수 없다. 패키지 object는 이전에 Sui에 게시된 다른 패키지 object에 의존할 수 있다.
+- Sui Move object: Sui Move 패키지의 특정 Sui Move 모듈에 의해 관리되는 타입화된 데이터이다. 각 object 값은 원시 타입(정수 및 address와 같은), 다른 object, 그리고 object가 아닌 구조체를 포함할 수 있는 필드가 있는 구조체이다.
+
+## Object metadata
+
+각 Sui object는 다음과 같은 메타데이터를 가진다:
+
+- 32바이트의 전역 고유 ID. Object ID는 object를 생성한 transaction의 digest와 transaction에 의해 생성된 ID 수를 인코딩하는 카운터에서 파생된다.
+- 이를 수정하는 모든 transaction마다 단조 증가하는 8바이트 부호 없는 정수 버전 ([Object and Package Versioning](./versioning.mdx) 참조).
+- 이 object를 출력으로 포함한 마지막 transaction을 나타내는 32바이트 transaction digest.
+- 이 object에 접근할 수 있는 방법을 나타내는 32바이트 소유자 필드. 자세한 내용은 [Object Ownership](./object-ownership.mdx)을 참조한다.
+
+공통 메타데이터 외에도, object는 [Binary Canonical Serialization (BCS)](https://docs.rs/bcs/latest/bcs/)로 인코딩된 페이로드를 포함하는 카테고리별 가변 크기 내용 필드를 가진다.
+
+- Move object는 Move 타입, object가 `public_transfer`를 사용하여 전송 가능한지 여부, 그리고 다시 BCS로 인코딩된 필드를 포함한다.
+- Move package는 패키지의 바이트코드 모듈, 패키지의 각 타입을 도입한 패키지 버전을 식별하는 테이블(타입 원본 테이블), 그리고 각 전이적 의존성을 사용할 해당 패키지의 특정 버전에 매핑하는 테이블(연결 테이블)을 포함한다.
+
+## Referring to objects
+
+전체 내용과 메타데이터를 지정하지 않고 object를 간결하게 참조하는 몇 가지 다른 방법이 있으며, 각각 약간 다른 사용 사례가 있다:
+
+- **ID:** 위에서 언급한 object의 전역 고유 ID이다. ID는 시간에 걸쳐 object의 안정적인 식별자이며, object의 현재 상태를 쿼리하거나 두 address 간에 전송된 object를 설명하는 데 유용하다.
+- **Versioned ID:** (ID, version) 쌍이다. Versioned ID는 object의 이력에서 특정 시점의 object 상태를 설명하며, 과거의 어느 시점에서 object의 값이 무엇이었는지 묻거나 object의 특정 뷰가 얼마나 최신인지 결정하는 데 유용하다.
+- **Object reference:** (ID, version, object digest) 삼중이다. Object digest는 object의 내용과 메타데이터의 해시이다. Object reference는 object의 이력에서 특정 시점의 object에 대한 인증된 뷰를 제공한다. Transaction은 transaction의 발신자와 transaction을 처리하는 validator가 object의 내용과 메타데이터에 동의하도록 보장하기 위해 object 입력이 object reference를 통해 지정되도록 요구한다.
+
+## The transaction-object DAG: Relating objects and transactions
+
+Transaction은 object를 입력으로 받아 이러한 입력을 읽고/쓰고/변형하며, 변형되거나 새로 생성된 object를 출력으로 생성한다. 각 object는 이를 출력으로 생성한 마지막 transaction(의 해시값)을 알고 있다. 따라서 object와 transaction 간의 관계를 나타내는 자연스러운 방법은 다음과 같은 방향성 비순환 그래프(DAG)이다:
+
+- 노드는 transaction이다.
+- Transaction `A`의 출력 object가 transaction `B`의 입력 object인 경우, 방향성 엣지는 transaction `A`에서 transaction `B`로 향한다. 이 엣지는 해당 object의 참조로 레이블링된다 (이는 `A`에 의해 생성되고 `B`에 의해 사용된 object의 정확한 버전을 지정한다).
+
+이 DAG의 루트는 입력을 받지 않고 시스템의 초기 상태에 존재하는 object를 생성하는 제네시스 transaction이다. DAG는 커밋된 transaction에 의해 아직 소비되지 않은 변경 가능한 transaction 출력을 식별하고 이러한 출력(그리고 선택적으로 변경 불가능한 transaction 출력)을 입력으로 사용하는 새로운 transaction을 전송함으로써 확장할 수 있다.
+
+Transaction의 입력으로 사용 가능한 object 집합은 유효한 object들이며, Sui가 유지하는 전역 상태는 이러한 object의 전체로 구성된다. 특정 Sui address A에 대해 유효한 object는 A가 소유한 모든 object와 시스템의 모든 shared 및 immutable object이다.
+
+이 DAG가 시스템의 모든 커밋된 transaction을 포함할 때, 시스템의 상태와 역사에 대한 완전한(그리고 암호학적으로 감사 가능한) 뷰를 형성한다. 또한 위의 체계를 사용하여 transaction 또는 object의 하위 집합(예: 단일 address가 소유한 object)에 대한 관련 이력의 DAG를 구성할 수 있다.
+
+## Limits on transactions, objects, and data
+
+Sui는 transaction 및 transaction에서 사용되는 데이터에 대해 최대 크기 및 사용된 object 수와 같은 일부 제한이 있다. 제한에 대한 자세한 내용은 The Move Book의 [Building against Limits](https://move-book.com/guides/building-against-limits.html)를 참고한다.
+
+[`sui-protocol-config` crate](https://github.com/MystenLabs/sui/blob/main/crates/sui-protocol-config/src/lib.rs)의 `ProtocolConfig` 구조체는 이러한 제한을 항목화한다. 다음 코드를 확장하여 `ProtocolConfig` 구조체와 각 매개변수를 설명하는 주석을 확인한다.
+
+<details><summary></summary></details>
+
+`lib.rs`
+
+
+
+<importcontent source="crates/sui-protocol-config/src/lib.rs" mode="code" struct="ProtocolConfig"></importcontent>
+
+
+
+다음 탭에서 네트워크를 선택하여 현재 구성된 제한 및 값을 확인한다.
+
+<protocolconfig fields="[max_accumulated_randomness_txn_cost_per_object_in_mysticeti_commit, max_accumulated_txn_cost_per_object_in_mysticeti_commit, max_accumulated_txn_cost_per_object_in_narwhal_commit, max_arguments, max_input_objects, max_gas_computation_bucket, max_gas_payment_objects, max_gas_price, max_move_object_size, max_num_event_emit, max_transactions_per_checkpoint, max_tx_gas, max_tx_size_bytes, max_txn_cost_overage_per_object_in_commit, max_type_argument_depth, max_type_arguments, max_type_nodes, max_type_to_layout_nodes, max_value_stack_size]"></protocolconfig>
+
+## Related links
+
+<relatedlink to="/concepts/versioning.mdx"></relatedlink><relatedlink to="/concepts/object-ownership.mdx"></relatedlink><relatedlink href="https://github.com/MystenLabs/sui/blob/main/crates/sui-protocol-config/src/lib.rs" label="`sui-protocol-config`" desc=" Crate that defines the `ProtocolConfig` struct with limit definitions."></relatedlink><relatedlink href="https://move-book.com/guides/building-against-limits.html" label="Building against Limits" desc=" The Move Book provides a concise overview for limits most projects deal with."></relatedlink><relatedlink href="https://move-book.com/" label="The Move Book" desc=" A comprehensive guide to the Move programming language used on the Sui network."></relatedlink><relatedlink href="https://move-book.com/reference/" label="The Move Reference" desc=" Reference guide for the Move language."></relatedlink>
