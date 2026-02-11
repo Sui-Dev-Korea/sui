@@ -1,0 +1,74 @@
+---
+title: Sui Components
+description: Sui는 자체 합의 및 transaction blocks 검증을 수행하는 레이어 1 블록체인이다. Sui는 블록체인 자체, transaction과 같은 블록체인의 활동, 그리고 이러한 활동을 검증하는 validator 엔티티로 구성된다.
+keywords:
+  - sui blockchain
+  - sui components
+  - sui validators
+  - sui transactions
+  - components of sui
+  - what is sui comprised of
+  - delegated proof of stake
+  - delegated proof-of-stake
+  - dpos
+  - consensus
+  - sui networks
+  - sui mainnet
+  - sui testnet
+  - sui devnet
+  - move
+  - move language
+---
+
+Sui라는 이름은 영어로 swē로 발음되며, 물의 원소를 의미하는 일본어 단어에서 유래되었다. 블록체인의 이름, 네이티브 토큰 요소(SUI와 MIST), 그리고 브랜딩에 사용된 이미지에서 이러한 영향을 볼 수 있다.
+
+이 문서에서 Sui에 대해 읽을 때, 그것은 블록체인을 구성하는 시스템의 모든 부분을 참조한다. 여기에는 블록체인 자체, 다양한 네트워크(예: Mainnet), 블록체인상의 활동(transaction blocks), 이러한 활동을 검증하는 분산 엔티티(validator), 그리고 transaction blocks를 실행하는 풀 노드가 포함된다. 문서는 이러한 요소들의 전체를 Sui 플랫폼 또는 단순히 Sui라고 지칭한다.
+
+## The Sui blockchain
+
+Sui는 레이어 1 프로토콜 블록체인으로 정의된다. 기본적으로 이것은 Sui가 자체 네이티브 토큰(이 경우 SUI)을 사용하여 네트워크상의 transaction blocks (활동)에 대해 자체 합의 및 검증을 수행한다는 의미이다. 이더리움(ETH)과 비트코인(BTC)은 레이어 1 블록체인의 다른 예이다.
+
+대조적으로, 레이어 2 블록체인은 레이어 1 네트워크의 인프라를 활용하며, transaction blocks를 확정하기 위해 레이어 1 블록체인에 의존한다. 폴리곤(MATIC)은 이더리움을 확장하는 레이어 2 블록체인의 예이다.
+
+## SUI tokens
+
+Sui의 네이티브 토큰은 SUI이다. 문서에서 SUI(모두 대문자)를 언급할 때마다, 그것은 이 토큰을 가리킨다. Sui의 transaction blocks는 종종  SUI 하나 값의 작은 일부분을 다룬다. 이러한 transaction blocks를 더 쉽게 작업하기 위해 Sui는 MIST를 제공한다. 10억 개의 MIST가 하나의 SUI와 같다.
+
+모든 것에는 비용이 수반되며, 블록체인 transaction도 예외는 아니다. transaction blocks를 처리하고 그 결과를 저장하기 위한 계산 능력을 제공하는 데 비용이 든다. transaction blocks 처리 비용에 대한 용어는 *gas*이다. 가스와 데이터 저장 비용을 블록체인의 네이티브 토큰으로 지불하는데, 이 경우 SUI(또는 MIST)이다.
+
+Sui의 토크노믹스에 대해 자세히 알아보려면 다음 주제를 참조한다:
+
+- [Sui Tokenomics](./tokenomics.mdx)
+- [Gas in Sui](./tokenomics/gas-in-sui.mdx)
+- [Gas Pricing](./tokenomics/gas-pricing.mdx)
+- [Staking and Unstaking](./tokenomics/staking-unstaking.mdx)
+- [Sui Bridging](./tokenomics/sui-bridging.mdx)
+
+## Delegated proof-of-stake consensus
+
+Sui는 온체인 transaction blocks를 검증하기 위해 위임 지분 증명(DPoS) 합의 메커니즘을 사용한다. 이것은 Sui 네트워크의 validator가 자체 자금으로 또는 Sui Foundation과의 파트너십을 통해 Sui Mainnet에 일정량의 SUI를 확보해야 하며, 이를 통해 블록체인의 보안에 대한 관심을 증명해야 한다는 의미이다. 이 접근 방식은 모든 validator의 이익을 Sui 사용자의 이익(효율적이고 안전한 블록체인)과 일치시킨다. 이는 초기 블록체인의 높은 에너지 자원 요구 없이 이루어진다.
+
+Sui의 합의에 대해 자세히 알아보려면 다음 가이드와 주제를 참조한다:
+
+- [Validator Committee](guides/operator/validator/validator-committee.mdx)
+- [Sui Full Node Data Management](guides/operator/data-management.mdx)
+
+## Sui networks
+
+Sui는 여러 네트워크를 사용할 수 있으며, 각각 다른 목적을 제공한다.
+
+- **Mainnet:** 프로덕션 transaction blocks를 처리하는 네트워크이다. 궁극적으로 법정 화폐를 기반으로 하는 SUI 또는 NFT를 거래할 때, Sui의 Mainnet 네트워크에서 한다.
+- **Testnet:** Sui에 대한 계획된 변경사항이 성능에 부정적인 영향을 미치지 않도록 품질 보증을 제공하는 스테이징 네트워크이다. 개발자는 프로덕션에 배치하기 전에 이 네트워크를 사용하여 코드를 테스트할 수 있다.
+- **Devnet:** 새로운 기능을 개발하는 데 사용되는 더 불안정한 네트워크이다. 개발자는 이 네트워크를 활용하여 Sui의 최신 계획된 기능에 대해 코딩할 수 있다.
+- **Localnet:** 로컬 컴퓨터에서 Sui 네트워크를 실행할 수 있다. 로컬 네트워크에서 개발하면 제어하는 환경에서 최적화된 워크플로우를 제공한다.
+
+이러한 네트워크와 상호작용하는 방법에 대해 자세히 알아보려면 다음 가이드를 참조한다:
+
+- [Create a Local Sui Network](guides/developer/getting-started/local-network.mdx)
+- [Connect to Sui](guides/developer/getting-started/connect.mdx)
+
+## Move
+
+Move 언어는 NFT 거래, Sui 통합 게임(dApp) 플레이, 그리고 모든 기타 transaction 기반 이벤트와 같은 Sui의 모든 활동에 대한 로직을 제공한다. Sui 플랫폼은 초기 블록체인에 새로운 개념을 사용하는데, 체인상의 블록은 실제로 주소를 정의하는 단순한 키-값 저장소가 아닌 자산을 정의하는 object이다. object에 내재된 증가된 프로그래밍 가능성은 블록체인 기술에 대한 이 새로운 접근 방식의 이점을 극대화하기 위해 더 강력한 로직 엔진을 필요로 했다.
+
+Move에 대해 자세히 알아보려면 [Move Concepts](./sui-move-concepts.mdx)를 참조한다.
