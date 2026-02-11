@@ -56,7 +56,7 @@ Sui에서는 모든 것이 object이며, 모든 object는 NFT이다. 게이밍�
 
 Sui의 object는 키-값 쌍 데이터 구조로 구성된다. Sui의 스마트 컨트랙트 언어인 Move에서 object는 `struct`로 정의된다. 예를 들어, 틱택토 게임의 게임판을 생각해 보자:
 
-<importcontent source="examples/tic-tac-toe/move/sources/owned.move" mode="code" struct="Game" nocomments></importcontent>
+<ImportContent source="examples/tic-tac-toe/move/sources/owned.move" mode="code" struct="Game" nocomments></ImportContent>
 
 모든 object의 첫 번째 키-값 쌍은 `id: address`이며, 이는 `UID` 타입의 고유한 값이다. 모든 object는 다른 주소를 가지며, 모든 object는 다른 주소를 가지며, 이 필수 키-값 쌍이 각 object를 구별하고 고유하게 만들기 때문에 모든 object가 NFT인 이유이다.
 
@@ -64,7 +64,7 @@ Sui의 object는 키-값 쌍 데이터 구조로 구성된다. Sui의 스마트 
 
 스마트 컨트랙트는 object를 생성하는 함수를 포함한다. 이전 예제를 사용하면, 표현된 object(디지털 틱택토 게임판)를 생성하는 함수(`new`)가 각 속성에 대한 값을 제공한다. Sui 프레임워크는 이 특정 게임을 고유하게 식별하는 UID를 생성한다.
 
-<importcontent source="examples/tic-tac-toe/move/sources/owned.move" mode="code" fun="new" nocomments></importcontent>
+<ImportContent source="examples/tic-tac-toe/move/sources/owned.move" mode="code" fun="new" nocomments></ImportContent>
 
 이것은 온체인 작업, 즉 transaction이다. 이 경우, transaction은 체인에 object를 생성하라는 요청이다. 함수에 필요한 데이터를 제공하고 네트워크 validator의 계산 노력에 대한 가스 수수료를 지불한다. 결과는 주소(`id`)에 Sui 블록체인에 존재하는 새로운 NFT의 생성이다.
 
@@ -80,13 +80,13 @@ Sui에서는 스마트 컨트랙트가 허용하는 경우 별도의 transaction
 
 Sui에서는 한 object를 다른 object 내부에 포함할 수 있다(dynamic fields). 예를 들어, `Parent`라는 이름의 object가 `Child` 타입의 object를 포함할 수 있다. 스마트 컨트랙트는 부모로부터 자식 object를 추가하고 제거하는 데 필요한 함수를 제공할 수 있다.
 
-<importcontent source="examples/move/dynamic_fields/sources/example.move" mode="code" struct="Parent"></importcontent>
+<ImportContent source="examples/move/dynamic_fields/sources/example.move" mode="code" struct="Parent"></ImportContent>
 
-<importcontent source="examples/move/dynamic_fields/sources/example.move" mode="code" struct="Child"></importcontent>
+<ImportContent source="examples/move/dynamic_fields/sources/example.move" mode="code" struct="Child"></ImportContent>
 
 부모에 자식 object를 추가하는 함수는 다음과 유사할 수 있다. 이 경우 `ofield`는 `sui::dynamic_object_field` 패키지의 별칭이다.
 
-<importcontent source="examples/move/dynamic_fields/sources/example.move" mode="code" fun="add_child"></importcontent>
+<ImportContent source="examples/move/dynamic_fields/sources/example.move" mode="code" fun="add_child"></ImportContent>
 
 Dynamic fields를 많은 사용 사례에 적용할 수 있다. 예를 들어, `TicketBooth`라는 이름의 object는 `ConcertTicket` 타입의 object를 포함할 수 있다. `Car` 타입의 object는 필요한 모든 object(`Engine`, `Tires`, `Body`, `Wheel`)가 존재할 때까지 `false`인 `is_functioning`이라는 필드를 가질 수 있으며, 그 시점에 `is_functioning` 필드를 자동으로 `true`로 업데이트할 수 있다.
 
@@ -469,4 +469,4 @@ ArcaneBattles는 Sui의 Display Standard를 사용하여 스탯, ability, 아트
 
 ## Related links
 
-<relatedlink to="/standards/coin.mdx"></relatedlink><relatedlink to="/guides/developer/coin.mdx"></relatedlink><relatedlink to="/guides/developer/nft.mdx"></relatedlink><relatedlink to="/guides/developer/nft/asset-tokenization.mdx"></relatedlink><relatedlink to="/guides/developer/nft/nft-rental.mdx"></relatedlink><relatedlink to="/standards/kiosk.mdx"></relatedlink><relatedlink to="/standards/kiosk-apps.mdx"></relatedlink><relatedlink to="/concepts/cryptography/zklogin.mdx"></relatedlink><relatedlink href="https://blog.sui.io/tag/gaming/" label="Sui Foundation blog" desc="Blog posts from the Sui Foundation with the `gaming` tag."></relatedlink><relatedlink to="/guides/developer/app-examples/coin-flip.mdx"></relatedlink><relatedlink to="/guides/developer/app-examples/blackjack.mdx"></relatedlink><relatedlink to="/guides/developer/app-examples/plinko.mdx"></relatedlink><relatedlink href="https://github.com/MystenLabs/mysticon-legends" label="Mysticon Legends" desc="GitHub repo for a blockchain-based game where players collect, train, and battle with mythical creatures called Mysticons."></relatedlink><relatedlink href="https://mini-games.sui.io/" label="Web3 Mini Games built on Sui" desc="A collection of mini games, to inspire the community of Sui."></relatedlink>
+<RelatedLink to="/standards/coin.mdx"></RelatedLink><RelatedLink to="/guides/developer/coin.mdx"></RelatedLink><RelatedLink to="/guides/developer/nft.mdx"></RelatedLink><RelatedLink to="/guides/developer/nft/asset-tokenization.mdx"></RelatedLink><RelatedLink to="/guides/developer/nft/nft-rental.mdx"></RelatedLink><RelatedLink to="/standards/kiosk.mdx"></RelatedLink><RelatedLink to="/standards/kiosk-apps.mdx"></RelatedLink><RelatedLink to="/concepts/cryptography/zklogin.mdx"></RelatedLink><RelatedLink href="https://blog.sui.io/tag/gaming/" label="Sui Foundation blog" desc="Blog posts from the Sui Foundation with the `gaming` tag."></RelatedLink><RelatedLink to="/guides/developer/app-examples/coin-flip.mdx"></RelatedLink><RelatedLink to="/guides/developer/app-examples/blackjack.mdx"></RelatedLink><RelatedLink to="/guides/developer/app-examples/plinko.mdx"></RelatedLink><RelatedLink href="https://github.com/MystenLabs/mysticon-legends" label="Mysticon Legends" desc="GitHub repo for a blockchain-based game where players collect, train, and battle with mythical creatures called Mysticons."></RelatedLink><RelatedLink href="https://mini-games.sui.io/" label="Web3 Mini Games built on Sui" desc="A collection of mini games, to inspire the community of Sui."></RelatedLink>

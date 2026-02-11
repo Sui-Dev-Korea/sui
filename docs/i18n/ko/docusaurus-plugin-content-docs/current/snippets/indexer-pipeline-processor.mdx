@@ -2,10 +2,10 @@
 
 이 구성 요소는 병렬 처리를 위해 `FANOUT` 워커 태스크(기본값: 10)를 생성하여 이 작업을 처리한다. `FANOUT` 은 병렬 처리 용량을 제어하는 ​​핵심 구성 요소이다.
 
-<importcontent source="crates/sui-indexer-alt-framework/src/pipeline/processor.rs" mode="code" variable="FANOUT"></importcontent>
+<ImportContent source="crates/sui-indexer-alt-framework/src/pipeline/processor.rs" mode="code" variable="FANOUT"></ImportContent>
 
 각 작업자는 `Handler::process()` 메서드를 독립적으로 호출한다.
 
-<importcontent source="crates/sui-indexer-alt-framework/src/pipeline/processor.rs" mode="code" variable="values"></importcontent>
+<ImportContent source="crates/sui-indexer-alt-framework/src/pipeline/processor.rs" mode="code" variable="values"></ImportContent>
 
 각 작업자는 서로 다른 체크포인트를 동시에, 그리고 어떤 순서로든 처리할 수 있다. 작업자는 처리된 데이터를 체크포인트 메타데이터와 함께 `Collector` 로 전송한다.
