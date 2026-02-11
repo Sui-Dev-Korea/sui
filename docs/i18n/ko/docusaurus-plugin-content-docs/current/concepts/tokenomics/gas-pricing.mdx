@@ -20,7 +20,7 @@ Sui 가스 가격 책정 메커니즘은 낮고 예측 가능한 transaction 수
 
 이를 통해 현재 가스비 시장 가격을 예측할 필요 없이 최고의 사용자 경험을 제공하기 위해 Sui 네트워크를 사용하는 데 집중할 수 있다. 각 epoch 시작 시 validator가 네트워크 전체 참조 가격에 동의하므로, transaction 제출 시 참조 가격을 신뢰할 수 있는 기준으로 사용할 수 있다. 또한 가격 설정 메커니즘은 좋은 validator 행동에 보상을 제공하여 SUI 토큰 보유자, validator, Sui 사용자 간의 인센티브를 일치시킨다.
 
-Sui 가스 가격 메커니즘의 독특한 특징은 사용자가 transaction 실행과 각 transaction과 연관된 데이터 저장에 대해 별도의 수수료를 지불한다는 점이다.<br>임의의 transaction $\tau$와 연관된 가스비는 다음과 같다.
+Sui 가스 가격 메커니즘의 독특한 특징은 사용자가 transaction 실행과 각 transaction과 연관된 데이터 저장에 대해 별도의 수수료를 지불한다는 점이다.<br />임의의 transaction $\tau$와 연관된 가스비는 다음과 같다.
 
 $$ GasFees[\tau] \ = \ ComputationUnits[\tau] \times ComputationPrice[\tau] \ + \ StorageUnits[\tau] \times StoragePrice $$
 
@@ -34,7 +34,7 @@ $$ ComputationPrice[\tau] \ = \ ReferencePrice \ + \ Tip[\tau] $$
 
 Sui 네트워크에서는 각 epoch 동안 단일 $ReferencePrice$가 존재하며, Sui validator들은 각 epoch 경계에서 $ReferencePrice$를 업데이트한다. 따라서 실제로 사용자가 $ReferencePrice$보다 높은 가스 가격을 제출할 때, 그 차액은 더 높은 우선순위를 얻기 위해 네트워크에 지불하는 팁으로 생각할 수 있다. 일반적인 네트워크 운영 중에는 사용자가 팁을 지불할 것으로 예상되지 않으며, 대다수의 transaction은 $ReferencePrice$와 동일한 가스 가격을 갖는다.
 
-더 일반적으로, Sui 가스 가격 메커니즘은 $ReferencePrice$를 네트워크에 transaction을 제출할 때 참조할 수 있는 신뢰가능한 기준으로 만든다. 가스 가격이 참조 가격과 같거나 가까운 transaction이 적절한 시기에 실행될 것이라는 합리적인 확신을 제공한다.<br>이는 세 가지 핵심 단계를 통해 달성된다.
+더 일반적으로, Sui 가스 가격 메커니즘은 $ReferencePrice$를 네트워크에 transaction을 제출할 때 참조할 수 있는 신뢰가능한 기준으로 만든다. 가스 가격이 참조 가격과 같거나 가까운 transaction이 적절한 시기에 실행될 것이라는 합리적인 확신을 제공한다.<br />이는 세 가지 핵심 단계를 통해 달성된다.
 
 - **Gas price survey:** 모든 validator는 각 epoch 시작 시 조사를 받으며, 모든 validator는 예약 가격을 제출한다. 즉, 각 validator는 transaction을 처리할 의향이 있는 최소 가스 가격을 명시한다. 프로토콜은 이 견적들을 정렬하고 stake 기준 2/3 백분위수를 참조 가격으로 선택한다. 가스 가격 조사의 목적은 검증자 [과반수](../../guides/operator/validator/validator-committee.mdx#quorums) 가 신속하게 transaction을 처리할 의향이 있는 참조 가격을 설정하는 것이다.
 - **Tallying rule:** epoch 동안 validator는 다른 validator의 운영에 대한 신호를 얻는다. 각 validator는 이 신호를 사용하여 다른 모든 validator의 성능에 대한 (주관적인) 평가를 구축한다. 구체적으로, 각 validator는 다른 모든 validator의 stake 보상에 대한 승수를 구성하여 잘 행동하는 validator는 부스트된 보상을 받고, 그렇지 않은 validator는 감소된 보상을 받도록 한다. 집계 규칙의 목표는 validator가 참조 가스 가격을 준수하도록 장려하는 커뮤니티 시행 메커니즘을 만드는 것이다.
