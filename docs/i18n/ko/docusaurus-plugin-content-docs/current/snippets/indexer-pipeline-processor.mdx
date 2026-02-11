@@ -1,0 +1,11 @@
+`Processor`는 동시 처리 엔진으로, 최대 처리량을 위해 여러 작업을 동시에 처리한다. 프로세서의 주요 역할은 병렬 작업자를 사용하여 primary 체크포인트 데이터를 데이터베이스에 바로 사용할 수 있는 행으로 변환하는 것이다.
+
+이 구성 요소는 병렬 처리를 위해 `FANOUT` 워커 태스크(기본값: 10)를 생성하여 이 작업을 처리한다. `FANOUT` 은 병렬 처리 용량을 제어하는 ​​핵심 구성 요소이다.
+
+<importcontent source="crates/sui-indexer-alt-framework/src/pipeline/processor.rs" mode="code" variable="FANOUT"></importcontent>
+
+각 작업자는 `Handler::process()` 메서드를 독립적으로 호출한다.
+
+<importcontent source="crates/sui-indexer-alt-framework/src/pipeline/processor.rs" mode="code" variable="values"></importcontent>
+
+각 작업자는 서로 다른 체크포인트를 동시에, 그리고 어떤 순서로든 처리할 수 있다. 작업자는 처리된 데이터를 체크포인트 메타데이터와 함께 `Collector` 로 전송한다.
