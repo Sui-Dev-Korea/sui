@@ -1,0 +1,52 @@
+---
+title: SDK Integrations
+description: Playtron GameOS SDK를 사용하여 SuiPlay0X1과 통합한다.
+keywords:
+  - playtron
+  - playtron gameOS
+  - gameOS SDK
+  - C++
+  - C#
+  - node.js
+  - dApp kit
+  - sui dApp kit
+  - self-custody wallets
+  - playtron wallets
+  - gaming
+  - suiplay0x1
+---
+
+<importcontent source="suiplay.mdx" mode="snippet"></importcontent>
+
+통합 옵션은 사용자가 게임과 상호 작용할 것으로 기대하는 환경에 따라 달라진다.
+
+## On device integration
+
+온디바이스 게임 통합을 위해서는 [Playtron GameOS SDK](https://github.com/playtron-os/playtron-sdk)가 필요하다. SDK는 환경 감지, 원격 PACT 인증, 가상 키보드 및 브라우저 유틸리티, Sui 지갑 통합 등 OS 레벨 기능에 대한 접근을 제공한다.
+
+Playtron Game OS 레파지토리에는 개발을 시작하기 위한 설치 및 초기화 단계가 포함되어 있다. 또한 C++, C# 및 Node.js 환경에서 SDK를 사용하는 방법에 대한 예제도 포함되어 있다. C++ 코드를 컴파일하는데 필요한 .dll 빌드 파일도 제공된다. C# 및 Node.js 예제의 경우, 해당 패키지 관리자에서 필요한 종속성을 설치할 수 있다.
+
+Playtron Game OS SDK는 다음과 같은 이점을 제공하는 자동 지갑 접근 기능을 제공한다:
+
+- 사용자는 Playtron 계정을 통해 이미 Playtron 지갑을 보유하고 있다.
+- 온디바이스 지갑 설정이 별도로 필요하지 않다.
+- 게임은 SDK를 통해 지갑 기능에 즉시 접근할 수 있다.
+
+## Off-device integration
+
+오프디바이스 통합을 위해서는 [Sui dApp Kit](https://sdk.mystenlabs.com/dapp-kit)를 사용한다. Sui dApp Kit를 통합하면 게임이 SuiPlay0X1 기기에서 직접 실행되지 않을 때에도 Playtron zkLogin 지갑을 계속 사용할 수 있다. 이는 게임을 웹, 데스크톱, 또는 모바일 기기에서 이용하는 경우에도 유용하다.
+
+Sui dApp Kit 문서 사이트 (이전 단락에 링크됨)에서 SDK 설치 절차를 제공한다. SDK가 게임 프로젝트에 통합되면 Playtron zkLogin 지갑을 연결 옵션으로 활성화할 수 있다.
+
+dApp Kit는 TypeScript로 실행되므로, 게임이 해당 SDK와 통합되려면 TypeScript 처리가 필요하다. 게임이 웹 기반 게임이거나, 사용자가 브라우저를 통해 연결된 웹사이트에서 Web3 transactions를 수행하는 경우 문제가 되지 않는다.
+
+TypeScript를 실행할 수 없는 경우, 지갑에서 Playtron 지갑으로 자산 전송을 항상 지원할 수 있다. 사용자는 [companion web application](https://wallet.playtron.one)을 통해 Playtron 지갑 주소에 접근할 수 있다. 마지막으로, 게임의 자산을 다른 플랫폼에서 전송할 수 있다. 예를 들어, 사용자는 PC 클라이언트를 사용하여 자산을 Playtron 지갑으로 전송할 뒤 기기에서 계속 플레이할 수 있다.
+
+### Supported wallet types
+
+- **Playtron wallet:** 온디바이스 세션에서 원활하게 지속된다.
+- **Self-custody options:** Sui dApp Kit를 통해 제공되는 모든 지갑(예: [Slush wallet](https://slush.app/), [Phantom](https://phantom.com/), [Backpack](https://backpack.app/))을 지원하며, 향후 지갑 통합도 지원한다.
+
+## Related links
+
+<relatedlink href="https://github.com/playtron-os/playtron-sdk" label="Playtron GameOS SDK" desc="The official Playtron OS SDK repository on GitHub."></relatedlink><relatedlink href="https://sdk.mystenlabs.com/dapp-kit" label="Sui dApp Kit documentation" desc="The Sui dApp Kit is a set of React components, hooks, and utilities to help you build a dApp for the Sui ecosystem."></relatedlink><relatedlink href="https://discord.gg/suiplay" label="SuiPlay0X1 Discord" desc="Follow announcements and connect with the community on the Discord channel for SuiPlay0X1."></relatedlink><relatedlink href="https://wallet.playtron.one)%20(in%20development" label="Companion web application" desc="Support linking the Playtron wallet to other self-custody wallets using Sui Link, enabling read-access of associated wallets while on the device."></relatedlink><relatedlink href="https://docs.enoki.mystenlabs.com/enoki-connect" label="Enoki Connect" desc="With Enoki Connect, users can use their dApp-specific accounts across different dApps, enabling a more unified and consistent experience."></relatedlink>
