@@ -1,0 +1,1 @@
+이 가이드에서는 JSON-RPC 쿼리와 이에 상응하는 GraphQL 쿼리를 비교한다. 이 가이드를 활용하여 JSON-RPC 쿼리(예: <code>sui_getTotalTransactionBlocks</code> )를 GraphQL 쿼리로 체계적으로 변환할 수 있지만, GraphQL이 제공하는 유연성을 최대한 활용하여 애플리케이션의 쿼리 패턴을 재검토하는 것이 좋다. GraphQL은 여러 개의 중첩된 엔드포인트(예: transaction, 잔액, 코인)를 처리하는 데 유용하며, 다음 예제를 통해 두 API가 유사한 개념을 어떻게 표현하는지 이해하는 데 도움이 될 것이다.
