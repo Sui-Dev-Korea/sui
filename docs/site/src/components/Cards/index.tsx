@@ -5,12 +5,14 @@ import React, { useEffect, useState } from "react";
 import { useHistory } from "@docusaurus/router";
 import { usePluginData } from "@docusaurus/useGlobalData";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+import { useBaseUrlUtils } from "@docusaurus/useBaseUrl";
 import styles from "./styles.module.css";
 
 export function Card(props) {
   const history = useHistory();
   const [href, setHref] = useState();
   const { i18n } = useDocusaurusContext();
+  const { withBaseUrl } = useBaseUrlUtils();
 
   useEffect(() => {
     if (href) {
@@ -38,7 +40,7 @@ export function Card(props) {
     if (loc.match(/^https?/)) {
       setHref(loc);
     } else {
-      history.push(loc);
+      history.push(withBaseUrl(loc));
     }
   };
 
