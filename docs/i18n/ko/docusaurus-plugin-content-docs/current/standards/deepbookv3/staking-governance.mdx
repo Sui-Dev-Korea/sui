@@ -34,7 +34,7 @@ Stake 필요량은 사용자가 taker 및 maker 인센티브를 활용하기 위
 
 DEEP 토큰은 staking을 위해 `balance_manager`에서 사용 가능해야 한다. 사용자의 stake는 다음 epoch에서 활성화된다. 사용자의 활성 stake가 stake 필요량보다 크면, 사용자는 감소된 taker 수수료를 받을 수 있고 해당 epoch 동안 거래 수수료 리베이트를 누적할 수 있다.
 
-<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="stake" nocomments></importcontent>
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="stake" nocomments></ImportContent>
 
 ### Unstake
 
@@ -42,7 +42,7 @@ DEEP 토큰은 staking을 위해 `balance_manager`에서 사용 가능해야 한
 
 `balance_manager`는 충분한 staked DEEP 토큰을 보유해야 한다. `balance_manager` 데이터는 unstaked 금액으로 업데이트된다. Balance는 즉시 `balance_manager`로 전송된다.
 
-<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="unstake" nocomments></importcontent>
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="unstake" nocomments></ImportContent>
 
 ### Submit proposal
 
@@ -50,20 +50,20 @@ DEEP 토큰은 staking을 위해 `balance_manager`에서 사용 가능해야 한
 
 Taker 수수료, maker 수수료, stake 필요량를 변경하는 제안을 제출한다. 참여하려면 `balance_manager`에 충분한 staked DEEP 토큰이 있어야 한다. 각 `balance_manager`는 epoch당 하나의 제안만 제출할 수 있다. 최대 제안 수에 도달하면 가장 낮은 투표를 받은 제안이 제거된다. `balance_manager`의 의결권이 가장 낮은 투표를 받은 제안보다 작으면 제안이 추가되지 않는다.
 
-<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="submit_proposal" nocomments></importcontent>
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="submit_proposal" nocomments></ImportContent>
 
 ### Vote
 
 0이 아닌 의결권을 가진 사용자는 제안에 투표할 수 있다. 모든 의결권은 단일 제안에 사용된다. 사용자가 이 epoch 동안 다른 제안에 투표했다면 그 투표는 제거되고 새 제안으로 재투표된다. 참여하려면 `balance_manager`에 충분한 staked DEEP 토큰이 있어야 한다.
 
-<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="vote" nocomments></importcontent>
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="vote" nocomments></ImportContent>
 
 ### Claim rebates
 
 `claim_rebates`를 사용해 `balance_manager`의 보상을 청구한다. `balance_manager`에는 청구할 보상이 있어야 한다. `balance_manager` 데이터는 청구된 보상으로 업데이트된다.
 
-<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="claim_rebates" nocomments></importcontent>
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="claim_rebates" nocomments></ImportContent>
 
 ## Related links
 
-<relatedlink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub."></relatedlink>
+<RelatedLink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub."></RelatedLink>
