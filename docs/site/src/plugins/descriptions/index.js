@@ -53,7 +53,7 @@ function firstParagraphFrom(body) {
     if (/^import\s+/.test(s)) continue;      // skip import lines
     if (/^#{1,6}\s/.test(s)) continue;       // skip headings
     if (/^{\s*@\w+:\s*.+}\s*$/.test(s)) continue; // skip directives
-    if (!/^[a-zA-Z]{1}/.test(s)) continue;   // must start with a letter (keeps your old intent)
+    if (!/^[\p{L}\p{N}]/u.test(s)) continue; // must start with a letter/number (locale-safe)
     buf.push(s);
   }
   let paragraph = buf.join(" ").trim();
@@ -76,6 +76,65 @@ function computeRouteFromFile(docsRootAbs, fileAbs) {
   return `/${noExt}`;
 }
 
+function collectDescriptionsFromRoot(docsRootAbs, excludes) {
+  const mdFiles = walk(docsRootAbs, (abs) => {
+    const norm = abs.replace(/\\/g, "/");
+    if (!/\.(md|mdx|markdown)$/i.test(norm)) return false;
+    if (excludes.some((seg) => norm.includes(seg))) return false;
+    return true;
+  });
+
+  const descriptions = [];
+
+  for (const file of mdFiles) {
+    let markdown = "";
+    try {
+      markdown = fs.readFileSync(file, "utf8");
+    } catch {
+      continue;
+    }
+
+    let data = {};
+    let content = "";
+    try {
+      const parsed = matter(markdown);
+      data = parsed.data || {};
+      content = parsed.content || "";
+    } catch {
+      content = markdown;
+    }
+
+    if (data.draft) continue;
+
+    const id = computeRouteFromFile(docsRootAbs, file);
+    const title = data.title || "No title";
+    const llmSection = data.section || createSection(id);
+
+    let description = "";
+    if (typeof data.description !== "undefined" && data.description !== null) {
+      description = String(data.description).trim();
+    } else {
+      description = firstParagraphFrom(content);
+    }
+
+    descriptions.push({ llmSection, title, id, description });
+  }
+
+  return descriptions;
+}
+
+function mergeDescriptions(baseDescriptions, localizedDescriptions) {
+  const byId = new Map();
+  for (const item of localizedDescriptions) byId.set(item.id, item);
+
+  const merged = baseDescriptions.map((item) => byId.get(item.id) || item);
+  const baseIds = new Set(baseDescriptions.map((item) => item.id));
+  for (const item of localizedDescriptions) {
+    if (!baseIds.has(item.id)) merged.push(item);
+  }
+  return merged;
+}
+
 // ---------- plugin ----------
 const descriptionPlugin = (context, options) => {
   return {
@@ -95,6 +154,14 @@ const descriptionPlugin = (context, options) => {
       const docsPathConfig = presetTuple?.[1]?.docs?.path ?? "docs";
       // Make absolute against siteDir
       const docsRootAbs = path.resolve(context.siteDir, docsPathConfig);
+      const i18nConfig = context.siteConfig.i18n || {};
+      const defaultLocale = i18nConfig.defaultLocale || "en";
+      const locales =
+        Array.isArray(i18nConfig.locales) && i18nConfig.locales.length
+          ? i18nConfig.locales
+          : [defaultLocale];
+      const i18nPathConfig = i18nConfig.path ?? "i18n";
+      const i18nRootAbs = path.resolve(context.siteDir, i18nPathConfig);
 
       // Collect .md/.mdx, skipping known heavy/irrelevant trees
       const EXCLUDES = [
@@ -106,51 +173,38 @@ const descriptionPlugin = (context, options) => {
         "/app-examples/ts-sdk-ref/",
       ].map((s) => s.replace(/\\/g, "/"));
 
-      const mdFiles = walk(docsRootAbs, (abs) => {
-        const norm = abs.replace(/\\/g, "/");
-        if (!/\.(md|mdx|markdown)$/i.test(norm)) return false;
-        if (EXCLUDES.some((seg) => norm.includes(seg))) return false;
-        return true;
-      });
+      const baseDescriptions = collectDescriptionsFromRoot(docsRootAbs, EXCLUDES);
+      const descriptionsByLocale = {
+        [defaultLocale]: baseDescriptions,
+      };
 
-      const descriptions = [];
-
-      for (const file of mdFiles) {
-        let markdown = "";
-        try {
-          markdown = fs.readFileSync(file, "utf8");
-        } catch {
-          continue; // unreadable file
+      for (const locale of locales) {
+        if (locale === defaultLocale) continue;
+        const localizedRootAbs = path.join(
+          i18nRootAbs,
+          locale,
+          "docusaurus-plugin-content-docs",
+          "current",
+        );
+        if (!fs.existsSync(localizedRootAbs)) {
+          descriptionsByLocale[locale] = baseDescriptions;
+          continue;
         }
-
-        let data = {};
-        let content = "";
-        try {
-          const parsed = matter(markdown);
-          data = parsed.data || {};
-          content = parsed.content || "";
-        } catch {
-          // not valid front-matter; treat whole file as content
-          content = markdown;
-        }
-
-        if (data.draft) continue;
-
-        const id = computeRouteFromFile(docsRootAbs, file);
-        const title = data.title || "No title";
-        const llmSection = data.section || createSection(id);
-
-        let description = "";
-        if (typeof data.description !== "undefined" && data.description !== null) {
-          description = String(data.description).trim();
-        } else {
-          description = firstParagraphFrom(content);
-        }
-
-        descriptions.push({ llmSection, title, id, description });
+        const localizedDescriptions = collectDescriptionsFromRoot(
+          localizedRootAbs,
+          EXCLUDES,
+        );
+        descriptionsByLocale[locale] = mergeDescriptions(
+          baseDescriptions,
+          localizedDescriptions,
+        );
       }
 
-      return { descriptions, docsRootAbs };
+      return {
+        descriptions: descriptionsByLocale[defaultLocale] || baseDescriptions,
+        descriptionsByLocale,
+        docsRootAbs,
+      };
     },
 
     async contentLoaded({ content, actions }) {

@@ -4,11 +4,13 @@
 import React, { useEffect, useState } from "react";
 import { useHistory } from "@docusaurus/router";
 import { usePluginData } from "@docusaurus/useGlobalData";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import styles from "./styles.module.css";
 
 export function Card(props) {
   const history = useHistory();
   const [href, setHref] = useState();
+  const { i18n } = useDocusaurusContext();
 
   useEffect(() => {
     if (href) {
@@ -17,7 +19,11 @@ export function Card(props) {
     return;
   }, [href]);
 
-  const { descriptions } = usePluginData("sui-description-plugin");
+  const pluginData = usePluginData("sui-description-plugin") as any;
+  const localeDescriptions = pluginData?.descriptionsByLocale?.[i18n.currentLocale];
+  const descriptions = Array.isArray(localeDescriptions)
+    ? localeDescriptions
+    : pluginData?.descriptions ?? [];
   let h = props.href;
   if (!h.match(/^\//)) {
     h = `/${h}`;
