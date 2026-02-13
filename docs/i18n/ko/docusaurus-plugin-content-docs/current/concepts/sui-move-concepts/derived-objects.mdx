@@ -1,0 +1,224 @@
+---
+title: Derived Objects
+description: Derived object는 Sui에서 확장 가능한 composable 시스템을 구축하기 위해 deterministic address, Transfer-to-Object capability, 보장된 고유성, 그리고 네이티브 병렬화를 가능하게 한다.
+keywords: [ Derived objects, deterministic addresses, Transfer-to-Object, TTO, parallelization, object composition, scalability ]
+---
+
+Sui object는 object 생성 시 고유 ID를 할당받는다. 하지만 **derived object**는 기술적으로 할당된 ID를 가지지 않으며, 대신 부모 object와 키의 매핑을 통해 생성된 _클레임된(claimed)_ ID를 가진다. 온체인에 존재하는 부모 object의 고유 ID는 개별 키에 매핑되어, derived object의 클레임된 ID가 deterministic하고 고유하도록 보장한다. 부모 ID와 키를 사용하여 온체인 및 오프체인에서 derived object ID를 deterministic하게 계산할 수 있다. 이는 네트워크에 derived object를 실제로 생성하기 전에 해당 object의 ID를 계산할 수 있음을 의미한다.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/RNSpZOkEmL8?si=HucQVkNc5FH6rQqj" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+`derived_object` 모듈을 사용하여 ID를 클레임하려면, 부모 object와 키를 전달해야 한다. 부모 object는 게시된 패키지나 transaction을 통해 이미 온체인에 존재할 수 있다. 하지만 기존 부모 object가 필수 요구 사항은 아니며, 함수 내에서 새로운 부모 object를 생성하고 제공된 키로 즉시 derived object UID를 클레임할 수도 있다. 하지만 이 워크플로는 부모 UID를 미리 알 수 없기 때문에 오프체인 determinism을 지원하지 않는다.
+
+:::info
+
+부모 object는 [shared, owned, party, 또는 wrapped](../object-ownership.mdx)일 수 있다.
+
+:::
+
+키는 address나 object ID일 수 있지만, 고유한 값을 사용할 필요는 없다. 예를 들어, 숫자 유한 배열(`[1, 2, 3]`)을 가능한 키로 사용할 수 있다. 이렇게 하면 하나 이상의 derived object가 동일한 숫자를 키로 사용하여 ID를 클레임하려고 시도할 수 있다. `derived_object` 모듈은 `ClaimedStatus` enum을 사용하여 이러한 상황에서의 중복을 방지하며, ID가 클레임되면 값을 `Reserved`로 설정한다. 만약 두 개의 transaction이 동일한 숫자를 키로 사용하여 ID를 클레임하려고 시도하면, 첫 번째 transaction이 이미 ID를 예약했기 때문에 두 번째 transaction은 실패한다.
+
+Derived object의 ID를 클레임하려면 부모 object가 필요하지만, derived object는 해당 부모의 자식이 아니다. 이는 계층 관계가 없다는 점이 derived object를 transaction의 입력으로 사용할 때 부모를 통한 순차 처리가 필요하지 않음을 의미하기 때문에 중요한 차이점이다. Derived object는 그 자체로 독립적인 엔티티이다; 부모는 오직 고유성을 보장하기 위해서만 존재한다. 이러한 관계는 부모-자식 관계에서는 불가능한 병렬화를 제공한다.
+
+부모 ID를 알고 있다면, [TypeScript](https://sdk.mystenlabs.com/typescript/utils/derived_objects) 또는 [Rust SDK](https://mystenlabs.github.io/sui/sui_types/derived_object/index.html) 헬퍼 함수를 사용하여 오프체인 로직을 통해 derived object의 ID를 계산할 수 있다. 이 기능은 클라이언트 로직이 클레임되지 않은 ID를 이미 존재하는 것처럼 처리할 수 있음을 의미한다.
+
+<details>
+<summary>
+`derived_object` package source
+</summary>
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/derived_object.move" mode="code" />
+</details>
+
+## Core capabilities
+
+Derived object는 네 가지 핵심 capability인 deterministic address, Transfer-to-Object 호환성, one-per-key uniqueness, 그리고 네이티브 병렬화를 제공한다.
+
+### Deterministic addresses
+
+`derived_object::derive_address(parent_id, key)` 함수를 사용하여 derived object ID를 미리 계산할 수 있다. 이는 애플리케이션이 object가 존재하기 전에 어디에 위치할지 예측할 수 있음을 의미하며, 정교한 조정 패턴을 가능하게 하고 온체인 조회의 필요성을 줄여준다.
+
+### Transfer-to-Object (TTO) compatibility
+
+Derived object의 ID는 object가 존재하기 전에 존재할 수 있으므로, derived object는 존재하기 전에 전송을 받을 수도 있다. 이를 통해 자산을 derived address로 보낸 다음, 나중에 클레임을 위해 object를 생성할 수 있다. 이는 다음과 같은 패턴을 가능하게 한다:
+
+- 사용자 온보딩 전 계정 사전 자금 조달.
+- SUI 수신 후에만 object를 생성하는 등 수신된 자산에 기반한 조건부 object 생성.
+- Deterministic한 목적지로의 크로스체인 브리징.
+
+### One-per-key uniqueness
+
+각 `(parent, key)` 쌍은 정확히 하나의 object address에 매핑된다. 이는 레지스트리 병목 현상 없이 레지스트리와 유사한 고유성 보장을 제공한다. 사용 사례는 다음과 같다:
+
+- 소울바운드 토큰
+- 사용자별 구성
+- 고유 슬롯이 필요한 모든 시나리오
+
+### Native parallelization
+
+부모 object를 통해 작업을 라우팅하는 dynamic fields와 달리, derived object는 생성된 후 자율적으로 작동한다. 관련 없는 키는 병렬로 업데이트되어, 네임스페이스 보장을 유지하면서 합의 핫스팟을 방지한다.
+
+이러한 capability들이 결합되어 이전에는 불가능하거나 비효율적이었던 완전히 새로운 디자인 패턴을 가능하게 한다.
+
+**On-chain benefits**
+
+- 경합 감소 및 향상된 병렬성: 관련 없는 키에 대한 부모 병목 현상이 없다.
+- Deterministic 고유성: 수동 기록 관리 없이 `(parent, key)`당 하나의 object이다.
+- 최상위 레벨 object 인체공학: 깔끔한 capability 패턴, Object Display, 그리고 더 간단한 권한 관리이다.
+
+**Off-chain benefits**
+
+- 홉 수 감소: 클라이언트는 부모를 통해 찾는 순차 작업 없이 derived object ID를 직접 계산하거나 조회할 수 있다.
+- 향상된 검색 가능성 및 인덱싱: SDK는 더 적은 순차 쿼리로 object를 계산할 수 있다.
+- 간소화된 SDK 호출: 필요한 쿼리가 줄어들어 SDK 코드베이스를 최소화하고 네트워크 트래픽 감소를 통해 성능을 향상시킨다(object 조회는 multiGet 쿼리로 묶을 수 있다).
+
+## Derived objects and dynamic fields matrix
+
+다음 매트릭스는 dynamic fields와 derived object 사용 간의 몇 가지 차이점을 강조한다. 트레이드오프를 고려하면 프로젝트에 대한 최적의 접근 방식을 선택하는 데 도움이 된다.
+
+| Aspect | Derived objects | Dynamic fields |
+| --- | --- | --- |
+| Address 예측 가능성 | ✅ 예 | ✅ 예 |
+| 부모 필요 여부? | 생성 시에만 | ✅ 예 |
+| 소유권 유형 | 모두 가능하다. wrapped 또는 shared, owned, party, frozen일 수 있다. | 독립적으로 소유될 수 없다. 소유자는 항상 부모이다. |
+| Object 수신 지원 여부? | ✅ 예 | ❌ 아니요 |
+| Object 병렬성 | ✅ 예 | 제한적이다. 모든 쓰기는 부모를 통해 순차 처리된다. |
+| 로딩 유형 | 정적이다. 생성 후 직접 액세스한다. | 동적이다. 부모를 통해 로드된다. |
+| 삭제 지원 여부? | ✅ 예 | ✅ 예 |
+| 재청구 지원 여부? | ❌ 현재 불가하다 | ✅ 예 |
+
+## Registries {#registries}
+
+Derived object 모델은 광범위한 디자인 공간을 정의하여 다양한 패턴의 구현을 가능하게 한다. 레지스트리 구조는 키-값 매핑을 효율적으로 관리하고 중앙화된 병목 현상을 방지하기 때문에 derived object와 특히 잘 작동하는 패턴이다. 다음 섹션에서는 각 패턴의 고유한 트레이드오프를 설명하기 위해 다양한 레지스트리 구현을 비교한다.
+
+### Classic registry
+
+클래식 레지스트리의 가장 큰 장점은 아마도 직관적인 쿼리일 것이다. 하지만 이러한 향상된 검색 가능성은 모든 작업이 부모 object를 거쳐야 하므로 병렬화를 희생하는 대가로 온다.
+
+```move
+const EVaultAlreadyExists: u64 = 0;
+
+public struct VaultRegistry has key {
+  id: UID,
+  vaults: Table<address, Vault>,
+}
+
+public struct Vault has key, store {
+  id: UID,
+}
+
+// 볼트 생성은 레지스트리를 통하며 그곳에 저장된다.
+public fun new(registry: &mut VaultRegistry, ctx: &mut TxContext) {
+  assert!(!registry.vaults.contains(ctx.sender()), EVaultAlreadyExists);
+
+  let vault = Vault {
+    id: object::new(ctx),
+  };
+
+  registry.vaults.add(ctx.sender(), vault);
+}
+
+// 부모를 통해 볼트에 액세스
+public fun receive_from_vault<T key + store>(
+  registry: &mut VaultRegistry,
+  receiving: Receiving<T>,
+  ctx: &mut TxContext,
+): T {
+  let vault = registry.vaults.borrow_mut(ctx.sender());
+
+  let obj = transfer::public_receive(&mut vault.id, receiving);
+
+  obj
+}
+```
+
+### Registry with pointer
+
+프로젝트에서 병렬화가 중요한 요소라면, 포인터를 사용하는 레지스트리를 생성할 수 있다. 이 접근 방식은 좋은 병렬화를 제공하지만, 검색하려면 2번의 순차적 네트워크 홉이 필요하다. 볼트를 찾으려면 먼저 해당 포인터를 찾아야 한다.
+
+```move
+const EVaultAlreadyExists: u64 = 0;
+
+public struct VaultRegistry has key {
+  id: UID,
+  vaults: Table<address, Vault>,
+}
+
+public struct Vault has key, store {
+  id: UID,
+}
+
+// 볼트 생성은 레지스트리를 통하지만 볼트에 대한 포인터만 그곳에 저장된다.
+public fun new(registry: &mut VaultRegistry, ctx: &mut TxContext) {
+  assert!(!registry.vaults.contains(ctx.sender()), EVaultAlreadyExists);
+
+  let vault = Vault {
+    id: object::new(ctx),
+  };
+
+  registry.vaults.add(ctx.sender(), vault.id.to_inner());
+
+  transfer::transfer(vault, ctx.sender());
+}
+
+// 부모에 의존하지 않고 볼트에 액세스
+public fun receive_from_vault<T key + store>(
+  vault: &mut Vault,
+  receiving: Receiving<T>,
+  ctx: &mut TxContext,
+): T {
+
+  let obj = transfer::public_receive(&mut vault.id, receiving);
+
+  obj
+}
+```
+
+### Derived objects
+
+Derived object를 사용하면 검색 가능성과 병렬화 사이에서 트레이드오프를 할 필요가 없다.
+
+```move
+const EVaultAlreadyExists: u64 = 0;
+
+public struct VaultRegistry has key {
+  id: UID,
+  vaults: Table<address, Vault>,
+}
+
+public struct Vault has key, store {
+  id: UID,
+}
+
+// Address에서 고유한 소울바운드 볼트 생성.
+public fun new(registry: &mut VaultRegistry, ctx: &mut TxContext) {
+  assert!(!derived_object::exists(&registry.id, ctx.sender()), EVaultAlreadyExists);
+
+  let vault = Vault {
+    id: derived_object::claim(&mut registry.id, ctx.sender()),
+  };
+
+  transfer::transfer(vault, ctx.sender());
+}
+
+// 부모에 의존하지 않고 볼트에 액세스
+public fun receive_from_vault<T key + store>(
+  vault: &mut Vault,
+  receiving: Receiving<T>,
+): T {
+
+  let obj = transfer::public_receive(&mut vault.id, receiving);
+
+  obj
+}
+
+```
+
+## Related links
+
+<RelatedLink to="/concepts/dynamic-fields" />
+<RelatedLink to="/concepts/object-ownership" />
+<RelatedLink to="/concepts/transfers/transfer-to-object" />
+<RelatedLink href="https://github.com/MystenLabs/sui/tree/main/examples/move/profiles" label="프로필 예제" desc="Derived object를 사용하여 프로필을 생성하는 예제 스마트 컨트랙트." />
+<RelatedLink href="https://sdk.mystenlabs.com/typescript/utils/derived_objects" label="TypeScript SDK 문서" desc="TypeScript SDK를 사용하여 address를 derive하는 방법에 대한 문서." />
+<RelatedLink href="https://mystenlabs.github.io/sui/sui_types/derived_object/index.html" label="Rust SDK 헬퍼" desc="Rust SDK를 위한 헬퍼 함수." />
+<RelatedLink href="https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/derived_object.move" label="`derived_object` 모듈" desc="Sui에서 derived object를 정의하는 코드." />
