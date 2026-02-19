@@ -1,0 +1,73 @@
+
+```sh
+Move 애플리케이션 빌드 및 테스트 도구
+
+Usage: sui move [OPTIONS] <COMMAND>
+
+Commands:
+  build           
+  coverage        이 패키지의 테스트 커버리지를 검사한다. 이전에
+                      `--coverage` 플래그로 테스트를 실행했어야 한다
+  disassemble     
+  manage-package  이 패키지가 chain에 게시된 위치(Object IDs)의 address를 기록한다
+                      (이 명령은 Move.lock의 변수를 설정한다)
+  migrate         `path`의 패키지를 Move 2024로 마이그레이션한다. path가 제공되지 않으면
+                      기본값은 현재 디렉터리이다
+  new             `path`에 이름이 `name`인 새 Move 패키지를 생성한다. `path`가
+                      제공되지 않으면 패키지는 `name` 디렉터리에 생성된다
+  test            이 패키지의 Move unit test를 실행한다
+  summary         Move 패키지의 직렬화된 요약(예: 함수, struct, annotations 등)을 생성한다
+  help            이 메시지 또는 지정된 하위 명령의 도움말을 출력한다
+
+Options:
+  -p, --path <PACKAGE_PATH>
+          명령을 실행할 기준 패키지 경로이다
+      --client.config <CONFIG>
+          사용자 계정 상태를 저장하는 파일을 설정한다(없으면 빈 파일을 생성한다)
+      --client.env <ENV>
+          사용할 Sui 환경이다. 현재 config 파일에 존재해야 한다
+  -d, --dev
+          'dev' 모드로 컴파일한다. 이 플래그가 설정되면 'dev-addresses'와 'dev-dependencies'
+          필드를 사용한다. 이 플래그는 특정 값으로 설정되지 않은 named address를 노출하는
+          패키지 개발에 유용하다
+      --test
+          'test' 모드로 컴파일한다. 'dev-addresses'와 'dev-dependencies' 필드를 'tests'
+          디렉터리 코드와 함께 사용한다
+      --doc
+          패키지 문서를 생성한다
+      --disassemble
+          생성된 bytecode의 디스어셈블리와 bytecode map(디스어셈블된 bytecode용 source map)을
+          함께 저장한다
+      --install-dir <INSTALL_DIR>
+          컴파일 산출물 설치 디렉터리이다. 기본값은 현재 디렉터리이다
+      --force
+          모든 패키지 재컴파일을 강제한다
+      --fetch-deps-only
+          의존성 repo만 MOVE_HOME으로 가져온다
+      --skip-fetch-latest-git-deps
+          최신 git 의존성 가져오기를 건너뛴다
+      --default-move-flavor <DEFAULT_FLAVOR>
+          패키지 config에 지정되지 않은 경우 move 컴파일 기본 flavor이다
+      --default-move-edition <DEFAULT_EDITION>
+          패키지 config에 지정되지 않은 경우 move 컴파일 기본 edition이다
+      --dependencies-are-root
+          설정되면 의존성 패키지를 root 패키지로 처리한다. 특히 의존성 패키지의 경고 억제를
+          제거한다
+      --silence-warnings
+          설정되면 컴파일러 경고를 무시한다
+      --warnings-are-errors
+          설정되면 경고를 오류로 처리한다
+      --json-errors
+          설정되면 오류를 JSON으로 보고한다
+      --no-lint
+          `true`이면 linters를 비활성화한다
+      --lint
+          `true`이면 추가 linters를 활성화한다
+      --mode <MODE>
+          임의 모드이며 컴파일 중 사용자 정의 `#[mode(<MODE>)]` annodations를 활성화하거나
+          필터링하는 데 사용된다
+  -h, --help
+          도움말을 출력한다
+  -V, --version
+          버전을 출력한다
+```

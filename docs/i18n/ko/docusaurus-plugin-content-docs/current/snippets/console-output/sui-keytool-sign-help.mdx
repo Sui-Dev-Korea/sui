@@ -1,0 +1,15 @@
+
+```sh
+sui keystore에 있는 지정 address(또는 alias)의 private key로 signature를 생성한다. 모든
+signature는 BCS 직렬화 transaction bytes 자체의 Base64 인코딩과 그 intent로 구성된 [struct IntentMessage]에 커밋한다. intent가 없으면 기본값을 사용한다
+
+Usage: sui keytool sign [OPTIONS] --address <ADDRESS> --data <DATA>
+
+Options:
+      --address <ADDRESS>  
+      --data <DATA>        
+      --json               명령 출력값을 json 형식으로 반환한다
+      --intent <INTENT>    
+  -h, --help               도움말을 출력한다
+  -V, --version            버전을 출력한다
+```

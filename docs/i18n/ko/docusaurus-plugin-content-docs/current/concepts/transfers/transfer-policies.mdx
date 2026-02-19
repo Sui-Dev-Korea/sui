@@ -1,0 +1,280 @@
+---
+title: Transfer Policies
+description: Sui의 transfer policy에 대해 알아본다.
+keywords: [ transfer, policy, transferpolicy, transfer receipt, transfer request, transferrequest ]
+---
+
+Sui의 [`TransferPolicy`](/references/framework/sui_sui/transfer_policy)는 타입 소유자가 해당 타입을 어떻게 전송할 수 있는지 정의하는 사용자 정의 규칙을 만들 수 있게 하는 맞춤형 primitive이다. `TransferPolicy`는 Sui Kiosk 마켓플레이스 또는 `TransferPolicy` primitive를 통합한 기타 시스템에서 사용할 수 있다. 로열티 또는 수수료 지급과 같은 규칙을 원하는 만큼 설정할 수 있으며, 전송이 성공하려면 하나의 transaction에서 모두 충족되어야 한다.
+
+kiosk에서 `TransferPolicy<T>`를 생성하고 공유하면 타입 `T`를 해당 kiosk에서 거래할 수 있게 된다. 모든 kiosk 구매에서 `TransferPolicy`는 `TransferRequest`를 확인해야 하며, 그렇지 않으면 transaction이 실패한다.
+
+## Transfer policies for kiosks 
+
+kiosk 구매가 발생하면 시스템이 `TransferRequest` _hot potato_를 생성하고, 일치하는 `TransferPolicy`만 이를 확인해 transaction 차단을 해제할 수 있다.
+
+타입 `T`의 `TransferPolicy`가 존재하고 구매자가 이에 접근할 수 있는 경우에만 kiosk는 타입 `T`의 item을 거래할 수 있다. 구매 시 일치하는 `TransferPolicy`에서 해결되어야 하는 `TransferRequest`가 발급된다. policy가 없거나 구매자가 접근할 수 없으면 transaction이 실패한다.
+
+이 시스템은 최대 수준의 자유와 유연성을 제공한다. 거래 primitive에서 transfer policy 로직을 제거함으로써 primitive가 사용되는 한 policy를 설정할 수 있는 주체는 오직 사용자이며, 모든 enforcement를 사용자 스스로 제어한다.
+
+## `TransferPolicy` rules 
+
+기본적으로 단일 `TransferPolicy`는 아무것도 강제하지 않으며 사용자 동작도 필요로 하지 않는다. 이것은 `TransferRequests`를 확인하여 transaction 차단을 해제한다. 그러나 시스템은 _rules_ 설정을 허용한다. rule은 request를 확인하기 전에 사용자에게 추가 동작을 요청하는 방법이다.
+
+rule 로직은 단순하다: 누군가 "fixed fee"와 같은 새 rule 모듈을 게시하고 이를 `TransferPolicy`에 추가할 수 있다. rule이 추가된 후에는 rule에 지정된 요구사항이 완료되었음을 표시하는 `TransferReceipt`를 `TransferRequest`가 수집해야 한다.
+
+### Example rule 
+
+모든 merchant transaction에 VAT 수수료를 구현하려면 rule을 도입해야 한다.
+
+rule은 다음 4가지 주요 구성 요소를 제공해야 한다:
+
+1. rule을 고유하게 식별하는 `RuleWitness` struct.
+1. `TransferPolicy`에 저장되어 rule 구성에 사용되는 `config` 타입.
+1. `TransferPolicy`에 rule을 추가하는 set 함수. `TransferPolicyCap` 보유자가 이 동작을 수행해야 한다.
+1. `TransferRequest`에 receipt를 추가하고, 기능에 금전 transaction이 포함되는 경우 잠재적으로 `TransferPolicy` 잔액도 추가하는 실행 함수.
+
+```
+module examples::dummy_rule {
+    use sui::coin::Coin;
+    use sui::sui::SUI;
+    use sui::transfer_policy::{
+        Self as policy,
+        TransferPolicy,
+        TransferPolicyCap,
+        TransferRequest
+    };
+
+    /// The rule Witness; has no fields and is used as a
+    /// static authorization method for the rule.
+    struct Rule has drop {}
+
+    /// Configuration struct with any fields (as long as it
+    /// has `drop`). Managed by the rule module.
+    struct Config has store, drop {}
+
+    /// Function that adds a rule to the `TransferPolicy`.
+    /// Requires `TransferPolicyCap` to make sure the rules are
+    /// added only by the publisher of T.
+    public fun add<T>(
+        policy: &mut TransferPolicy<T>,
+        cap: &TransferPolicyCap<T>
+    ) {
+        policy::add_rule(Rule {}, policy, cap, Config {})
+    }
+
+    /// Action function - perform a certain action (any, really)
+    /// and pass in the `TransferRequest` so it gets the receipt.
+    /// Receipt is a rule witness, so there's no way to create
+    /// it anywhere else but in this module.
+    ///
+    /// This example also illustrates that rules can add Coin<SUI>
+    /// to the balance of the TransferPolicy allowing creators to
+    /// collect fees.
+    public fun pay<T>(
+        policy: &mut TransferPolicy<T>,
+        request: &mut TransferRequest<T>,
+        payment: Coin<SUI>
+    ) {
+        policy::add_to_balance(Rule {}, policy, payment);
+        policy::add_receipt(Rule {}, request);
+    }
+}
+```
+
+`TransferPolicy` 모듈은 rule 구성에 대한 제약으로 보장되는 조건 하에서 언제든지 어떤 rule이든 제거할 수 있도록 허용한다. 이 예제 모듈은 구성이 없고 값이 얼마든지 `Coin<SUI>`를 허용한다.
+
+### Royalty rules
+
+로열티와 같은 비율 기반 수수료를 구현하려면 rule 모듈이 item 구매 가격을 알아야 한다. `TransferRequest`는 이와 유사한 시나리오를 지원하는 정보를 제공한다:
+
+- Item ID
+- Amount paid (SUI)
+- From ID: kiosk와 같은 판매에 사용된 object
+
+`sui::transfer_policy` 모듈은 이러한 필드에 접근하는 공개 함수 `paid()`, `item()`, `from()`를 제공한다.
+
+```
+module examples::royalty_rule {
+    // skipping dependencies
+    const MAX_BP: u16 = 10_000;
+
+    struct Rule has drop {}
+
+    /// In this implementation rule has a configuration - `amount_bp`
+    /// which is the percentage of the `paid` in basis points.
+    struct Config has store, drop { amount_bp: u16 }
+
+    /// When a rule is added, configuration details are specified
+    public fun add<T>(
+        policy: &mut TransferPolicy<T>,
+        cap: &TransferPolicyCap<T>,
+        amount_bp: u16
+    ) {
+        assert!(amount_bp <= MAX_BP, 0);
+        policy::add_rule(Rule {}, policy, cap, Config { amount_bp })
+    }
+
+    /// To get the receipt, the buyer must call this function and pay
+    /// the required amount; the amount is calculated dynamically and
+    /// it is more convenient to use a mutable reference
+    public fun pay<T>(
+        policy: &mut TransferPolicy<T>,
+        request: &mut TransferRequest<T>,
+        payment: &mut Coin<SUI>,
+        ctx: &mut TxContext
+    ) {
+        // using the getter to read the paid amount
+        let paid = policy::paid(request);
+        let config: &Config = policy::get_rule(Rule {}, policy);
+        let amount = (((paid as u128) * (config.amount_bp as u128) / MAX_BP) as u64);
+        assert!(coin::value(payment) >= amount, EInsufficientAmount);
+
+        let fee = coin::split(payment, amount, ctx);
+        policy::add_to_balance(Rule {}, policy, fee);
+        policy::add_receipt(Rule {}, request)
+    }
+}
+```
+
+#### Time-based rules
+
+rules는 지급과 수수료뿐 아니라 더 넓은 영역에 적용된다. 일부 rules는 특정 시각 이전이나 이후에만 거래를 허용할 수 있다. rules는 표준화되어 있지 않으므로 어떤 object로도 로직을 인코딩할 수 있다.
+
+```
+module examples::time_rule {
+    // skipping some dependencies
+    use sui::clock::{Self, Clock};
+
+    struct Rule has drop {}
+    struct Config has store, drop { start_time: u64 }
+
+    /// Start time is yet to come
+    const ETooSoon: u64 = 0;
+
+    /// Add a rule that enables purchases after a certain time
+    public fun add<T>(/* skip default fields */, start_time: u64) {
+        policy::add_rule(Rule {}, policy, cap, Config { start_time })
+    }
+
+    /// Pass in the clock and prove that current time value is higher
+    /// than the `start_time`
+    public fun confirm_time<T>(
+        policy: &TransferPolicy<T>,
+        request: &mut TransferRequest<T>,
+        clock: &Clock
+    ) {
+        let config: &Config = policy::get_rule(Rule {}, policy)
+        assert!(clock::timestamp_ms(clock) >= config.start_time, ETooSoon);
+        policy::add_receipt(Rule {}, request)
+    }
+}
+```
+
+### `TransferRequest` receipts
+
+`TransferRequest`에는 `receipts`라는 필드가 포함되며, 이는 `TypeName`의 `VecSet`이다. `confirm_request` 호출이 실행되면 시스템은 receipts를 `TransferPolicy.rules`와 비교한다. receipts가 rules와 일치하지 않으면 시스템은 request를 거부하고 transaction은 실패한다.
+
+다음 예제에서는 rules와 receipts가 모두 비어 있으므로 자명하게 일치하고 request가 확인된다:
+
+```
+module sui::transfer_policy {
+    // ... skipped ...
+
+    struct TransferRequest<phantom T> {
+        // ... other fields omitted ...
+
+        /// Collected receipts. Used to verify that all of the rules
+        /// were followed and `TransferRequest` can be confirmed.
+        receipts: VecSet<TypeName>
+    }
+
+    // ... skipped ...
+
+    struct TransferPolicy<phantom T> has key, store {
+        // ... other fields omitted ...
+
+        /// Set of types of attached rules - used to verify `receipts` when
+        /// a `TransferRequest` is received in `confirm_request` function.
+        ///
+        /// Additionally provides a way to look up currently attached rules.
+        rules: VecSet<TypeName>
+    }
+
+    // ...
+}
+```
+
+## Witness policy
+
+동작을 권한 부여하는 방법은 두 가지이다: 
+
+1. witness pattern을 사용하는 정적 방식.
+1. capability pattern을 통한 동적 방식. 
+
+
+타입 매개변수를 추가하면 구성뿐 아니라 타입에 따라서도 달라지는 generic rule을 만들 수 있다.
+
+```
+module examples::witness_rule {
+    // skipping dependencies
+
+    /// Rule is either not set or the witness does not match the expectation
+    const ERuleNotSet: u64 = 0;
+
+    /// This rule requires a witness of type W, see the implementation
+    struct Rule<phantom W> has drop {}
+    struct Config has store, drop {}
+
+    /// No special arguments are required to set this rule, but the
+    /// publisher now needs to specify a witness type
+    public fun add<T, W>(/* .... */) {
+        policy::add_rule(Rule<W> {}, policy, cap, Config {})
+    }
+
+    /// To confirm the action, buyer needs to pass in a witness
+    /// which should be acquired either by calling some function or
+    /// integrated into a more specific hook of a marketplace /
+    /// trading module
+    public fun confirm<T, W>(
+        _: W,
+        policy: &TransferPolicy<T>,
+        request: &mut TransferRequest<T>
+    ) {
+        assert!(policy::has_rule<T, Rule<W>>(policy), ERuleNotSet);
+        policy::add_receipt(Rule<W> {}, request)
+    }
+}
+```
+
+`witness_rule`은 generic이며 설정에 따라 사용자 정의 witness를 요구하는 데 사용할 수 있다. 이것은 사용자 정의 마켓플레이스 또는 거래 로직을 `TransferPolicy`에 연결하는 방법이다. 약간 수정하면 이 rule은 다른 타입의 `TransferPolicy` 또는 `TransferRequest`를 포함한 임의 object에 대한 generic capability 요구사항으로 바꿀 수 있다. 
+
+```
+module examples::capability_rule {
+    // skipping dependencies
+
+    /// Changing the type parameter name for better readability
+    struct Rule<phantom Cap> has drop {}
+    struct Config {}
+
+    /// Absolutely identical to the witness setting
+    public fun add<T, Cap>(/* ... */) {
+        policy::add_rule(Rule<Cap> {}, policy, cap, Config {})
+    }
+
+    /// Almost the same with the witness requirement, only now we
+    /// require a reference to the type.
+    public fun confirm<T, Cap>(
+        cap: &Cap,
+        /* ... */
+    ) {
+        assert!(policy::has_rule<T, Rule<Cap>>(policy), ERuleNotSet);
+        policy::add_receipt(Rule<Cap> {}, request)
+    }
+}
+```
+
+## Using multiple transfer policies
+
+서로 다른 목적을 위해 여러 정책을 만들 수 있다. 예를 들어 기본 VAT 정책은 모두가 이를 사용하도록 요구한다. 그러나 출국하는 여행자는 기본 정책을 변경하지 않고 VAT 환급을 청구할 수 있다.
+
+이를 달성하려면 동일한 타입에 대해 두 번째 `TransferPolicy`를 발행하고 이를 사용자 정의 object로 감싸 로직을 구현할 수 있다. 예를 들어 `TaxFreePolicy` object는 VAT를 우회할 수 있다. 이 object는 구매자가 유효한 `Passport` object를 제시할 때만 접근 가능한 또 다른 `TransferPolicy`를 저장한다. 내부 정책은 rules가 없을 수 있으므로 구매자는 수수료를 지불하지 않는다.

@@ -1,0 +1,85 @@
+
+```sh
+Move 함수 호출
+
+Usage: sui client call [OPTIONS] --package <PACKAGE> --module <MODULE> --function <FUNCTION>
+
+Options:
+      --package <PACKAGE>
+          모듈을 포함하는 패키지의 Object ID
+
+      --module <MODULE>
+          패키지 내 모듈 이름
+
+      --function <FUNCTION>
+          모듈 내 함수 이름
+
+      --type-args <TYPE_ARGS>...
+          호출되는 generic 함수의 타입 인자이다. 모두 지정되어야 하며, 그렇지 않으면 호출이
+          실패한다
+
+      --args <ARGS>...
+          함수 문법의 단순화된 순서 인자이며 ObjectIDs, Addresses는 hex 문자열이어야 한다
+
+      --gas <GAS>...
+          가스 지불에 사용할 gas object ID이다. 제공되지 않으면 가스 예산을 충당하도록 코인이
+          자동 선택된다
+
+      --gas-budget <GAS_BUDGET>
+          이 transaction의 선택적 가스 예산이다(MIST 단위). 가스 예산이 제공되지 않으면 도구는
+          먼저 가스 비용을 추정하기 위해 드라이 런을 수행한 다음 transaction을 실행한다.
+          추가 드라이 런 호출로 인해 성능에 소량의 비용이 발생함에 유의해야 한다
+
+      --gas-price <GAS_PRICE>
+          이 transaction의 선택적 가스 가격이다(MIST 단위). 가스 가격이 제공되지 않으면 도구는
+          RPC의 현재 참조 가스 가격을 사용한다.
+          
+          참조값보다 낮은 가스 가격의 transaction은 실행에 충분한 validator 서명을 받지 못한다.
+          혼잡한 shared object에 접근하는 transaction은 가스 가격 기준으로 우선순위가 정해지므로,
+          참조값보다 높은 가스 가격을 설정하면 transaction이 shared object에 더 빨리 접근하도록
+          보장할 수 있다.
+
+      --gas-sponsor <GAS_SPONSOR>
+          가스 스폰서 address를 지정하는 선택적 필드이다. 제공되면 gas owner는 transaction의
+          sender가 아니라 이 address로 설정된다.
+          
+          CLI가 스폰서의 키에 접근할 수 없으면 스폰서가 설정된 transaction에 서명하고 실행할 수
+          없다는 점에 유의해야 한다.
+
+      --tx-digest
+          transaction을 실행하는 대신 transaction digest를 계산해 출력한다
+
+      --dry-run
+          transaction을 실행하지 않고 드라이 런을 수행한다
+
+      --dev-inspect
+          dev inspect를 수행한다
+
+      --serialize-unsigned-transaction
+          transaction을 실행하는 대신 서명되지 않은 transaction 데이터(TransactionData)의 bcs
+          바이트를 base64 인코딩으로 직렬화하고 문자열 <TX_BYTES>를 출력한다. 이 문자열은
+          `sui client execute-signed-tx --tx-bytes <TX_BYTES>`로 transaction 실행에 사용할 수
+          있다
+
+      --serialize-signed-transaction
+          transaction을 실행하는 대신 서명된 transaction 데이터(SenderSignedData)의 bcs 바이트를
+          base64 인코딩으로 직렬화하고 문자열 <SIGNED_TX_BYTES>를 출력한다. 이 문자열은
+          `sui client execute-combined-signed-tx --signed-tx-bytes <SIGNED_TX_BYTES>`로
+          transaction 실행에 사용할 수 있다
+
+      --sender <SENDER>
+          transaction sender를 이 address로 설정한다. 지정하지 않으면 sender는 가스 지불의
+          소유자를 찾아 추론된다. 이 필드를 설정할 때 sender의 개인 키가 keystore에 없으면
+          transaction 실행이 실패하며, 동일하게 `--serialize-signed-transaction` 플래그와 함께
+          사용할 때 이 address에 해당하는 개인 키가 keystore에 없으면 실패한다는 점에 유의해야
+          한다
+
+      --json
+          명령 출력값을 json 형식으로 반환한다
+
+  -h, --help
+          도움말을 출력한다('-h'로 요약 확인)
+
+  -V, --version
+          버전을 출력한다
+```
