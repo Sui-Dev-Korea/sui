@@ -1,0 +1,32 @@
+---
+title: Oracles
+description: Oracle은 온체인에 배포된 스마트 계약을 오프체인에 저장된 데이터와 연결한다.
+keywords:
+  - oracles
+  - oracle services
+  - off-chain data
+  - available oracles
+  - pyth
+  - stork
+  - supra
+  - switchboard
+---
+
+Oracle은 온체인 스마트 계약을 오프체인 데이터와 연결하는 서비스이다.<br>블록체인은 보안성과 신뢰성을 위해 본질적으로 외부 소스로부터 격리되어 있다. Sui도 예외는 아니며, 이는 여러분의 프로젝트가 주가, 날씨 데이터, 스포츠 점수와 같은 실제 세계 정보를 직접 가져올 수 없음을 의미한다. Oracle은 블록체인과 외부 데이터 소스 사이의 브리지를 제공하여 이러한 정보를 가져오고 이를 스마트 계약에서 안전하고 검증 가능한 방식으로 사용할 수 있도록 한다.
+
+## Oracles available for the Sui network
+
+이 섹션의 가이드는 Sui 프로젝트를 위한 기본적인 오라클 서비스를 생성하는 방법을 보여준다. 요구 사항이 더욱 고도화됨에 따라 복잡한 작업을 수행하기 위해 서드파티 서비스를 통합하는 것을 고려할 수 있다. Sui 네트워크에서 사용할 수 있는 여러 Oracle 서비스는 다음과 같다:
+
+서비스 | 설명
+--- | ---
+[**Pyth**](https://www.pyth.network/) | Pyth는 시장 데이터를 위한 블록체인 오라클이다. Pyth 웹사이트의 [Sui guide](https://docs.pyth.network/price-feeds/use-real-time-data/sui)￼를 확인하여 Sui 프로젝트에 통합하는 방법을 학습한다.
+[**Stork**](https://www.stork.network/) | Stork는 기존 블록체인 오라클의 한계를 해결하기 위해 설계된 오픈 데이터 마켓플레이스이다. 구현 세부 사항은 [Stork documentation](https://docs.stork.network/)￼을 확인한다.
+[**Supra**](https://supra.com/data) | Supra는 블록체인 스마트 계약을 실제 세계 데이터와 연결하도록 설계된 탈중앙화 오라클 네트워크로, 다양한 블록체인 생태계 전반에서 탈중앙화 애플리케이션 (dApp)의 기능을 향상시킨다. Sui와 통합하는 방법은 [Index Fund](https://docs.supra.com/dev-resources/guides/move/building-a-crypto-index-fund-smart-contract-on-sui-blockchain-move)  및 [Crowdfunding](https://docs.supra.com/dev-resources/guides/move/crowdfunding-smart-contracts-on-sui-blockchain-move)￼ 예제를 확인한다.
+[**Switchboard**](https://switchboard.xyz/) | Switchboard는 dApp을 실제 세계 데이터와 원활하게 연결하는 permissionless 오라클 네트워크이다. 통합 세부 사항은 [On Sui](https://docs.switchboard.xyz/product-documentation/data-feeds/sui) 가이드를 확인한다.
+
+## Oracle guides
+
+다음 가이드는 Sui 네트워크에서 오라클을 구축하는 방법을 보여준다. 현재는 하나의 가이드만 제공되지만 추가 가이드가 계획되어 있다.
+
+- [Sui Weather Oracle](./weather-oracle.mdx): OpenWeather API에서 날씨 데이터를 가져와 전 세계 1,000개 이상의 위치에 대한 실시간 날씨 데이터를 제공한다.
