@@ -1,0 +1,151 @@
+---
+title: Stablecoins on Sui
+sidebar_label: Stablecoins
+description: 스테이블코인은 법정 통화 또는 자산 바스켓에 상대하여 안정적인 가치를 유지하도록 설계된 암호화폐의 한 종류이다.
+keywords:
+  - stablecoins
+  - USDT
+  - tether
+  - agora
+  - USDC
+  - USD coin
+  - AUSD
+  - ondo USDY
+  - USDY
+  - using stablecoins
+  - stablecoins in ptbs
+  - ptbs
+  - programmable transaction blocks
+  - stablecoins in programmable transaction blocks
+pagination_prev: ''
+---
+
+스테이블코인은 법정 통화 또는 자산 바스켓에 상대하여 안정적인 가치를 유지하도록 설계된 암호화폐의 한 종류이다. 스테이블코인은 거래, 대출, 그리고 가치 저장 수단으로 널리 사용된다.
+
+## Available stablecoins
+
+Sui에서는 USDC, USDT, Agora, 그리고 Ondo USDY와 같은 다양한 스테이블코인과 상호작용할 수 있다.
+
+### USDC (USD Coin)
+
+USDC는 규제된 금융 기관이 발행하는 완전 담보형 미국 달러 스테이블코인이다. 각 USDC token은 준비금으로 보유된 1 미국 달러에 의해 담보된다. USDC는 거래, 결제, 그리고 안정적인 가치 저장 수단으로 널리 사용된다.
+
+Sui에서 USDC와 상호작용하는 방법에 대한 더 자세한 정보는 [USDC guide](#usdc-guide) ￼를 참조한다.
+
+**Site:** [Circle](https://www.circle.com/en/usdc)
+
+### USDT (Tether)
+
+USDT는 Tether로도 알려져 있으며, 가장 오래되었고 가장 널리 사용되는 스테이블코인 중 하나이다. USDT는 미국 달러에 페그되어 있으며, 현금, 현금성 자산, 그리고 기타 자산을 포함한 준비금 혼합으로 담보된다.
+
+USDT는 현재 Sui에서 네이티브로 발행되지 않는다. Sui로 USDT를 브리징하는 방법에 대한 자세한 정보는 [SUI Bridging](../../concepts/tokenomics/sui-bridging.mdx) 을 참조한다.
+
+**Site:** [Tether](https://tether.to/)
+
+### Agora
+
+AUSD는 Agora Finance가 발행하는 완전 담보형 미국 달러 스테이블코인이다.
+
+**Site:** [Agora Finance](https://www.agora.finance/)
+
+### Ondo USDY
+
+USDY는 Ondo Finance가 발행하는 완전 담보형 미국 달러 스테이블코인이며, 사용자가 미국 국채(Treasury Bills)로부터 수익을 얻을 수 있도록 한다.
+
+**Site:** [Ondo Finance](https://ondo.finance/)
+
+## How to use USDC on Sui {#usdc-guide}
+
+:::info While this example uses USDC, the same principles can be applied to any asset on Sui that uses the [Sui Coin standard](../../standards/coin.mdx). :::
+
+<tabs classname="tabsHeadingCentered--small--small"><tabitem value="prereq" label="Prerequisites"></tabitem></tabs>
+
+- [x] [Install the latest version of Sui](/guides/developer/getting-started/sui-install).
+
+- [x] 	USDC token이 일부 있는지 확인한다. Circle의 [faucet](https://faucet.circle.com/) ￼에서 Testnet token을 받는다.
+
+
+
+
+
+### USDC stablecoin source code
+
+USDC 스테이블코인의 소스 코드는 [circlefin/stablecoin-sui](https://github.com/circlefin/stablecoin-sui/blob/master/packages/usdc/sources/usdc.move) repository에서 확인할 수 있다.
+
+### Import the USDC module in your Move package
+
+USDC module을 import하려면, Move package의 `Move.toml` 파일에서 `[dependencies]` 섹션에 다음 줄을 추가한다:
+
+```toml
+usdc = { git = "https://github.com/circlefin/stablecoin-sui.git", subdir = "packages/usdc", rev = "master" }
+```
+
+module을 import한 후, Move package는 다음과 같이 보여야 한다:
+
+<importcontent source="examples/move/usdc_usage/Move.toml" mode="code"></importcontent>
+
+:::warning `usdc` package는 `sui` package의 특정 버전을 사용하며, 이는 the Sui framework의 `Sui` package와 버전 충돌을 유발한다. `Move.toml` 파일에서 `Sui` package의 버전을 override하여 다른 버전을 사용하도록 할 수 있다. `Move.toml` 파일의 `Sui` package에 `override = true` 플래그를 추가한다. :::
+
+### Using USDC in Move
+
+USDC는 [Sui Coin standard](../../standards/coin.mdx)￼를 사용하며 the Sui framework의 다른 어떤 coin 타입과 마찬가지로 사용할 수 있다.
+
+`usdc` package를 import한 후에는 `USDC` 타입을 사용할 수 있다.
+
+```move
+use usdc::usdc::USDC;
+```
+
+그런 다음 `Coin<SUI>` 파라미터를 받을 때 `SUI` 타입을 사용하는 것과 동일하게 `USDC` 타입을 사용한다.
+
+<importcontent source="examples/move/usdc_usage/sources/example.move" mode="code" fun="buy_sword_with_usdc"></importcontent>
+
+다음 예시는 Move package에서 USDC 스테이블코인을 사용하는 방법과, `SUI` 타입 및 제네릭 coin 타입을 사용하는 것과의 관계를 보여준다.
+
+<importcontent source="examples/move/usdc_usage/sources/example.move" mode="code"></importcontent>
+
+### Using USDC in PTBs
+
+USDC는 다른 어떤 coin 타입과 마찬가지로 [PTBs](/guides/developer/sui-101/building-ptb)￼에서 사용한다.
+
+`coinWithBalance` 함수를 사용하여 `Coin<USDC>` object를 생성한다.
+
+```typescript
+const usdcCoin = coinWithBalance({
+  type: '0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC',
+  balance: 1_000_000
+})
+```
+
+:::info `0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29`는 USDC의 [Testnet address](https://suiscan.xyz/testnet/coin/0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC)이며, `0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7`는 [Mainnet address](https://suiscan.xyz/coin/0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC)이다. :::
+
+이 coin object는 `Coin` 파라미터 또는 제네릭 `Coin` 파라미터를 받는 어떤 함수의 파라미터로 사용할 수 있다.
+
+```typescript
+const [sword] = tx.moveCall({
+  target: '0xcbbf37a851ed7b625731ca497e2d4aea18cf18145fac3b78bd64f274f6a09d30::usdc_usage::buy_sword_with_usdc',
+  arguments: [
+    usdcCoin
+  ]
+});
+```
+
+```typescript
+const [sword] = tx.moveCall({
+  target: '0xcbbf37a851ed7b625731ca497e2d4aea18cf18145fac3b78bd64f274f6a09d30::usdc_usage::buy_sword_with_arbitrary_coin',
+  typeArguments: ['0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC'],
+  arguments: [
+    usdcCoin
+  ]
+});
+```
+
+이 coin object는 `transferObjects` 함수의 입력으로도 사용할 수 있다.
+
+```typescript
+tx.transferObjects([usdcCoin], recipientAddress);
+```
+
+## Related links
+
+<relatedlink to="/guides/developer/coin/regulated.mdx"></relatedlink><relatedlink to="/guides/developer/coin/loyalty.mdx"></relatedlink><relatedlink to="/guides/developer/coin/in-game-token.mdx"></relatedlink>
