@@ -11,19 +11,19 @@ keywords:
   - off-chain storage
 ---
 
-<ImportContent source="suiplay.mdx" mode="snippet"></ImportContent>
+<importcontent source="suiplay.mdx" mode="snippet"></importcontent>
 
 SuiPlay0X1 개발 시 고려해야 할 몇 가지 모범 사례가 있다.
 
 ## Handling transactions
 
-빈번한 micro-transaction 방지: 플레이어가 자체 보관 지갑을 사용하고 거래에 명시적인 플레이어 서명이 필요한 경우, 특히 게임 플레이 중에는 빈번한 micro-transaction을 피해야 한다. 거래에 서명하려면 기기 내 시각적 요소나 기기 외부 브라우저 대화 상자를 팝업하여 승인을 요청해야 하며, 이는 게임 플레이 흐름을 방해한다. 플레이어를 대신하여 보관 지갑을 관리하는 경우에는 문제가 되지 않는다. 사용 가능한 지갑 통합에 대한 자세한 내용은  [Wallet Integration Options](./wallet-integration.mdx) 을 참조한다.
+빈번한 micro-transaction 피하기: 플레이어가 자체 보관 지갑을 사용하고 거래에 명시적인 플레이어 서명이 필요한 경우, 특히 게임 플레이 중에는 빈번한 micro-transaction을 피해야 한다. 거래에 서명하려면 기기 내 시각적 요소나 기기 외부 브라우저 대화 상자를 팝업하여 승인을 요청해야 하며, 이는 게임 플레이 흐름을 방해한다. 플레이어를 대신하여 보관 지갑을 관리하는 경우에는 문제가 되지 않는다. 사용 가능한 지갑 통합에 대한 자세한 내용은  [Wallet Integration Options](./wallet-integration.mdx) 을 참조한다.
 
-많은 온체인 작업은 명시적인 사용자 승인을 필요로 하지 않다. 예를 들어, 사용자에게 보상을 지급하거나, 사용자의 통화를 증가시키는 등의 작업이 있다. 게임은 필요에 따라 이러한 작업을 처리할 수 있으며, 게임 플레이 중에는 백그라운드에서 자동으로 처리할 수도 있다.
+많은 온체인 작업은 명시적인 사용자 승인을 필요로 하지 않다. 예를 들어, 사용자에게 보상을 지급하거나, 사용자의 통화를 증가시키는 등의 작업이 있다. 게임은 적절한 시점에 이러한 작업을 처리할 수 있으며, 게임 플레이 중에는 백그라운드에서 자동으로 처리할 수도 있다.
 
 ## Managing gas
 
-타사 지갑 서비스([Beamable](https://beamable.com/), [Shinami](https://www.shinami.com/))를 사용하는 경우, 가스 후원을 활용하여 custodial 구현을 통해 사용자로부터 추상화할 수 있다. 통합 지갑과 개별 지갑 간의 균형을 고려하고, 가능하면  batch transaction을 통해 가스 비용을 절감할 수 있다.
+타사 지갑 서비스([Beamable](https://beamable.com/), [Shinami](https://www.shinami.com/))를 사용하는 경우, custodial 구현에서는 가스 후원을 활용하여 사용자로부터 가스 처리를 추상화한다. 통합 지갑과 개별 지갑 간의 장단점을 고려하고, 가능하면  batch transaction을 통해 가스 비용을 절감할 수 있다.
 
 ## Data management
 
@@ -36,12 +36,12 @@ SuiPlay0X1 개발 시 고려해야 할 몇 가지 모범 사례가 있다.
 - **On-chain:** 거래 또는 판매 가능한 자산 및 화폐.
 - **Off-chain:** 기존 게임 서버를 사용하여 게임 상태, 진행 상황 등을 저장.
 
-모든 정보를 온체인에 저장할 수 있지만, 해당 데이터가 게임에 중요한지 여부를 고려한다. 그렇지 않은 경우 기존 게임 서버 백엔드를 활용하여 데이터 동기화 및 업데이트를 더 쉽게 할 수 있다.
+모든 정보를 온체인에 저장할 수 있지만, 해당 데이터가 온체인에 존재하는 것이 게임에 중요한지 여부를 고려한다. 그렇지 않은 경우 기존 게임 서버 백엔드를 활용하여 데이터 동기화 및 업데이트를 더 쉽게 할 수 있다.
 
 ### Session start protocol
 
-세션 시작 시 항상 지갑 상태를 확인하고, 자산이 외부에서 변경될 수 있으므로 세션 간에 지갑 데이터를 캐시하지 않기 바란다.
+세션 시작 시 항상 지갑 상태를 확인하고, 자산이 외부에서 변경될 수 있으므로 세션 간에 지갑 데이터를 캐시하지 않는다.
 
 ## Related links
 
-<RelatedLink href="https://github.com/playtron-os/playtron-sdk" label="Playtron GameOS SDK" desc="The official Playtron OS SDK repository on GitHub."></RelatedLink><RelatedLink href="https://sdk.mystenlabs.com/dapp-kit" label="Sui dApp Kit documentation" desc="The Sui dApp Kit is a set of React components, hooks, and utilities to help you build a dApp for the Sui ecosystem."></RelatedLink><RelatedLink href="https://discord.gg/suiplay" label="SuiPlay0X1 Discord" desc="Follow announcements and connect with the community on the Discord channel for SuiPlay0X1."></RelatedLink><RelatedLink to="/guides/suiplay0x1/wallet-integration.mdx"></RelatedLink>
+<relatedlink href="https://github.com/playtron-os/playtron-sdk" label="Playtron GameOS SDK" desc="The official Playtron OS SDK repository on GitHub."></relatedlink><relatedlink href="https://sdk.mystenlabs.com/dapp-kit" label="Sui dApp Kit documentation" desc="The Sui dApp Kit is a set of React components, hooks, and utilities to help you build a dApp for the Sui ecosystem."></relatedlink><relatedlink href="https://discord.gg/suiplay" label="SuiPlay0X1 Discord" desc="Follow announcements and connect with the community on the Discord channel for SuiPlay0X1."></relatedlink><relatedlink to="/guides/suiplay0x1/wallet-integration.mdx"></relatedlink>
