@@ -1,0 +1,65 @@
+---
+title: Spending
+description: Token 타입은 `store` ability를 사용하여 다른 object를 저장할 수 없다. 대신 Token은 `spend` 메서드를 가진다.
+keywords:
+  - token
+  - store
+  - spend
+  - spend action
+  - spent token
+  - actionrequest
+  - action request
+  - gating the spend action
+  - assigning rules
+  - rules for spending
+  - authorizing spending
+  - authorized spending
+  - token policies
+  - tokenpolicy
+  - treasureycap
+  - treasury cap
+---
+
+`Token` 타입은 `store` ability를 가지지 않기 때문에 이를 다른 object에 저장하는 것은 불가능하다. 따라서 `Coin`과 유사한 지출 방식은 사용할 수 없다. 결제를 위해 `Token`을 받는 애플리케이션은 이를 자신의 잔액에 추가할 수 없다. 이 문제를 해결하기 위해 `Token`은 `spend` 메서드를 가지며, 이를 통해 하나의 애플리케이션에서 지출한 뒤 `spent_balance`로 [`TokenPolicy`](./token-policy.mdx)에 전달하거나 `TreasuryCap`을 사용해 즉시 소각할 수 있다.
+
+## Spend action
+
+`spend` 메서드를 호출하여 Tokens를 지출할 수 있다. 이 메서드는 다음 인자를 받는다:
+
+```move
+// module sui::token
+public fun spend<T>(token: Token<T>, ctx: &mut TxContext): ActionRequest<T>;
+```
+
+시그니처에서 보이듯이 `Token` object는 소비된다. 그 잔액은 [`ActionRequest`](./action-request.mdx#actionrequest-structure)의 `spent_balance`가 된다.
+
+## Spent token
+
+`spend`의 실행에 대한 `ActionRequest`는 지출된 `Token`의 `Balance`를 포함하며, 이는 [`TreasuryCap`과 함께 확정하거나](./action-request#confirming-with-treasurycap) [`TokenPolicy`에 전달할 수 있다](./action-request#confirming-with-tokenpolicy). 첫 번째 경우 잔액은 `TreasuryCap`에서 직접 소각되며, 두 번째 경우에는 `TokenPolicy`의 `spent_balance`로 전달된다.
+
+Spent balance는 어떤 방식으로도 사용할 수 없으며 이를 인출하는 것도 불가능하다. 유일하게 가능한 동작은 [flushing](./token-policy#consume-spent-balance)이며, 이는 `TreasuryCap`을 가져와 `spent_balance`를 소각하는 것이다.
+
+## Gating the spend action
+
+일반적으로 `spend`의 실행에는 목적 없는 지출을 방지하기 위해 최소 하나의 규칙이 할당되어야 하며, 토큰을 수락하는 애플리케이션에서 지출을 승인하는 권장 방식은 지출이 수행되는 함수 내에서 이를 직접 스탬프하는 것이다. 예를 들어:
+
+```move
+/// Rule-like witness to stamp the ActionRequest
+struct GiftShop has drop {}
+
+/// Spend the token and return a Gift + ActionRequest
+public fun buy_gift(
+    token: Token<CREDITS>,
+    ctx: &mut TxContext
+): (Gift, ActionRequest<CREDITS>) {
+
+    // token is spent
+    let action_request = token::spend(token, ctx);
+
+    // stamp the ActionRequest as performed by GiftShop
+    token::add_approval(GiftShop {}, &mut action_request, ctx);
+
+    // return already stamped ActionRequest
+    (Gift { ... }, action_request)
+}
+```
