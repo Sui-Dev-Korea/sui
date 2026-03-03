@@ -1,0 +1,38 @@
+---
+title: Coin/Token API comparison
+description: "`coin` 및 `token` 모듈에 사용되는 API를 비교하고 대조한다."
+keywords:
+  - mint
+  - burn
+  - join
+  - split
+  - zero
+  - destroy_zero
+  - keep
+  - transfer
+  - to_balance
+  - to_coin
+  - from_balance
+  - from_coin
+  - spend
+  - difference between coin and token
+  - difference between token and coin
+  - coin vs token
+  - token vs coin
+---
+
+이 부록을 `coin` 및 `token` 모듈의 API를 비교하기 위한 빠른 참고 자료로 사용한다.
+
+Function | Coin | Token | Note
+--- | --- | --- | ---
+`mint` | + | + | `TreasuryCap`가 필요하다
+`burn` | + | + | `TreasuryCap`가 필요하다
+`join` | + | + | Public
+`split` | + | + | Public
+`zero` | + | + | Public
+`destroy_zero` | + | + | Public
+`keep` | - | + | token을 sender로 보내며, coin은 transfer 제한이 없으므로 필요하지 않다
+`transfer` | + | [protected] | coin은 기본적으로 전송 가능하며, token은 authorization이 필요하다
+`to_balance`/`to_coin` | + | [protected] | token은 `to_coin`으로 변환할 수 있으며, authorization이 필요하다
+`from_balance`/`from_coin` | + | [protected] | token은 `from_coin`으로 생성할 수 있으며, authorization이 필요하다
+`spend` | - | [protected] | token은 spend할 수 있으며, authorization이 필요하다
