@@ -26,7 +26,7 @@ Sui는 오프라인 서명을 지원하며, 이는 Sui 네트워크에 연결되
 
 다음 예제는 [Sui CLI](/references/cli.mdx)를 사용하여 전송을 위한 데이터를 직렬화하는 방법을 보여준다. 이는 Base64로 직렬화된 transaction 데이터를 반환한다. 실행할 raw transaction을 `tx_bytes`로 제출한다.
 
-<ImportContent source="info-gas-budget.mdx" mode="snippet"></ImportContent>
+<ImportContent source="info-gas-budget.mdx" mode="snippet" />
 
 ```sh
 $ sui client transfer-sui --to <SUI-ADDRESS> --sui-coin-object-id <COIN-OBJECT-ID> --gas-budget <GAS-AMOUNT> --serialize-unsigned-transaction

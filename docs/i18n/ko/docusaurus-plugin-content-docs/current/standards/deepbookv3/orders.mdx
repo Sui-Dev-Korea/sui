@@ -37,49 +37,49 @@ keywords:
 
 다음 상수는 주문에 사용 가능한 옵션을 정의한다.
 
-<ImportContent source="packages/deepbook/sources/helper/constants.move" mode="code" org="MystenLabs" repo="deepbookv3" variable="NO_RESTRICTION,IMMEDIATE_OR_CANCEL,FILL_OR_KILL,POST_ONLY"></ImportContent>
+<ImportContent source="packages/deepbook/sources/helper/constants.move" mode="code" org="MystenLabs" repo="deepbookv3" variable="NO_RESTRICTION,IMMEDIATE_OR_CANCEL,FILL_OR_KILL,POST_ONLY" />
 
 ### Self-matching options
 
 다음 상수는 자체 매칭 주문에 사용 가능한 옵션을 정의한다.
 
-<ImportContent source="packages/deepbook/sources/helper/constants.move" mode="code" org="MystenLabs" repo="deepbookv3" variable="SELF_MATCHING_ALLOWED,CANCEL_TAKER,CANCEL_MAKER"></ImportContent>
+<ImportContent source="packages/deepbook/sources/helper/constants.move" mode="code" org="MystenLabs" repo="deepbookv3" variable="SELF_MATCHING_ALLOWED,CANCEL_TAKER,CANCEL_MAKER" />
 
 ### OrderInfo struct
 
 지정가 주문 또는 시장가 주문을 하면 <code>OrderInfo</code> object가 생성되고 반환된다. DeepBookV3는 주문이 완료되거나 주문서에 배치된 후 이 object를 자동으로 삭제한다. <code>OrderInfo</code>는 모든 주문 정보를 나타내므로 요청의 실행 세부 정보를 검사하는 데 사용한다. DeepBookV3는 어떤 종류의 오류도 포착하지 않으므로 어떤 종류의 실패가 있으면 전체 transaction이 실패한다.
 
-<ImportContent source="packages/deepbook/sources/book/order_info.move" org="MystenLabs" repo="deepbookv3" mode="code" struct="OrderInfo"></ImportContent>
+<ImportContent source="packages/deepbook/sources/book/order_info.move" org="MystenLabs" repo="deepbookv3" mode="code" struct="OrderInfo" />
 
 ### OrderDeepPrice struct
 
 <code>OrderDeepPrice</code> struct는 주문이 배치된 시점의 DEEP 변환율을 나타낸다.
 
-<ImportContent source="packages/deepbook/sources/vault/deep_price.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderDeepPrice"></ImportContent>
+<ImportContent source="packages/deepbook/sources/vault/deep_price.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderDeepPrice" />
 
 ### Fill struct
 
 <code>Fill</code> struct는 두 주문 간의 매칭 결과를 나타낸다. 이 struct를 사용하여 상태를 업데이트한다.
 
-<ImportContent source="packages/deepbook/sources/book/fill.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="Fill"></ImportContent>
+<ImportContent source="packages/deepbook/sources/book/fill.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="Fill" />
 
 ### Events
 
 DeepBookV3는 메이커 주문이 체결될 때 <code>OrderFilled</code>를 발생시킨다.
 
-<ImportContent source="packages/deepbook/sources/book/order_info.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderFilled"></ImportContent>
+<ImportContent source="packages/deepbook/sources/book/order_info.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderFilled" />
 
 DeepBookV3는 메이커 주문이 취소될 때 <code>OrderCanceled</code>를 발생시킨다.
 
-<ImportContent source="packages/deepbook/sources/book/order.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderCanceled"></ImportContent>
+<ImportContent source="packages/deepbook/sources/book/order.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderCanceled" />
 
 DeepBookV3는 메이커 주문이 수정될 때 <code>OrderModified</code>를 발생시킨다.
 
-<ImportContent source="packages/deepbook/sources/book/order.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderModified"></ImportContent>
+<ImportContent source="packages/deepbook/sources/book/order.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderModified" />
 
 DeepBookV3는 메이커 주문을 주문서에 주입할 때 <code>OrderPlaced</code>를 발생시킨다.
 
-<ImportContent source="packages/deepbook/sources/book/order_info.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderPlaced"></ImportContent>
+<ImportContent source="packages/deepbook/sources/book/order_info.move" mode="code" org="MystenLabs" repo="deepbookv3" struct="OrderPlaced" />
 
 ### Place limit order
 
@@ -87,13 +87,13 @@ DeepBookV3는 메이커 주문을 주문서에 주입할 때 <code>OrderPlaced</
 
 주문을 하기 전에 <code>BalanceManager</code> 호출로 <code>TradeProof</code>를 생성하는 것을 결합해야 한다.
 
-<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="place_limit_order" nocomments></ImportContent>
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="place_limit_order" nocomments />
 
 ### Place market order
 
 시장가 주문을 한다. 수량은 베이스 자산 기준이다. 매수 주문의 경우 <code>MAX_PRICE</code>, 매도 주문의 경우 <code>MIN_PRICE</code>로 <code>place_limit_order</code>를 호출한다. DeepBookV3는 체결되지 않은 수량에 대해 주문을 취소한다.
 
-<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="place_market_order" nocomments></ImportContent>
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="place_market_order" nocomments />
 
 ### Modify order
 
@@ -101,7 +101,7 @@ DeepBookV3는 메이커 주문을 주문서에 주입할 때 <code>OrderPlaced</
 
 <code>modify_order</code> 함수는 아무것도 반환하지 않는다. transaction이 성공하면 수정이 성공한 것으로 간주한다.
 
-<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="modify_order" nocomments></ImportContent>
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="modify_order" nocomments />
 
 ### Cancel order
 
@@ -109,14 +109,14 @@ DeepBookV3는 메이커 주문을 주문서에 주입할 때 <code>OrderPlaced</
 
 수정과 유사하게 <code>cancel_order</code>는 아무것도 반환하지 않는다. DeepBookV3는 <code>OrderCanceled</code> 이벤트를 발생시킨다.
 
-<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="cancel_order" nocomments></ImportContent>
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="cancel_order" nocomments />
 
 ### Withdraw settled amounts
 
 <code>balance_manager</code>로 정산된 금액을 인출한다. 모든 주문은 자동으로 정산된 금액을 인출한다. 이것은 풀에서 모든 정산된 자금을 명시적으로 인출하기 위해 호출할 수 있다.
 
-<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="withdraw_settled_amounts" nocomments></ImportContent>
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="withdraw_settled_amounts" nocomments />
 
 ## Related links
 
-<RelatedLink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub."></RelatedLink>
+<RelatedLink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub." />
