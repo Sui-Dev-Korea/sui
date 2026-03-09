@@ -1,27 +1,27 @@
 ---
-title: Validator Staking 및 Rewards
+title: Validator Staking and Rewards
 draft: 'true'
 ---
 
-Sui uses a delegated proof of stake (DPoS) system, where validators receive voting power from SUI token holders who delegate their stake. At the end of each epoch, validators receive rewards based on their performance and commission rate. Rewards auto-compound because validator staking pools receive new delegated stakes.
+Sui는 위임 지분 증명 (DPoS) 시스템을 사용하며, validator는 자신의 stake를 위임한 SUI token 보유자로부터 투표권을 받는다. 각 epoch가 끝나면 validator는 성능과 수수료율에 따라 보상을 받는다. validator staking pool이 새로 위임된 stake를 받기 때문에 보상은 자동 복리로 누적된다.
 
 ## Staking on Sui compared to other blockchains
 
 Sui의 staking 메커니즘에는 다른 블록체인과는 다를 수 있는 기능들이 포함되어 있다.
 
-- Staking is self-custodial. Stakers keep their staked SUI tokens in an owned object.
-- Staking rewards auto-compound due to the liquidity-pool-inspired design.
-- A new stake begins contributing to a validator’s voting power starting the epoch after it is created. Similarly, a withdrawn stake stops contributing starting the epoch after withdrawal.
+- Staking은 셀프 커스터디 방식이다. Staker는 staking한 SUI token을 owned object 안에 보관한다.
+- 유동성 pool에서 영감을 받은 설계 덕분에 staking 보상은 자동 복리로 누적된다.
+- 새 stake는 생성된 다음 epoch부터 validator의 투표권에 기여하기 시작한다. 마찬가지로 인출된 stake는 인출 다음 epoch부터 기여를 멈춘다.
 
 <ImportContent source="staking-pool-reqs.mdx" mode="snippet" />
 
 ## Rewards distribution
 
-At the end of each epoch, gas fees collected and stake subsidies are distributed among validators and stakers as staking rewards. The rewards a validator receives depend on:
+각 epoch가 끝나면 수집된 gas 수수료와 stake 보조금이 validator와 staker에게 staking 보상으로 분배된다. validator가 받는 보상은 다음에 따라 달라진다.
 
-- **Performance:** If a validator does not operate performantly, other validators can report them using the tallying rule. The validator’s staking rewards for that epoch are then slashed.
-- **Commission rate:** The commission rate determines the portion of staking rewards the validator keeps. For example, if a validator has a 10% commission rate, then 10% of the staking rewards of their stakers go to the validator each epoch as new stake objects owned by the validator.
+- **성능:** validator가 충분한 성능으로 운영되지 않으면 다른 validator가 집계 규칙을 사용해 이를 보고할 수 있다. 그러면 해당 epoch의 validator staking 보상은 슬래시된다.
+- **수수료율:** 수수료율은 validator가 유지하는 staking 보상 비율을 결정한다. 예를 들어 validator의 수수료율이 10%라면, 각 epoch마다 해당 validator의 staker가 받는 staking 보상 중 10%가 validator 소유의 새 stake object로 validator에게 간다.
 
 ## Rewards withdrawal
 
-Validator 보상은 일반적인 stake 객체(stake objects)로 분배되므로, validator와 staker 모두 동일한 방식으로 인출을 수행한다. Validator는 [`request_withdraw_stake` function](https://github.com/MystenLabs/sui/blob/6234ae2cc8137f3a2a34cd0aa1ac4fd5f31260e2/crates/sui-framework/packages/sui-system/sources/sui_system.move#L272)을 `sui_system` 모듈에서 호출하여 stake를 인출하고 보상을 받을 수 있다.
+Validator 보상은 일반 stake object로 분배되므로 validator와 staker 모두 같은 방식으로 인출한다. Validator는 `sui_system` 모듈의 [`request_withdraw_stake` function](https://github.com/MystenLabs/sui/blob/6234ae2cc8137f3a2a34cd0aa1ac4fd5f31260e2/crates/sui-framework/packages/sui-system/sources/sui_system.move#L272)을 호출해 stake를 인출하고 보상을 받을 수 있다.

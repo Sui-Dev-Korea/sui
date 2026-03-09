@@ -19,28 +19,35 @@ Sui와 object 기반이 아닌 다른 블록체인에서 Excitable Chimp NFT 컬
 
 다음 예제는 Sui에서 기본 NFT를 생성한다. `TestnetNFT` struct는 `id`, `name`, `description`, `url` 필드를 사용하여 NFT를 정의한다.
 
-<importcontent source="examples/move/nft/sources/testnet_nft.move" mode="code" struct="TestnetNFT" nocomments></importcontent>
+<ImportContent source="examples/move/nft/sources/testnet_nft.move" mode="code" struct="TestnetNFT" noComments />
 
 이 예제에서는 누구나 `mint_to_sender` 함수를 호출하여 NFT를 민트할 수 있다. 이름에서 알 수 있듯이, 해당 함수는 새로운 `TestnetNFT`를 생성하고 이를 호출을 수행한 address로 전송한다.
 
-<importcontent source="examples/move/nft/sources/testnet_nft.move" mode="code" fun="mint_to_sender" nocomments></importcontent>
+<ImportContent source="examples/move/nft/sources/testnet_nft.move" mode="code" fun="mint_to_sender" noComments />
 
 이 모듈에는 NFT 메타데이터를 반환하는 함수도 포함되어 있다. 앞서 사용한 가상의 예를 참조하면, 해당 값을 얻기 위해 `name` 함수를 호출할 수 있다. 확인할 수 있듯이, 해당 함수는 NFT 자체의 name 필드 값을 단순히 반환한다.
 
-<importcontent source="examples/move/nft/sources/testnet_nft.move" mode="code" fun="name" nocomments></importcontent>
+<ImportContent source="examples/move/nft/sources/testnet_nft.move" mode="code" fun="name" noComments />
 
-<details></details>
+<details>
 
-<summary></summary>
+<summary>
 
 `testnet_nft.move`
 
+</summary>
 
 
-<importcontent source="examples/move/nft/sources/testnet_nft.move" mode="code"></importcontent>
+<ImportContent source="examples/move/nft/sources/testnet_nft.move" mode="code" />
 
 
+
+</details>
 
 ## Related links
 
-<relatedlink to="/guides/developer/nft/nft-soulbound.mdx"></relatedlink><relatedlink to="/guides/developer/nft/nft-rental.mdx"></relatedlink><relatedlink to="/guides/developer/nft/asset-tokenization.mdx"></relatedlink><relatedlink to="/standards/kiosk.mdx"></relatedlink><relatedlink to="/standards/kiosk-apps.mdx"></relatedlink>
+<RelatedLink to="/guides/developer/nft/nft-soulbound.mdx" />
+<RelatedLink to="/guides/developer/nft/nft-rental.mdx" />
+<RelatedLink to="/guides/developer/nft/asset-tokenization.mdx" />
+<RelatedLink to="/standards/kiosk.mdx" />
+<RelatedLink to="/standards/kiosk-apps.mdx" />

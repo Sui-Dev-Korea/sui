@@ -38,7 +38,7 @@ swap을 시뮬레이션하기 위해 `get_amount_out` endpoint를 사용할 수 
 
 필요한 DEEP 양은 더 많이 잡을 수 있다. 남은 잔액은 다시 반환된다.
 
-<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="swap_exact_base_for_quote" nocomments></importcontent>
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="swap_exact_base_for_quote" noComments />
 
 ### Swap exact quote for base
 
@@ -50,14 +50,14 @@ swap을 시뮬레이션하기 위해 `get_amount_out` endpoint를 사용할 수 
 
 입력 수량이 lot 크기로 나누어떨어지지 않으면 일부 quote 수량이 남을 수 있다.
 
-<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="swap_exact_quote_for_base" nocomments></importcontent>
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="swap_exact_quote_for_base" noComments />
 
 ### Swap exact quantity
 
 이 함수는 세 번째 코인을 `coin::zero()`로 설정한 상태에서 앞의 두 함수가 호출하는 함수이다. base → quote 또는 quote → base로 swap할 때 base나 quote 중 하나의 값이 0이라면 사용자는 이 함수를 직접 호출할 수 있다.
 
-<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="swap_exact_quantity" nocomments></importcontent>
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="swap_exact_quantity" noComments />
 
 ## Related links
 
-<relatedlink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub."></relatedlink>
+<RelatedLink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub." />
