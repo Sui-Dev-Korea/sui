@@ -1,0 +1,346 @@
+---
+title: Pools SDK
+sidebar_label: Pools
+description: DeepBookV3 SDK를 사용하여 풀의 상태를 조회하는 방법을 설명한다.
+keywords:
+  - deepbook design
+  - deepbookv3
+  - deep book
+  - pool
+  - poolregistry
+  - balancemanager
+  - pool shared object
+  - poolregister shared object
+  - balancemanager shared object
+  - book
+  - state
+  - vault
+  - governance
+  - history
+  - account
+  - bigvector
+---
+
+Pools은 시장을 표현하는 shared object이다. Pool에 대한 더 많은 정보는 [Query the Pool](../deepbookv3/query-the-pool.mdx)을 참고한다.
+
+## Pool functions
+
+DeepBookV3 SDK는 풀의 상태를 조회하기 위해 호출할 수 있는 함수를 제공한다. 이러한 함수는 일반적으로 `managerKey`, `coinKey`, `poolKey` 또는 이들의 조합을 필요로 한다. 이러한 key에 대한 자세한 내용은 [DeepBookV3 SDK](../deepbookv3-sdk.mdx#keys)를 참고한다. SDK에는 `constants.ts` 파일에서 확인할 수 있는 일부 기본 key도 포함되어 있다.
+
+:::tip SDK Unit Handling Input 입력 금액, 수량, 가격은 표준 소수 형식으로 제공해야 한다 (예: `10.5` SUI, `0.00001` nBTC). SDK는 내부적으로 이를 base unit으로 변환한다. 반환되는 금액도 표준 소수 형식이다. :::
+
+### account
+
+`account`를 사용하여 풀의 `BalanceManager`에 대한 account 정보를 조회할 수 있으며, 이는 다음과 같은 형태를 가진다:
+
+```tsx
+{
+  epoch: '511',
+  open_orders: {
+    constants: [
+      '170141211130585342296014727715884105730',
+      '18446744092156295689709543266',
+      '18446744092156295689709543265'
+    ]
+  },
+  taker_volume: 0,
+  maker_volume: 0,
+  active_stake: 0,
+  inactive_stake: 0,
+  created_proposal: false,
+  voted_proposal: null,
+  unclaimed_rebates: { base: 0, quote: 0, deep: 0 },
+  settled_balances: { base: 0, quote: 0, deep: 0 },
+  owed_balances: { base: 0, quote: 0, deep: 0 }
+}
+```
+
+**Parameters**
+
+- `poolKey`: 조회할 pool을 식별하는 문자열이다.
+- `balanceManagerKey`: SDK에서 정의된 balance manager의 key이다.
+
+```tsx
+async account(poolKey: string, managerKey: string) {}
+```
+
+### accountOpenOrders
+
+`accountOpenOrders` 를 사용하여 제공한 ID를 가진 balance manager와 pool에 대한 미체결 주문을 조회할 수 있다.<br>이 호출은 미체결 주문 ID 배열을 포함하는 `Promise`를 반환한다.
+
+**Parameters**
+
+- `poolKey`: 조회할 pool을 식별하는 문자열이다.
+- `managerKey`: 조회할 balance manager를 식별하는 문자열이다.
+
+```tsx
+async accountOpenOrders(poolKey: string, managerKey: string) {}
+```
+
+### checkManagerBalance
+
+`checkManagerBalance`를 사용하여 특정 코인에 대한 balance manager를 확인한다. 이 호출은 다음과 같은 형태의 `Promise`를 반환한다:
+
+```
+{
+  coinType: string,
+  balance: number
+}
+```
+
+**Parameters**
+
+- `managerKey`: 조회할 balance manager를 식별하는 문자열이다.
+- `coinKey`: 잔액을 조회할 코인을 식별하는 문자열이다.
+
+```tsx
+async checkManagerBalance(managerKey: string, coinKey: string) {}
+```
+
+### getOrder
+
+`getOrder`를 사용하여 주문 정보를 조회한다. 이 호출은 다음과 같은 형태를 가진 `Order` struct의 `Promise`를 반환한다:
+
+```tsx
+{
+  balance_manager_id: {
+    bytes: '0x6149bfe6808f0d6a9db1c766552b7ae1df477f5885493436214ed4228e842393'
+  },
+  order_id: '9223372036873222552073709551614',
+  client_order_id: '888',
+  quantity: '50000000',
+  filled_quantity: '0',
+  fee_is_deep: true,
+  order_deep_price: { asset_is_base: false, deep_per_asset: '0' },
+  epoch: '440',
+  status: 0,
+  expire_timestamp: '1844674407370955161'
+}
+```
+
+**Parameters**
+
+`poolKey`: 조회할 pool을 식별하는 문자열이다. `orderId`:  조회할 주문의 ID이다.
+
+```tsx
+async getOrder(poolKey: string, orderId: string) {}
+```
+
+### getQuoteQuantityOut
+
+`getQuoteQuantityOut`을 사용하여 제공한 base quantity에 대한 quote quantity out을 조회한다. 이 호출은 다음과 같은 형태의 `Promise`를 반환한다:
+
+```
+{
+  baseQuantity: number,
+  baseOut: number,
+  quoteOut: number,
+  deepRequired: number
+}
+```
+
+여기서 `deepRequired`는 dry run에 필요한 DEEP의 양이다.
+
+**Parameters**
+
+- `poolKey`: 조회할 pool을 식별하는 문자열이다.
+- `baseQuantity`: 변환하려는 base quantity를 정의하는 숫자이다.
+
+```tsx
+async getQuoteQuantityOut(poolKey: string, baseQuantity: number) {}
+```
+
+### getBaseQuantityOut
+
+`getBaseQuantityOut{/code0을 사용하여 제공한 quote quantity에 대한 base quantity out을 조회한다. 이 호출은 다음과 같은 형태의 <code data-md-type="codespan">Promise`를 반환한다:
+
+```
+{
+  quoteQuantity: number,
+  baseOut: number,
+  quoteOut: number,
+  deepRequired: number
+}
+```
+
+여기서 `deepRequired`는 dry run에 필요한 DEEP의 양이다.
+
+**Parameters**
+
+- `poolKey`: 조회할 pool을 식별하는 문자열이다.
+- `quoteQuantity`: 변환하려는 quote quantity를 정의하는 숫자이다.
+
+```tsx
+async getBaseQuantityOut(poolKey: string, quoteQuantity: number) {}
+```
+
+### getQuantityOut
+
+`getQuantityOut`을 사용하여 제공한 base 또는 quote quantity에 대한 출력 quantity를 조회한다. 두 quantity 모두에 값을 제공하지만 둘 중 하나만 0이 아니어야 한다. 이 호출은 다음과 같은 형태의 `Promise`를 반환한다:
+
+```
+{
+  baseQuantity: number,
+  quoteQuantity: number,
+  baseOut: number,
+  quoteOut: number,
+  deepRequired: number
+}
+```
+
+여기서 `deepRequired`는 dry run에 필요한 DEEP의 양이다.
+
+**Parameters**
+
+- `poolKey`: 조회할 pool을 식별하는 문자열이다.
+- `baseQuantity`: 변환하려는 base quantity를 정의하는 숫자이다. QuoteQuantity를 사용할 경우 `0`으로 설정한다.
+- `quoteQuantity`: 변환하려는 quote quantity를 정의하는 숫자이다. BaseQuantity를 사용할 경우 `0`으로 설정한다.
+
+```tsx
+async getQuantityOut(poolKey: string, baseQuantity: number, quoteQuantity: number) {}
+```
+
+### getLevel2Range
+
+`getLevel2Range`를 사용하여 제공한 경계 가격 범위 내의 level 2 order book을 조회한다. 이 호출은 다음과 같은 형태의 `Promise`를 반환한다:
+
+```
+{
+  prices: Array<number>,
+  quantities: Array<number>
+}
+```
+
+**Parameters**
+
+- `poolKey`: 조회할 pool을 식별하는 문자열이다.
+- `priceLow`: 가격 범위의 하한을 나타내는 숫자이다.
+- `priceHigh`: 가격 범위의 상한을 나타내는 숫자이다.
+- `isBid`: `true`로 설정하면 bid 주문을 가져오고, 그렇지 않으면 ask 주문을 조회하는 boolean이다.
+
+```tsx
+async getLevel2Range(poolKey: string, priceLow: number, priceHigh: number, isBid: boolean) {}
+```
+
+### getLevel2TicksFromMid
+
+`getLevel2TicksFromMid`를 사용하여 제공한 ID를 가진 풀에 대해 mid price로부터의 level 2 오더북 tick을 조회한다.<br>이 호출은 다음과 같은 형태의 `Promise`를 반환한다:
+
+```
+{
+  bid_prices: Array<number>,
+  bid_quantities: Array<number>,
+  ask_prices: Array<number>,
+  ask_quantities: Array<number>
+}
+```
+
+**Parameters**
+
+- `poolKey`: 조회할 pool을 식별하는 문자열이다.
+- `ticks`: mid price로부터의 tick 수를 나타내는 숫자이다.
+
+```tsx
+async getLevel2TicksFromMid(poolKey: string, ticks: number) {}
+```
+
+### lockedBalance
+
+`lockedBalance{/code0를 사용하여 풀에서 <code data-md-type="codespan">BalanceManager`의 locked balance를 조회한다.<br>이 호출은 다음과 같은 형태를 가진 `Order` struct의  `Promise`를 반환한다:
+
+```tsx
+{
+  base: 5.5,
+	quote: 2,
+	deep: 0.15,
+}
+```
+
+**Parameters**
+
+`poolKey`:  조회할 pool을 식별하는 문자열이다. `balanceManagerKey`: SDK에서 정의된 balance manager의 key이다.
+
+```tsx
+async lockedBalance(poolKey: string, balanceManagerKey: string) {}
+```
+
+### poolTradeParams
+
+`poolTradeParams`를 사용하여 풀의 trade params를 조회할 수 있으며, 이는 다음과 같은 형태를 가진다:
+
+```tsx
+{
+  takerFee: 0.001,
+	makerFee: 0.0005,
+	stakeRequired: 100,
+}
+```
+
+**Parameters**
+
+- `poolKey`: 조회할 pool을 식별하는 문자열이다.
+
+```tsx
+async poolTradeParams(poolKey: string) {}
+```
+
+### vaultBalances
+
+`vaultBalances`를 사용하여 제공한 ID를 가진 풀의 vault balance를 가져온다. 이 호출은 다음과 같은 형태의 `Promise`를 반환한다:
+
+```tsx
+{
+  base: number,
+  quote: number,
+  deep: number
+}
+```
+
+**Parameters**
+
+- `poolKey`: 조회할 pool을 식별하는 문자열이다.
+
+```tsx
+async vaultBalances(poolKey: string) {}
+```
+
+### getPoolIdByAssets
+
+`getPoolIdByAssets` 를 사용하여 제공한 asset type에 대한 pool ID를 조회한다.<br>이 호출은 풀이 존재하는 경우 그 주소를 담은 `Promise`를 반환한다.
+
+**Parameters**
+
+- `baseType`: base asset의 type을 나타내는 문자열이다.
+- `quoteType`: quote asset의 type을 나타내는 문자열이다.
+
+```tsx
+async getPoolIdByAssets(baseType: string, quoteType: string) {}
+```
+
+### midPrice
+
+`midPrice`를 사용하여 제공한 ID를 가진 풀의 mid price를 조회한다. 이 호출은 mid price를 담은 `Promise`를 반환한다.
+
+**Parameters**
+
+- `poolKey`: 조회할 pool을 식별하는 문자열이다.
+
+```tsx
+async midPrice(poolKey: string) {}
+```
+
+### whitelisted
+
+`whitelisted`를 사용하여 제공한 ID를 가진 풀이 whitelisted 상태인지 확인한다. 이 호출은 풀이 whitelisted 상태인지 여부를 나타내는 boolean을 담은 `Promise`를 반환한다.
+
+**Parameters**
+
+- `poolKey`: 조회할 pool을 식별하는 문자열이다.
+
+```tsx
+async whitelisted(poolKey: string) {}
+```
+
+## Related links
+
+<relatedlink href="https://github.com/MystenLabs/ts-sdks/tree/main/packages/deepbook-v3" label="DeepBookV3 Indexer repository" desc="The DeepBookV3 SDK repository on GitHub."></relatedlink><relatedlink href="https://www.npmjs.com/package/@mysten/deepbook-v3" label="DeepBookV3 SDK node package" desc="The DeepBookV3 SDK node package on NPM."></relatedlink><relatedlink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub."></relatedlink>
