@@ -1,0 +1,19 @@
+---
+title: Genesis
+description: 제네시스는 Sui 블록체인이 처음 시작될 당시의 상태를 의미한다.
+keywords:
+  - sui genesis
+  - blockchain genesis
+  - initial blockchain state
+  - initial state
+  - genesis checkpoint
+  - genesis.blob
+---
+
+제네시스는 Sui 블록체인의 초기 상태이다. 네트워크를 시작하기 위해, 초기 validator 위원회는 자신의 validator 정보(공개 키, 네트워크 주소 등)를 공유 작업 공간에 제공하며 협업한다. 모든 초기 validator가 정보를 제공한 후, Sui는 초기의 서명되지 않은 제네시스 체크포인트(시퀀스 번호 0의 체크포인트)를 생성하고, 각 validator가 서명을 제공한다. Sui는 이 서명들을 집계하여 제네시스 체크포인트에 대한 인증서를 형성한다. Sui는 이 체크포인트와 초기 object들을 하나의 genesis.blob 파일로 묶으며, 이 파일은 validator와 Full node 모두에서 <code>sui-node</code> 바이너리 실행 시 상태를 초기화하는 데 사용된다.
+
+## Genesis blob locations
+
+각 네트워크의 `genesis.blob` 파일은 [sui-genesis](https://github.com/mystenlabs/sui-genesis) 저장소에 있다.
+
+각 네트워크의 genesis.blob 파일을 받는 방법은 [Sui Full Node](./sui-full-node.mdx#set-up-from-source)를 참고한다.
