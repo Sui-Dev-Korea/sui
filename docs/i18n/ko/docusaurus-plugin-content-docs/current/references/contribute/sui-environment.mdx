@@ -1,0 +1,93 @@
+---
+title: Sui Environment Setup
+description: Get the background information you need before you start developing on Sui. Learn the layout of the Sui monorepository and the suggested development environment for working with Move.
+keywords:
+  - setup environment
+  - setup dev environment
+  - setup mono repo
+  - download mono repo
+  - monorepo
+  - fork sui repo
+  - how to contribute to sui repo
+  - contribute to sui
+  - develop sui locally
+---
+
+Before you start developing with Sui and Move, you should familiarize yourself with how to contribute to Sui, how Sui is structured, what tools and SDKs exist, and what plugins are available to use in your IDE.
+
+## Fork the Sui repository {#fork}
+
+Sui 저장소에 기여하는 권장 방법은 프로젝트를 fork한 다음, fork에서 변경 사항을 만든 후 pull request(PR)를 제출하는 것이다. Sui 저장소는 GitHub에서 사용할 수 있다: https://github.com/MystenLabs/sui.
+
+로컬 Sui 저장소를 만들려면:
+
+1. GitHub에서 [Sui repository](https://github.com/MystenLabs/sui) 로 이동한다.
+
+2. 1저장소의 복사본을 자신의 계정에 만들려면 **Fork** 버튼을 클릭한다.
+
+    ![Fork Sui repo](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/contribute/images/fork.png?raw=true)
+
+3. GitHub에서 fork된 저장소에서, 녹색 `Code <>` 버튼을 클릭하고 GitHub가 제공하는 **HTTPS** URL을 복사한다.
+
+    ![Copy URL](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/contribute/images/gh-url.png?raw=true)
+
+4. 로컬에 저장소를 저장하려는 위치에서 시스템의 터미널 또는 콘솔을 연다. `git clone ` 을 입력하고 이전 단계에서 복사한 URL을 붙여넣은 다음 `Enter`를 누른다.
+
+5. `cd sui`를 입력하여 `sui` 를 활성 디렉터리로 만든다.
+
+Sui fork에서는 선호하는 어떤 [branching strategy](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-and-deleting-branches-within-your-repository) 든 사용할 수 있다. 변경 사항은 로컬에서 만들고 자신의 저장소로 push한 다음, 필요에 따라 fork에서 공식 Sui 저장소로 PR을 제출한다.
+
+:::tip
+
+활발한 개발 상태를 최신으로 유지하기 위해 fork를 자주 동기화해야 한다.
+
+:::
+
+## Sui repository and how to contribute
+
+Sui repo는 monorepo로, Sui 네트워크를 빌드하고 실행하는 데 사용되는 모든 소스 코드와 이 문서를 포함한다.
+
+Sui monorepo의 루트 폴더에는 다음과 같은 최상위 폴더가 있다:
+
+- [apps](https://github.com/MystenLabs/apps): Mysten Labs가 운영하는 주요 웹 애플리케이션의 소스 코드를 포함한다.
+- [consensus](https://github.com/MystenLabs/sui/tree/main/consensus): Contains the source code of consensus.
+- [crates](https://github.com/MystenLabs/sui/tree/main/crates): Sui 시스템을 구성하는 모든 Rust crate를 포함한다.
+- [dapps](https://github.com/MystenLabs/sui/tree/main/dapps): Kiosk나 Sponsored Transactions와 같이 Sui 위에 구축된 일부 탈중앙화 애플리케이션(dApp) 예제를 포함한다.
+- [dashboards](https://github.com/MystenLabs/sui/tree/main/dashboards): 현재 비어 있다.
+- [doc](https://github.com/MystenLabs/sui/tree/main/doc): Move와 Sui와 관련된 더 이상 사용되지 않는 문서를 포함한다.
+- [docker](https://github.com/MystenLabs/sui/tree/main/docker): 노드, indexer, 풀 노드 또는 기타 서비스를 구동하는 데 필요한 docker 파일을 포함한다.
+- [docs](https://github.com/MystenLabs/sui/tree/main/docs): 이 문서와 이 사이트의 소스를 포함한다.
+- [examples](https://github.com/MystenLabs/sui/tree/main/examples): Sui용으로 작성된 앱과 Move로 작성된 스마트 컨트랙트 예제를 포함한다.
+- [external-crates](https://github.com/MystenLabs/sui/tree/main/external-crates): Move 프로그래밍 언어의 소스 코드를 포함한다.
+- [kiosk](https://github.com/MystenLabs/sui/tree/main/kiosk): Mysten Labs Kiosk 확장 및 규칙의 소스 코드와 예제를 포함한다.
+- [nre](https://github.com/MystenLabs/sui/tree/main/nre): 노드 및 네트워크 신뢰성 엔지니어링에 대한 정보를 포함한다.
+- [scripts](https://github.com/MystenLabs/sui/tree/main/scripts): 내부적으로 사용되는 여러 스크립트를 포함한다.
+- [sui-execution](https://github.com/MystenLabs/sui/tree/main/sui-execution): execution layer에 대한 접근을 추상화하는 소스 코드를 포함한다.
+
+다음 주요 디렉터리는 Sui 코드베이스를 탐색하기 위한 좋은 시작점을 제공한다.:
+
+- [move](https://github.com/MystenLabs/sui/tree/main/external-crates/move) - Move VM, 컴파일러 및 도구.
+- [consensus](https://github.com/MystenLabs/sui/tree/main/consensus) - 합의 엔진.
+- [typescript-sdk](https://github.com/MystenLabs/ts-sdks/tree/main/packages/typescript/) - Sui TypeScript SDK.
+- [wallet](https://github.com/MystenLabs/sui/tree/main/apps/wallet) -  Sui용 Chrome 확장 지갑.
+- [sui](https://github.com/MystenLabs/sui/tree/main/crates/sui) - Sui 명령줄 도구.
+- [sui-core](https://github.com/MystenLabs/sui/tree/main/crates/sui-core) - 핵심 Sui 컴포넌트.
+- [sui-execution](https://github.com/MystenLabs/sui/tree/main/sui-execution) - Execution Layer(programmable transactions, execution 통합).
+- [sui-framework](https://github.com/MystenLabs/sui/tree/main/crates/sui-framework) - Move 시스템 패키지(0x1, 0x2, 0x3, 0xdee9).
+- [sui-network](https://github.com/MystenLabs/sui/tree/main/crates/sui-network) - 네트워킹 인터페이스.
+- [sui-node](https://github.com/MystenLabs/sui/tree/main/crates/sui-node) - validator 및 풀 노드 소프트웨어.
+- [sui-protocol-config](https://github.com/MystenLabs/sui/tree/main/crates/sui-protocol-config) - 온체인 시스템 구성 및 한계값.
+- [sui-sdk](https://github.com/MystenLabs/sui/tree/main/crates/sui-sdk) - Sui Rust SDK.
+- [sui-types](https://github.com/MystenLabs/sui/tree/main/crates/sui-types) -  코인 및 가스와 같은 Sui object 타입.
+
+## Development branches
+
+Sui 저장소에는 네 개의 주요 브랜치가 있다.:`devnet`, `testnet`, `mainnet`, `main`
+
+`devnet` 브랜치에는 최신 안정 빌드의 Sui가 포함된다. Sui Devnet에서 빌드하거나 테스트하려면 `devnet` 브랜치를 선택한다. 문제나 버그를 발견한 경우, 이미 `main` 브랜치에서 수정되었을 수 있다. PR을 제출하려면, `main` 브랜치를 fork한 자신의 저장소로 커밋을 push해야 한다.
+
+`testnet` 브랜치는 Sui Testnet 네트워크에서 실행 중인 코드를 포함한다.
+
+`mainnet` 브랜치는 Sui Mainnet 네트워크에서 실행 중인 코드를 포함한다.
+
+`main` 브랜치는 가장 최근 변경 사항과 업데이트를 포함한다. Sui 프로젝트에 기여하거나 최첨단 기능을 실험해 보고 싶다면 `main` 브랜치를 사용한다. `main` 브랜치에는 아직 릴리스되지 않은 변경 사항과 실험적인 기능이 포함될 수 있으므로, 사용하는 것은 전적으로 자신의 책임이다.
