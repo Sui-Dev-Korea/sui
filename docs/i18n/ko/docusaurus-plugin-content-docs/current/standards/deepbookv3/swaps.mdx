@@ -1,0 +1,63 @@
+---
+title: Swaps
+description: DeepBookV3를 사용하여 토큰 swap을 실행한다.
+keywords:
+  - automatic market makers
+  - amms
+  - swap_exact_amount
+  - balancemanager
+  - base_in
+  - quote_in
+  - deep_in
+  - swaps
+  - swap base quantity
+  - deep quantity
+  - DEEP
+  - swap exact quantity
+  - deepbook
+  - deepbookv3
+---
+
+DeepBook는 automatic market makers (AMMs)에서 흔히 볼 수 있는 swap 형태의 인터페이스를 제공한다. 주문 함수들과는 달리 `swap_exact_amount`는 `BalanceManager` 없이 호출할 수 있다. 그 대신 `Coin` 객체를 직접 전달하여 호출한다. base에서 quote로 swap할 때는 `base_in` 값이 양수여야 하고 `quote_in`은 0이어야 한다. quote에서 base로 swap할 때는 `quote_in`이 양수여야 하고 `base_in`은 0이어야 한다. 거래 수수료를 지불하기 위해 일정량의 `deep_in`이 필요하다. 이 양은 더 많이 잡아도 되며, 사용되지 않은 DEEP 토큰은 호출이 끝날 때 반환된다.
+
+swap을 시뮬레이션하기 위해 `get_amount_out` endpoint를 사용할 수 있다. 이 함수는 해당 swap에 필요한 DEEP 토큰의 정확한 양을 반환한다.
+
+## API
+
+다음은 swap을 위해 `Pool`이 노출하는 endpoint들이다.
+
+### Swap exact base for quote
+
+`balance_manager` 없이 정확한 base 수량을 swap한다. DEEP 수량은 더 많이 잡아도 된다. 이 함수는 다음 세 개의 `Coin`  객체를 반환한다.
+
+- `BaseAsset`
+- `QuoteAsset`
+- `DEEP`
+
+입력 수량이 lot 크기로 나누어떨어지지 않으면 일부 base 수량이 남을 수 있다.
+
+필요한 DEEP 양은 더 많이 잡을 수 있다. 남은 잔액은 다시 반환된다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="swap_exact_base_for_quote" nocomments></importcontent>
+
+### Swap exact quote for base
+
+정확한 quote 수량을 `balance_manager` 없이 swap한다. DEEP 수량은 더 많이 잡을 수 있다. 세 개의 `Coin` 객체를 반환한다:
+
+- `BaseAsset`
+- `QuoteAsset`
+- `DEEP`
+
+입력 수량이 lot 크기로 나누어떨어지지 않으면 일부 quote 수량이 남을 수 있다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="swap_exact_quote_for_base" nocomments></importcontent>
+
+### Swap exact quantity
+
+이 함수는 세 번째 코인을 `coin::zero()`로 설정한 상태에서 앞의 두 함수가 호출하는 함수이다. base → quote 또는 quote → base로 swap할 때 base나 quote 중 하나의 값이 0이라면 사용자는 이 함수를 직접 호출할 수 있다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="swap_exact_quantity" nocomments></importcontent>
+
+## Related links
+
+<relatedlink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub."></relatedlink>
