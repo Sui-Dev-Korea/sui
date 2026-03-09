@@ -1,0 +1,143 @@
+---
+title: Rules
+description: "Rule 모듈은 '￼TokenPolicy'￼ 내의 모든 액션에 적용되는 프로그래머블 제한을 만들기 위해 사용된다."
+keywords:
+  - rule module
+  - token rules
+  - tokenpolicy
+  - rules for tokens
+  - token policies
+  - configuring rules
+  - rule configuration
+  - rule structure
+  - rule compliance
+  - rule regulation
+  - token regulation
+---
+
+Rules는 [`TokenPolicy`](./token-policy.mdx)￼에서 모든 액션에 적용할 수 있는 프로그래머블 제한 사항이다. 이는 closed-loop 시스템에서 특정 비즈니스 로직의 컴플라이언스, 규제, 그리고 집행을 위한 도구이다.
+
+## Rule structure
+
+rule은 drop ability를 가진 type으로 표현된다. 이 type을 witness라고 부른다. 이를 application logic에 encode하거나 더 모듈화된 접근을 위해 별도의 module의 일부로 포함할 수 있다.
+
+```move
+/// Rule 타입
+struct Rule has drop {}
+```
+
+`TokenPolicy`에서 action에 [add a rule](./token-policy.mdx#adding-rules)을 추가한 후에는 해당 action이 confirmation을 통과하기 위해 rule의 stamp를 요구한다.
+
+액션을 승인하는 방법에 대한 더 자세한 내용은 [Approving actions](./action-request.mdx#approving-actions) 섹션을 참조한다.
+
+## Modular rules
+
+Rules를 별도의 재사용 가능한 모듈로 게시할 수 있다. 이는 서로 다른 token policy에서 사용할 수 있는 rule 라이브러리를 만들 수 있게 하여, 코드 재사용을 극대화하고 오류 위험을 최소화한다.
+
+Rule 모듈은 `verify`와 유사한 일반 모듈이며, 이 함수는 일반적으로 `TokenPolicy`, [`ActionRequest`](./action-request.mdx)￼, `TxContext`를 인수로 받는다. 이 함수는 액션을 검증하고 `ActionRequest`에 rule 타입을 stamp하는 책임이 있다.
+
+```move
+module example::pass_rule {
+    use sui::tx_context;
+    use sui::token::{Self, ActionRequest, TokenPolicy};
+
+    /// Rule 타입
+    struct Pass has drop {}
+
+    /// Pass rule의 approval을 ActionRequest에 추가한다
+    public fun verify<T>(
+        _policy: &TokenPolicy<T>,
+        action_request: &mut ActionRequest<T>,
+        ctx: &mut TxContext,
+    ) {
+        // ...
+        token::add_approval(Pass {}, action_request, ctx)
+    }
+}
+```
+
+## Rule configuration
+
+`denylist` 또는 `allowlist`와 같은 일부 rule은 구성이 필요하다. 예를 들어, `denylist`은 특정 액션을 수행할 수 없는 주소 목록을 요구할 수 있다. Rule 모듈은 구성 구조를 정의하고 구성을 추가, 수정, 조회, 제거하기 위한 함수를 제공할 수 있다.
+
+:::info
+
+단일 rule은 여러 action에 할당되더라도 단일 configuration을 가진다. action별 configuration이 필요하다면, rule 모듈은 여러 configuration을 보관하고 관리할 수 있는 storage structure를 정의해야 한다.
+
+:::
+
+구성 시스템은 rule 모듈 개발자의 악의적 액션(또는 업그레이드)으로부터 토큰 소유자를 보호하기 위한 일련의 보장 사항이 포함되어 있다:
+
+1. `rule` 모듈은 구성의 타입과 구조를 정의한다.
+2. 구성의 추가 또는 수정 및 제거는 `TokenPolicy` 소유자에게만 허용된다.
+3. Rule만 구성을 읽을 수 있다.
+4. Rules는 `TokenPolicy` 소유자의 승인 없이 구성을 수정할 수 없다.
+
+Rule 생성자에게 가능한 유일한 attack vector는 모듈을 업그레이드하고 제한을 우회하는 함수를 만드는 것이다. 신뢰할 수 있는 개발자가 제공하는 rules를 사용해야 한다.
+
+## Configuration API
+
+`sui::token`  모듈은 구성 API를 정의하며 다음 함수 집합을 가진다.
+
+### Add new configuration
+
+새로운 구성은 rule이 승인해야 하며( the rule witness), `TokenPolicy` 소유자도 승인해야 한다. 구성의 타입은 `store` 기능을 가지기만 하면 어떤 것이든 될 수 있다.
+
+```move
+// module: sui::token
+public fun add_rule_config<T, Rule: drop, Config: store>(
+    _rule: Rule,
+    policy: &mut TokenPolicy<T>,
+    policy_cap: &TokenPolicyCap<T>,
+    config: Config,
+    _ctx: &mut TxContext
+);
+```
+
+### Read the configuration
+
+Rules는 `TokenPolicy`에 저장된 구성을 읽을 수 있다.
+
+```move
+// module: sui::token
+public fun rule_config<T, Rule: drop, Config: store>(
+    _rule: Rule, policy: &TokenPolicy<T>
+): &Config;
+```
+
+### Modify the configuration
+
+구성 수정은 rule witness로서의 rule과 `TokenPolicy` 소유자가 모두 승인해야 한다.
+
+```move
+// module: sui::token
+public fun rule_config_mut<T, Rule: drop, Config: store>(
+    _rule: Rule, policy: &mut TokenPolicy<T>, policy_cap: &TokenPolicyCap<T>
+): &mut Config;
+```
+
+### Remove configuration
+
+Rules에 대한 좋은 관행은 rule이 이를 위해 커스텀 타입을 사용할 수 있으므로 구성을 제거하는 방법을 제공하는 것이다. 그러나 토큰 소유자는 언제나 `remove_rule_config` 함수를 호출하여 구성을 제거할 수 있다.
+
+```move
+// module: sui::token
+public fun remove_rule_config<T, Rule, Config: store>(
+    policy: &mut TokenPolicy<T>,
+    policy_cap: &TokenPolicyCap<T>,
+    _ctx: &mut TxContext
+): Config;
+```
+
+구성에 `store`가 있으므로 토큰 소유자는 구성을 wrap and transfer 하거나 다른 곳에 저장할 수 있다. 만약 `Config` 타입에 `drop`이 있으면 그 값은 무시할 수 있다.
+
+## Cheat sheet: Rule configuration API
+
+Method name | 설명 | 비고
+--- | --- | ---
+`add_rule_config` | rule에 대한 새 config를 추가한다 | rule witness와 token owner의 승인이 필요하다
+`remove_rule_config` | policy에서 config object를 제거한다 | Token Owner는 언제든지 수행할 수 있다
+`rule_config` | config에 불변으로 접근한다 | rule에서만 사용할 수 있다
+`rule_config_mut` | config에 대한 가변 참조를 가져온다 | rule witness와 token owner의 승인이 필요하다
+`has_rule_config` | rule에 config가 설정되었는지 확인한다 | -
+`has_rule_config_with_type` | rule에 특정 type의 config가 있는지 확인한다 | -

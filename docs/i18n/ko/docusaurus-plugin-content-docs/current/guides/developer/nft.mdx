@@ -1,0 +1,46 @@
+---
+title: Create a Non-Fungible Token
+description: " Sui에서는 모든 것이 object이다. 또한 모든 것은 고유하고 대체 불가능하며 owned인 object이므로 대체 불가능 토큰 (NFT)이다."
+keywords:
+  - ERC-721
+  - NFT
+pagination_prev: ''
+---
+
+Sui에서는 모든 것이 object이다. 또한 모든 것은 고유하고 대체 불가능하며 owned인 object이므로 대체 불가능 토큰 (NFT)이다.
+
+Sui에서 NFT를 생성하는 방식은 object 기반이 아닌 다른 블록체인과는 다르다. 해당 블록체인들은 스마트 계약과 토큰 ID 간의 매핑을 기반으로 하기 때문에 NFT를 정의하는 속성을 처리하기 위해 전용 표준이 필요하다. 예를 들어, Ethereum의 ERC-721 표준은 네트워크에서 고유한 토큰 인스턴스를 생성하기 위해 전역적으로 고유한 ID를 해당 스마트 계약 address와 연결하는 것이 필요했다.
+
+Sui에서는 모든 object가 이미 고유한 ID를 가지므로, 코인과 같은 백만 개의 대체 가능한 토큰을 다루든 SuiFrens와 같이 개별 특성을 가진 수천 개의 NFT를 다루든, Sui의 스마트 계약은 항상 개별 object와 상호작용한다.
+
+Sui와 object 기반이 아닌 다른 블록체인에서 Excitable Chimp NFT 컬렉션을 생성한다고 가정해보자. 다른 블록체인에서 Chimp의 이름과 같은 속성을 얻으려면 NFT ID를 사용하여 해당 정보를 얻기 위해 NFT를 생성한 스마트 계약(일반적으로 오프체인 스토리지로부터)을 호출해야 한다. Sui에서는 이름 속성이 NFT를 정의하는 object 자체의 필드가 될 수 있다. 이 구조는 정보를 원하는 스마트 계약이 object 자체로부터 이름을 반환하면 되므로 NFT의 메타데이터에 접근하는 과정을 훨씬 더 단순하게 제공한다.
+
+## Example
+
+다음 예제는 Sui에서 기본 NFT를 생성한다. `TestnetNFT` struct는 `id`, `name`, `description`, `url` 필드를 사용하여 NFT를 정의한다.
+
+<importcontent source="examples/move/nft/sources/testnet_nft.move" mode="code" struct="TestnetNFT" nocomments></importcontent>
+
+이 예제에서는 누구나 `mint_to_sender` 함수를 호출하여 NFT를 민트할 수 있다. 이름에서 알 수 있듯이, 해당 함수는 새로운 `TestnetNFT`를 생성하고 이를 호출을 수행한 address로 전송한다.
+
+<importcontent source="examples/move/nft/sources/testnet_nft.move" mode="code" fun="mint_to_sender" nocomments></importcontent>
+
+이 모듈에는 NFT 메타데이터를 반환하는 함수도 포함되어 있다. 앞서 사용한 가상의 예를 참조하면, 해당 값을 얻기 위해 `name` 함수를 호출할 수 있다. 확인할 수 있듯이, 해당 함수는 NFT 자체의 name 필드 값을 단순히 반환한다.
+
+<importcontent source="examples/move/nft/sources/testnet_nft.move" mode="code" fun="name" nocomments></importcontent>
+
+<details></details>
+
+<summary></summary>
+
+`testnet_nft.move`
+
+
+
+<importcontent source="examples/move/nft/sources/testnet_nft.move" mode="code"></importcontent>
+
+
+
+## Related links
+
+<relatedlink to="/guides/developer/nft/nft-soulbound.mdx"></relatedlink><relatedlink to="/guides/developer/nft/nft-rental.mdx"></relatedlink><relatedlink to="/guides/developer/nft/asset-tokenization.mdx"></relatedlink><relatedlink to="/standards/kiosk.mdx"></relatedlink><relatedlink to="/standards/kiosk-apps.mdx"></relatedlink>
