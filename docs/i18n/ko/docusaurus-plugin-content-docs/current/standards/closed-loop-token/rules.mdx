@@ -1,6 +1,6 @@
 ---
 title: Rules
-description: "Rule 모듈은 '￼TokenPolicy'￼ 내의 모든 액션에 적용되는 프로그래머블 제한을 만들기 위해 사용된다."
+description: "Rule 모듈은 `TokenPolicy` 내의 모든 액션에 적용되는 프로그래머블 제한을 만들기 위해 사용된다."
 keywords:
   - rule module
   - token rules
@@ -15,7 +15,7 @@ keywords:
   - token regulation
 ---
 
-Rules는 [`TokenPolicy`](./token-policy.mdx)￼에서 모든 액션에 적용할 수 있는 프로그래머블 제한 사항이다. 이는 closed-loop 시스템에서 특정 비즈니스 로직의 컴플라이언스, 규제, 그리고 집행을 위한 도구이다.
+Rules는 [`TokenPolicy`](./token-policy.mdx)에서 모든 액션에 적용할 수 있는 프로그래머블 제한 사항이다. 이는 closed-loop 시스템에서 특정 비즈니스 로직의 컴플라이언스, 규제, 그리고 집행을 위한 도구이다.
 
 ## Rule structure
 
@@ -34,7 +34,7 @@ struct Rule has drop {}
 
 Rules를 별도의 재사용 가능한 모듈로 게시할 수 있다. 이는 서로 다른 token policy에서 사용할 수 있는 rule 라이브러리를 만들 수 있게 하여, 코드 재사용을 극대화하고 오류 위험을 최소화한다.
 
-Rule 모듈은 `verify`와 유사한 일반 모듈이며, 이 함수는 일반적으로 `TokenPolicy`, [`ActionRequest`](./action-request.mdx)￼, `TxContext`를 인수로 받는다. 이 함수는 액션을 검증하고 `ActionRequest`에 rule 타입을 stamp하는 책임이 있다.
+Rule 모듈은 `verify`와 유사한 일반 모듈이며, 이 함수는 일반적으로 `TokenPolicy`, [`ActionRequest`](./action-request.mdx), `TxContext`를 인수로 받는다. 이 함수는 액션을 검증하고 `ActionRequest`에 rule 타입을 stamp하는 책임이 있다.
 
 ```move
 module example::pass_rule {

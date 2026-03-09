@@ -60,7 +60,7 @@ Inputs와 results는 값의 배열을 채우는 것으로 볼 수 있다. Inputs
 
 PTB에 대한 Input 인수는 크게 object 또는 pure value로 분류된다. 이 인수의 직접 구현은 종종 transaction builder 또는 SDK에 의해 가려진다. 이 섹션은 input 목록인 `[Input]`을 지정할 때 Sui 네트워크가 필요로 하는 정보 또는 데이터를 설명한다. 각 `Input`은 object인 Input::Object(ObjectArg)이거나(사용 중인 object을 지정하기 위한 필수 메타데이터를 포함함), pure value인 `Input::Pure(PureArg)`이며(값의 bytes를 포함함) 둘 중 하나이다.
 
-object input의 경우, 필요한 메타데이터는 [ownership of the object](../object-ownership.mdx) 타입￼에 따라 다르다. `ObjectArg` enum의 데이터는 다음과 같다:
+object input의 경우, 필요한 메타데이터는 [ownership of the object](../object-ownership.mdx) 타입에 따라 다르다. `ObjectArg` enum의 데이터는 다음과 같다:
 
 object이 address에 의해 소유되었거나(또는 immutable이라면), `ObjectArg::ImmOrOwnedObject(ObjectID, SequenceNumber, ObjectDigest)`를 사용하라. 이 triple은 각각 object의 ID, sequence number(버전으로도 알려짐), 그리고 object 데이터의 digest를 지정한다.
 
@@ -68,7 +68,7 @@ object이 shared라면, `Object::SharedObject { id: ObjectID, initial_shared_ver
 
 object이 다른 object에 의해 소유되는 경우(예: `TransferObjects` command 또는 `sui::transfer::transfer`을 통해 object의 ID로 전송된 경우), `ObjectArg::Receiving(ObjectID, SequenceNumber, ObjectDigest)`를 사용하라. object 데이터는 `ImmOrOwnedObject` 경우와 동일하다.
 
-pure input의 경우 제공되는 유일한 데이터는 [BCS](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/std/bcs.md)￼ bytes이며, 이는 Move value를 구성하기 위해 역직렬화된다. 모든 Move value가 BCS bytes로부터 구성될 수 있는 것은 아니다. 이는 bytes가 특정 Move 타입에 대해 기대되는 레이아웃과 일치하더라도, 해당 타입이 `Pure` value로 허용되는 타입 중 하나가 아니라면 그 타입의 값으로 역직렬화될 수 없음을 의미한다. 다음 타입은 pure value로 사용할 수 있도록 허용된다:
+pure input의 경우 제공되는 유일한 데이터는 [BCS](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/std/bcs.md) bytes이며, 이는 Move value를 구성하기 위해 역직렬화된다. 모든 Move value가 BCS bytes로부터 구성될 수 있는 것은 아니다. 이는 bytes가 특정 Move 타입에 대해 기대되는 레이아웃과 일치하더라도, 해당 타입이 `Pure` value로 허용되는 타입 중 하나가 아니라면 그 타입의 값으로 역직렬화될 수 없음을 의미한다. 다음 타입은 pure value로 사용할 수 있도록 허용된다:
 
 - 모든 primitive 타입:
     - `u8`
@@ -106,7 +106,7 @@ pure input의 경우 제공되는 유일한 데이터는 [BCS](https://github.co
 
     가스 코인은 `TransferObjects` command를 제외하고는 값으로(by-value) 가져갈 수 없다. 가스 코인의 owned 버전이 필요하다면, 먼저 `SplitCoins`를 사용해 단일 코인을 split할 수 있다.
 
-    이 제한은 실행이 끝날 때 남은 가스가 코인으로 반환되기 쉽게 하기 위해 존재한다. 즉, 가스 코인이 wrapped되거나 삭제되었다면 초과 가스가 반환될 명확한 위치가 없게 된다. 자세한 내용은 [Execution section](#execution)￼을 참조하라.
+    이 제한은 실행이 끝날 때 남은 가스가 코인으로 반환되기 쉽게 하기 위해 존재한다. 즉, 가스 코인이 wrapped되거나 삭제되었다면 초과 가스가 반환될 명확한 위치가 없게 된다. 자세한 내용은 [Execution section](#execution)을 참조하라.
 
 - `NestedResult(u16, u16)`는 이전 command의 값을 사용한다. 첫 번째 `u16` 은 command vector에서 command의 인덱스이고, 두 번째 `u16`은 해당 command의 result vector에서 result의 인덱스이다. 예를 들어 command vector가 `[MoveCall1, MoveCall2, TransferObjects]`이고 `MoveCall2` 의 result vector가 `[Value1, Value2]`라면, `Value1`은 `NestedResult(1, 0)`으로, `Value2`는 `NestedResult(1, 1)`로 접근된다.
 
@@ -231,7 +231,7 @@ transitive dependencies `TransitiveDependencies: [ObjectID]`는 새 패키지가
 
 이 command는 `Upgrade(ModuleBytes, TransitiveDependencies, Package, UpgradeTicket)` 형태이며, `Package`는 upgrade되는 패키지의 object ID를 나타낸다. `ModuleBytes`와 `TransitiveDependencies`는 `Publish` command와 유사하게 동작한다.
 
-`ModuleBytes`와 `TransitiveDependencies`에 대한 자세한 내용은 [`Publish`￼ command￼](#publish)를 참조하라. 다만 upgrade된 모듈에 대해서는 어떤 `init` 함수도 호출되지 않는다.
+`ModuleBytes`와 `TransitiveDependencies`에 대한 자세한 내용은 [`Publish` command](#publish)를 참조하라. 다만 upgrade된 모듈에 대해서는 어떤 `init` 함수도 호출되지 않는다.
 
 `Package: ObjectID`는 upgrade되는 패키지의 Object ID이다. 패키지는 존재해야 하며 최신 버전이어야 한다.
 
