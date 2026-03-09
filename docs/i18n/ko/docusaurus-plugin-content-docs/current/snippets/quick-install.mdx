@@ -1,22 +1,19 @@
-'@theme/Tabs'에서 Tabs를 가져오고, '@theme/TabItem'에서 TabItem을 가져온다.
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 Sui를 설치하려면 [Homebrew](https://brew.sh/) (MacOS, Linux 또는 Windows Subsystem for Linux), [Chocolatey](https://chocolatey.org/) (Windows) 또는 [suiup](https://github.com/MystenLabs/suiup) (Sui 관련 도구용 사용자 지정 설치 프로그램 및 버전 관리자)에서 다음 명령 중 하나를 사용한다.
 
-<tabs groupid="install-tool">
-</tabs>
+<Tabs groupId="install-tool">
 
-<tabitem label="Homebrew" value="brew">
-</tabitem>
+<TabItem label="Homebrew" value="brew">
 
 ```sh
 $ brew install sui
 ```
 
+</TabItem>
 
-
-
-<tabitem label="Chocolatey" value="choco">
-</tabitem>
+<TabItem label="Chocolatey" value="choco">
 
 ```sh
 $ choco install sui
@@ -24,20 +21,16 @@ $ choco install sui
 
 Chocolatey 커뮤니티 웹사이트 [versions of Sui for Windows](https://community.chocolatey.org/packages/sui)에서 더 많은 것을 찾아본다.
 
+</TabItem>
 
-
-
-<tabitem label="suiup (experimental)" value="suiup">
-</tabitem>
+<TabItem label="suiup (experimental)" value="suiup">
 
 ```sh
 $ suiup install sui@testnet
 ```
 
-suiup 저장소: [https://github.com/MystenLabs/suiup](https://github.com/MystenLabs/suiup) 에서 설치 및 빠른 시작 가이드에 대한 자세한 정보를 찾아본다.
+suiup 저장소: [https://github.com/MystenLabs/suiup](https://github.com/MystenLabs/suiup)에서 설치 및 빠른 시작 가이드에 대한 자세한 정보를 찾아본다.
 
+</TabItem>
 
-
-
-
-
+</Tabs>

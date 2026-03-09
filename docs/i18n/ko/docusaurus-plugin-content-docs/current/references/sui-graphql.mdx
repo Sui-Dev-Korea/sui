@@ -44,10 +44,11 @@ Sui RPC용 GraphQL을 시작하려면 [시작하기](/guides/developer/getting-s
 
 모든 GraphQL API 요소는 왼쪽 사이드바를 통해 접근할 수 있으며, 다음은 탐색을 시작하기 좋은 항목들이다.
 
-- "Queries"는 체인 상태를 읽기 위한 모든 최상위 쿼리를 나열한다. address와 object에 대한 세부 정보를 읽는 것부터 <unsafelink href="/references/sui-api/sui-graphql/reference/api/queries/dry-run-transaction-block">dryRunTransactionBlock</unsafelink>까지 포함하며, 이는 실행과 유사한 인터페이스를 가지지만 체인을 수정하지 않는다.
-- "Mutations"는 체인 상태를 수정할 수 있는 연산을 나열한다. 예를 들어 <unsafelink href="/references/sui-api/sui-graphql/reference/api/mutations/execute-transaction-block">executeTransactionBlock</unsafelink>이 있다.
-- <unsafelink href="/references/sui-api/sui-graphql/reference/types/objects/object">Object</unsafelink>는 모든 온체인 object(Move 값과 패키지)를 나타내는 타입이다.
-- <unsafelink href="/references/sui-api/sui-graphql/reference/types/objects/address">Address</unsafelink>는 계정 address(transaction에 서명하는 서명의 공개 키에서 파생됨)에 해당하며, 이 계정이 소유한 object와 서명했거나 영향을 받은 transaction을 쿼리하는 데 사용할 수 있다. <unsafelink href="/references/sui-api/sui-graphql/beta/reference/types/objects/owner">Owner</unsafelink>는 <unsafelink href="/references/sui-api/sui-graphql/beta/reference/types/objects/move-object">MoveObject</unsafelink>를 소유할 수 있는 모든 엔티티를 나타내며, 소유자가 <unsafelink href="/references/sui-api/sui-graphql/beta/reference/types/objects/object">Object</unsafelink>인지 <unsafelink href="/references/sui-api/sui-graphql/beta/reference/types/objects/address">Address</unsafelink>인지 알 수 없는 경우를 처리한다(예: Move object의 관점에서 자신의 소유자를 볼 때).
+- "Queries"는 체인 상태를 읽기 위한 모든 최상위 쿼리를 나열하며, address와 object에 대한 세부 정보를 읽는 것부터 <UnsafeLink href="/references/sui-api/sui-graphql/reference/api/queries/dry-run-transaction-block">dryRunTransactionBlock</UnsafeLink>까지 포함하고, 이는 실행과 유사한 인터페이스를 가지지만 체인을 수정하지 않는다.
+- "Mutations"는 체인 상태를 수정할 수 있는 연산을 나열하며, 예를 들어 <UnsafeLink href="/references/sui-api/sui-graphql/reference/api/mutations/execute-transaction-block">executeTransactionBlock</UnsafeLink>이 있다.
+- <UnsafeLink href="/references/sui-api/sui-graphql/reference/types/objects/object">Object</UnsafeLink>는 모든 온체인 object(Move 값과 패키지)를 나타내는 타입이다.
+- <UnsafeLink href="/references/sui-api/sui-graphql/reference/types/objects/address">Address</UnsafeLink>는 계정 address(transaction에 서명하는 서명의 공개 키에서 파생됨)에 해당하며, 이 계정이 소유한 object와 서명했거나 영향을 받은 transaction을 쿼리하는 데 사용할 수 있다.
+<UnsafeLink href="/references/sui-api/sui-graphql/beta/reference/types/objects/owner">Owner</UnsafeLink>는 <UnsafeLink href="/references/sui-api/sui-graphql/beta/reference/types/objects/move-object">MoveObject</UnsafeLink>를 소유할 수 있는 모든 엔티티를 나타내며, 소유자가 <UnsafeLink href="/references/sui-api/sui-graphql/beta/reference/types/objects/object">Object</UnsafeLink>인지 <UnsafeLink href="/references/sui-api/sui-graphql/beta/reference/types/objects/address">Address</UnsafeLink>인지 알 수 없는 경우를 처리한다(예: Move object의 관점에서 자신의 소유자를 볼 때).
 
 ## Related links
 

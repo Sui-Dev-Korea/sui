@@ -12,13 +12,16 @@ keywords:
 
 Sui 아카이브는 Sui의 모든 transaction 데이터 이력이다. 경우에 따라 피어 노드가 최신 몇 개의 epoch보다 더 뒤처진 경우, 동기화를 통해 모든 transaction과 effects를 따라잡지 못할 수 있다. 이러한 경우, 피어 노드는 동기화에 의존하는 대신 아카이브에서 관련 정보를 다운로드하는 방식으로 폴백할 수 있다.
 
-:::info 1.51 릴리스부터 mainnet의 기본 아카이브 버킷은 요청자 부담 모델로 전환된다. 구성 예시는 아래를 참고한다. :::
+:::info
+1.51 릴리스부터 mainnet의 기본 아카이브 버킷은 요청자 부담 모델로 전환된다. 구성 예시는 아래를 참고한다.
+:::
 
 ## Set up archival fallback {#set-up-archival-fallback}
 
 노드가 지연될 때 아카이브로 폴백할 수 있도록 하려면, `fullnode.yaml` 파일에 다음을 추가한다:
 
-<tabs groupid="object-store"><tabitem value="mainnet" label="Mainnet"></tabitem></tabs>
+<Tabs groupId="object-store">
+<TabItem value="mainnet" label="Mainnet">
 
 ```yaml
 state-archive-read-config:
@@ -30,7 +33,8 @@ state-archive-read-config:
       - ["aws_secret_access_key", <AWS_SECRET_ACCESS_KEY|PATH_TO_AWS_SECRET_ACCESS_KEY>]
 ```
 
-<tabitem value="testnet" label="Testnet"></tabitem>
+</TabItem>
+<TabItem value="testnet" label="Testnet">
 
 ```yaml
 state-archive-read-config:
@@ -39,6 +43,5 @@ state-archive-read-config:
     concurrency: 5
 ```
 
-
-
-
+</TabItem>
+</Tabs>
