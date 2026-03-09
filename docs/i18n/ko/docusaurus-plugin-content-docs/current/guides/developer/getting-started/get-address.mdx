@@ -1,0 +1,62 @@
+---
+title: Get Sui Address
+description: NFT 거래를 시작하고, SUI 토큰을 구매하거나  기타 transaction을 수행하려면 Sui 네트워크의 address가 필요하다.
+keywords:
+  - get an address
+  - sui address
+  - how to get sui address
+  - sui wallets
+  - slush
+  - suiet
+  - glass wallet
+  - martian extension
+  - surf wallet
+  - private keys
+---
+
+address는 Sui 블록체인 네트워크에 존재하는 계정을 고유하고 익명으로 식별하는 방법이다. 즉, address는 사용자가 개인 식별 정보(이메일 주소, 전화번호 등)를 제공하지 않고 Sui 네트워크에서 토큰을 저장하고 사용할 수 있는 방법이다. 예를 들어, 게임을 하기 위해 여러 SUI 토큰을 구매하려면 이러한 토큰이 입금될 address를 지정해야 한다.
+
+Sui address는 고유하며, 사회보장번호나 개인 식별번호가 한 사람에게 고유한 것과 유사하다. 그러나 Sui에서는 여러 address를 생성하고 소유할 수 있으며, 모두 고유하다.
+
+Sui에서 address는 32바이트이며 종종 `0x` 접두사가 있는 16진수로 인코딩된다. 예를 들어, 이것은 유효한 Sui address이다: `0x02a212de6a9dfa3a69e22387acfbafbb1a9e591bd9d636e7895dcfc8de05f331`. Sui 네트워크 탐색기를 사용하여 이 address와 이 address가 소유한 object에 대한 자세한 정보를 찾을 수 있다.
+
+Sui address가 개인 키 및 기타 암호화 관련 주제에서 파생되는 방식을 이해하려면  [Keys and Addresses](/concepts/cryptography/transaction-auth/keys-addresses.mdx) 주제를 참조한다.
+
+## How to obtain a Sui address
+
+Sui는 Sui address를 얻는 여러 방법을 제공한다. 다음은 가장 일반적인 두 가지 방법이다.
+
+### Command line interface
+
+Sui 명령줄 인터페이스(CLI)를 사용하여 Sui 네트워크와 상호 작용하는 경우 `sui client`  명령을 사용하여 새 address를 생성할 수 있다. 기본적으로 Sui CLI가 처음 실행될 때 로컬 지갑을 설정하라는 메시지가 표시되며, 그런 다음 하나의 Sui address와 관련 비밀 복구 구문을 생성한다. 비밀 복구 구문을 적어서 안전한 곳에 보관해야 한다.
+
+새 Sui address를 생성하려면 ``sui client new-address ed25519`를 사용하며, 이 명령은 키 쌍 체계 플래그를 `ed25519` 유형으로 지정한다.
+
+자세한 내용은 [Sui Client CLI](../../../references/cli/client.mdx) 문서를 참조한다.
+
+컴퓨터의 로컬 지갑에 생성된 모든 address를 보려면 `sui keytool list`를 실행한다. keytool 옵션에 대한 자세한 내용은 [Sui Keytool CLI](../../../references/cli/keytool.mdx) 문서를 참조한다.
+
+:::danger
+
+Sui address와 관련된 개인 키는 CLI가 설치된 해당 기기의 `~/.sui/sui_config/sui.keystore` 파일에 로컬로 저장된다. 계정에 대한 액세스를 얻는 데 사용할 수 있으므로 이를 누구에게도 노출하지 않도록 해야 한다.
+
+:::
+
+### Sui wallets
+
+처음 사용하는 사용자가 Sui address를 얻는 가장 직관적인 방법 중 하나는 Sui 네트워크에 액세스하는 지갑을 이용하는 것이다. CLI 옵션과 달리 Sui 네트워크에 연결된 지갑은 일부 사용자에게 더 나을 수 있는 시각적 워크플로를 제공한다. Sui Foundation은 이러한 유형의 지갑을 제공하지 않으나, Sui 네트워크의 빌더가 제공하는 여러 옵션이 있다.
+
+다음 Chrome 확장 지갑은 브라우저에 통합되며 address를 생성하는 과정을 단계별로 안내하는 UI 워크플로를 제공한다. address를 얻는 정확한 과정은 선택한 확장의 문서를 확인한다.
+
+:::info
+
+이 확장 프로그램에 대한 링크는 편의를 위해 제공된다. 목록에 포함된 것은 어떠한 종류의 지지, 추천 또는 승인도 아니다. 사용할 확장 프로그램을 결정하기 전에 자체적으로 실사를 수행한다.
+
+:::
+
+- [Slush — A Sui wallet](https://chromewebstore.google.com/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil): 이전에 Sui Wallet으로 알려졌던 Slush는 Sui를 구축한 팀인 Mysten Labs에서 만든 지갑이다.
+- [Suiet | Sui Wallet](https://chromewebstore.google.com/detail/suiet-sui-wallet/khpkpbbcccdmmclmpigdgddabeilkdpd): Sui 블록체인 위에 구축된, 모든 사용자를 위한 Suiet 지갑이다.
+- [Glass wallet](https://chromewebstore.google.com/detail/glass-wallet-sui-wallet/loinekcabhlmhjjbocijdoimmejangoa): Glass Wallet은 코인, 키, NFT를 안전하게 제어할 수 있는 non-커스터디 지갑이다.
+- [Martian Aptos &amp; Sui Wallet Extension](https://chromewebstore.google.com/detail/martian-aptos-sui-wallet/efbglgofoippbgcjepnhiblaibcnclgk): Martian은 Aptos와 Sui용 셀프 커스터디 암호화 지갑이다.
+- [Surf Wallet](https://chromewebstore.google.com/detail/surf-wallet/emeeapjkbcbpbpgaagfchmcgglmebnen): Surf Wallet은 블록체인에서 토큰 전송과 NFT 수집을 편리하고 안전하게 할 수 있는 플랫폼이다.
+- 사용 가능한 Sui 지갑 확장 프로그램의 전체 목록은 [chrome web store](https://chromewebstore.google.com/search/sui%20wallet)를 방문한다.
