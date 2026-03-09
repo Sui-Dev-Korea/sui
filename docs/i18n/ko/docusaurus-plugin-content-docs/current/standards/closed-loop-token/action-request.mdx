@@ -1,0 +1,241 @@
+---
+title: Action Request
+description: " Tokens는 transfers, conversions, 또는 spends를 기본적으로 허용하지 않는다. 이러한 action을 허용하려면 `ActionRequest`를 사용한다."
+keywords:
+  - action request
+  - protected actions
+  - action
+  - request
+  - from_coin
+  - to_coin
+  - transfer
+  - spend
+  - approve actions
+  - create custom action requests
+  - custom requests
+---
+
+tokens와 coins의 주요 차이점은 tokens가 transfers, conversions, 또는 spends를 기본적으로 허용하지 않는다는 점이다. 하지만 이러한 action을 허용하는 authorization mechanism이 있다. 이 mechanism은 `ActionRequest`라고 한다. 각 action을 독립적으로 허용하거나 허용하지 않도록 선택할 수 있다([Request confirmation](#request-confirmation) 섹션 참조).
+
+## Protected actions
+
+Tokens에는 `ActionRequest`를 생성하는 네 가지 protected action이 있다:
+
+Function | Action name | Description | Special fields in `ActionRequest`
+--- | --- | --- | ---
+`token::from_coin` | `from_coin` | coin을 token으로 변환한다 | -
+`token::to_coin` | `to_coin` | token을 coin으로 변환한다 | -
+`token::transfer` | `transfer` | token을 recipient에게 전송한다 | `recipient`  field를 포함한다
+`token::spend` | `spend` | token을 spend한다 | `spent_balance` field를 포함한다
+
+## ActionRequest structure
+
+`ActionRequest`는 `sui::token` module에 정의되어 있으며 다음 field를 포함한다:
+
+- `name`: 수행된 action의 이름이며, 표준 action은 `transfer`, `spend`, `to_coin`, `from_coin`이고, custom action을 생성할 수 있다.
+- `amount`: 전송, spend, 변환 등 수행 중인 token의 amount이다.
+- `sender`: action을 시작한 account이다.
+- `recipient`: `transfer` action에서 token을 수신하는 account이다(custom action에 사용한다).
+- `spent_balance`: [`spend` action](./spending.mdx)에서 spend된 token의 balance이다(custom action에 사용한다).
+
+Rules는 이러한 field를 사용해 action을 허용해야 하는지 여부를 결정할 수 있다. Rules는 restriction logic을 구현하는 custom module이다. 자세한 내용은 [Rules](./rules.mdx)를 참조한다.
+
+`ActionRequest`를 생성하는 function의 예시는 다음과 같다:
+
+```move
+// module: sui::token
+public fun transfer<T>(
+    t: Token<T>, recipient: address, ctx: &mut TxContext
+): ActionRequest<T>;
+```
+
+## Request confirmation {#request-confirmation}
+
+다음을 사용하여 `ActionRequest`를 confirm하는 세 가지 방법이 있다:
+
+1. `TreasuryCap` - 사용자(또는 `TreasuryCap`을 저장하는 애플리케이션)는 `token::confirm_with_treasury_cap` function을 호출하여 어떤 request든 confirm할 수 있다. 이 방법은 `TreasuryCap`을 저장하고 custom logic을 구현하는 애플리케이션에 유용하다; 또한 restrictions를 우회하여 tokens를 `mint`하고 `transfer`할 수 있다.
+2. [`TokenPolicy`](./token-policy.mdx) - shared `TokenPolicy`를 생성하고 각 action에 대해 허용된 action과 요구 사항을 설정한다. 이 방식으로 애플리케이션 또는 wallets는 어떤 action이 `public`으로 간주되는지 알 수 있으며, 따라서 이를 수행할 수 있다.
+3. `TokenPolicyCap` - `TokenPolicy`를 관리하는 capability를 사용하여 request를 confirm한다. 이 방법은 `TreasuryCap`이 wrapped되어 접근할 수 없는 애플리케이션에서 유용할 수 있다; 그리고 일부 administrator action을 authorize해야 한다.
+
+:::info
+
+`TokenPolicyCap`을 사용해 `spend` request를 confirm할 수 없다.
+
+:::
+
+### Confirming with TreasuryCap
+
+`TreasuryCap`을 사용해 token에 대한 어떤 action request든 confirm한다. 이는 administrator action(예: `mint`와 `transfer`)에 유용하며, token policy가 필요하지 않고 `TreasuryCap`을 main object에 wrap하는 단순한 애플리케이션에도 유용하다.
+
+`token::confirm_with_treasury_cap` function의 signature는 다음과 같다:
+
+```move
+// module: sui::token
+public fun confirm_with_treasury_cap<T>(
+    treasury_cap: &mut TreasuryCap<T>,
+    request: ActionRequest<T>,
+    ctx: &mut TxContext
+): (String, u64, address, Option<address>);
+```
+
+TypeScript와 sui.js로 구현된 transaction 예시로, `TreasuryCap`을 사용해 action request를 confirm한다. 여기서 admin account는 `TreasuryCap`을 소유하며, 이를 사용해 token을 mint하고 token의 transfer request를 confirm한다:
+
+```js
+let tx = new Transaction();
+let tokenType = '0x....::my_token::MY_TOKEN';
+let treasuryCapArg = tx.object('0x....');
+
+// mint 10 tokens using the `TreasuryCap`
+let token = tx.moveCall({
+	target: '0x2::token::mint',
+	arguments: [treasuryCapArg, tx.pure.u64(10)],
+	typeArguments: [tokenType],
+});
+
+// transfer the token to a recipient; receive an `ActionRequest`
+let request = tx.moveCall({
+	target: '0x2::token::transfer',
+	arguments: [token, tx.pure.address('0x...')],
+	typeArguments: [tokenType],
+});
+
+// confirm the request with the `TreasuryCap`
+tx.moveCall({
+	target: '0x2::token::confirm_with_treasury_cap',
+	arguments: [treasuryCapArg, request],
+	typeArguments: [tokenType],
+});
+
+// submit the transaction
+// ...
+```
+
+### Confirming with TokenPolicy
+
+`TokenPolicy`는 네트워크 전반에서 특정 action을 활성화하는 방법이다. share 이후에는 `TokenPolicy`를 모두가 사용할 수 있다. 따라서 wallets 또는 다른 clients는 이를 사용해 허용된 operation을 confirm할 수 있다.
+
+`token::confirm_request` function의 signature는 다음과 같다:
+
+```move
+// module: sui::token
+public fun confirm_request<T>(
+    treasury_cap: &TokenPolicy<T>,
+    request: ActionRequest<T>,
+    ctx: &mut TxContext
+): (String, u64, address, Option<address>);
+```
+
+:::info
+
+`spend` request인 경우에는 대신 `confirm_request_mut` function을 사용한다.
+
+:::
+
+JavaScript에서 client transfer request를 confirm하는 예시는 다음과 같다:
+
+```js
+let tx = new Transaction();
+let tokenType = '0x....::my_token::MY_TOKEN';
+let myTokenArg = tx.object('0x...token_object');
+let receiverArg = tx.pure.address('0x...receiver');
+let tokenPolicyArg = tx.object('0x...token_policy');
+
+let request = tx.moveCall({
+	target: '0x2::token::transfer',
+	arguments: [myTokenArg, receiverArg],
+	typeArguments: [tokenType],
+});
+
+// expecting the `TokenPolicy` to have the `transfer` operation allowed
+tx.moveCall({
+	target: '0x2::token::confirm_request',
+	arguments: [tokenPolicyArg, request],
+	typeArguments: [tokenType],
+});
+
+// submit the transaction
+// ...
+```
+
+### Confirming with TokenPolicyCap
+
+`TokenPolicyCap`을 사용해 action request를 confirm한다. 이는 `TreasuryCap`이 다른 object에 wrapped되어 있고, `TokenPolicy`가 특정 action을 허용하지 않거나 rules로 인해 기본 confirm 방식이 불가능한 경우에 편리한 접근 방식이다.
+
+:::info
+
+`TokenPolicyCap`을 사용해 `spend` request를 confirm할 수 없다.
+
+:::
+
+```move
+// module: sui::token
+
+public fun confirm_with_policy_cap<T>(
+    token_policy_cap: &TokenPolicyCap<T>,
+    request: ActionRequest<T>,
+    ctx: &mut TxContext
+): (String, u64, address, Option<address>);
+```
+
+JavaScript에서 client transfer request를 confirm하는 예시는 다음과 같다:
+
+```js
+let tx = new Transaction();
+let tokenType = '0x....::my_token::MY_TOKEN';
+let myTokenArg = tx.object('0x...token_object');
+let receiverArg = tx.pure.address('0x...receiver');
+let tokenPolicyCapArg = tx.object('0x...token_policy_cap');
+
+let request = tx.moveCall({
+	target: '0x2::token::transfer',
+	arguments: [myTokenArg, receiverArg],
+	typeArguments: [tokenType],
+});
+
+// TokenPolicyCap으로 요청 확인
+tx.moveCall({
+	target: '0x2::token::confirm_with_policy_cap',
+	arguments: [tokenPolicyCapArg, request],
+	typeArguments: [tokenType],
+});
+
+// 트랜잭션 제출
+// ...
+```
+
+## Approving actions
+
+`ActionRequest`는 approvals를 수집할 수 있으며 - 이는 애플리케이션 또는 rules로부터의 witness stamp이다. 이는 특정 module 또는 rule이 action을 승인했음을 나타내는 confirmation을 담는다. 이 mechanic은 특정 requirements 뒤에 action을 gating할 수 있게 한다.
+
+`token::add_approval` function의 signature는 다음과 같다:
+
+```move
+// module: sui::token
+public fun add_approval<T, W: drop>(
+    _t: W, request: &mut ActionRequest<T>, _ctx: &mut TxContext
+);
+```
+
+Approvals는 주로 rules에 사용되지만, 어떤 module에서든 confirmations를 담을 수 있다.
+
+## Creating a custom request
+
+누구나 `token::new_request` function을 사용해 새로운 `ActionRequest`를 생성할 수 있다. 이를 사용해 token 자체와 직접 관련되지 않은 custom action과 rules를 생성할 수 있다.
+
+:::info
+
+어떤 type `T`에 대해서도 `ActionRequest`를 자유롭게 생성할 수 있기 때문에, 이를 action의 proof로 사용할 수 없다. 그 목적은 proof가 아니라 **authorization**이다.
+
+:::
+
+`token::new_request` function의 signature는 다음과 같다:
+
+```move
+public fun new_request<T>(
+    name: vector<u8>,
+    amount: u64,
+    recipient: option<address>,
+    spent_balance: option<Balance<T>>,
+    ctx: &mut TxContext
+): ActionRequest<T>;
+```
