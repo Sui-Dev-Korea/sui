@@ -30,7 +30,7 @@ Sui에서 총 voting power는 stake된 양과 무관하게 항상 10,000이다. 
 
 ### Rewards
 
-A stake deposit request goes into a pending state immediately in the staking pool as soon as it is made. Sui Wallet reflects any pending stake deposit requests for the user's account. However, pending stake deposit requests do not take effect until the end of the epoch during which the request is made.
+Stake 예치 요청은 생성되는 즉시 staking pool에서 대기 중인 상태로 들어간다. Sui Wallet은 사용자의 계정에 대한 대기 중인 stake 예치 요청을 반영한다. 그러나 대기 중인 stake 예치 요청은 요청이 생성된 epoch가 끝날 때까지 효력이 발생하지 않는다.
 
 인출(un-stake) 요청은 수신되는 즉시 처리된다. Staker는 원래 예치된 SUI와 함께 이전 epoch 경계까지 누적된 모든 stake 보상을 받는데 이는 현재 epoch에 대한 stake 보상은 포함하지 않는다.
 
@@ -38,7 +38,7 @@ A stake deposit request goes into a pending state immediately in the staking poo
 
 ### Withdrawals
 
-Stake withdrawals are processed immediately with the exchange rate prevailing at the previous epoch's exchange rate. Withdrawals do not have to wait for the current epoch to close. Withdrawals include both the original stake the user deposited and all the stake rewards accumulated up to the previous epoch. Stakers do not earn the rewards accruing to their stake during the epoch at which they withdraw. Since there is no way to know how many stake rewards will be accumulated during the current epoch until the epoch closes, these cannot be included in the withdrawal. Hence, any user can withdraw their stake immediately and receive:
+Stake 인출은 이전 epoch의 환율이 적용되는 환율로 즉시 처리된다. 인출은 현재 epoch가 종료될 때까지 기다릴 필요가 없다. 인출에는 사용자가 예치한 원래 stake와 이전 epoch까지 누적된 모든 stake 보상이 모두 포함된다. staker는 인출이 발생한 epoch 동안 자신의 stake에 대해 누적되는 보상을 얻지 못한다. 현재 epoch가 종료되기 전까지는 현재 epoch 동안 누적될 stake 보상이 얼마나 될지 알 수 있는 방법이 없으므로 이는 인출에 포함될 수 없다. 따라서 어떤 사용자든 자신의 stake를 즉시 인출하고 다음을 받을 수 있다.
 
 $$ SUI withdrawn at E' = ( SUI deposited at E ) * ( Exchange Rate at E'-1 / Exchange Rate at E ) $$
 
