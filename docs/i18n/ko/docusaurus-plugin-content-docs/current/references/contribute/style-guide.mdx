@@ -1,0 +1,1043 @@
+---
+title: Style Guide
+slug: "/style-guide"
+description: Sui 문서에 대한 모든 기여는 스타일 가이드를 준수해야 한다.
+keywords:
+  - style guide
+  - documentation style
+  - accessibility of docs
+  - formatting of docs
+  - capitalization
+  - grammar
+  - tense
+  - headings
+  - lists
+  - tables
+  - word choice
+---
+
+이 문서는 Sui 문서의 스타일, 용어 사용 및 콘텐츠 포맷을 정의한다. 항목은 알파벳 순서로 정렬되어 있다. 스타일 가이드는 결코 완성되지 않으며, 추가 스타일, 기존 스타일에 대한 추가 정보, 그리고 드물게 기존 스타일에 대한 변경이 계속해서 반복될 것으로 예상된다.
+
+## Editorial considerations {#editorial-considerations}
+
+- **간단한 단어와 간결한 문장을 사용한다.**<br> 복잡하거나 학술적인 표현보다 명확하고 직접적인 언어를 선호한다. 짧은 문장은 가독성을 높이고 현지화하기 쉽다.
+
+- **일반적인 단어를 재정의하지 않는다.**<br> 익숙한 단어에 새롭거나 예상치 못한 의미를 부여하지 않는다(예를 들어, "object"를 표준 기술적 또는 일상적 의미와 다른 것으로 사용하지 않는다). 이는 특히 새로운 독자에게 혼란을 방지한다.
+
+- **기술 용어를 신중하게 사용한다.**<br> 기술 용어는 필요한 경우에만 도입한다. 처음 사용할 때 명확하게 정의하고 문서 전체에서 일관되게 사용한다.
+
+- **전문 용어와 속어를 피한다.**<br> 독자가 비공식적인 표현, 회사 특유의 약어 또는 불필요한 유행어를 이해한다고 가정하지 않는다. 대신 정확한 용어를 사용한다.
+
+- **능동적이고 설명적인 표현을 선호한다.**<br> "작업을 수행한다"와 같은 모호한 표현 대신 "컨트랙트를 배포한다" 또는 "노드를 재시작한다"와 같이 명확하게 동작을 설명한다.
+
+- **글로벌 독자를 위해 작성한다.**<br> 많은 독자가 영어가 모국어가 아니라는 점을 염두에 둔다. 영리함보다 명확성을 우선시하고 관용구나 문화적으로 특정한 참조를 피한다.
+
+---
+
+## Spelling and grammar
+
+#### Spelling {#spelling}
+
+소스 콘텐츠에는 미국식 영어 철자를 사용한다.
+
+#### Grammar {#grammar}
+
+##### Active voice {#active-voice}
+
+가능한 한 능동태를 사용한다. 능동태는 직접적이고 명확하며 단어 수가 적다. 수동태는 종종 덜 명확하고 어색하며 단어 수가 많다.
+
+> ✅ **능동태:** She installed the software.
+
+> ❌ **수동태:** The software was installed by her.
+
+##### Person {#person}
+
+- First person → I or we
+
+- Second person → you
+
+- Third person → he, she, they, it, product names
+
+**2인칭**("you")을 사용한다. 1인칭이나 3인칭("I" 또는 "we")을 **사용하지 않는다**.
+
+> ✅ You can view the transaction history in the Sui Explorer.
+
+> ❌ We can view the transaction history in the Sui Explorer.
+
+##### Present tense {#present-tense}
+
+가능한 한 현재 시제를 사용한다. 미래 시제는 예정된 제품 릴리스와 같이 특정 미래 시점에 발생할 이벤트에만 사용한다.
+
+제품 동작을 설명하거나 작업 지침을 작성할 때 미래 시제를 사용하지 않는다. 독자의 관점에서 단계를 따라가면서 동작은 현재에 발생한다.
+
+> **예시 : 현재 시제**
+>
+> Click **Save** to save the updated file.<br> When you click **Save**, your device writes the changes to disk.<br> To save a file after you modify it, click **Save**.
+
+> **예시 : 미래 시제(사용 자제)**
+>
+> Your changes will be saved when you click **Save**.<br> When you click **Save**, the file will be written to disk.
+
+기술적으로는 올바르지만 미래 시제는 사용자와 동작 사이에 거리를 만든다. 또한 ESL 독자가 텍스트를 이해하기 어렵게 만들고 현지화하기 더 어렵게 만든다. 실제로 사용자가 **Save**를 클릭하면 동작은 즉시 발생한다.
+
+##### Punctuation
+
+1. 문장
+
+    - 완전한 문장의 끝에 마침표를 사용한다.
+
+    - 마침표 뒤에는 단일 공백을 사용한다(두 개가 아니다).
+
+2. 목록
+
+    - 목록의 전체 문장: 각 항목을 마침표로 끝낸다.
+
+    - 목록의 단편 또는 단일 단어: 마침표를 사용하지 않는다.
+
+    - 혼합 목록: 단편과 전체 문장을 혼합하지 않는다. 일관성을 위해 다시 작성한다.
+
+3. 괄호
+
+    - 전체 문장이 괄호 안에 있으면 마침표를 안에 둔다.
+
+    - 괄호가 문장의 일부이면 마침표를 밖에 둔다.
+
+    - 닫는 괄호 앞에 마침표를 두지 않는다.
+
+4. 약어
+
+    - 약어의 일부로 마침표를 유지한다. (e.g., i.e., etc.).
+
+5. 제목과 타이틀
+
+    - 제목, 부제목 또는 타이틀 뒤에 마침표를 사용하지 않는다(타이틀이 약어로 끝나는 경우 제외).
+
+6. 숫자와 소수점
+
+    - 소수점 뒤에 추가 마침표를 넣지 않는다.
+
+##### Parentheses
+
+괄호는 주요 문장에 필수적이지 않은 명확화 또는 보충 정보를 추가하는 데 사용한다.
+
+괄호를 남용하지 않는다. 정보가 중요하면 고립시키는 대신 문장에 통합한다.
+
+##### Oxford (serial) commas {#oxford-serial-commas}
+
+연속 쉼표를 사용한다.
+
+> ✅ You must install Cargo, Rust, Docker, and the Sui CLI to create a Sui node.
+
+> ❌ You must install Cargo, Rust, Docker and the Sui CLI to create a Sui node.
+
+##### Numbers {#numbers}
+
+숫자를 문자로 쓰지 않고 항상 숫자 값을 사용한다.
+
+> The folder contains 24 files. One folder contains 7 files, and the other contains 24 files. At least 20 pieces of candy fell off the table.
+
+##### Quotation marks
+
+따옴표를 사용하지 않는다.
+
+##### Exclamations
+
+느낌표를 사용하지 않는다. 다음과 같이 흥분을 표현하고 싶다면:
+
+> Congratulations! You've finished the tutorial.
+
+대신 confetti 이모지를 사용한다:
+
+> Congratulations, you've finished the tutorial. 🎉
+
+---
+
+## Terminology and vocabulary
+
+일관성을 위해 Sui 문서는 다음 용어와 구문을 표시된 대문자 사용법으로 사용해야 한다(문장 구조가 달리 결정하지 않는 한). 이 목록은 완전하지 않으며 시간이 지남에 따라 업데이트될 것이다.
+
+**Category** | **Words and terms** | **Notes**
+--- | --- | ---
+**항상 대문자** | [Proper nouns](#proper-nouns), [product names](#product-names), names of example dApps (Coin Flip, Blackjack, etc), Archival Store and Service, Archival Store, Archival Service, DeepBook Indexer, DeepBookV3, Devnet, ID, Localnet, Kiosk (when referring to the standard), Mainnet, Mysticeti, Operation Cap, Sui, Sui CLI, Sui Client PTB CLI, Sui Closed-Loop Token / Closed-Loop Token, Sui dApp Kit, Sui Explorer, SuiJSON, Sui Keystore, Sui Keytool, SuiLink, Sui Object Display, SuiPlay0X1, SUI, SUI token, Testnet, Wallet Standard, Web2, Web3, zkSend SDK | 브랜딩 및 제품별 참조에 대해 일관된 대문자 사용을 적용한다
+**항상 소문자** | dApp, kiosk (when referring to an instance), object, oracle, recovery passphrase (mnemonic), soulbound, Sui framework, Sui object, wallet | 브랜드 용어가 아닌 일반 개념을 언급할 때 소문자를 사용한다
+**하이픈 금지** | key pair, layer 1, open source, use case | 이 단어들은 붙여쓰지 않고 분리하여 사용한다
+**항상 하이픈** | depth-first search, peer-to-peer, off-chain, off-device, on-chain, on-device | 명확성과 정확성을 위해 하이픈을 유지한다
+**권장 단어** | Use "might" in place of "may" | may라는 단어에는 가능성보다 허가를 암시하는 부차적 정의가 있다.
+
+### Nodes
+
+노드(full, archival, validator 등)를 참조할 때 다음을 사용한다:
+
+- 네트워크에서의 개념적 역할을 언급할 때는 소문자 *full node*를 사용한다. "Every RPC provider must enable gRPC on their full node."
+- Sui가 배포하는 공식 소프트웨어 바이너리/패키지를 언급할 때는 대문자*Sui Full Node*를 사용한다. “Download and run the Sui Full Node from GitHub to connect to Mainnet.”
+
+### Proper nouns {#proper-nouns}
+
+전체에 걸쳐 고유 명사를 대문자로 표기한다.
+
+고유 명사에는 다음이 포함된다:
+
+- 사람 이름: Bob Ross
+
+- 명명된 장소: San Francisco, Union Station
+
+- 제품 및 서비스: Slack, Google Play
+
+- 상표: Coca-Cola
+
+- 책 제목: The Move Book
+
+- 표준 또는 기술: Local Area Network (LAN)
+
+### Product names {#product-names}
+
+제품명은 고유 명사이다. 제품명의 모든 단어를 대문자로 표기한다. 제품을 언급할 때 "the" 없이 제품명만 사용한다. Sui wallet을 구체적으로 언급할 때는 단순히 wallet이 아닌 Sui Wallet 또는 Ethos Wallet을 사용한다. 사용자는 여러 wallet을 가지고 있을 가능성이 높으며, 어떤 wallet을 지칭하는지 명확히 해야 한다. wallet의 개념을 일반적으로 언급할 때는 wallet을 사용한다.
+
+> There are several types of wallets to choose from.
+
+> Never share the recovery passphrase for your wallet with anyone.
+
+> The Sui network supports the following wallets:
+>
+> - Sui Wallet
+> - Ethos Wallet
+> - Coinbase Wallet
+
+### Acronyms and abbreviations
+
+#### Acronyms {#acronyms}
+
+주제에서 처음 사용할 때 용어나 구문을 풀어쓰고 괄호 안에 약어를 넣는다. 이후 언급에는 약어를 사용한다.
+
+> 예시: You can mint non-fungible tokens (NFTs) using your Sui Wallet. To view an NFT after you mint it, click the NFTs tab of your wallet.
+
+##### Terms that should always be used as acronyms
+
+- CLI
+- SDK
+
+#### Abbreviations
+
+단어의 약어는 사용하지 않아야 한다. 명확성을 위해 전체 단어를 쓴다.
+
+> ✅ Open the tab for more information.
+
+> ❌ Open the tab for more info.
+
+---
+
+## Capitalization {#capitalization}
+
+#### Title capitalization {#title-capitalization}
+
+타이틀 대문자 사용에 대해 다음 지침을 따른다:
+
+- 짧은 접속사와 전치사(a, an, and, but, for, in, or, so, to, with, yet)는 첫 번째 또는 마지막 단어가 아닌 한 대문자로 쓰지 않는다.
+
+- 다른 모든 단어를 대문자로 쓴다('Is'와 'Be'는 동사이므로 포함).
+
+- 하이픈 뒤의 단어를 대문자로 쓴다.
+
+- cURL이나 dApp과 같은 명령이나 특수 용어의 대소문자를 일치시킨다.
+
+- API 요소와 프로그래밍 언어 키워드의 대소문자를 일치시킨다.
+
+#### Section heading capitalization
+
+섹션 제목, 테이블 셀 또는 헤더, 목록 항목, 캡션, 대체 텍스트 및 오류 메시지에는 문장 대문자 사용을 적용한다.
+
+#### Body text capitalization
+
+##### Do:
+
+새 문장의 첫 단어는 항상 대문자로 쓴다.
+
+고유 명사와 제품명은 항상 대문자로 쓴다. 대문자로 써야 할 용어의 전체 목록은 [words to always capitalize](#word-list)를 참고한다.
+
+##### Do not:
+
+강조를 위해 모두 대문자를 사용하지 않는다; 대신 굵게를 사용한다.
+
+> 예시: IMPORTANT vs **Important**
+
+브랜드의 일부가 아닌 한 단어 중간에 대문자를 사용하지 않는다.
+
+> 예시: YouTube or DreamWorks.
+
+고유 명사가 아닌 한 약어의 풀어쓴 형태를 대문자로 쓰지 않는다.
+
+> 예시: HyperText Markup Language (HTML).
+
+---
+
+## Body text styling
+
+#### Bold text
+
+버튼, 메뉴 항목, 필드 레이블 및 명령과 같이 화면에 나타나는 UI 요소에 굵게를 사용한다.
+
+> 예시: Click **Save** to store your changes.
+
+강조를 위해 굵게를 드물게 사용하고 명확성을 위해 필요한 경우에만 사용한다. 본문 텍스트에서 일반적인 강조를 위해 굵게를 남용하지 않는다.
+
+#### Italic text
+
+처음으로 새 용어를 도입할 때 이탤릭체를 사용한다.
+
+> 예시: The term for the cost of processing transaction blocks is *gas*.
+
+#### Slashes {#slashes}
+
+True / False 또는 True/False와 같이 "and" 또는 "or" 대신 슬래시를 사용하지 않는다. True or False를 사용하거나, 코드 문서에서 True | False를 사용한다.
+
+---
+
+## Titles and headings
+
+제목과 타이틀에 검색 결과 페이지에서 어떤 링크를 클릭할지 쉽게 알 수 있도록 충분한 단어를 사용한다. 한 단어 타이틀(예: Installing)은 주제의 내용을 결정하기에 충분한 정보를 제공하지 않는다.
+
+#### Page titles
+
+독자가 콘텐츠를 빠르게 식별할 수 있도록 관련 키워드가 포함된 **설명적 타이틀**을 사용한다. 탐색 창에서는 짧은 타이틀이 선호된다. 문서 frontmatter에 `sidebar_label`을 추가하여 다른 탐색 타이틀을 설정할 수 있다.
+
+독자는 보통 특정 작업을 완료하기 위한 정보를 검색한다. **Get Started**와 같은 모호한 타이틀을 피한다. 무엇을 시작하는 것인가? 여러 제품이나 기능이 있으면 의미가 불명확하다.
+
+더 나은 옵션은 **Get Started with Sui**이지만 이것도 여전히 너무 광범위하다. 독자는 특정 작업이나 여정에 대한 안내를 원한다. 대신 **Create a Sui Full Node** 또는 **Install Sui Tooling**과 같은 정확한 타이틀을 사용한다. 이것들은 독자가 정확히 무엇을 배우거나 달성할지 알려준다.
+
+#### Page headings
+
+제목 대문자 사용 스타일(문장 대소문자)을 사용한다. 제목을 쌓지 않는다(사이에 본문 텍스트 없이 두 개를 연속으로 배치하지 않는다).
+
+본문에서 인라인 코드로 포맷된 것이 있으면 제목에서도 동일하게 포맷한다.
+
+한 페이지의 페이지 타이틀을 다른 페이지의 heading으로 사용하지 않는다. 이는 검색 결과 정확도에 영향을 줄 수 있다. 페이지 타이틀은 고유하고 설명적이어야 하는 반면, 제목은 재사용할 수 있다.
+
+> ✅ 올바른 사용법: Page 1: Page title "Sui Gas Profiling" with heading "Environment configuration" Page 2: Page title "Sui Indexing" with heading "Environment configuration"
+
+> ❌ 잘못된 사용법: Page 1: Page title "Sui Gas Profiling" with heading "Environment configuration" Page 2: Page title: "Sui Features" with heading "Sui gas profiling"
+
+#### Heading sizes
+
+- Heading 1: (#) 페이지 제목에만 사용된다. frontmatter에 타이틀이 지정되면 해당 타이틀이 Heading 1 요소로 페이지가 자동으로 포맷된다.
+
+- Heading 2: (##) 최상위 섹션 제목이다. 페이지에서 새 주제를 도입하는 데 사용된다.
+
+- Heading 3: (###) 각 Heading 2의 하위 주제이다. 최상위 제목 아래에 여러 개념을 도입하는 데 사용된다.
+
+- Heading 4: (####) 각 Heading 3의 하위 주제이다. Heading 3 주제에 대한 예제를 도입하거나 하위 섹션을 구별되게 포맷하는 데 사용된다.
+
+- Heading 5: (#####) 각 Heading 4의 하위 주제이다. 포맷하면 굵은 본문 텍스트와 동일하게 보이지만 약간 더 크다. 다음과 같은 다른 요소 내에서 고유한 포맷을 만들기 위해 굵은 텍스트의 대안으로도 사용할 수 있다:
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+> ##### Heading 5 text.
+
+> **Bold body text.**
+
+> Normal body text.
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+> ##### Heading 5 text.
+
+> **Bold body text.**
+
+> Normal body text.
+```
+
+
+
+
+
+#### Code elements in section headings
+
+페이지 콘텐츠에서 단어나 구문이 `inline code`로 포맷되어 있다면, 섹션 제목에서도 동일하게 포맷해야 한다.
+
+> ##### Section heading: Install `suiup`
+
+> Body content: Install `suiup` using the command: ...
+
+자세한 내용은 [inline code](#inline-code)를 참고한다.
+
+---
+
+## Lists {#lists}
+
+목록을 사용하여 항목이나 단계를 명확하게 제시한다. 콜론(:)으로 끝나는 짧은 설명으로 목록을 도입한다. 목록은 4개 이상의 항목을 연속 쉼표 목록으로 포함하는 문장 대신 사용해야 한다.
+
+모든 목록은 문서 페이지 타이틀을 나열하는 경우가 아니면 문장 대소문자를 사용해야 하며, 이 경우 타이틀 대소문자를 준수해야 한다.
+
+> Title case example: The Build section includes:
+>
+> - Building with Sui
+> - Using the CLI to Start a Network
+> - Creating Smart Contracts
+> - Sui Tutorial
+> - Sui Examples
+
+> Sentence case example: The Build section includes:
+>
+> - For objects, the `tx.object(objectId)` function is used to construct an input that contains an object reference.
+> - For pure values, the `tx.pure(type, value)` function is used to construct an input for a non-object input.
+
+#### Numbered lists {#numbered-ordered-lists}
+
+항목이 순서대로 수행되어야 하거나, 시퀀스를 설명하거나, 특정 수의 항목을 설명할 때 사용한다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+1. repo를 fork한다.
+2. fork한 repo를 clone한다.
+3. Sui를 설치한다.
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+1. Create a fork of the repo.
+1. Clone your fork of the repo.
+1. Install Sui.
+```
+
+
+
+
+
+#### Bulleted lists {#bulleted-lists}
+
+순서가 필요하지 않은 관련 항목에 사용한다. 문장 대소문자와 일관된 구두점을 사용한다. 항목이 완전한 문장인 경우에만 마침표를 추가한다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+Sui Explorer는 다음 브라우저를 지원한다:
+
+- Firefox 버전 X 이상
+- Chrome 버전 X 이상
+- Edge 버전 X 이상
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+Sui Explorer supports the following browsers:
+
+- Firefox version X or later
+- Chrome version X or later
+- Edge version X or later
+```
+
+
+
+
+
+#### Term lists {#term-list}
+
+용어나 개념을 정의하는 데 사용한다. 용어는 굵은 텍스트여야 하고, 그 뒤에 콜론(:)과 문장 대소문자를 사용한 용어 정의가 온다:
+
+> - **Term:** 용어 정의에는 문장 대소문자를 사용한다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+- **Term:** A description of the term.
+
+- **DAG:** A directed acyclic graph (DAG) is a data modeling or structuring tool typically used in data architectures.
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+- **Term:** A description of the term.
+
+- **DAG:** A directed acyclic graph (DAG) is a data modeling or structuring tool typically used in data architectures.
+```
+
+
+
+
+
+#### Related links list
+
+페이지 하단에서 관련 링크 목록을 통해 독자를 추가 관련 콘텐츠로 안내할 수 있다. `RelatedLink` 컴포넌트를 사용한다:
+
+External links:
+
+```jsx
+<RelatedLink href="/path/to/page" label="Page Title" desc="Description of page." />
+```
+
+Internal links:
+
+```jsx
+<RelatedLink to="/guides/somepage.mdx" />
+```
+
+#### Attribute lists
+
+object와 같은 컴포넌트의 속성을 나열하기 위해 인라인 코드 포맷이 있는 목록을 사용한다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+Sui의 event object는 다음 속성으로 구성된다:
+
+- `id`: transaction digest ID와 event 시퀀스를 포함하는 JSON object이다.
+- `packageId`: event를 발생시키는 package의 object ID이다.
+- `transactionModule`: transaction을 수행하는 module이다.
+- `sender`: event를 트리거한 Sui 네트워크 주소이다.
+- `type`: 발생하는 event의 유형이다.
+- `parsedJson`: event를 설명하는 JSON object이다.
+- `bcs`: Binary canonical serialization 값이다.
+- `timestampMs`: 밀리초 단위의 Unix epoch 타임스탬프이다.
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+An event object in Sui consists of the following attributes:
+
+- `id`: JSON object containing the transaction digest ID and event sequence.
+- `packageId`: The object ID of the package that emits the event.
+- `transactionModule`: The module that performs the transaction.
+- `sender`: The Sui network address that triggered the event.
+- `type`: The type of event being emitted.
+- `parsedJson`: JSON object describing the event.
+- `bcs`: Binary canonical serialization value.
+- `timestampMs`: Unix epoch timestamp in milliseconds.
+```
+
+
+
+
+
+---
+
+## Tables {#tables}
+
+#### Table headings {#table-headings}
+
+제목의 첫 단어를 대문자로 쓴다. 텍스트를 가운데 정렬한다. Header 행의 레이블을 굵게 표시한다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+**Column one** | **Column two** | **Column three** | **Column four**
+:-- | :-: | :-: | :--
+Metric name | 10 | X | Text string.
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+
+| **Column one** | **Column two** | **Column three** | **Column four** |
+
+```
+
+
+
+
+
+#### Table alignment {#table-alignment}
+
+Heading 행의 레이블을 가운데 정렬한다. 텍스트 문자열은 왼쪽 정렬한다. 값과 X 또는 체크마크는 가운데 정렬한다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+**Column one** | **Column two** | **Column three** | **Column four**
+:-- | :-: | :-: | :--
+Metric name | 10 | X | Text string.
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+
+| **Column one** | **Column two** | **Column three** | **Column four** |
+| :--- | :---: | :---: | :--- |
+
+```
+
+
+
+
+
+#### Table text {#table-text}
+
+일반 본문 텍스트에 대한 스타일 가이드라인을 따른다.
+
+---
+
+## Code {#code}
+
+함수, object 이름, CLI 도구 이름 또는 CLI 명령을 참조하는 단어나 구문은 문장에서 사용할 때 인라인 코드로 포맷해야 한다.
+
+더 큰 섹션에는 코드블록을 사용한다. 항상 올바른 구문 강조로 포맷된 실제 코드블록을 사용한다(이미지 아님).
+
+#### Inline code {#inline-code}
+
+인라인 코드 주위에 백틱(`)을 사용한다.
+
+항상 인라인 코드로 포맷해야 하는 것들(본문 및 제목):
+
+- Object 이름: `myObject`
+
+- 함수 이름: `HelloWorld`
+
+- 확장자가 있는 파일 이름: `myPackage.move`
+
+- 파일 확장자: `.jpg`
+
+- CLI 도구 이름: `brew`
+
+- 문장 내에서 사용되는 CLI 명령: 제안된 위치를 사용하는 경우 `export PATH=$PATH:~/sui`를 입력하고 Enter를 누른다.
+
+- 변수 이름: `PATH`
+
+- 파일 경로: `~/.cargo/bin`
+
+#### Console commands
+
+콘솔 명령은 세 개의 백틱(```)으로 포맷하고 `$`로 시작해야 한다.
+
+> 예시:
+
+```
+$ brew install sui
+```
+
+명령과 응답 출력을 다른 코드 블록에 유지한다. 이렇게 하면 명령을 복사하여 올바르게 실행할 수 있다.
+
+#### Codeblocks {#codeblocks}
+
+프로젝트 내에서 코드가 배치되어야 하는 위치를 포함한 설명 텍스트로 코드블록을 도입한다:
+
+> 예시: Create a new file in the `sources` directory with the name `house_data.move` and populate the file with the following code:
+
+이어서 설명한다:
+
+> 예시: There are a few details to note in this code:
+>
+> 1. The first line declares the module name as `house_data` within the package `satoshi_flip`.
+> 2. Seven lines begin with the `use` keyword, which enables this module to use types and functions declared in other modules (in this case, they are all coming from the Sui standard library).
+> 3. Two error codes. These codes are used in assertions and unit tests to ensure that the program is running as intended.
+
+세 개의 백틱(```)으로 시작하고, 적절한 구문 강조를 위해 코드 언어(Rust, Move 등)와 파일 이름을 나타내는 타이틀을 붙인다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+```move
+module satoshi_flip::house_data {
+
+  use sui::balance::{Self, Balance};
+  use sui::sui::SUI;
+  use sui::coin::{Self, Coin};
+  use sui::package::{Self};
+
+  // Error codes
+  const ECallerNotHouse: u64 = 0;
+  const EInsufficientBalance: u64 = 1;
+
+```
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+```move title='house_data.move'
+module satoshi_flip::house_data {
+
+  use sui::balance::{Self, Balance};
+  use sui::sui::SUI;
+  use sui::coin::{Self, Coin};
+  use sui::package::{Self};
+
+  // Error codes
+  const ECallerNotHouse: u64 = 0;
+  const EInsufficientBalance: u64 = 1;
+
+```
+```
+
+
+
+
+
+---
+
+## Procedures, tasks, and instructions {#procedures-tasks-instructions}
+
+절차를 부정사 동사로 도입한다. 번호 매기기 또는 순서가 있는 목록을 사용하여 절차를 포맷한다.
+
+#### Keyboard keys in procedures {#keyboard-keys-procedures}
+
+**Enter**를 눌러 계속과 같이 키보드 키를 누르는 지침을 제공할 때 키 이름에 대문자를 사용하고 키 이름을 굵은 텍스트로 포맷한다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+Sui Wallet 확장 프로그램의 최신 버전을 얻으려면:
+
+1. Google Chrome을 연다.
+2. **Extensions**를 클릭한 다음 **Manage Extensions**를 클릭한다.
+3. Sui Wallet 확장 프로그램의 **Details**를 클릭한 다음 **View in Chrome Web Store**를 클릭한다.
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+
+To get the latest version of the Sui Wallet extension:
+
+1. Open Google Chrome.
+1. Click **Extensions**, then click **Manage Extensions**.
+1. Click **Details** for the Sui Wallet extension, then click **View in Chrome Web Store**.
+
+```
+
+
+
+
+
+#### UI elements {#ui-elements}
+
+필드 레이블, 버튼 이름, 메뉴 명령과 같은 UI 요소를 굵은 텍스트로 포맷한다. 항상 대소문자를 포함하여 UI 요소의 정확한 텍스트 또는 레이블과 일치시킨다. 요소 레이블에 포함된 줄임표와 같은 특수 문자는 포함하지 않는다.
+
+> 예시: Click **More Transactions** to open the **Transactions** page.
+
+---
+
+## Links and references
+
+[docs.sui.io]의 주제에 링크할 때 항상 전체 상대 링크를 사용한다.
+
+링크 텍스트에는 다음 중 하나를 사용한다:
+
+- 타이틀 대소문자 형식을 준수하는 대상 주제의 주제 타이틀.
+
+- 목록 또는 "Learn more" 문장에서 링크의 링크 텍스트 역할을 하는 문장의 일부. URL을 링크 텍스트로 사용하지 않는다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+> To learn more, see [Examples of Sui Smart Contracts](/guides/developer/app-examples.mdx).
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```markdown
+To learn more, see [Examples of Sui Smart Contracts](/guides/developer/app-examples.mdx).
+
+```
+
+
+
+
+
+인라인 링크를 사용할 때 대상 주제 타이틀의 키워드를 사용한다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+> Before you install Sui, make sure to install the [prerequisites](/guides/developer/getting-started/sui-install.mdx#prerequisites).
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+
+Before you install Sui, make sure to install the [prerequisites](/guides/developer/getting-started/sui-install.mdx#prerequisites).
+
+```
+
+
+
+
+
+### URLs and web addresses {#urls-web-addresses}
+
+설명적인 텍스트로 사이트나 URL에 대한 링크를 만든다. 예제 코드나 구성 파일에서와 같이 독자가 복사해야 하는 경우에만 URL을 제공한다.
+
+### Referring to pages in our docs {#referring}
+
+문서 세트의 페이지를 "topic"으로 참조한다. "guide"는 여러 관련 주제로 구성될 수 있다.
+
+> 예시: See the Install topic in the Validator guide for more information.
+
+:::info
+
+주제를 타이틀로 참조하는 것이 적합한 경우도 있다. 자세한 내용은 Installing Sui를 참고한다.
+
+:::
+
+---
+
+## Special components
+
+### Collapsible component
+
+`<details><summary>` 컴포넌트를 사용하여 페이지를 압도하지 않도록 길거나 선택적인 콘텐츠를 숨긴다. 접을 수 있는 섹션은 여전히 지원 정보를 사용할 수 있게 하면서 가독성을 향상시킨다.
+
+독자가 안에 무엇이 있는지 알 수 있도록 짧고 설명적인 요약을 사용한다. 요약은 문장 대소문자로 유지한다.
+
+접을 수 있는 컴포넌트를 서로 중첩하지 않는다. 접을 수 있는 콘텐츠를 표시되는 텍스트를 보완하는(대체하지 않는) 자료로 제한한다.
+
+#### Use collapsible components for:
+
+- 큰 코드 스니펫 또는 샘플 파일.
+
+- 장황한 명령줄 출력(예: 로그 또는 스택 트레이스).
+
+- 독자가 항상 필요로 하지 않을 수 있는 확장된 참조 콘텐츠.
+
+#### Do not use collapsible components for:
+
+- 절차의 필수 단계. 이것들은 항상 보여야 한다.
+
+- 짧은 예제 또는 필수 명령(접으면 마찰이 추가된다).
+
+- 주요 주제를 이해하는 데 중요한 콘텐츠.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+<details> <summary>전체 명령 출력 보기</summary> </details>
+
+```
+Compiling dependencies...
+Finished release [optimized] target(s) in 10.35s
+Running `target/release/sui-node`
+...
+INFO: Sui node is now running
+```
+
+
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```markdown
+<details>
+<summary>View full command output</summary>
+
+```
+Compiling dependencies...
+Finished release [optimized] target(s) in 10.35s
+Running `target/release/sui-node`
+...
+INFO: Sui node is now running
+```
+
+</details>
+```
+
+
+
+
+
+### Alerts {#alerts}
+
+알림은 정보에 강조를 추가한다. Docusaurus 기능인 Admonitions를 사용하여 알림이 Note, Tip 또는 Caution임을 나타낸다. 알림의 설명은 완전한 문장이어야 하며 문장 대소문자를 사용해야 한다.
+
+#### Caution {#caution}
+
+다음 정보가 개발자에게 데이터 손실, 오류 발생 또는 잠재적으로 중대한 변경을 일으킬 수 있는 경우 caution 알림을 사용한다. 항상 위험을 명확하게 설명한다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+:::caution
+
+네트워크를 삭제하기 전에 구성 파일을 백업한다.
+
+:::
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+
+:::caution
+
+Backup your configuration files before you delete your network.
+
+:::
+
+```
+
+
+
+
+
+#### Danger {#danger}
+
+영구적인 데이터 손실, 보안 취약점 또는 되돌릴 수 없는 작업과 같이 실수의 결과가 치명적인 정보에만 danger 알림을 사용한다. 설명을 간결하고 진지한 어조로 유지한다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+:::danger
+
+이 키를 삭제하면 계정에 대한 접근 권한이 영구적으로 제거된다.
+
+:::
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+
+:::danger
+
+Deleting this key will permanently remove your access to the account.
+
+:::
+
+```
+
+
+
+
+
+#### Info {#info}
+
+독자가 알아야 할 중요하지만 중립적인 맥락을 제공하기 위해 info 알림을 사용한다. 모범 사례라기보다는 독자가 중요한 배경이나 조건을 놓치지 않도록 하는 것이다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+:::info
+
+소스에서 Sui를 빌드하려면 먼저 Rust를 설치해야 한다.
+
+:::
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+
+:::info
+
+You must install Rust before you can build Sui from source.
+
+:::
+
+```
+
+
+
+
+
+#### Note {#note}
+
+note 알림은 유효한 admonition이지만 시각적 스타일이 다른 지원되는 admonition보다 덜 영향력이 있다. tip 또는 info를 선호하여 note 사용을 피하는 것이 좋다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+:::note
+
+이 섹션은 Devnet을 사용하는 경우에만 적용된다.
+
+:::
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+
+:::note
+
+This section applies only if you're using the Devnet.
+
+:::
+
+```
+
+
+
+
+
+#### Tip {#tip}
+
+모범 사례나 지름길과 같이 도움이 될 수 있는 조언을 독자에게 제공하기 위해 tip 알림을 사용한다.
+
+<tabs><tabitem value="example" label="Example" default></tabitem></tabs>
+
+:::tip
+
+IDE를 설치한 후 홈 디렉토리를 변경한다.
+
+:::
+
+<tabitem value="markdown" label="Markdown"></tabitem>
+
+```
+
+:::tip
+
+Navigate into your home directory after installing the IDE.
+
+:::
+
+```
+
+
+
+
+
+---
+
+## Images and graphics {#images-graphics}
+
+이미지와 스크린샷은 텍스트를 보완하고 설명하는 데만 사용한다. 이미지는 텍스트를 대체하지 않는다. 독자는 이미지 없이도 문서를 이해할 수 있어야 한다. 그러나 이미지는 독자가 텍스트를 더 명확하게 이해하는 데 도움이 될 수 있다.
+
+스크린샷을 캡처하기 위해 [Snagit](https://www.techsmith.com/screen-capture.html) 또는 다른 도구를 사용한다.
+
+#### Image format {#image-format}
+
+가능하면 `.png`를 사용하고, 그렇지 않으면 `.jpg`를 사용한다.
+
+#### Image resolution {#image-resolution}
+
+이미지는 최소 400픽셀 너비여야 한다. 업로드 시 이미지가 흐리게 보이면 더 높은 해상도로 새 이미지를 만들어 본다.
+
+#### Captions {#captions}
+
+대체 텍스트를 사용하여 이미지가 보여주는 것을 설명한다. 캡션을 사용하여 페이지 맥락에서 이미지가 왜 의미 있는지 설명한다. 캡션 관련 내용은 Accessibility considerations를 참고한다.
+
+#### Mermaid for images in Markdown {#mermaid}
+
+[Mermaid를 사용하여](https://github.blog/2022-02-14-include-diagrams-markdown-files-mermaid/) Markdown에서 직접 플로우차트와 유사한 이미지를 만들 수 있다.
+
+---
+
+## Index pages
+
+섹션 인덱스 페이지는 하위 카테고리 인덱스 페이지가 존재하면 반드시 링크해야 한다. 이는 사용자가 사이드바에만 의존하지 않고 하위 섹션으로 쉽게 탐색할 수 있도록 하고 일관된 탐색 구조를 만든다.
+
+예를 들어 docs 폴더가 다음과 같은 경우:
+
+```
+/docs/
+  guides/
+    index.mdx
+    setup/
+      index.mdx
+      install.mdx
+```
+
+그러면 `/docs/guides/index.mdx`는 `/docs/guides/setup/install.mdx`에 대한 링크가 아닌 `/docs/guides/setup/index.mdx`에 대한 링크를 포함해야 한다.
+
+---
+
+## Accessibility {#accessibility}
+
+콘텐츠 접근성을 위한 참조 자료:
+
+- [A11Y Style Guide](https://a11y-style-guide.com/style-guide/)
+- [Bitsofcode Accessibility Cheatsheet](https://bitsofco.de/the-accessibility-cheatsheet/)
+- [Atlassian Design System - Inclusive writing reference](https://atlassian.design/content/inclusive-writing)
+- [MailChimp's writing style guide](https://styleguide.mailchimp.com/writing-for-accessibility/)
+- [Microsoft Style Guide Accessibility Terms](https://learn.microsoft.com/en-us/style-guide/a-z-word-list-term-collections/term-collections/accessibility-terms)
+- [Writing for All Abilities](https://learn.microsoft.com/en-us/style-guide/accessibility/writing-all-abilities) (Microsoft Style Guide)
+
+### Formatting {#formatting}
+
+텍스트에 강조를 추가하기 위해 색상이나 특수 기호를 사용하지 않는다. 스크린 리더는 웹 페이지에서 굵게(`<strong>`)와 이탤릭(`<em>`)을 해석하도록 설계되어 있다.
+
+### Images {#images}
+
+스크린 리더를 사용하는 사람을 위해 이미지를 설명하는 캡션과 대체 텍스트를 추가한다. 스크린 리더를 사용하는 사람이 볼 수 없는 이미지의 중요한 세부 사항은 무엇인가?
+
+대체 텍스트를 사용하여 이미지가 보여주는 것을 설명한다. 캡션을 사용하여 페이지 맥락에서 이미지가 왜 의미 있는지 설명한다.
+
+이미지는 텍스트의 대체물이 아니다. 이미지는 텍스트를 보완해야만 한다. 텍스트 형식이 아닌 정보를 전달하기 위해 이미지에 의존하지 않는다. 예를 들어 값 테이블의 이미지는 여러 가능한 이유로 이미지가 표시되지 않으면 누구에게도 도움이 되지 않는다.
+
+---
+
+## Reference style guides {#reference-style-guides}
+
+- [Write the Docs Style Guide article](https://www.writethedocs.org/guide/writing/style-guides/)
+- [GitLab Style Guide](https://docs.gitlab.com/ee/development/documentation/styleguide/index.html) - managed as a community project
+- [Digital Ocean Style Guide](https://www.digitalocean.com/community/tutorials/digitalocean-s-technical-writing-guidelines)
+- [SUSE Style Guide](https://documentation.suse.com/en-us/style/current/single-html/docu_styleguide/#sec-techwriting)
+- [Microsoft Style Guide](https://docs.microsoft.com/en-us/style-guide/welcome/)
+- [Google Developer Style Guide](https://developers.google.com/style)
+- [CDN Language and Style Reference](http://cdn.static-economist.com/sites/default/files/pdfs/style_guide_12.pdf)
