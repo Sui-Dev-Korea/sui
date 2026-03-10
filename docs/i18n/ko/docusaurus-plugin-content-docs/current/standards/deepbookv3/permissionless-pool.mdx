@@ -1,0 +1,65 @@
+---
+title: Permissionless Pool Creation
+description: 퍼미션 없이 풀을 만드는 방법을 배워보자.
+keywords:
+  - pool
+  - create pool
+  - permissionlessly
+  - permissionless
+  - SUI
+  - USDC
+  - SUI/USDC
+  - DEEP price point
+  - MIST
+---
+
+`Pool` shared object는 SUI/USDC 시장과 같은 시장을 나타낸다. 그 `Pool`은 해당 고유한 쌍(SUI/USDC)을 나타내는 유일한 object이며, 그 쌍만이 해당 `Pool`에 속한다. 풀의 구조에 대해 더 알아보려면 [DeepBookV3 Design](./design.mdx#pool)을 참고한다.
+
+## API
+
+### Create a `Pool`
+
+`create_permissionless_pool()` 함수는 `Pool`을 생성한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="create_permissionless_pool" nocomments></importcontent>
+
+Tick size는 10^(9 - base_decimals + quote_decimals - decimal_desired)이어야 한다. 예를 들어, tick size의 desired decimal이 3(0.001)인 SUI(9 decimals)/USDC(6 decimals) pool을 생성하는 경우, tick size는 10^(9 - 9 + 6 - 3) = 10^(3) = 1000이어야 한다.
+
+소수점 자리수는 베이스 자산과 quote 자산 간의 가격 대비 최대 1bps, 즉 0.01%이어야 한다. 예를 들어, 목표가 소수점 3자리인 경우, 0.001(소수점 3자리) / 가격은 0.0001 이하이어야 한다. 베이스 자산과 quote 자산 모두 스테이블코인인 pool의 경우 더 낮은 tick size를 고려한다.
+
+Lot size는 베이스 자산의 MIST 단위이며, 베이스 자산의 명목 가치로 약 $0.01에서 $0.10이어야 한다. Lot size는 10의 거듭제곱이어야 하며, min size 이하이어야 한다. Lot size는 또한 1,000 이상이어야 한다.
+
+Min size는 베이스 자산의 MIST 단위이며, 베이스 자산의 명목 가치로 약 $0.10에서 $1.00이어야 한다. Min size는 10의 거듭제곱이어야 하며, lot size 이상이어야 한다.
+
+생성 수수료는 500 DEEP 토큰이다.
+
+:::info
+
+Pool은 해당 자산 쌍이 이전에 생성된 적이 없는 경우에만 생성할 수 있다.
+
+:::
+
+### Add DEEP price point
+
+`add_deep_price_point()` 함수는 DEEP 가격 계산과 DEEP 수수료의 정확한 수집을 가능하게 한다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="add_deep_price_point" nocomments></importcontent>
+
+모든 pool은 input token 수수료를 지원한다. Permissionless pool에서 input token 수수료보다 20% 저렴한 DEEP으로 수수료를 납부하려면, 두 가지 조건을 충족해야 한다:
+
+1. 베이스 자산 또는 quote 자산 중 하나가 `USDC` 또는 `SUI`이어야 한다.
+2. DEEP 수수료를 정확하게 계산하려면, pool에서 <code>add_deep_price_point()</code> 함수를 1~10분마다 호출하는 cron job을 설정해야 한다.
+
+`USDC`를 자산으로 하는 pool의 경우, `0xf948981b806057580f91622417534f491da5f61aeaf33d0ed8e69fd5691c95ce`의 `DEEP/USDC` pool을 reference pool로 사용한다.
+
+`SUI`를 자산으로 하는 pool의 경우, `0xb663828d6217467c8a1838a03793da896cbe745b150ebd57d82f814ca579fc22`의 `DEEP/SUI` pool을 reference pool로 사용한다.
+
+### Update allowed versions
+
+`update_allowed_versions()` 함수는 pool과 registry를 받아 pool 내에서 허용된 컨트랙트 버전을 업데이트한다. 이는 pool에서 최신 컨트랙트를 사용할 수 있도록 보장하기 위해 컨트랙트 업그레이드 이후 매우 중요하다.
+
+<importcontent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="update_allowed_versions" nocomments></importcontent>
+
+## Related links
+
+<relatedlink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub."></relatedlink>
