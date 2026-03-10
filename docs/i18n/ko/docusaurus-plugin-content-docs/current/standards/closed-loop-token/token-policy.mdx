@@ -1,0 +1,109 @@
+---
+title: Token Policy
+description: "`TokenPolicy` 는 token의 허용된 action과 조건을 정의하는 shared object이다. Wallets 및 기타 금융 서비스는 `TokenPolicy` object를 자주 사용한다."
+keywords:
+  - token policy
+  - tokenpolicy
+  - token:":new_policy"
+  - treasurycap
+  - token:":share_policy"
+  - new_policy
+  - allow
+  - disallow
+  - add_rule_for_action
+  - remove_rule_for_action
+  - confirm_request
+  - confirm_request_mut
+  - flush
+---
+
+`TokenPolicy`는 token 소유자가 `TreasuryCap`을 사용해 생성할 수 있는 shared object이다. 공개적으로 사용할 수 있는 `TokenPolicy`를 보유하면 허용된 action과 그 조건을 온체인에서 discover할 수 있다. 이는 token holder를 위한 더 나은 사용자 경험을 제공하려는 wallets 및 기타 서비스에 유용하다.
+
+## Create and share
+
+`token::new_policy` 함수를 사용해 새로운 `TokenPolicy`를 생성한다. 이 함수는 `TreasuryCap`을 인자로 받고 `TokenPolicy` object와 managing capability를 반환한다.
+
+```move
+// module: sui::token
+public fun new_policy<T>(
+    treasury_cap: &TreasuryCap<T>,
+    ctx: &mut TxContext
+): (TokenPolicy<TokenType>, TokenPolicyCap<TokenType>);
+```
+
+`token::share_policy` 함수를 사용해 `TokenPolicy` object를 공유해야 한다.
+
+## Allow and disallow
+
+어떤 조건도 없이 method를 허용하려면 `token::allow` 함수를 사용한다. 이 함수는 `TokenPolicy`와 `TokenPolicyCap`을 인자로 받는다. 허용된 경우 `token::confirm_request` 함수를 사용해 `TokenPolicy`에서 action을 confirm할 수 있다(참고: [`ActionRequest`](./action-request.mdx#confirming-with-tokenpolicy)).
+
+```move
+// module sui::token
+public fun allow<T>(
+    policy: &mut TokenPolicy<T>,
+    policy_cap: &TokenPolicyCap<T>,
+    action: String,
+    ctx: &mut TxContext
+);
+```
+
+마찬가지로 `token::disallow` 함수를 사용해 action을 완전히 비활성화할 수 있으며, 이는 `token::allow`와 동일한 인자를 받는다.
+
+## Adding rules
+
+`TokenPolicy`는 각 action에 대해 custom 조건을 지정할 수 있다. 이러한 조건을 rules라고 하며, 일반적으로 별도의 Move modules로 구현된다. rule의 식별자는 해당 type이다. 자세한 내용은 [Rules](./rules.mdx)를 참고한다.
+
+`TokenPolicy`의 의사 코드 구조는 다음과 같다. 각 action에는 여러 rules를 연결할 수 있다.
+
+```yaml
+TokenPolicy
+  rules:
+    - action: "transfer"
+      rules:
+        - 0x0...::denylist::Denylist
+    - action: "to_coin"
+      rules:
+        - 0x0...::limiter::Limiter
+        - 0x0...::allowlist::Allowlist
+    ...
+```
+
+action에 rule을 추가하려면 `token::add_rule_for_action` 함수를 사용한다. 이 함수는 `TokenPolicy`와 `TokenPolicyCap`을 인자로 받는다. rule은 해당 type으로 지정된다(예: `0x0…::denylist::Denylist`).
+
+```move
+// module: sui::token
+public fun add_rule_for_action<T, Rule: drop>(
+    policy: &mut TokenPolicy<T>,
+    policy_cap: &TokenPolicyCap<T>,
+    action: String,
+    ctx: &mut TxContext
+);
+```
+
+역연산인 `token::remove_rule_for_action`의 signature는 `token::add_rule_for_action`과 대칭이다.
+
+## Consume spent balance
+
+`token::flush` 함수를 사용해 `TokenPolicy`에서 spent balance를 consume할 수 있다. 이는 `TreasuryCap`이 필요하다.
+
+```move
+// module sui::token
+public fun flush<T>(
+    policy: &mut TokenPolicy<T>,
+    treasury_cap: &mut TreasuryCap<T>,
+    ctx: &mut TxContext
+);
+```
+
+## Cheat sheet: TokenPolicy API
+
+Function | Note
+--- | ---
+new_policy | `TreasuryCap`을 사용해 새로운 `TokenPolicy`를 생성한다
+allow | `TokenPolicy`에서 action을 허용한다
+disallow | `TokenPolicy`에서 action을 허용하지 않는다
+add_rule_for_action | `TokenPolicy`에서 action에 rule을 추가한다
+remove_rule_for_action | `TokenPolicy`에서 action의 rule을 제거한다
+confirm_request | `TokenPolicy`로 `ActionRequest`를 confirm한다
+confirm_request_mut | `confirm_request`와 유사하지만 `spend` action에서만 동작한다
+flush | `TokenPolicy`에서 spent balance를 flush한다(참고: [Spending](./spending.mdx)￼)
