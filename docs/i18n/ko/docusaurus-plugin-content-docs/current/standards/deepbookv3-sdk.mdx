@@ -1,0 +1,376 @@
+---
+title: DeepBookV3 SDK
+description: DeepBook TypeScript SDK를 사용하여 DeepBook 패키지와 직접 상호 작용한다.
+keywords:
+  - deepbook
+  - deep book
+  - deepbook v3
+  - typescript
+  - typescript SDK
+  - mysten/deepbook
+  - deepbookV3 SDK
+  - Coin
+  - Pool
+  - Manager
+---
+
+DeepBookV3 TypeScript SDK는 transaction 호출을 추상화하여 `DeepBook` 패키지와 직접 상호 작용할 수 있도록 한다.
+
+- [SDK repository](https://github.com/MystenLabs/ts-sdks/tree/main/packages/deepbook-v3)
+- [NPM version](https://www.npmjs.com/package/@mysten/deepbook-v3)
+
+## Install
+
+프로젝트에서 SDK를 사용하려면 `@mysten/deepbook` 패키지를 설치한다.
+
+```sh
+npm install @mysten/deepbook-v3
+```
+
+## Constants
+
+DeepBookV3 SDK에는 DeepBookV3의 최신 배포 address와 몇 가지 기본 코인 및 pool을 관리하는 constants 파일(`/utils/constants.ts`)이 포함되어 있다.
+
+<details> <summary> `constants.ts` </summary> </details>
+
+```ts
+https://github.com/MystenLabs/ts-sdks/blob/main/packages/deepbook-v3/src/utils/constants.ts
+```
+
+
+
+## DeepBookClient
+
+DeepBookV3로 작업하려면 `DeepBookClient`를 생성해야 한다. `DeepBookClient`를 구성하려면 `SuiClient`, sender address, 그리고 환경을 전달한다. [Sui TypeScript SDK](https://sdk.mystenlabs.com/typescript)는 transaction을 처리하는 데 필요한 `SuiClient`와 핵심 기능을 제공한다. 다음 예시는 해당 라이브러리들도 함께 import한다.
+
+```tsx
+import { DeepBookClient } from '@mysten/deepbook-v3';
+import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import { decodeSuiPrivateKey } from '@mysten/sui/cryptography';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+
+class DeepBookMarketMaker {
+	dbClient: DeepBookClient; // Transaction을 만들기 위함
+	suiClient: SuiClient; // Transaction을 실행하기 위함
+	keypair: Ed25519Keypair; // Transaction에 서명하기 위함
+
+	constructor(privateKey: string, env: 'testnet' | 'mainnet') {
+		this.keypair = this.getSignerFromPK(privateKey);
+		this.suiClient = new SuiClient({
+			url: getFullnodeUrl(env),
+		});
+		this.dbClient = new DeepBookClient({
+			address: this.getActiveAddress(),
+			env: env,
+			client: this.suiClient,
+		});
+	}
+
+	getSignerFromPK = (privateKey: string): Ed25519Keypair => {
+		const { schema, secretKey } = decodeSuiPrivateKey(privateKey);
+		if (schema === 'ED25519') return Ed25519Keypair.fromSecretKey(secretKey);
+
+		throw new Error(`Unsupported schema: ${schema}`);
+	};
+
+	getActiveAddress() {
+		return this.keypair.toSuiAddress();
+	}
+}
+```
+
+## Keys: Coin, Pool, and Manager {#keys}
+
+코인, pool, 또는 manager를 입력으로 받는 함수들은 해당 object의 key를 파라미터로 요구한다. SDK는 이 데이터의 `key:value` 관계를 메모리에서 관리한다. 일부 기본 데이터는 SDK에 포함되어 있다(`utils/constants.ts` 참조). 코인은 `CoinMap`에, pool은 config의 `PoolMap`에 저장된다.
+
+### Balance manager
+
+모든 거래를 시작하기 전에 클라이언트에 balance manager address를 제공해야 한다. Manager key는 클라이언트의 `BalanceManager` 인터페이스로 정의된 object를 가리킨다. [BalanceManager docs](./deepbookv3/balance-manager.mdx). 클라이언트와 함께 balance manager를 초기화한다. balance manager를 생성하지 않으면 클라이언트가 대신 생성하도록 할 수 있지만, 그 경우 사용자는 클라이언트를 다시 초기화해야 한다.
+
+Example using an existing balance manager:
+
+```tsx
+import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import { decodeSuiPrivateKey } from '@mysten/sui/cryptography';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import { config } from 'dotenv';
+
+import { DeepBookClient } from '../src';
+import { BalanceManager } from './types';
+
+config();
+
+// Used wherever balance manager key is required
+const BALANCE_MANAGER_KEY = 'MANAGER_1';
+
+class DeepBookMarketMaker {
+	dbClient: DeepBookClient; // For building transactions
+	suiClient: SuiClient; // For executing transactions
+	keypair: Ed25519Keypair; // For signing transactions
+	env: 'testnet' | 'mainnet';
+
+	constructor(privateKey: string, env: 'testnet' | 'mainnet') {
+		this.env = env;
+		this.keypair = this.getSignerFromPK(privateKey);
+		this.suiClient = new SuiClient({
+			url: getFullnodeUrl(env),
+		});
+		this.dbClient = new DeepBookClient({
+			address: this.getActiveAddress(),
+			env: env,
+			client: this.suiClient,
+			balanceManagers: this.getBalanceManagers(),
+		});
+	}
+
+	getSignerFromPK = (privateKey: string): Ed25519Keypair => {
+		const { schema, secretKey } = decodeSuiPrivateKey(privateKey);
+		if (schema === 'ED25519') return Ed25519Keypair.fromSecretKey(secretKey);
+
+		throw new Error(`Unsupported schema: ${schema}`);
+	};
+
+	getActiveAddress() {
+		return this.keypair.toSuiAddress();
+	}
+
+	getBalanceManagers(): { [key: string]: BalanceManager } {
+		// Used wherever balance manager key is required
+		const balanceManagerAddress = process.env.BALANCE_MANAGER_ADDRESS;
+		const balanceManagerTradeCap = process.env.BALANCE_MANAGER_TRADE_CAP;
+		if (!balanceManagerAddress) {
+			throw new Error('No balance manager address found');
+		}
+		return {
+			[BALANCE_MANAGER_KEY]: {
+				address: balanceManagerAddress,
+				tradeCap: balanceManagerTradeCap,
+			},
+		};
+	}
+}
+```
+
+Example creating a balance manager:
+
+```tsx
+import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import { decodeSuiPrivateKey } from '@mysten/sui/cryptography';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import { Transaction } from '@mysten/sui/transactions';
+
+import { DeepBookClient } from '../src';
+import { BalanceManager } from './types';
+
+// Used wherever balance manager key is required
+const BALANCE_MANAGER_KEY = 'MANAGER_1';
+
+class DeepBookMarketMaker {
+	dbClient: DeepBookClient; // For building transactions
+	suiClient: SuiClient; // For executing transactions
+	keypair: Ed25519Keypair; // For signing transactions
+	env: 'testnet' | 'mainnet';
+
+	constructor(privateKey: string, env: 'testnet' | 'mainnet') {
+		this.env = env;
+		this.keypair = this.getSignerFromPK(privateKey);
+		this.suiClient = new SuiClient({
+			url: getFullnodeUrl(env),
+		});
+		this.dbClient = new DeepBookClient({
+			address: this.getActiveAddress(),
+			env: env,
+			client: this.suiClient,
+		});
+	}
+
+	getSignerFromPK = (privateKey: string): Ed25519Keypair => {
+		const { schema, secretKey } = decodeSuiPrivateKey(privateKey);
+		if (schema === 'ED25519') return Ed25519Keypair.fromSecretKey(secretKey);
+
+		throw new Error(`Unsupported schema: ${schema}`);
+	};
+
+	getActiveAddress() {
+		return this.keypair.toSuiAddress();
+	}
+
+	async createBalanceManagerAndReinitialize() {
+		let tx = new Transaction();
+		tx.add(this.dbClient.balanceManager.createAndShareBalanceManager());
+
+		const res = await this.suiClient.signAndExecuteTransaction({
+			transaction: tx,
+			signer: this.keypair,
+			options: {
+				showEffects: true,
+				showObjectChanges: true,
+			},
+		});
+
+		// @ts-ignore
+		const balanceManagerAddress = res.objectChanges?.find((change) => {
+			return change.type === 'created' && change.objectType.includes('BalanceManager');
+		})?.['objectId'];
+
+		const balanceManagers: { [key: string]: BalanceManager } = {
+			[BALANCE_MANAGER_KEY]: {
+				address: balanceManagerAddress,
+				tradeCap: undefined,
+			},
+		};
+
+		this.dbClient = new DeepBookClient({
+			address: this.getActiveAddress(),
+			env: this.env,
+			client: this.suiClient,
+			balanceManagers: balanceManagers,
+		});
+	}
+}
+```
+
+### Coin
+
+SDK는 Testnet에서 4개의 기본 코인을, Mainnet에서 5개의 기본 코인을 제공한다.
+
+**Default Testnet coins**
+
+- DEEP
+- SUI
+- DBUSDC
+- DBUSDT
+
+**Default Mainnet coins**
+
+- DEEP
+- SUI
+- USDC
+- USDT
+- WETH
+
+기본적으로 지원되지 않는 pool과 상호 작용하기 위해 커스텀 코인으로 SDK를 초기화할 수도 있다. 이를 위해 `CoinMap` object를 생성하여 클라이언트의 생성자에 전달한다.
+
+### Pool
+
+코인과 마찬가지로, SDK에는 기본 pool이 포함되어 있다. 이 동작을 재정의하려면 생성 시 `PoolMap`을 제공할 수 있다.
+
+```tsx
+import { decodeSuiPrivateKey } from '@mysten/sui.js/cryptography';
+import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import type { Keypair } from '@mysten/sui/cryptography';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import type { Transaction } from '@mysten/sui/transactions';
+
+import { DeepBookClient } from '../src/index.js'; // Adjust path according to new structure
+import type { BalanceManager } from '../src/types/index.js';
+
+export class DeepBookMarketMaker extends DeepBookClient {
+	keypair: Keypair;
+	suiClient: SuiClient;
+
+	constructor(
+		keypair: string | Keypair,
+		env: 'testnet' | 'mainnet',
+		balanceManagers?: { [key: string]: BalanceManager },
+		adminCap?: string,
+	) {
+		let resolvedKeypair: Keypair;
+
+		if (typeof keypair === 'string') {
+			resolvedKeypair = DeepBookMarketMaker.#getSignerFromPK(keypair);
+		} else {
+			resolvedKeypair = keypair;
+		}
+
+		const address = resolvedKeypair.toSuiAddress();
+
+		super({
+			address: address,
+			env: env,
+			client: new SuiClient({
+				url: getFullnodeUrl(env),
+			}),
+			balanceManagers: balanceManagers,
+			adminCap: adminCap,
+		});
+
+		this.keypair = resolvedKeypair;
+		this.suiClient = new SuiClient({
+			url: getFullnodeUrl(env),
+		});
+	}
+
+	static #getSignerFromPK = (privateKey: string) => {
+		const { schema, secretKey } = decodeSuiPrivateKey(privateKey);
+		if (schema === 'ED25519') return Ed25519Keypair.fromSecretKey(secretKey);
+
+		throw new Error(`Unsupported schema: ${schema}`);
+	};
+
+	signAndExecute = async (tx: Transaction) => {
+		// remove arguments
+		return this.suiClient.signAndExecuteTransaction({
+			transaction: tx,
+			signer: this.keypair,
+			options: {
+				showEffects: true,
+				showObjectChanges: true,
+			},
+		});
+	};
+
+	getActiveAddress() {
+		return this.keypair.getPublicKey().toSuiAddress();
+	}
+}
+```
+
+### Example setup
+
+The following example uses the default pools and coins provided.
+
+```tsx
+import { Transaction } from '@mysten/sui/transactions';
+
+import { DeepBookMarketMaker } from './deepbookMarketMaker.js';
+
+(async () => {
+	const privateKey = ''; // Can encapsulate this in a .env file
+
+	// Initialize with balance managers if created
+	const balanceManagers = {
+		MANAGER_1: {
+			address: '',
+			tradeCap: '',
+		},
+	};
+	const mmClient = new DeepBookMarketMaker(privateKey, 'testnet', balanceManagers);
+
+	const tx = new Transaction();
+
+	// Read only call
+	console.log(await mmClient.checkManagerBalance('MANAGER_1', 'SUI'));
+	console.log(await mmClient.getLevel2Range('SUI_DBUSDC', 0.1, 100, true));
+
+	// Balance manager contract call
+	mmClient.balanceManager.depositIntoManager('MANAGER_1', 'DBUSDT', 10000)(tx);
+	mmClient.balanceManager.withdrawAllFromManager(
+		'MANAGER_1',
+		'DBUSDT',
+		mmClient.getActiveAddress(),
+	)(tx);
+
+	// Example custom PTB call in DeepBookMarketMaker class
+	mmClient.placeLimitOrderExample(tx);
+	mmClient.flashLoanExample(tx);
+
+	let res = await mmClient.signAndExecute(tx);
+
+	console.dir(res, { depth: null });
+})();
+```
+
+## Related links
+
+<relatedlink href="https://github.com/MystenLabs/ts-sdks/tree/main/packages/deepbook-v3" label="DeepBookV3 Indexer repository" desc="The DeepBookV3 SDK repository on GitHub."></relatedlink><relatedlink href="https://www.npmjs.com/package/@mysten/deepbook-v3" label="DeepBookV3 SDK node package" desc="The DeepBookV3 SDK node package on NPM."></relatedlink><relatedlink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub."></relatedlink>
