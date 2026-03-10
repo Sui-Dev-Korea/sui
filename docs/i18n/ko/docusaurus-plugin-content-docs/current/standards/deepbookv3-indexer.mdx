@@ -1,0 +1,731 @@
+---
+title: DeepBookV3 Indexer
+sidebar_label: Indexer
+description: DeepBookV3 인덱서는 DeepBookV3 프로토콜의 오더북 및 거래 데이터에 효율적이고 실시간으로 접근할 수 있게 하며 중요한 데이터 포인트를 집계하고 노출하는 중앙화된 서비스이다.
+keywords:
+  - DeepBook Indexer
+  - DeepBook
+  - public indexer
+  - viewing pool information
+  - historical volume analysis
+  - volume tracking
+  - balance manager
+  - BalanceManager
+  - trading pairs
+---
+
+DeepBookV3 인덱서는 DeepBookV3 프로토콜의 오더북 및 거래 데이터에 효율적이고 실시간으로 접근할 수 있게 한다. 이 인덱서는 DeepBookV3와 상호 작용하는 개발자, 트레이더, 분석가를 위해 중요한 데이터 포인트를 집계하고 노출하는 중앙화된 서비스 역할을 한다.
+
+DeepBookV3 인덱서는 다음과 같은 엔드포인트를 제공하여 데이터 조회를 단순화한다:
+
+- **Viewing pool information:** 기본 및 견적 자산, 틱 크기, 로트 크기를 포함하여 사용 가능한 모든 거래 pool에 대한 자세한 메타데이터를 조회한다.
+- **Historical volume analysis:** 특정 pool 또는 balance manager에 대한 거래량 지표를 사용자 정의 시간 범위에 대해 가져올 수 있고, 구간별 분해를 통한 분석을 지원한다.
+- **User-specific volume tracking:** Balance manager별 거래량을 조회하여 개별 트레이더 활동에 대한 인사이트를 제공한다.
+
+공개 인덱서를 사용하거나 직접 서비스를 구동할 수 있다. 선택은 몇 가지 요소에 따라 달라진다.
+
+다음과 같은 경우 공개 서비스를 사용한다:
+
+- 표준적인 데이터 요구 사항을 가진다.
+- 공개 엔드포인트가 제공하는 지연 시간과 가용성이 요구 사항을 충족한다.
+- 자체 서비스를 운영하는 운영 오버헤드를 피하고 싶다.
+
+다음과 같은 경우 자체 인덱서를 실행한다:
+
+- 보장된 업타임과 낮은 지연 시간이 필요하다.
+- 특정한 커스터마이징 요구 사항이 있다.
+- 애플리케이션이 독자적인 기능 또는 확장된 데이터 세트에 의존한다.
+
+## Public DeepBookV3 Indexer
+
+[Mysten Labs](https://www.mystenlabs.com/)는 DeepBookV3를 위한 public 인덱서를 제공한다.<br>다음 URL에서 이 인덱서에 접근할 수 있다:
+
+```http
+https://deepbook-indexer.mainnet.mystenlabs.com/
+```
+
+## Asset conversions
+
+다음 엔드포인트가 반환하는 거래량은 해당 자산의 최소 단위로 표현된다.
+
+- `/all_historical_volume`
+- `/historical_volume`
+- `/historical_volume_by_balance_manager_id`
+- `/historical_volume_by_balance_manager_id_with_interval`
+
+다음은 각 자산에 대한 기본 단위를 결정하는 데 사용되는 소수 자릿수(scalar)이다.
+
+Asset | Scalar
+--- | ---
+AUSD | 6
+Bridged Eth (bETH) | 8
+Deepbook Token (DEEP) | 6
+Native USDC | 6
+SUI | 9
+SuiNS Token (NS) | 6
+TYPUS | 9
+Wrapped USDC (wUSDC) | 6
+Wrapped USDT (wUSDT) | 6
+
+반환된 거래량을 표준 자산 단위로 변환하려면 값을 10^SCALAR로 나눈다. 예를 들어:
+
+SUI/USDC pool의 기본 자산에 대해 반환된 거래량이 1,000,000,000 SUI UNIT인 경우, SUI에서의 올바른 거래량은 1,000,000,000 / 10^(SUI_SCALAR) = 1 SUI이다. 마찬가지로 SUI/USDC pool의 견적 자산에 대해 반환된 거래량이 1,000,000,000 USDC UNIT인 경우, 올바른 거래량은 1,000,000,000 / 10^(USDC_SCALAR) = 1,000 USDC이다.
+
+이러한 변환을 사용하여 모든 pool과 자산 간의 거래량을 올바르게 해석한다.
+
+## API endpoints
+
+DeepBookV3용 인덱서 API가 제공하는 엔드포인트를 사용하여 다음 작업을 수행할 수 있다.
+
+### Get all pool information
+
+```
+/get_pools
+```
+
+사용 가능한 모든 pool의 목록을 반환하며, 각 pool에는 기본 및 견적 자산에 대한 세부 정보와 최소 크기, 로트 크기, 틱 크기와 같은 pool 매개변수가 포함된다.
+
+#### Response
+
+```json
+[
+	{
+	  "pool_id": "string",
+	  "pool_name": "string",
+	  "base_asset_id": "string",
+	  "base_asset_decimals": integer,
+	  "base_asset_symbol": "string",
+	  "base_asset_name": "string",
+	  "quote_asset_id": "string",
+	  "quote_asset_decimals": integer,
+	  "quote_asset_symbol": "string",
+	  "quote_asset_name": "string",
+	  "min_size": integer,
+	  "lot_size": integer,
+	  "tick_size": integer
+	},
+	...
+]
+```
+
+응답의 각 pool object에는 다음 필드가 포함된다:
+
+- **pool_id:** pool에 대한 ID이다.
+- **pool_name:** pool의 이름이다.
+- **base_asset_id:** 기본 자산에 대한 ID이다.
+- **base_asset_decimals:** 기본 자산의 소수 자릿수이다.
+- **base_asset_symbol:** 기본 자산의 symbol이다.
+- **base_asset_name:** 기본 자산의 이름이다.
+- **quote_asset_id:** 견적 자산에 대한 ID이다.
+- **quote_asset_decimals:** 견적 자산의 소수 자릿수이다.
+- **quote_asset_symbol:** 견적 자산의 심볼이다.
+- **quote_asset_name:** 견적 자산의 이름이다.
+- **min_size:** 기본 자산의 최소 단위로 표현된 pool의 최소 거래 크기이다.
+- **lot_size:** 이 pool에서 기본 자산의 최소 단위로 표현된 거래 최소 증가량이다.
+- **tick_size:** 이 pool에서 거래를 위한 최소 가격 증가 단위이다.
+
+#### Example
+
+다음 엔드포인트에 대한 성공적인 요청은
+
+```http
+/get_pools
+```
+
+다음과 유사한 응답을 생성한다
+
+```json
+[
+	{
+		"pool_id": "0xb663828d6217467c8a1838a03793da896cbe745b150ebd57d82f814ca579fc22",
+		"pool_name": "DEEP_SUI",
+		"base_asset_id": "0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP",
+		"base_asset_decimals": 6,
+		"base_asset_symbol": "DEEP",
+		"base_asset_name": "DeepBook Token",
+		"quote_asset_id": "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",
+		"quote_asset_decimals": 9,
+		"quote_asset_symbol": "SUI",
+		"quote_asset_name": "Sui",
+		"min_size": 100000000,
+		"lot_size": 10000000,
+		"tick_size": 10000000
+	},
+	{
+		"pool_id": "0xf948981b806057580f91622417534f491da5f61aeaf33d0ed8e69fd5691c95ce",
+		"pool_name": "DEEP_USDC",
+		"base_asset_id": "0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP",
+		"base_asset_decimals": 6,
+		"base_asset_symbol": "DEEP",
+		"base_asset_name": "DeepBook Token",
+		"quote_asset_id": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+		"quote_asset_decimals": 6,
+		"quote_asset_symbol": "USDC",
+		"quote_asset_name": "USDC",
+		"min_size": 100000000,
+		"lot_size": 10000000,
+		"tick_size": 10000
+	}
+]
+```
+
+### Get historical volume for pool in a specific time range
+
+```http
+/historical_volume/:pool_names?start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&volume_in_base=<BOOLEAN>
+```
+
+이 엔드포인트를 사용하여 특정 시간 범위 동안 pool의 과거 거래량을 가져온다. `pool_names`는 쉼표로 구분하고 `start_time`과 `end_time` 값에는 유닉스 타임스탬프 초를 사용한다.
+
+기본적으로 이 엔드포인트는 지정된 pool에 대해 견적 자산 기준의 최근 24시간 거래량을 가져온다. 기본 자산을 기준으로 조회하려면 `volume_in_base`를 `true`로 설정한다.
+
+#### Response
+
+지정된 각 pool에 대해 주어진 시간 범위 내의 과거 거래량을 반환한다.
+
+```json
+{
+	"pool_name_1": total_pool1_volume,
+	"pool_name_2": total_pool2_volume,
+	...
+}
+```
+
+#### Example
+
+다음 엔드포인트에 대한 성공적인 요청은
+
+```http
+/historical_volume/DEEP_SUI,SUI_USDC?start_time=1731260703&end_time=1731692703&volume_in_base=true
+```
+
+다음과 유사한 응답을 생성한다
+
+```json
+{
+	"DEEP_SUI": 22557460000000,
+	"SUI_USDC": 19430171000000000
+}
+```
+
+### Get historical volume for all pools
+
+```http
+/all_historical_volume?start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&volume_in_base=<BOOLEAN>
+```
+
+이 엔드포인트를 사용하여 모든 pool에 대한 과거 거래량을 가져온다. 해당 시간 범위의 volume을 조회하려면 선택적인 `start_time`과 `end_time` 값을 유닉스 타임스탬프 초로 포함한다.
+
+기본적으로 이 엔드포인트는 견적 자산 기준의 최근 24시간 거래량을 가져온다. 기본 자산을 기준으로 조회하려면 `volume_in_base`를 `true`로 설정한다.
+
+#### Response
+
+제공된 시간 범위(있는 경우) 내에서 사용 가능한 모든 pool에 대한 과거 거래량을 반환한다.
+
+```json
+{
+	"pool_name_1": total_pool1_volume,
+	"pool_name_2": total_pool2_volume
+}
+```
+
+#### Example
+
+다음 엔드포인트에 대한 성공적인 요청은
+
+```http
+/all_historical_volume?start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&volume_in_base=<BOOLEAN>
+```
+
+다음과 유사한 응답을 생성한다
+
+```json
+{
+	"DEEP_SUI": 22557460000000,
+	"WUSDT_USDC": 10265000000,
+	"NS_USDC": 4399650900000,
+	"NS_SUI": 6975475200000,
+	"SUI_USDC": 19430171000000000,
+	"WUSDC_USDC": 23349574900000,
+	"DEEP_USDC": 130000590000000
+}
+```
+
+### Get historical volume by balance manager
+
+```http
+/historical_volume_by_balance_manager_id/:pool_names/:balance_manager_id?start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&volume_in_base=<BOOLEAN>
+```
+
+특정 시간 범위에 대해 balance manager별 과거 거래량을 가져온다. `pool_names`는 쉼표로 구분하고 선택적인 `start_time`과 `end_time` 값에는 유닉스 타임스탬프 초를 사용한다.
+
+기본적으로 이 엔드포인트는 지정된 pool에 대해 견적 자산 기준의 balance manager별 최근 24시간 거래량을 가져온다. 기본 자산을 기준으로 조회하려면 `volume_in_base`를 `true`로 설정한다.
+
+#### Response
+
+```json
+{
+	"pool_name_1": [maker_volume, taker_volume],
+	"pool_name_2": …
+}
+```
+
+#### Example
+
+24시간 간격으로 다음 엔드포인트에 대한 성공적인 요청은
+
+```http
+/historical_volume_by_balance_manager_id/SUI_USDC,DEEP_SUI/0x344c2734b1d211bd15212bfb7847c66a3b18803f3f5ab00f5ff6f87b6fe6d27d?start_time=1731260703&end_time=1731692703&volume_in_base=true
+```
+
+다음과 유사한 응답을 생성한다
+
+```json
+{
+	"DEEP_SUI": [
+		14207960000000,
+		3690000000
+	],
+	"SUI_USDC": [
+		2089300100000000,
+		17349400000000
+	]
+}
+```
+
+### Get historical volume by balance manager within a specific time range and intervals
+
+```http
+/historical_volume_by_balance_manager_id_with_interval/:pool_names/:balance_manager_id?start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&interval=<UNIX_TIMESTAMP_SECONDS>&volume_in_base=<BOOLEAN>
+```
+
+특정 시간 범위에서 간격을 포함하여 `BalanceManager`별 과거 거래량을 가져온다. `pool_names`는 쉼표로 구분하고 선택적인 `start_time`과 `end_time` 값에는 유닉스 타임스탬프 초를 사용한다. `interval` 값에는 초 단위의 숫자를 사용한다. 간단한 간격 예로, `start_time`이 5이고, `end_time`이 10이며, `interval`이 2인 경우, 응답에는 5에서 7까지와 7에서 9까지의 거래량이 기간의 시작 시간을 key로 포함된다.
+
+기본적으로 이 엔드포인트는 지정된 pool에 대해 견적 자산 기준의 최근 24시간 거래량을 가져온다. 기본 자산을 기준으로 조회하려면 `volume_in_base`를 `true`로 설정한다.
+
+#### Response
+
+```json
+{
+	"[time_1_start, time_1_end]": {
+		"pool_name_1": [maker_volume, taker_volume],
+		"pool_name_2": …
+	},
+	"[time_2_start, time_2_end]": {
+		"pool_name_1": [maker_volume, taker_volume],
+		"pool_name_2": …
+	}
+}
+```
+
+#### Example
+
+24시간 간격으로 다음 엔드포인트에 대한 성공적인 요청은
+
+```http
+/historical_volume_by_balance_manager_id_with_interval/USDC_DEEP,SUI_USDC/0x344c2734b1d211bd15212bfb7847c66a3b18803f3f5ab00f5ff6f87b6fe6d27d?start_time=1731460703&end_time=1731692703&interval=86400&volume_in_base=true
+```
+
+다음과 유사한 응답을 생성한다
+
+```json
+{
+	"[1731460703, 1731547103]": {
+		"SUI_USDC": [
+			505887400000000,
+			2051300000000
+		]
+	},
+	"[1731547103, 1731633503]": {
+		"SUI_USDC": [
+			336777500000000,
+			470600000000
+		]
+	}
+}
+```
+
+### Get summary
+
+```http
+/summary
+```
+
+DeepBookV3의 모든 거래 페어에 대한 summary를 JSON 형식으로 반환한다.
+
+#### Response
+
+각 summary object는 다음 형식을 가진다. JSON object의 필드 순서는 보장되지 않는다.
+
+```json
+{
+	"trading_pairs": "string",
+	"quote_currency": "string",
+	"last_price": float,
+	"lowest_price_24h": float,
+	"highest_bid": float,
+	"base_volume": float,
+	"price_change_percent_24h": float,
+	"quote_volume": float,
+	"lowest_ask": float,
+	"highest_price_24h": float,
+	"base_currency": "string"
+}
+```
+
+#### Example
+
+다음에 대한 성공적인 요청은
+
+```
+/summary
+```
+
+다음과 유사한 응답을 생성한다
+
+```json
+[
+	{
+    "trading_pairs": "AUSD_USDC",
+    "quote_currency": "USDC",
+    "last_price": 1.0006,
+    "lowest_price_24h": 0.99905,
+    "highest_bid": 1.0006,
+    "base_volume": 1169.2,
+    "price_change_percent_24h": 0.07501125168773992,
+    "quote_volume": 1168.961637,
+    "lowest_ask": 1.0007,
+    "highest_price_24h": 1.00145,
+    "base_currency": "AUSD"
+  },
+  {
+    "quote_volume": 4063809.55231,
+    "lowest_price_24h": 0.9999,
+    "highest_price_24h": 1.009,
+    "base_volume": 4063883.6,
+    "quote_currency": "USDC",
+    "price_change_percent_24h": 0.0,
+    "base_currency": "WUSDC",
+    "trading_pairs": "WUSDC_USDC",
+    "last_price": 1.0,
+    "highest_bid": 1.0,
+    "lowest_ask": 1.0001
+  },
+  {
+		"price_change_percent_24h": 0.0,
+		"quote_currency": "USDC",
+		"lowest_price_24h": 0.0,
+		"quote_volume": 0.0,
+		"base_volume": 0.0,
+		"highest_price_24h": 0.0,
+		"lowest_ask": 1.04,
+		"last_price": 1.04,
+		"base_currency": "WUSDT",
+		"highest_bid": 0.90002,
+		"trading_pairs": "WUSDT_USDC"
+	},
+	...
+]
+```
+
+### Get ticker information
+
+```http
+/ticker
+```
+
+모든 거래 페어의 거래량(이미 스케일 적용됨), 마지막 가격, 그리고 `isFrozen` 값을 반환한다. `isFrozen`의 가능한 값은 다음과 같다:
+
+- `0`: pool이 활성 상태이다
+- `1`: pool이 비활성 상태이다
+
+#### Response
+
+```json
+{
+  "TRADING_PAIR": {
+    "base_volume": float,
+    "quote_volume": float,
+    "last_price": float,
+    "isFrozen": integer (0 | 1)
+  }
+}
+```
+
+#### Example
+
+다음에 대한 성공적인 요청은
+
+```
+/ticker
+```
+
+다음과 유사한 응답을 생성한다
+
+```json
+{
+	"DEEP_USDC": {
+		"last_price": 0.07055,
+		"base_volume": 43760440.0,
+		"quote_volume": 3096546.9161,
+		"isFrozen": 0
+	},
+	"NS_SUI": {
+		"last_price": 0.08323,
+		"base_volume": 280820.8,
+		"quote_volume": 23636.83837,
+		"isFrozen": 0
+	},
+	...
+}
+```
+
+### Get trades
+
+```http
+/trades/:pool_name?limit=<INTEGER>&start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&maker_balance_manager_id=<ID>&taker_balance_manager_id=<ID>
+```
+
+Pool에서 가장 최근의 거래를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "trade_id": "string",
+        "base_volume": integer,
+        "quote_volume": integer,
+        "price": integer,
+        "type": "string",
+        "timestamp": integer,
+        "maker_order_id": "string",
+        "taker_order_id": "string",
+        "maker_balance_manager_id": "string",
+        "taker_balance_manager_id": "string"
+    }
+]
+```
+
+`timestamp` 값은 유닉스 밀리초이다.
+
+#### Example
+
+다음에 대한 성공적인 요청은
+
+```http
+trades/SUI_USDC?limit=2&start_time=1738093405&end_time=1738096485&maker_balance_manager_id=0x344c2734b1d211bd15212bfb7847c66a3b18803f3f5ab00f5ff6f87b6fe6d27d&taker_balance_manager_id=0x47dcbbc8561fe3d52198336855f0983878152a12524749e054357ac2e3573d58
+```
+
+다음과 유사한 응답을 생성한다
+
+```json
+[
+    {
+        "trade_id": "136321457151457660152049680",
+        "base_volume": 405,
+        "quote_volume": 1499,
+        "price": 3695,
+        "type": "sell",
+        "timestamp": 1738096392913,
+        "maker_order_id": "68160737799100866923792791",
+        "taker_order_id": "170141183460537392451039660509112362617",
+        "maker_balance_manager_id": "0x344c2734b1d211bd15212bfb7847c66a3b18803f3f5ab00f5ff6f87b6fe6d27d",
+        "taker_balance_manager_id": "0x47dcbbc8561fe3d52198336855f0983878152a12524749e054357ac2e3573d58"
+    },
+	...
+]
+```
+
+### Get order updates
+
+```http
+/order_updates/:pool_name?limit=<INTEGER>&start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&status=<"Placed" or "Canceled">&balance_manager_id=<ID>
+```
+
+Pool에서 최근에 배치되거나 취소된 오더를 반환한다
+
+#### Response
+
+```json
+[
+    {
+        "order_id": "string",
+        "balance_manager_id": "string",
+        "timestamp": integer,
+        "original_quantity": integer,
+        "remaining_quantity": integer,
+        "filled_quantity": integer,
+        "price": integer,
+        "status": "string",
+        "type": "string"
+    }
+]
+```
+
+`timestamp` 값은 유닉스 밀리초이다.
+
+#### Example
+
+다음에 대한 성공적인 요청은
+
+```http
+/order_updates/DEEP_USDC?start_time=1738703053&end_time=1738704080&limit=2&status=Placed&balance_manager_id=0xd335e8aa19d6dc04273d77e364c936bad69db4905a4ab3b2733d644dd2b31e0a
+```
+
+다음과 유사한 응답을 생성한다
+
+```json
+[
+    {
+        "order_id": "170141183464610341308794360958165054983",
+        "balance_manager_id": "0xd335e8aa19d6dc04273d77e364c936bad69db4905a4ab3b2733d644dd2b31e0a",
+        "timestamp": 1738704071994,
+        "original_quantity": 8910,
+        "remaining_quantity": 8910,
+        "filled_quantity": 0,
+        "price": 22449,
+        "status": "Placed",
+        "type": "sell"
+    },
+	...
+]
+```
+
+### Get order book information
+
+```http
+/orderbook/:pool_name?level={1|2}&depth={integer}
+```
+
+해당 pool에 대한 bid와 ask를 반환한다. 반환되는 bid와 ask는 각각 최고 호가에서 최저 호가 순으로 정렬된다. 엔드포인트에는 두 개의 선택적 쿼리 파라미터가 있다:
+
+- **level**: `level` 값은 1 또는 2이다.
+    - `1`: 최고 bid와 ask만을 반환한다.
+    - `2`: 최고 bid와 ask 순으로 정렬하여 반환한다. 이 값이 기본값이다.
+- **depth**: `depth` 값은 `0` 또는 `1`보다 큰 값이 될 수 있다. 값이 `0` 이면 전체 오더북을 반환하고, `1`보다 큰 값이면 지정된 개수만큼의 bid와 ask를 반환한다. 즉, `depth=100`, 을 제공하면 응답에는 50개의 bid와 50개의 ask가 포함된다. `depth` 값이 홀수이면 다음으로 낮은 짝수 값으로 처리된다. 따라서 `depth=101`도 50개의 bid와 50개의 ask를 반환한다. `depth` parameter를 제공하지 않으면 응답은 기본적으로 오더북의 모든 오더를 포함한다.
+
+#### Response
+
+```json
+{
+	"timestamp": "string",
+	"bids": [
+		[
+			"string",
+			"string"
+		],
+		[
+			"string",
+			"string"
+		]
+	],
+	"asks": [
+		[
+			"string",
+			"string"
+		],
+		[
+			"string",
+			"string"
+		]
+	]
+}
+```
+
+반환되는 타임스탬프는 밀리초 단위의 유닉스 타임스탬프를 나타내는 문자열이다.
+
+#### Example
+
+다음에 대한 성공적인 요청은
+
+```json
+/orderbook/SUI_USDC?level=2&depth=4
+```
+
+다음과 유사한 응답을 생성한다
+
+```json
+{
+	"timestamp": "1733874965431",
+	"bids": [
+		[
+			"3.715",
+			"2.7"
+		],
+		[
+			"3.713",
+			"2294.8"
+		]
+	],
+	"asks": [
+		[
+			"3.717",
+			"0.9"
+		],
+		[
+			"3.718",
+			"1000"
+		]
+	]
+}
+```
+
+### Get asset information
+
+```http
+/assets
+```
+
+DeepBookV3에서 거래되는 모든 코인에 대한 자산 정보를 반환한다.
+
+#### Response
+
+각 asset object는 다음 형식을 가진다:
+
+```json
+"ASSET_NAME": {
+	"unified_cryptoasset_id": "string",
+	"name": "string",
+	"contractAddress": "string",
+	"contractAddressUrl": "string",
+	"can_deposit": "string (true | false)",
+	"can_withdraw": "string (true | false)"
+}
+```
+
+#### Example
+
+다음에 대한 성공적인 요청은
+
+```json
+/assets
+```
+
+다음과 유사한 응답을 생성한다
+
+```json
+{
+  "NS": {
+    "unified_cryptoasset_id": "32942",
+    "name": "Sui Name Service",
+    "contractAddress": "0x5145494a5f5100e645e4b0aa950fa6b68f614e8c59e17bc5ded3495123a79178",
+    "contractAddressUrl": "https://suiscan.xyz/mainnet/object/0x5145494a5f5100e645e4b0aa950fa6b68f614e8c59e17bc5ded3495123a79178",
+    "can_deposit": "true",
+    "can_withdraw": "true"
+  },
+  "AUSD": {
+    "unified_cryptoasset_id": "32864",
+    "name": "AUSD",
+    "contractAddress": "0x2053d08c1e2bd02791056171aab0fd12bd7cd7efad2ab8f6b9c8902f14df2ff2",
+    "contractAddressUrl": "https://suiscan.xyz/mainnet/object/0x2053d08c1e2bd02791056171aab0fd12bd7cd7efad2ab8f6b9c8902f14df2ff2",
+    "can_deposit": "true",
+    "can_withdraw": "true"
+  },
+	...
+}
+```
+
+## Related links
+
+<relatedlink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub."></relatedlink>
