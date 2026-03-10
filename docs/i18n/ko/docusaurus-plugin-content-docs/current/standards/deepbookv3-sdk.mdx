@@ -87,7 +87,7 @@ class DeepBookMarketMaker {
 
 모든 거래를 시작하기 전에 클라이언트에 balance manager address를 제공해야 한다. Manager key는 클라이언트의 `BalanceManager` 인터페이스로 정의된 object를 가리킨다. [BalanceManager docs](./deepbookv3/balance-manager.mdx). 클라이언트와 함께 balance manager를 초기화한다. balance manager를 생성하지 않으면 클라이언트가 대신 생성하도록 할 수 있지만, 그 경우 사용자는 클라이언트를 다시 초기화해야 한다.
 
-Example using an existing balance manager:
+ 기존 balance manager를 사용하는 예시:
 
 ```tsx
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
@@ -100,13 +100,13 @@ import { BalanceManager } from './types';
 
 config();
 
-// Used wherever balance manager key is required
+// balance manager 키가 필요한 모든 곳에서 사용됨
 const BALANCE_MANAGER_KEY = 'MANAGER_1';
 
 class DeepBookMarketMaker {
-	dbClient: DeepBookClient; // For building transactions
-	suiClient: SuiClient; // For executing transactions
-	keypair: Ed25519Keypair; // For signing transactions
+	dbClient: DeepBookClient; // Transaction을 만들기 위함
+	suiClient: SuiClient; // Transaction을 실행하기 위함
+	keypair: Ed25519Keypair; // Transaction에 서명하기 위함
 	env: 'testnet' | 'mainnet';
 
 	constructor(privateKey: string, env: 'testnet' | 'mainnet') {
@@ -135,7 +135,7 @@ class DeepBookMarketMaker {
 	}
 
 	getBalanceManagers(): { [key: string]: BalanceManager } {
-		// Used wherever balance manager key is required
+		// balance manager 키가 필요한 모든 곳에서 사용됨
 		const balanceManagerAddress = process.env.BALANCE_MANAGER_ADDRESS;
 		const balanceManagerTradeCap = process.env.BALANCE_MANAGER_TRADE_CAP;
 		if (!balanceManagerAddress) {
@@ -151,7 +151,7 @@ class DeepBookMarketMaker {
 }
 ```
 
-Example creating a balance manager:
+Balance Manager 생성 예시:
 
 ```tsx
 import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
@@ -162,13 +162,13 @@ import { Transaction } from '@mysten/sui/transactions';
 import { DeepBookClient } from '../src';
 import { BalanceManager } from './types';
 
-// Used wherever balance manager key is required
+// balance manager 키가 필요한 모든 곳에서 사용됨
 const BALANCE_MANAGER_KEY = 'MANAGER_1';
 
 class DeepBookMarketMaker {
-	dbClient: DeepBookClient; // For building transactions
-	suiClient: SuiClient; // For executing transactions
-	keypair: Ed25519Keypair; // For signing transactions
+	dbClient: DeepBookClient; // Transaction을 만들기 위함
+	suiClient: SuiClient; // Transaction을 실행하기 위함
+	keypair: Ed25519Keypair; // Transaction에 서명하기 위함
 	env: 'testnet' | 'mainnet';
 
 	constructor(privateKey: string, env: 'testnet' | 'mainnet') {
@@ -262,7 +262,7 @@ import type { Keypair } from '@mysten/sui/cryptography';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import type { Transaction } from '@mysten/sui/transactions';
 
-import { DeepBookClient } from '../src/index.js'; // Adjust path according to new structure
+import { DeepBookClient } from '../src/index.js'; // 새 구조에 맞게 경로를 조정한다
 import type { BalanceManager } from '../src/types/index.js';
 
 export class DeepBookMarketMaker extends DeepBookClient {
@@ -309,7 +309,7 @@ export class DeepBookMarketMaker extends DeepBookClient {
 	};
 
 	signAndExecute = async (tx: Transaction) => {
-		// remove arguments
+		// 인자를 제거
 		return this.suiClient.signAndExecuteTransaction({
 			transaction: tx,
 			signer: this.keypair,
@@ -328,7 +328,7 @@ export class DeepBookMarketMaker extends DeepBookClient {
 
 ### Example setup
 
-The following example uses the default pools and coins provided.
+다음 예시는 기본으로 제공되는 풀(pools)과 코인(coins)을 사용합니다.
 
 ```tsx
 import { Transaction } from '@mysten/sui/transactions';
@@ -336,9 +336,9 @@ import { Transaction } from '@mysten/sui/transactions';
 import { DeepBookMarketMaker } from './deepbookMarketMaker.js';
 
 (async () => {
-	const privateKey = ''; // Can encapsulate this in a .env file
+	const privateKey = ''; // 이것을 .env 파일로 캡슐화할 수 있다
 
-	// Initialize with balance managers if created
+	// 생성된 경우 balance manager로 초기화
 	const balanceManagers = {
 		MANAGER_1: {
 			address: '',
@@ -349,11 +349,11 @@ import { DeepBookMarketMaker } from './deepbookMarketMaker.js';
 
 	const tx = new Transaction();
 
-	// Read only call
+	// 읽기 전용 호출
 	console.log(await mmClient.checkManagerBalance('MANAGER_1', 'SUI'));
 	console.log(await mmClient.getLevel2Range('SUI_DBUSDC', 0.1, 100, true));
 
-	// Balance manager contract call
+	// balance manager 컨트랙트 호출
 	mmClient.balanceManager.depositIntoManager('MANAGER_1', 'DBUSDT', 10000)(tx);
 	mmClient.balanceManager.withdrawAllFromManager(
 		'MANAGER_1',
@@ -361,7 +361,7 @@ import { DeepBookMarketMaker } from './deepbookMarketMaker.js';
 		mmClient.getActiveAddress(),
 	)(tx);
 
-	// Example custom PTB call in DeepBookMarketMaker class
+	// DeepBookMarketMaker 클래스에서 사용하는 사용자 정의 PTB 호출 예시
 	mmClient.placeLimitOrderExample(tx);
 	mmClient.flashLoanExample(tx);
 
