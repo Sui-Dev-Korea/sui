@@ -1,0 +1,94 @@
+---
+title: BalanceManager
+description: BalanceManager와 동작 방식에 대해 학습한다.
+keywords:
+  - balancemanager
+  - balance manager
+  - manage balances
+  - balances for different assets
+  - deepbook
+  - deepbookv3
+  - create balance manager
+  - balance manager with custom owner
+  - mint trade cap
+  - trade cap
+  - tradecap
+  - DepositCap
+  - WithdrawCap
+  - deposit cap
+  - withdraw cap
+  - deposit funds
+  - withdraw funds
+  - generate a TradeProof
+  - tradeproof
+---
+
+`BalanceManager` shared object는 다양한 자산에 대한 모든 잔액을 보관한다. 거래를 수행하려면 `BalanceManager`와 `TradeProof`의 조합을  [pool](./design.mdx#pool)에 전달해야 한다. `TradeProof`는 `BalanceManager` 소유자가 직접 생성하거나, 어느 `TradeCap` 소유자든 생성하는 두 가지 방식 중 하나로 생성된다. 소유자는 equivocation 위험 없이 `TradeProof`를 생성할 수 있다. `TradeCap` 소유자는 owned object이기 때문에 `TradeProof`를 생성할 때 equivocation 위험을 감수한다. 일반적으로 고빈도 거래 엔진이 기본 소유자로서 거래를 수행한다.
+
+Swap을 제외한 DeepBookV3와의 모든 상호 작용에는 입력 중 하나로 `BalanceManager`가 필요하다. 주문이 매칭되면 자금이 `BalanceManager`로 입금되거나 `BalanceManager`에서 출금된다. 모든 pool 사이에서 하나의 `BalanceManager`를 사용할 수 있다.
+
+## API
+
+`BalanceManager`가 노출하는 다양한 public 함수는 다음과 같다.
+
+### Create a BalanceManager
+
+`new()` 함수는 `BalanceManager` hot potato(ability가 없는 struct)를 생성한다. 이 함수 호출은 `share`와 결합해야 하며 그렇지 않으면 transaction이 실패한다. Transaction을 deposit 호출과 결합해 BalanceManager를 생성하고 예치한 뒤 공유하는 과정을 하나의 transaction에서 수행할 수 있다.
+
+<importcontent source="packages/deepbook/sources/balance_manager.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="new" nocomments></importcontent>
+
+### Create a BalanceManager with custom owner
+
+`new_with_owner()` 함수는 커스텀 owner를 가진 `BalanceManager` hot potato(ability가 없는 struct)를 생성한다. 이 함수 호출 역시 `share`와 결합해야 하며 그렇지 않으면 transaction이 실패한다. Transaction을 deposit 호출과 결합해 BalanceManager를 생성하고 예치한 뒤 공유하는 과정을 하나의 transaction에서 수행할 수 있다.
+
+<importcontent source="packages/deepbook/sources/balance_manager.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="new_with_owner" nocomments></importcontent>
+
+### Mint a TradeCap
+
+`BalanceManager`의 소유자는 `TradeCap`을 mint해 다른 주소로 전송할 수 있다. 해당 주소가 이를 수신하면 이 `BalanceManager`로 주문을 제출할 수 있는 capability를 갖게 된다. 그러나 해당 주소 owner는 자금을 예치하거나 인출할 수는 없다. `BalanceManager`에 대해 할당할 수 있는 `TradeCap`, `WithdrawCap`, `DepositCap`의 총 최대 개수는 `1000`이다. 이 한도에 도달하면 새 cap을 mint하기 전에 기존 cap 하나 이상을 revoke해야 한다. `revoke_trade_cap`을 사용해 `DepositCap`과 `WithdrawCap`을 revoke할 수도 있다.
+
+<importcontent source="packages/deepbook/sources/balance_manager.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="mint_trade_cap,revoke_trade_cap"></importcontent>
+
+### Mint a DepositCap or WithdrawCap
+
+`BalanceManager`의 소유자는 `DepositCap` 또는 `WithdrawCap`을 민트하여 다른 address로 전송할 수 있다. 해당 address가 이를 수신하면 `BalanceManager`에 자금을 예치하거나 인출할 수 있는 capability를 갖게 된다. 그러나 해당 address 소유자는 거래를 실행할 수는 없다. `BalanceManager`에 대해 할당할 수 있는 `TradeCap`, `WithdrawCap`, `DepositCap`의 총 최대 개수는 `1000`이다. 이 한도에 도달하면 새로운 cap을 민트하기 전에 기존 cap 하나 이상을 revoke해야 한다.
+
+<importcontent source="packages/deepbook/sources/balance_manager.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="mint_deposit_cap,mint_withdraw_cap"></importcontent>
+
+### Generate a TradeProof
+
+잔액 확인이나 이체가 필요한 함수를 호출하려면 사용자는 자신의 `BalanceManager`와 함께 `TradeProof`도 제공해야 한다. Trade proof를 생성하는 방법은 owner가 사용하는 방식과 `TradeCap` owner가 사용하는 방식 두 가지가 있다.
+
+<importcontent source="packages/deepbook/sources/balance_manager.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="generate_proof_as_owner,generate_proof_as_trader"></importcontent>
+
+### Deposit funds
+
+이 함수는 소유자만 호출해 `BalanceManager`에 자금을 예치할 수 있다.
+
+<importcontent source="packages/deepbook/sources/balance_manager.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="deposit"></importcontent>
+
+### Withdraw funds
+
+이 함수는 소유자만 호출해 `BalanceManager`에서 자금을 인출할 수 있다.
+
+<importcontent source="packages/deepbook/sources/balance_manager.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="withdraw,withdraw_all"></importcontent>
+
+### Deposit funds using DepositCap
+
+`BalanceManager`에 대한 `DepositCap` 보유자만 이 함수를 호출해 `BalanceManager`에 자금을 예치할 수 있다.
+
+<importcontent source="packages/deepbook/sources/balance_manager.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="deposit_with_cap"></importcontent>
+
+### Withdraw funds using WithdrawCap
+
+`BalanceManager`에 대한 `WithdrawCap` 보유자만 이 함수를 호출해 `BalanceManager`에서 자금을 인출할 수 있다.
+
+<importcontent source="packages/deepbook/sources/balance_manager.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="withdraw_with_cap"></importcontent>
+
+### Read endpoints
+
+<importcontent source="packages/deepbook/sources/balance_manager.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="validate_proof,balance,owner,id"></importcontent>
+
+## Related links
+
+<relatedlink href="https://github.com/MystenLabs/deepbookv3" label="DeepBookV3 repository" desc="The DeepBookV3 repository on GitHub."></relatedlink>
