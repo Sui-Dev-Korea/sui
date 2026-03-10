@@ -1,0 +1,99 @@
+---
+title: Validator Node Rewards
+description: validator 사용자와 staker 보상이 어떻게 계산되고 분배되는지를 알아보라.
+keywords:
+  - manage staking
+  - manage gas price reference
+  - tally rules
+  - validator tally rules
+  - validator staking
+  - validator consensus
+  - validator voting power
+  - user staking and rewards
+  - slashing
+  - tallying
+sidebar_position: '3'
+sidebar_label: Rewards
+---
+
+Sui에서 총 voting power는 stake된 양과 무관하게 항상 10,000이다. 따라서 quorum 임계값은 6,667이다. 사용자가 validator에 스테이킹할 수 있는 SUI 양에는 제한이 없다. 각 validator는 자신의 staking pool의 SUI에 비례하는 합의 voting power를 가지지만 한 가지 예외가 있는데 개별 validator의 voting power는 1,000(전체의 10%)으로 상한이 설정된다. validator가 전체 stake의 10%를 초과하여 축적하면 해당 validator의 voting power는 10%로 고정되며 남은 voting power는 나머지 validator 세트에 분배된다.
+
+## User staking and rewards
+
+사용자가 SUI 토큰을 stake/staking하면 토큰은 `StakedSUI` object로 wrapping된다. 사용자의 staking pool 지분은 예치가 발생한 시점을 기록하는 `StakedSUI` object의 타임스탬프와 예치 epoch와 인출 epoch 사이의 환율 변화에 따라 계산된다.
+
+각 staking pool은 환율의 시계열을 유지한다. 이 데이터는 시스템이 풀의 어떤 staker에 대해서도 올바른 인출 금액을 결정할 수 있게 한다.
+
+### Find the exchange rate
+
+각 epoch 변경은 환율 정보를 포함하는 validator별 `0x2::validator_set::ValidatorEpochInfo` 이벤트를 방출한다. Events API를 사용하여 이벤트를 쿼리할 수 있다.
+
+### Rewards
+
+A stake deposit request goes into a pending state immediately in the staking pool as soon as it is made. Sui Wallet reflects any pending stake deposit requests for the user's account. However, pending stake deposit requests do not take effect until the end of the epoch during which the request is made.
+
+인출(un-stake) 요청은 수신되는 즉시 처리된다. Staker는 원래 예치된 SUI와 함께 이전 epoch 경계까지 누적된 모든 stake 보상을 받는데 이는 현재 epoch에 대한 stake 보상은 포함하지 않는다.
+
+사용자는 활성 stake의 일부를 인출할 수 없으며 한 번에 모든 staked SUI를 인출해야 한다. 그러나 사용자는 자신의 SUI를 여러 코인으로 분할함으로써 여러 `StakedSui` object를 사용해 stake/staking할 수 있다. 그런 다음 `StakedSUI` object 중 일부만 un-staking함으로써 validator로부터 부분 인출을 수행할 수 있다.
+
+### Withdrawals
+
+Stake withdrawals are processed immediately with the exchange rate prevailing at the previous epoch's exchange rate. Withdrawals do not have to wait for the current epoch to close. Withdrawals include both the original stake the user deposited and all the stake rewards accumulated up to the previous epoch. Stakers do not earn the rewards accruing to their stake during the epoch at which they withdraw. Since there is no way to know how many stake rewards will be accumulated during the current epoch until the epoch closes, these cannot be included in the withdrawal. Hence, any user can withdraw their stake immediately and receive:
+
+$$ SUI withdrawn at E' = ( SUI deposited at E ) * ( Exchange Rate at E'-1 / Exchange Rate at E ) $$
+
+## Staker rewards
+
+주어진 validator staking pool 내에서 모든 스테이커는 풀의 환율 상승을 통해 동일한 비율의 보상을 받는다. validator는 자신이 관리하는 stake에 대해 수수료를 벌기 때문에 각 epoch가 끝날 때 자신의 staking pool이 벌어들인 수수료 금액에 비례하여 추가 `StakedSUI` object를 받는다.
+
+Staking 보상은 현재 epoch 동안 수집된 transaction 가스 수수료와 epoch가 끝날 때 방출되는 stake 보조금으로 자금이 조달된다.
+
+$$ StakeRewards = StakeSubsidies + GasFees $$
+
+stake 보조금은 네트워크의 초기 단계 동안 네트워크를 보조하기 위한 것이며 SUI 토큰의 10% 할당으로 자금이 조달된다. 이 할당이 고갈된 후에는 stake 보상의 전부가 정규 네트워크 운영을 통해 수집된 가스 수수료로 구성된다.
+
+stake 보상은 가스 수수료와 stake 보조금으로 구성된다. 각 epoch 동안 분배되는 총액은 다음과 같이 결정된다:
+
+- **Stake 보조금:** 각 epoch에서 분배되는 금액은 사전에 정의된 스케줄에 따라 해당 epoch가 시작되기 전에 결정된다.
+- **가스 수수료:** 각 epoch의 금액은 해당 epoch 동안 수집된 총 가스 수수료에 따라 달라진다. 각 Sui transaction은 실행된 가스 유닛의 양과 가스 가격이라는 두 변수에 따라 가스 수수료를 지불한다.
+
+$$ _GasFee = GasPrice _ GasUnits $$
+
+수집된 가스 수수료의 총액은 해당 epoch에서 처리된 모든 transaction에 대한 가스 수수료의 합에 해당한다. 정상적인 시장 조건에서는 대부분의 transaction이 `ReferenceGasPrice`와 동일한 `GasPrice`를 가져야 한다.
+
+## Reference gas price
+
+Sui는 정규 네트워크 운영 동안 최종 사용자가 가스 가격이 안정적이고 예측 가능하다고 기대할 수 있도록 설계된다. 이는 validator가 각 epoch의 시작에서 네트워크의 참조 가스 가격을 설정하도록 함으로써 달성된다.
+
+운영적으로 이는 다음과 같이 발생하는 가스 가격 조사를 통해 달성된다.
+
+- 각 epoch E 동안 각 validator는 다음 epoch E+1에 대한 최적의 참조 가스 가격이 무엇이어야 한다고 생각하는지를 제출한다.
+- epoch 경계에서 Sui가 epoch E에서 epoch E+1로 전환될 때 네트워크는 validator 집합 전반의 가스 가격 견적을 관측하고 stake로 가중한 2/3 퍼센타일을 해당 epoch의 참조 가스 가격으로 설정한다. 따라서 참조 가스 가격은 각 epoch 동안 일정하며 epoch가 변경될 때만 업데이트된다.
+
+예를 들어 동일한 stake를 가진 validator가 일곱 명 있고 그들이 제출한 가격 견적이 `{15, 1, 4, 2, 8, 3, 23}`이라면 프로토콜은 참조 가스 가격을 8로 설정한다.
+
+실제로 가스 가격 조사에 대한 가스 가격 견적을 제출하는 과정은 단순하다. 각 validator는 참조 가스 가격에 대한 자신의 견적을 포함하는 object를 소유한다. 응답을 변경하려면 그 object의 값을 업데이트해야 한다.
+
+예를 들어 다음 epoch에 대한 가격 견적을 42로 설정하려면 다음을 실행하라.
+
+<importcontent source="info-gas-budget.mdx" mode="snippet"></importcontent>
+
+```sh
+$ sui client call --package <PACKAGE-ID> --module sui_system --function request_set_gas_price --args 0x5 \"42\" --gas-budget <GAS-AMOUNT>
+```
+
+가스 object의 값은 epoch 전반에 걸쳐 유지되므로 업데이트하고 새 견적을 제출하지 않는 validator는 이전 epoch의 동일한 견적을 사용한다는 점은 중요하다. 따라서 자신의 운영을 최적화하려는 validator는 네트워크 운영과 시장 조건의 변화에 대응하여 매 epoch마다 자신의 견적을 업데이트해야 한다.
+
+## Validator slashing and tallying rule
+
+Sui는 validator 집합에 대한 커뮤니티 모니터링을 장려하고 강제하도록 설계된다. 이는 각 validator가 모두가 효율적으로 그리고 네트워크의 최선의 이익을 위해 운영되고 있음을 보장하기 위해 모든 다른 validator를 모니터링하고 점수를 매기는 집계 규칙을 통해 수행된다. 낮은 점수를 받는 validator는 슬래싱된 stake 보상으로 페널티를 받을 수 있다.
+
+프로토콜은 epoch 경계에서만 전역 집계 규칙 점수를 계산하므로 다른 validator의 행동 변화가 감지될 때마다 validator가 능동적으로 모니터링하고 자신의 개별 점수를 변경하는 것에 의존한다. 일반적으로 집계 규칙의 기본 옵션은 모든 validator에 대해 항상 1점이어야 하며 나쁜 운영이 판단될 때만 0으로 변경되어야 한다. 실제로 집계 규칙은 각 validator가 소유하며 기본 점수가 1인 object들의 세트로 구성되므로 validator는 일반적으로 수동적이며 필요할 때에만 다른 validator의 점수에 해당하는 object를 업데이트한다.
+
+예를 들어 Sui 주소가 `0x44840a79dd5cf1f5efeff1379f5eece04c72db13512a2e31e8750f5176285446`인 validator를 나쁘게 운영하거나 성능이 낮다고 보고하려면 다음을 실행하라.
+
+```sh
+$ sui client call --package <PACKAGE-ID> --module sui_system --function report_validator --args 0x5 0x44840a79dd5cf1f5efeff1379f5eece04c72db13512a2e31e8750f5176285446 --gas-budget <GAS-AMOUNT>
+```
+
+집계 규칙은 사회적 균형을 통해 구현되어야 한다. validator 집합은 스스로를 능동적으로 모니터링해야 하며 하나의 validator가 명백히 성능이 낮다면 다른 validator들은 그 validator를 0점으로 채점하고 보상을 슬래싱해야 한다. 커뮤니티 구성원은 validator 성능을 추적하는 공개 대시보드를 출시할 수 있으며 이는 validator의 운영에 대한 추가 신호로 사용될 수 있다. 하나의 epoch에서 0 집계 점수를 받을 수 있는 validator의 수에는 제한이 없다.
