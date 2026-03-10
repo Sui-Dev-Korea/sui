@@ -1,0 +1,63 @@
+---
+title: Validator Node Committee
+description: Sui에는 온체인 transaction을 검증하기 위한 validator 위원회가 있다. 해당 위원회의 접점은 epoch, quorums, transaction, certificate, 그리고 concensus다.
+keywords:
+  - sui validator node
+  - validator committee
+  - epochs
+  - quorums
+  - write requests
+  - transactions
+  - certificates
+  - consensus
+  - verify on-chain
+  - verify transactions on-chain
+  - validator nodes
+sidebar_position: '2'
+sidebar_label: Committee
+---
+
+Sui 네트워크에는 독립적인 validator들의 집합이 참여하며 각 validator는 별도의 머신(또는 동일한 엔티티가 운영하는 머신의 샤딩된 클러스터)에서 자체 Sui 소프트웨어 인스턴스를 실행한다. 각 validator는 클라이언트가 보낸 읽기 및 쓰기 요청을 처리하며 transaction을 검증하고 온체인 정보를 업데이트한다.
+
+stake/staking 및 보상이 어떻게 동작하는지를 포함하여 Sui validator 노드를 설정하고 실행하는 방법을 알아보려면 [Sui Validator Node Configuration](./validator-config.mdx)을 참조하라.
+
+> **중요 업데이트**: Sui는 validator의 진입 장벽을 크게 낮추기 위해 SIP-39를 구현하고 있다.<br>최소 stake 요구 사항은 곧 30M SUI에서 voting power 기반 임계값으로 변경되며 필요한 SUI는 약 3M 수준으로 줄어든다.<br>validator가 되는 데 관심이 있다면 validator 커뮤니케이션에 참여하기 위해 [fill out this form](https://docs.google.com/forms/d/e/1FAIpQLSf6ZngRJ6Q5RdEiBfnbpUq4Htj8ShL58I6JRkmRTwTVSzeNtQ/viewform)을 작성하라.
+
+Sui는 위임 지분 증명 (DPoS)을 사용하여 어떤 validator가 네트워크를 운영하는지와 그들의 voting power를 결정한다. Validator는 transaction 수수료의 일부와 staking 보상을 통해 선의로 참여하도록 인센티브를 받으며 오작동이 발생한 경우 stake/staking 및 staking 보상이 슬래싱된다.
+
+## Epochs
+
+Sui 네트워크의 운영은 겹치지 않는 대략적인 고정 지속 시간(~24시간)의 epoch로 시간적으로 분할된다. 특정 epoch 동안에는 네트워크에 참여하는 validator 집합과 그들의 voting power가 고정된다. epoch 경계에서 재구성이 발생할 수 있으며 네트워크에 참여하는 validator 집합과 그들의 voting power를 변경할 수 있다. 개념적으로 재구성은 이전 epoch의 최종 상태를 [genesis](../genesis.mdx)로 하고 새로운 validator 집합을 운영자로 하는 Sui 프로토콜의 새 인스턴스를 시작한다. Validator 집합 변경 외에도 stake/staking 및 un-staking과 같은 토큰노믹스 작업과 staking 보상의 분배도 epoch 경계에서 처리된다.
+
+## Quorums
+
+Quorums는 특정 epoch 동안 전체의 3분의 2(&gt;2/3)를 초과하는 결합 voting power를 가진 validator들의 집합이다. 예를 들어 모두 동일한 voting power를 가진 네 명의 validator가 운영하는 Sui 인스턴스에서는 세 명의 validator를 포함하는 어떤 그룹이든 quorum이다.
+
+2/3의 크기를 가진 quorum은 Byzantine fault tolerance (BFT)를 보장한다. Validator는 quorum의 암호학적 서명이 함께 제공될 때에만 transaction을 커밋하며(즉, transaction을 내구적으로 저장하고 transaction의 영향으로 내부 상태를 업데이트한다). Sui는 transaction과 그 바이트에 대한 quorum 서명의 결합을 *certificate*라고 부른다. Certificate만 커밋하는 정책은 Byzantine fault tolerance를 보장하는데 &gt;2/3의 validator가 프로토콜을 성실히 따른다면 커밋된 certificate의 세트와 그 효과에 대해 결국 합의하게 됨이 보장된다.
+
+## Write requests
+
+validator는 transaction과 certificate라는 두 가지 유형의 쓰기 요청을 처리할 수 있다. 높은 수준에서 클라이언트는 다음을 수행한다:
+
+- Certificate를 형성하는 데 필요한 서명을 수집하기 위해 클라이언트는 transaction을 quorum의 validator에게 전달한다.
+- 클라이언트는 해당 validator에서 상태 변경을 커밋하기 위해 certificate를 validator에 제출한다.
+
+### Transactions
+
+When a validator receives a transaction from a client, it first performs transaction validity checks (validity of the sender's signature). If the checks pass, the validator locks all owned-objects and signs the transaction bytes, then returns the signature to the client. The client repeats this process with multiple validators until it has collected signatures on its transaction from a quorum, thereby forming a certificate.
+
+transaction에 대한 validator 서명을 수집하여 certificate로 만드는 과정과 certificate를 제출하는 과정은 병렬로 수행될 수 있다. 클라이언트는 동시에 임의의 수의 validator에게 transaction 또는 certificate를 멀티캐스트할 수 있다. 혹은 클라이언트는 이 작업들 중 하나 또는 둘 모두를 서드파티 서비스 제공자에게 아웃소싱할 수 있다. 이 제공자는 liveness에 대해서는 신뢰되어야 하지만(certificate 형성을 거부할 수 있다) safety에 대해서는 신뢰될 필요가 없다(즉, transaction의 효과를 변경할 수 없고 사용자의 비밀 키도 필요로 하지 않는다).
+
+### Certificates / certified transactions {#certificates}
+
+클라이언트가 certificate를 형성한 후 이를 validator에 제출하면 validator는 certificate 유효성 검사를 수행한다. 이 검사는 서명자가 현재 epoch의 validator인지와 서명이 암호학적으로 유효한지를 보장한다. 검사가 통과되면 validator는 certificate 안의 transaction을 실행한다. transaction의 실행은 성공하여 모든 효과를 커밋하거나 중단되어 가스 입력을 차감하는 것 외에는 아무런 변화가 없는 둘 중 하나이다. transaction이 중단될 수 있는 이유에는 명시적 중단 명령, 0으로 나누기와 같은 런타임 오류, 또는 최대 가스 예산 초과가 포함된다. 성공하든 중단하든 validator는 내부 transaction의 해시로 인덱싱된 certificate를 내구적으로 저장한다.
+
+If a client collects a quorum of signatures on the effects of the transaction, then the client has a promise of finality. This means that transaction effects persist on the shared database and are actually committed and visible to everyone by the end of the epoch. This does not mean that the latency is a full epoch, because you can use the effects certificate to convince anyone of the transactions finality, as well as to access the effects and issue new transactions. As with transactions, you can parallelize the process of sharing a certificate with validators and (if desired) outsource to a third-party service provider.
+
+## The role of consensus
+
+Sui는 certified transaction을 시퀀싱하기 위해 Mysticeti 알고리즘을 구현하는 고처리량 DAG 기반 합의 엔진을 사용한다. 합의는 일련의 커밋을 생성한다. 각 커밋에는 certified transaction의 시퀀스가 있다.
+
+합의 출력에서 transaction의 순서는 각 transaction이 각 shared object에서 작동할 수 있는 상대적 순서를 결정한다. 서로 다른 shared object를 건드리는 transaction의 실행은 여러 코어에서 병렬화된다는 점에 유의하라.
+
+합의 커밋에서 transaction의 총 실행 비용이 임계값을 초과하면 시스템 과부하를 피하기 위해 합의 이후에 transaction이 취소될 수 있다.
