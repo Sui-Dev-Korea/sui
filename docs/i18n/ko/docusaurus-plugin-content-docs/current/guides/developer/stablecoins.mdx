@@ -17,8 +17,7 @@ keywords:
   - ptbs
   - programmable transaction blocks
   - stablecoins in programmable transaction blocks
-pagination_prev: null
-draft: true
+pagination_prev: ''
 ---
 
 스테이블코인은 법정 통화 또는 자산 바스켓에 상대하여 안정적인 가치를 유지하도록 설계된 암호화폐의 한 종류이다. 스테이블코인은 거래, 대출, 그리고 가치 저장 수단으로 널리 사용된다.
@@ -57,19 +56,17 @@ USDY는 Ondo Finance가 발행하는 완전 담보형 미국 달러 스테이블
 
 ## How to use USDC on Sui {#usdc-guide}
 
-:::info
-이 예시는 USDC를 사용하지만, 동일한 원칙을 [Sui Currency Standard](/standards/currency.mdx)를 사용하는 Sui의 어떤 자산에도 적용할 수 있다.
-:::
+:::info 이 예시는 USDC를 사용하지만, 동일한 원칙을 [Sui Currency Standard](/standards/currency.mdx)를 사용하는 Sui의 어떤 자산에도 적용할 수 있다. :::
 
-<Tabs className="tabsHeadingCentered--small--small">
-<TabItem value="prereq" label="Prerequisites">
+<tabs classname="tabsHeadingCentered--small--small"><tabitem value="prereq" label="Prerequisites"></tabitem></tabs>
 
 - [x] [Install the latest version of Sui](/guides/developer/getting-started/sui-install).
 
 - [x] USDC token이 일부 있는지 확인한다. Circle의 [faucet](https://faucet.circle.com/)에서 Testnet token을 받는다.
 
-</TabItem>
-</Tabs>
+
+
+
 
 ### USDC stablecoin source code
 
@@ -85,11 +82,9 @@ usdc = { git = "https://github.com/circlefin/stablecoin-sui.git", subdir = "pack
 
 module을 import한 후, Move package는 다음과 같이 보여야 한다:
 
-<ImportContent source="examples/move/usdc_usage/Move.toml" mode="code" />
+<importcontent source="examples/move/usdc_usage/Move.toml" mode="code"></importcontent>
 
-:::warning
-`usdc` package는 `sui` package의 특정 버전을 사용하며, 이는 the Sui framework의 `Sui` package와 버전 충돌을 유발한다. `Move.toml` 파일에서 `Sui` package의 버전을 override하여 다른 버전을 사용하도록 할 수 있다. `Move.toml` 파일의 `Sui` package에 `override = true` 플래그를 추가한다.
-:::
+:::warning `usdc` package는 `sui` package의 특정 버전을 사용하며, 이는 the Sui framework의 `Sui` package와 버전 충돌을 유발한다. `Move.toml` 파일에서 `Sui` package의 버전을 override하여 다른 버전을 사용하도록 할 수 있다. `Move.toml` 파일의 `Sui` package에 `override = true` 플래그를 추가한다. :::
 
 ### Using USDC in Move
 
@@ -103,11 +98,11 @@ use usdc::usdc::USDC;
 
 그런 다음 `Coin<SUI>` 파라미터를 받을 때 `SUI` 타입을 사용하는 것과 동일하게 `USDC` 타입을 사용한다.
 
-<ImportContent source="examples/move/usdc_usage/sources/example.move" mode="code" fun="buy_sword_with_usdc" />
+<importcontent source="examples/move/usdc_usage/sources/example.move" mode="code" fun="buy_sword_with_usdc"></importcontent>
 
 다음 예시는 Move package에서 USDC 스테이블코인을 사용하는 방법과, `SUI` 타입 및 제네릭 coin 타입을 사용하는 것과의 관계를 보여준다.
 
-<ImportContent source="examples/move/usdc_usage/sources/example.move" mode="code" />
+<importcontent source="examples/move/usdc_usage/sources/example.move" mode="code"></importcontent>
 
 ### Using USDC in PTBs
 
@@ -122,9 +117,7 @@ const usdcCoin = coinWithBalance({
 })
 ```
 
-:::info
-`0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29`는 USDC의 [Testnet address](https://suiscan.xyz/testnet/coin/0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC)이며, `0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7`는 [Mainnet address](https://suiscan.xyz/coin/0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC)이다.
-:::
+:::info `0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29`는 USDC의 [Testnet address](https://suiscan.xyz/testnet/coin/0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC)이며, `0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7`는 [Mainnet address](https://suiscan.xyz/coin/0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC)이다. :::
 
 이 coin object는 `Coin` 파라미터 또는 제네릭 `Coin` 파라미터를 받는 어떤 함수의 파라미터로 사용할 수 있다.
 
@@ -155,6 +148,4 @@ tx.transferObjects([usdcCoin], recipientAddress);
 
 ## Related links
 
-<RelatedLink to="/guides/developer/coin/regulated.mdx" />
-<RelatedLink to="/guides/developer/coin/loyalty.mdx" />
-<RelatedLink to="/guides/developer/coin/in-game-token.mdx" />
+<relatedlink to="/guides/developer/coin/regulated.mdx"></relatedlink><relatedlink to="/guides/developer/coin/loyalty.mdx"></relatedlink><relatedlink to="/guides/developer/coin/in-game-token.mdx"></relatedlink>
