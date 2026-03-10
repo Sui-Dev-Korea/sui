@@ -44,7 +44,7 @@ validator는 transaction과 certificate라는 두 가지 유형의 쓰기 요청
 
 ### Transactions
 
-When a validator receives a transaction from a client, it first performs transaction validity checks (validity of the sender's signature). If the checks pass, the validator locks all owned-objects and signs the transaction bytes, then returns the signature to the client. The client repeats this process with multiple validators until it has collected signatures on its transaction from a quorum, thereby forming a certificate.
+Validator가 클라이언트로부터 transaction을 수신하면 먼저 transaction 유효성 검사를 수행한다(sender 서명의 유효성). 검사가 통과되면 validator는 모든 owned-object를 잠그고 transaction 바이트에 서명한 다음 그 서명을 클라이언트에 반환한다. 클라이언트는 quorum으로부터 자신의 transaction에 대한 서명을 수집하여 certificate를 형성할 때까지 여러 validator에 대해 이 과정을 반복한다.
 
 transaction에 대한 validator 서명을 수집하여 certificate로 만드는 과정과 certificate를 제출하는 과정은 병렬로 수행될 수 있다. 클라이언트는 동시에 임의의 수의 validator에게 transaction 또는 certificate를 멀티캐스트할 수 있다. 혹은 클라이언트는 이 작업들 중 하나 또는 둘 모두를 서드파티 서비스 제공자에게 아웃소싱할 수 있다. 이 제공자는 liveness에 대해서는 신뢰되어야 하지만(certificate 형성을 거부할 수 있다) safety에 대해서는 신뢰될 필요가 없다(즉, transaction의 효과를 변경할 수 없고 사용자의 비밀 키도 필요로 하지 않는다).
 
@@ -52,7 +52,7 @@ transaction에 대한 validator 서명을 수집하여 certificate로 만드는 
 
 클라이언트가 certificate를 형성한 후 이를 validator에 제출하면 validator는 certificate 유효성 검사를 수행한다. 이 검사는 서명자가 현재 epoch의 validator인지와 서명이 암호학적으로 유효한지를 보장한다. 검사가 통과되면 validator는 certificate 안의 transaction을 실행한다. transaction의 실행은 성공하여 모든 효과를 커밋하거나 중단되어 가스 입력을 차감하는 것 외에는 아무런 변화가 없는 둘 중 하나이다. transaction이 중단될 수 있는 이유에는 명시적 중단 명령, 0으로 나누기와 같은 런타임 오류, 또는 최대 가스 예산 초과가 포함된다. 성공하든 중단하든 validator는 내부 transaction의 해시로 인덱싱된 certificate를 내구적으로 저장한다.
 
-If a client collects a quorum of signatures on the effects of the transaction, then the client has a promise of finality. This means that transaction effects persist on the shared database and are actually committed and visible to everyone by the end of the epoch. This does not mean that the latency is a full epoch, because you can use the effects certificate to convince anyone of the transactions finality, as well as to access the effects and issue new transactions. As with transactions, you can parallelize the process of sharing a certificate with validators and (if desired) outsource to a third-party service provider.
+클라이언트가 transaction의 효과에 대한 서명의 quorum을 수집하면 클라이언트는 finality에 대한 보장성을 가진다. 이는 transaction 효과가 공유 데이터베이스에 지속되며 epoch가 끝날 때까지 실제로 커밋되고 모두에게 보이게 된다는 뜻이다. 이는 지연 시간이 epoch 전체라는 뜻이 아니며, 그 이유는 effects certificate를 사용하여 누구에게나 transaction의 finality을 납득시키는 동시에 그 효과에 접근하고 새로운 transaction을 발행할 수 있기 때문이다. transaction과 마찬가지로 validator와 certificate를 공유하는 과정을 병렬화할 수 있으며, 원한다면 서드파티 서비스 제공자에게 아웃소싱할 수도 있다.
 
 ## The role of consensus
 
