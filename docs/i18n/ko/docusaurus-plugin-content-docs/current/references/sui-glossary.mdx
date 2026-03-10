@@ -1,0 +1,121 @@
+---
+title: Glossary
+slug: "/sui-glossary"
+description: Sui에 특정된 용어에 대해 학습한다.
+keywords:
+  - casual history
+  - casual order
+  - certificate
+  - epoch
+  - equivocation
+  - eventual consistency
+  - finality
+  - gas
+  - genesis
+  - multi-writer objects
+  - objects
+  - proof-of-stake
+  - proof of stake
+  - single-writer objects
+  - sui
+  - SUI token
+  - total order
+  - transaction
+  - transfer
+  - validator
+pagination_prev: ''
+---
+
+Sui에서 사용되는 용어를 아래에서 찾아볼 수 있다.
+
+### Causal history {#causal-history}
+
+Causal history는 Sui에서 object와 그 직접적인 선행자 및 후속자 간의 관계이다. 이 이력은 Sui가 transaction을 처리하는 데 사용하는 causal order에 필수적이다. 이와 대조적으로, 다른 블록체인들은 각 transaction마다 전체 세계 상태를 읽어 지연 시간을 발생시킨다.
+
+### Causal order {#causal-order}
+
+[Causal order](https://www.scattered-thoughts.net/writing/causal-ordering/)는 transaction과 그들이 생성하는 object 간의 관계를 의존성으로 배치한 표현이다. Validator들은 아직 완료되지 않은 이전 transaction에 의해 생성된 object에 의존하는 transaction을 실행할 수 없다. Sui는 total order가 아닌 causal order(부분 순서)를 사용한다.
+
+### Certificate {#certificate}
+
+Certificate는 transaction이 승인되거나 인증되었음을 증명하는 메커니즘이다. Validator는 transaction에 대해 투표하고, 집계자는 이러한 투표의 비잔틴 저항 다수를 certificate로 수집하여 모든 Sui validator에 브로드캐스트하여 확정성을 보장한다.
+
+### Epoch {#epoch}
+
+Sui 네트워크의 운영은 시간적으로 겹치지 않는 고정 기간 epoch로 분할된다. 특정 epoch 동안 네트워크에 참여하는 validator 세트는 고정된다.
+
+### Equivocation {#equivocation}
+
+블록체인에서 equivocation은 불성실한 행위자가 동일한 메시지에 대해 일관되지 않거나 중복된 투표와 같은 충돌하는 정보를 제공하는 악의적인 행동이다.
+
+### Eventual consistency {#eventual-consistency}
+
+[Eventual consistency](https://en.wikipedia.org/wiki/Eventual_consistency)는 Sui가 채택한 합의 모델이다; 하나의 정직한 validator가 transaction을 인증하면, 다른 모든 정직한 validator도 결국 인증할 것이다.
+
+### Finality {#finality}
+
+[Finality](https://medium.com/mechanism-labs/finality-in-blockchain-consensus-d1f83c120a9a)는 transaction이 취소되지 않을 것이라는 보장이다. 이 단계는 거래소 또는 기타 블록체인 transaction에 대한 종료로 간주된다.
+
+### Gas {#gas}
+
+[Gas](https://ethereum.org/en/developers/docs/gas/)는 Sui 네트워크에서 작업을 실행하는 데 필요한 계산 노력을 의미한다. Sui에서 gas는 네트워크의 네이티브 통화인 SUI로 지불된다. SUI 단위로 transaction을 실행하는 비용을 transaction fee라고 한다.
+
+### Genesis {#genesis}
+
+Genesis는 Sui 네트워크를 위한 계정과 gas object를 생성하는 초기 행위이다. Sui는 네트워크를 운영할 수 있도록 설정하는 제네시스 object를 생성하고 검사할 수 있는  `genesis` 커맨드를 제공한다.
+
+### Multi-writer objects {#multi-writer-objects}
+
+Multi-writer object는 둘 이상의 address가 소유한 object이다. Multi-writer object에 영향을 미치는 transaction은 Sui에서 합의가 필요하다. 이것은 소유자의 address 내용 확인만 필요한 single-writer object에만 영향을 미치는 transaction과 대조된다.
+
+### Object {#object}
+
+Sui에서 스토리지의 기본 단위는 object이다. 스토리지가 address를 중심으로 하고 각 address가 키-값 스토어를 포함하는 많은 다른 블록체인과 대조적으로, Sui의 스토리지는 object를 중심으로 한다. Sui object는 다음 주요 상태 중 하나를 가진다:
+
+- *Immutable* - object는 수정할 수 없다.
+- *Mutable* - object는 수정할 수 있다.
+
+또한, mutable object는 다음 범주로 나뉜다:
+
+- *Owned* - object는 소유자에 의해서만 수정할 수 있다.
+- *Shared* - object는 누구나 수정할 수 있다.
+
+Immutable object는 소유자가 없기 때문에 이러한 구분이 필요하지 않다.
+
+### Proof-of-stake {#proof-of-stake}
+
+[Proof-of-stake](https://en.wikipedia.org/wiki/Proof_of_stake)는 각 validator의 투표 가중치가 네트워크의 네이티브 통화의 결합된 양(네트워크에서의 stake라고 함)에 비례하는 블록체인 합의 메커니즘이다. 이것은 악의적인 행위자가 먼저 블록체인에서 큰 stake를 얻도록 강제하여 [Sybil attacks](https://en.wikipedia.org/wiki/Sybil_attack)를 완화한다.
+
+### Single-writer objects {#single-writer-objects}
+
+Single-writer object는 하나의 address가 소유한 object이다. Sui에서 동일한 address가 소유한 single-writer object에만 영향을 미치는 transaction은 보낸 사람의 address 확인만으로 진행할 수 있어 transaction 시간을 크게 단축한다. 이것들은 *simple transactions*이다. 이 simple transaction 모델의 예제 애플리케이션은 Single-Writer Apps를 참조한다.
+
+### Smart contract {#smart-contract}
+
+[smart contract](https://en.wikipedia.org/wiki/Smart_contract)는 블록체인에서 transaction을 수행하기 위한 프로토콜을 기반으로 하는 합의이다. Sui에서 smart contract는[Move](https://github.com/MystenLabs/awesome-move) 프로그래밍 언어로 작성된다.
+
+### Sui {#sui}
+
+Sui는 Sui 블록체인과 [Sui open source project](https://github.com/MystenLabs/sui/) 전체를 의미한다.
+
+### Sui {#sui}
+
+SUI는 Sui 네트워크의 네이티브 토큰이다.
+
+### Total order {#total-order}
+
+[Total order](https://en.wikipedia.org/wiki/Total_order) 는 주어진 시간까지 전통적인 블록체인이 처리한 모든 transaction의 히스토리를 순서대로 표현한 것을 의미한다. 이것은 transaction을 처리하는 유일한 방법으로 많은 블록체인 시스템에서 유지된다. 대조적으로, Sui는 가능하고 안전한 곳에서 causal(부분) 순서를 사용한다.
+
+### Transaction {#transaction}
+
+Sui의 transaction은 블록체인에 대한 변경이다. 이것은 NFT를 민팅하거나 NFT 또는 다른 토큰을 전송하는 것과 같이 단일-writer, 단일-address object에만 영향을 미치는 *simple transaction*일 수 있다. 이러한 transaction은 Sui의 합의 프로토콜을 우회할 수 있다.
+
+자산 관리 및 기타 DeFi 사용 사례와 같이 공유되거나 여러 address가 소유한 object에 영향을 미치는 더 *복잡한 transaction*은 합의를 거친다.
+
+### Transfer {#transfer}
+
+Transfer는 Sui의 명령을 통해 토큰의 소유자 address를 새로운 것으로 전환하는 것이다. 이것은 Sui CLI 클라이언트 명령줄 인터페이스를 통해 수행된다. CLI 클라이언트에서 사용 가능한 많은 명령 중 더 일반적인 명령 중 하나이다.
+
+### Validator {#validator}
+
+Sui의 validator는 다른 블록체인의 validator 및 miner의 더 활발한 역할과 유사한 수동적 역할을 한다. Sui에서 validator는 합의 프로토콜에 지속적으로 참여하지 않지만, transaction 또는 certificate를 수신할 때만 작동한다.

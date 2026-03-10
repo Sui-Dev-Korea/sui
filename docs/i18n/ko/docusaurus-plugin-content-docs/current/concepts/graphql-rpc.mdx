@@ -1,0 +1,326 @@
+---
+title: GraphQL for Sui RPC (Beta)
+beta: devnet, testnet, mainnet
+description: GraphQL을 사용하여 Sui RPC 호출을 수행할 수 있다. 이 기능은 현재 베타 버전이다.
+keywords:
+  - graphql
+  - graphql headers
+  - x-sui-rpc-version
+  - x-sui-rpc-show-usage
+  - variables
+  - fragments
+  - pagination
+  - graphql limits
+  - make rpc call
+  - sui rpc calls
+---
+
+이 섹션은 HTTP 헤더를 사용하여 동작을 변경하는 것, variables와 fragments로 쿼리 스니펫을 재사용하는 것, pagination된 쿼리를 소비하는 것, 그리고 서비스가 강제하는 제한을 이해하고 그 제한 내에서 작업하는 것과 같은 GraphQL 작업 시의 일반적인 개념 몇 가지를 설명한다.
+
+자세한 내용은 다음 섹션으로 이동하라:
+
+- [Headers](#headers)
+- [Variables](#variables)
+- [Fragments](#fragments)
+- [Pagination](#pagination)
+- [Limits](#limits)
+
+GraphQL 기본에 대한 자세한 내용은 [GraphQL](https://graphql.org/learn/) 및 [GitHub](https://docs.github.com/en/graphql/guides/introduction-to-graphql)의 소개 문서를 참조하라.
+
+:::info
+
+<importcontent source="data-serving-msg.mdx" mode="snippet"></importcontent>
+
+<importcontent source="data-serving-gql-alpha.mdx" mode="snippet"></importcontent>
+
+:::
+
+:::caution
+
+서비스 중단을 피하기 위해 GraphQL Alpha 엔드포인트(`https://sui-mainnet.mystenlabs.com/graphql`, `https://sui-testnet.mystenlabs.com/graphql`, 및 `https://sui-devnet.mystenlabs.com/graphql`)를 아직 사용하는 모든 앱을 가능한 한 빨리 GraphQL Beta 엔드포인트로 전환해야 한다.
+
+- GraphQL Beta Mainnet: https://graphql.mainnet.sui.io/graphql
+- GraphQL Beta Testnet: https://graphql.testnet.sui.io/graphql
+- GraphQL Beta Devnet: https://graphql.devnet.sui.io/graphql
+
+:::
+
+## Headers
+
+서비스는 다음 선택적 헤더를 허용한다.
+
+- `x-sui-rpc-version`는 사용할 RPC 버전을 지정하기 위한 헤더이며(현재는 하나의 버전만 지원된다),
+- `x-sui-rpc-show-usage`는 추가 쿼리 복잡도 정보가 포함된 응답을 반환한다.
+
+기본적으로 각 요청은 응답 헤더 `x-sui-rpc-version`에 서비스의 버전을 반환한다.
+
+```sh
+$ curl -i -X POST https://graphql.testnet.sui.io/graphql\
+     --header 'x-sui-rpc-show-usage: true'                 \
+     --header 'Content-Type: application/json'             \
+     --data '{
+          "query": "query { epoch { referenceGasPrice } }"
+     }'
+```
+
+이전 요청에 대한 응답은 다음과 같다:
+
+```sh
+HTTP/2 200
+content-type: application/json
+content-length: 179
+x-sui-rpc-version: 1.56.1-
+vary: origin, access-control-request-method, access-control-request-headers
+access-control-allow-origin: *
+date: Tue, 09 Sep 2025 23:34:04 GMT
+via: 1.1 google
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+{
+  "data": {
+    "epoch": {
+      "referenceGasPrice": "1000"
+    }
+  },
+  "extensions": {
+    "usage": {
+      "input": {
+        "nodes": 2,
+        "depth": 2
+      },
+      "payload": {
+        "query_payload_size": 67,
+        "tx_payload_size": 0
+      },
+      "output": {
+        "nodes": 2
+      }
+    }
+  }
+}
+```
+
+## Variables
+
+Variables는 재사용 가능하거나 정적인 쿼리에 동적 입력을 도입하는 방법을 제공하며 `query` 또는 `mutation`의 파라미터에서 `${/code2} 기호와 그 타입(이 예에서는 {code3}Int{/code3})을 사용해 변수를 선언하는데 이 타입은 {code4}scalar{/code4}, {code5}enum{/code5}, 또는 {code6}input{/code6} 타입이어야 하고 쿼리 본문에서는 그 이름{code7}$` 기호 접두 포함)으로 이를 참조한다.
+
+Variable을 선언했지만 쿼리에서 이를 사용하지 않거나 정의하지(값 제공) 않으면 쿼리는 실행에 실패한다.
+
+자세히 알아보려면 [Variables](https://graphql.org/learn/queries/#variables)의 GraphQL 문서를 읽어라.
+
+다음 예시에서는 변수가 조회되는 epoch의 ID를 제공한다.
+
+```graphql
+query ($epochID: Int) {
+  epoch(id: $epochID) {
+    referenceGasPrice
+  }
+}
+```
+
+**Variables**:
+
+```json
+{
+   "epochID": 100
+}
+```
+
+### In the IDE
+
+온라인 IDE를 사용할 때는 메인 편집 창 하단의 **Variables** 창에서 쿼리에 변수를 JSON object로 제공한다. 변수를 제공했지만 이를 선언하지 않으면 경고를 받는다.
+
+### In requests
+
+GraphQL 서비스에 요청할 때(예를 들어 `curl`을 사용하는 경우) 쿼리와 변수를 단일 JSON object의 두 필드로 전달하라:
+
+```sh
+$ curl -X POST https://sui-testnet.mystenlabs.com/graphql \
+    --header 'Content-Type: application/json' \
+    --data '{
+      "query": "query ($epochID: Int) { epoch(id: $epochID) { referenceGasPrice } }",
+      "variables": { "epochID": 100 }
+  }'
+```
+
+## Fragments
+
+Fragments는 필요에 따라 쿼리에 포함할 수 있는 재사용 가능한 단위이다.<br>자세히 알아보려면 공식 GraphQL [documentation](https://graphql.org/learn/queries/#fragments)을 참조하라. 다음 예시는 Fragments를 사용하여 Move 값(value)을 나타내는 재사용 가능한 스니펫을 분리한다.
+
+```graphql
+query DynamicField {
+  object(
+    address: "0xb57fba584a700a5bcb40991e1b2e6bf68b0f3896d767a0da92e69de73de226ac"
+  ) {
+    dynamicField(
+      name: {
+        type: "0x2::kiosk::Lock",
+        bcs: "NLArx1UJguOUYmXgNG8Pv8KbKXLjWtCi6i0Yeq1Vhfw=",
+      }
+    ) {
+      ...DynamicFieldSelect
+    }
+  }
+}
+
+fragment DynamicFieldSelect on DynamicField {
+  name {
+    ...MoveValueFields
+  }
+  value {
+    ...DynamicFieldValueSelection
+  }
+}
+
+fragment DynamicFieldValueSelection on DynamicFieldValue {
+  __typename
+  ... on MoveValue {
+    ...MoveValueFields
+  }
+  ... on MoveObject {
+    hasPublicTransfer
+    contents {
+      ...MoveValueFields
+    }
+  }
+}
+
+fragment MoveValueFields on MoveValue {
+  type {
+    repr
+  }
+  json
+  bcs
+}
+```
+
+## Pagination
+
+GraphQL은 잠재적으로 중첩될 수 있는 여러 종류의 데이터를 가져오는 쿼리를 지원하며, 예를 들어 다음 쿼리는 epoch `97`에서 특정 transaction block 이후의 처음 20개 transaction block(및 digest, sender의 address, transaction에 대한 비용을 지불하는 데 사용된 gas object, 가스 가격, 가스 예산)을 조회한다.
+
+```graphql
+query {
+  epoch(epochId: 97) {
+    transactions(first: 10) {
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      nodes {
+        digest
+        sender {
+          address
+        }
+        effects {
+          gasEffects {
+            gasObject {
+              address
+            }
+          }
+        }
+        gasInput {
+          gasPrice
+          gasBudget
+        }
+      }
+    }
+  }
+}
+```
+
+단일 응답으로 반환할 transaction이 너무 많으면 서비스는 가변 크기 응답(예: `transactionBlock` 쿼리)에 대해 최대 페이지 크기에 [limit](#limits)을 적용하며 [pagination](https://graphql.org/learn/pagination/)을 통해 추가 결과를 가져와야 한다.
+
+### Connections
+
+Pagination된 응답을 반환하는 필드는 최소한 다음 선택적 파라미터를 허용한다:
+
+- `first`는 페이지 크기에 대한 제한이며 끝에서 초과 결과를 제거하여 이 제한을 만족한다.
+- `after`는 결과의 하한을 배타적으로 경계짓는 커서이다.
+- `last`는 페이지 크기에 대한 제한이며 시작에서 초과 결과를 제거하여 이 제한을 만족한다.
+- `before`는 결과의 상한을 배타적으로 경계짓는 커서이다.
+
+또한 이들은 [GraphQL Cursor Connections Specification](https://relay.dev/graphql/connections.htm)을 따르는 타입을 반환하는데 이는 그 이름이 `Connection`으로 끝난다는 뜻이며 최소한 다음 필드를 포함한다:
+
+- `pageInfo`는 <unsafelink href="/references/sui-api/sui-graphql/beta/reference/types/objects/page-info">PageInfo</unsafelink> 타입이며 반환된 페이지의 이전이나 이후에 더 많은 페이지가 있는지 여부를 나타낸다.
+- `nodes`는 페이지네이션된 응답의 내용으로, 페이지네이션이 적용되는 타입의 리스트이다(이전 예시에서는 `TransactionBlock`이다).
+- `edges`는 `nodes`와 유사하지만 각 노드를 [cursor](#cursors)와 함께 연관짓는다.
+
+### Cursors
+
+Cursors는 pagination된 결과에 대한 불투명한 식별자이다. `after` 및 `before`와 같은 커서 파라미터에 대한 유일하게 유효한 소스는 이전 페이지네이션된 응답의 커서 필드(예: `PageInfo.startCursor`, `PageInfo.endCursor`, 또는 `Edge.cursor`)이다.<br>커서의 기저 형식은 구현 세부 사항이며 GraphQL 서비스의 버전 간에 고정된 상태로 유지된다고 보장되지 않으므로 이에 의존하지 말아야 하며 – 임의로 커서를 만들어 사용하는 것은 허용되지 않는다.
+
+Cursors는 `after`로 결과를 아래에서 경계짓고 `before`로 위에서 경계짓는 데 사용된다. 두 경우 모두 이 경계는 배타적이며 이는 경계가 적용되는 구간에 커서가 가리키는 결과를 포함하지 않는다.
+
+#### Consistency
+
+Cursors는 **일관된** pagination도 보장한다. 첫 번째 페이지네이션된 쿼리가 체크포인트 `X`에서 네트워크의 상태를 읽는다면 첫 번째 쿼리가 반환한 커서를 사용해 다음 페이지의 결과를 가져오는 이후 호출은 이제 더 이후 체크포인트의 데이터가 사용 가능하더라도 체크포인트 `X`시점의 네트워크 상태를 기준으로 읽는다.
+
+이 속성은 함께 사용되는 커서(예를 들어 `after` 및 `before` 경계를 제공할 때)가 동일한 체크포인트에 고정되어야 함을 요구하며 그렇지 않으면 쿼리는 오류를 발생시킨다.
+
+#### Available range
+
+서로 다른 쿼리는 각자 고유한 리텐션 정책의 적용을 받는다.<br>예를 들어 live object set 쿼리는 최근 체크포인트(분 또는 시간 단위로 측정됨)에 대해서만 동작하며 transaction pagination은 적용된 필터에 따라 서로 다른 리텐션이 지원되는 상태에서 특정 체크포인트(주 또는 월 단위로 측정됨)까지만 거슬러 올라가 동작할 수 있다. 이 범위를 벗어난 데이터는 pruning되어 제거된다. 다음과 같이 쿼리에 대한 해당 범위의 상한과 하한을 조회할 수 있다.
+
+```graphql
+{
+  serviceConfig {
+    retention(type: "Query", field: "transactions", filter: "affectedAddress") {
+      first { sequenceNumber }
+      last { sequenceNumber }
+    }
+  }
+}
+```
+
+결과는 페이지네이션이 계속 동작하며 일관된 결과를 생성하는 첫 번째와 마지막 체크포인트이다. 작성 시점에 사용 가능한 범위는 페이지네이션을 마무리하기 위한 5~15분의 버퍼 기간을 제공한다.
+
+### Page limits
+
+커서로 결과를 경계지은 후 `first` 및 `last` 파라미터를 사용해 페이지 크기 제한을 적용한다.<br>서비스는 이 파라미터가 최대 페이지 크기 [limit](#limits) 이하이어야 함을 요구하며 둘 다 제공하지 않으면 기본값을 선택한다. 제한을 설정하는 것 외에도 `first` 및 `last`는 초과 요소가 어느 쪽에서 버려지는지를 제어한다. 예를 들어 커서 경계가 적용된 후 `10`개의 잠재적 결과 – `R0`, `R1`, …, `R9` – 가 있다면 다음과 같다.
+
+- `first: 3`의 제한은 `R0`, `R1`, `R2`를 선택하며
+- `last: 3`의 제한은 `R7`, `R8`, `R9`를 선택한다.
+
+:::info
+
+`first` 및 `last` 제한을 모두 적용하는 것은 오류이다.
+
+:::
+
+### Examples
+
+이 원칙들이 실제로 적용되는 것을 보려면 시작 가이드에서 [paginating forwards](../guides/developer/getting-started/graphql-rpc.mdx#page-forward) 및 [paginating backwards](../guides/developer/getting-started/graphql-rpc.mdx#page-back)의 예시를 참조하라.
+
+## Limits
+
+Sui RPC의 GraphQL 서비스는 네트워크 처리량을 최적화하고 서비스에 대한 과도하거나 남용적인 호출로부터 보호하기 위해 사용 가능한 모든 인스턴스에서 속도 제한이 적용된다.
+
+### Rate limits
+
+서비스를 모든 사용자에게 고가용으로 제공하기 위해 쿼리는 분당 시도 횟수 기준으로 속도 제한이 적용된다.
+
+### Query limits
+
+속도 제한 외에도 쿼리는 노드 수, 쿼리의 깊이, 또는 페이로드 크기와 같은 복잡도에 대한 여러 규칙을 기준으로 검증된다. 이러한 제한을 조회하려면 `serviceConfig` 필드를 쿼리하라. 사용 가능한 제한 일부를 조회하는 방법의 예시는 다음과 같다:
+
+```graphql
+{
+  serviceConfig {
+    maxQueryDepth
+    maxQueryNodes
+    maxOutputNodes
+    defaultPageSize
+    maxPageSize
+    queryTimeoutMs
+    maxQueryPayloadSize
+    maxTypeArgumentDepth
+    maxTypeArgumentWidth
+    maxTypeNodes
+    maxMoveValueDepth
+  }
+}
+```
+
+## Related links
+
+<relatedlink to="/guides/developer/getting-started/graphql-rpc.mdx"></relatedlink><relatedlink to="/references/sui-graphql.mdx"></relatedlink><relatedlink to="/concepts/graphql-indexer"></relatedlink>

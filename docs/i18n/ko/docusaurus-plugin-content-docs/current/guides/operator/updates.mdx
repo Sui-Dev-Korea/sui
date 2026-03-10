@@ -1,0 +1,48 @@
+---
+title: Updating a Full Node
+description: 네트워크와 동기화를 유지하기 위해 Sui 풀 노드를 최신 버전으로 업데이트한다.
+keywords:
+  - update a full node
+  - update full node
+  - update node
+  - sui release schedule
+  - release schedule
+  - release process
+  - how to update node
+  - when should nodes be updated
+  - when are updates released
+---
+
+## Sui release process
+
+각 Sui 네트워크는 일관된 일정에 따라 배포된다. 예외적인 상황으로 인해 릴리스가 지연될 수 있지만, 이러한 지연은 드물며 [official channels](#communication)을 통해 공지된다.
+
+- `devnet`: 매주 월요일에 배포된다.
+- `testnet`: 매주 화요일에 배포된다.
+- `mainnet`: 2주마다 수요일에 배포된다.
+
+:::info
+
+추가 세부 정보는 각 네트워크의 [release schedule and configuration](https://sui.io/networkinfo)을 참조하면 된다.
+
+:::
+
+Sui가 새 버전을 릴리스할 때마다 해당 릴리스를 사용해 풀 노드를 업데이트하여 연결된 네트워크와의 호환성을 보장해야 한다. 예를 들어 Sui Testnet을 사용하는 경우 Sui Testnet에서 실행 중인 Sui 버전을 설치해야 한다.
+
+프로토콜 변경이 포함된 모든 릴리스는 프로토콜 업그레이드가 이루어지기 전에 따라야 하며 (validator 세트 내에서 충분한 stake가 업그레이드되면, 다음 epoch에서 새 프로토콜 버전이 적용된다). 풀 노드를 업데이트하지 않으면 프로토콜 업그레이드가 이루어진 후에는 네트워크에 연결할 수 없게 된다.
+
+## Communication
+
+릴리스는 [Sui Discord server](https://discord.com/invite/sui) 와 [node-operators](https://groups.google.com/a/groups.sui.io/g/node-operators) Google 그룹에서 공지된다.
+
+### Discord channels
+
+- `devnet`: [`#devnet-updates`](https://discord.com/channels/916379725201563759/1004638487078772736)
+- `testnet`: [`#tn-validator-announcements`](https://discord.com/channels/916379725201563759/1003660994381353101), [`#testnet-updates`](https://discord.com/channels/916379725201563759/1095151359642304612), [`#node-announcements`](https://discord.com/channels/916379725201563759/1002231298888306718).
+- `mainnet`: [`⁠#mn-validator-announcements`](https://discord.com/channels/916379725201563759/1093852827627040768), [`#mainnet-updates`](https://discord.com/channels/916379725201563759/1103082453792464906), [`#node-announcements`](https://discord.com/channels/916379725201563759/1002231298888306718).
+
+## Update your full node
+
+Sui의 최신 버전은 GitHub의 [Sui Releases](https://github.com/MystenLabs/sui/releases) 페이지에서 확인할 수 있다. 각 네트워크의 일정은 [Network Release Schedule](https://sui.io/networkinfo) 페이지에서 확인할 수 있다.
+
+업데이트를 수행하기 위해 풀 노드를 중단해야 하는 것은 자연스러운 일이며, 이는 Kubernetes에서의 롤링 재시작이 될 수도 있고, Linux 머신에서 sui-node 바이너리를 교체하기 위한 systemctl stop이 될 수도 있다.

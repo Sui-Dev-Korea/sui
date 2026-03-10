@@ -1,0 +1,176 @@
+---
+title: Access Sui Data
+description: Sui에서 사용 가능한 데이터 접근 메커니즘 유형에 대한 개요이다.
+keywords:
+  - data types
+  - data access
+  - data access interfaces
+  - json RPC
+  - custom indexers
+  - indexers
+  - gRPC
+  - graphql RPC
+  - general purpose indexer
+---
+
+사용 가능한 인터페이스를 통해 [Transactions](/concepts/transactions.mdx), [Checkpoints](/concepts/cryptography/system/checkpoint-verification.mdx), [Objects](/concepts/object-model.mdx), [Events](/guides/developer/sui-101/using-events.mdx) 등과 같은 Sui 네트워크 데이터에 접근할 수 있다. 이 데이터를 애플리케이션 워크플로에 사용하거나 관심 있는 애플리케이션 또는 프로토콜 전반의 네트워크 동작을 분석하거나 네트워크의 일부 또는 전체에 대한 감사(audit)를 수행하는 데 사용할 수 있다.
+
+이 문서는 현재 Sui 네트워크 데이터에 접근하기 위해 사용 가능한 인터페이스를 개괄하며 이것이 점진적으로 어떻게 진화하고 있는지에 대한 개요를 함께 제공한다. 이 문서에서 언급되는 릴리스 단계에 대한 다음 정의를 참조하라:
+
+- **Alpha** - 변경될 수 있는 실험적 릴리스이며 프로덕션 사용에는 권장되지 않는다. 프로덕션이 아닌 환경에서 탐색을 위해 이를 사용할 수 있다.
+- **Beta** - 사용자 피드백에 따라 변경될 수 있는 꽤 안정적인 릴리스이다. 프로덕션이 아닌 환경에서 테스트와 프로덕션 준비를 위해 이를 사용할 수 있다. 프로덕션에서 이를 사용한다면 그에 대한 책임은 사용자에게 있다.프로덕션이 아닌 환경에서 원하는 기능적 특성, 성능, 그리고 기타 관련 특성을 검증한 후에만 사용을 고려해야 하며 변경 사항에 대비하여 애플리케이션을 정기적으로 업데이트하는 데 불편함이 없을 때에만 사용해야 한다.
+- **Generally available (GA)** - 프로덕션에서 사용할 수 있는 완전히 안정적인 릴리스이다. 호환성이 깨지는 변경 사항에 대한 알림은 사전에 제공된다.
+
+## Current data access interfaces
+
+현재 다음 메커니즘 중 어떤 것이든 사용하여 Sui 네트워크 데이터에 접근할 수 있다:
+
+- [RPC providers](https://sui.io/developers#dev-tools)( `RPC`로 필터링한다) 또는 [Data indexer operators](https://github.com/sui-foundation/awesome-sui?tab=readme-ov-file#indexers--data-services)가 운영하는 Sui [Full nodes](guides/operator/sui-full-node.mdx)에 호스팅된 [JSON-RPC](/references/sui-api.mdx)에 직접 연결하라.
+    - [Mainnet](https://fullnode.mainnet.sui.io:443), [Testnet](https://fullnode.testnet.sui.io:443), 또는 [Devnet](https://fullnode.devnet.sui.io:443) 로드 밸런서 URL은 Sui Foundation이 관리하는 풀 노드를 추상화한다. 이는 프로덕션 사용에 권장되지 않는다.
+- 관심 있는 데이터를 Postgres 데이터베이스에 지속적으로 로드하기 위해 자체 [custom indexer](/guides/developer/advanced/custom-indexer.mdx)를 설정하라.
+
+:::info
+
+alpha 또는 beta에서 사용할 수 있는 [future-oriented interfaces](#future-data-access-interfaces) 중 하나를 사용할 수도 있지만 이는 프로덕션 사용에 권장되지 않는다.
+
+:::
+
+### JSON-RPC
+
+현재 Sui 풀 노드에서 실시간 데이터 또는 과거 데이터를 얻을 수 있다. 과거 데이터의 리텐션 기간은 노드 운영자가 구현하는 [pruning strategy](/guides/operator/data-management.mdx#sui-full-node-pruning-policies)에 따라 달라지지만 현재 모든 풀 노드의 기본 구성은 과거 transaction 데이터에 대해 암묵적으로 [Sui Foundation-managed key-value store](/guides/operator/data-management.mdx#sui-full-node-key-value-store-backup)로 폴백한다.
+
+:::주의
+
+WebSocket 기반 JSON RPC인 `suix_subscribeEvent` 및 `suix_subscribeTransaction`은 2024년 7월에 deprecated되었다. 애플리케이션에서 해당 RPC에 의존하지 말아야 하며 미래의 대안에 대해 알아보려면 [Future data access interfaces](#future-state-data-interfaces)를 참조하라.
+
+:::
+
+### Custom indexer
+
+애플리케이션에 필요한 데이터의 타입, 세분성, 그리고 리텐션 기간에 대해 더 많은 제어가 필요하거나 관계형 데이터베이스에서 가장 잘 제공될 수 있는 특정 쿼리 패턴이 있다면 자체 [custom indexer](/guides/developer/advanced/custom-indexer.mdx)를 설정하거나 이미 이를 설정했을 수도 있는 [Data indexer operator](https://github.com/sui-foundation/awesome-sui?tab=readme-ov-file#indexers--data-services)에게 연락할 수 있다.
+
+자신의 인덱서를 설정한다면 지속적인 유지보수와 관련 인프라 및 운영 비용에 대한 책임은 사용자에게 있다. 애플리케이션의 리텐션 요구 사항을 고려하여 관계형 데이터베이스에 대한 pruning strategy를 구현함으로써 비용을 줄일 수 있다.
+
+:::info
+
+custom indexer는 앱 또는 프로토콜별 애플리케이션 로직과 데이터 레이아웃에 적합한 선택이다. 또한 이는 [future data access interfaces](#future-data-access-interfaces)의 일부이기도 하다.
+
+:::
+
+## Future data access interfaces
+
+<div class="bg-sui-ghost-white"> ![Future state data serving stack](../images/dataservingstack.png)</div>
+
+미래에 Sui 접근 데이터에 접근하기 위한 주요 인터페이스는 다음을 포함한다:
+
+- [gRPC API](../../../concepts/grpc-overview.mdx)는 풀 노드에서 JSON-RPC를 대체하며 현재 beta에서 사용할 수 있다. 이미 JSON-RPC를 사용하고 있거나 사용 사례에 대한 의존성으로 이를 활용하기 시작하고 있다면 합리적인 기간 내에 gRPC 또는 GraphQL(아래를 참조하라)로 마이그레이션해야 한다. [high-level timeline for gRPC availability](#grpc-api)를 참조하라.
+- [General-purpose Indexer](../../../concepts/graphql-indexer.mdx)는 [custom indexing framework](../../../concepts/custom-indexing-framework.mdx)의 성능이 높고 확장 가능한 구현체이며 현재 beta에서 사용할 수 있다. 이를 사용하여 네트워크 데이터를 대규모로 Postgres 관계형 데이터베이스에 로드하라.
+- [GraphQL RPC](../../../concepts/graphql-indexer.mdx)에는 General-purpose Indexer의 관계형 데이터베이스에서 데이터를 읽는 데 사용할 수 있는 경량 GraphQL RPC Server가 포함되며 현재 beta에서 사용할 수 있다. 기존 애플리케이션에서 JSON-RPC로부터의 마이그레이션을 포함하여 gRPC 대신 사용할 수 있다. [high-level timeline for GraphQL availability](#graphql-rpc)를 참조하라.
+
+일부 또는 모든 provider가 General-purpose Indexer와 GraphQL RPC Server를 운영하기로 선택한다는 가정 하에 이러한 옵션으로도 [RPC provider](https://sui.io/developers#dev-tools)(`RPC`로 필터링한다) 또는 [Data indexer operator](https://github.com/sui-foundation/awesome-sui?tab=readme-ov-file#indexers--data-services)를 여전히 활용할 수 있다.
+
+### gRPC API
+
+앞서 언급했듯이 [gRPC API](../../../concepts/grpc-overview.mdx)는 풀 노드에서 JSON-RPC를 대체할 것이며 따라서 gRPC API가 일반적으로 사용 가능해지면 JSON-RPC는 deprecated될 것이다. 두 인터페이스 간의 메시지 및 요청 형식 변화와는 별개로 gRPC API에는 몇 가지 핵심적인 기능적 차이점이 있다:
+
+- Use streaming or subscription API endpoints to consume real-time streaming data in your application without having to poll for those records. This support replaces the deprecated WebSocket support in JSON-RPC.
+- 앞서 언급한 과거 transaction 데이터에 대한 [Sui Foundation-managed key-value store](/guides/operator/data-management.mdx#sui-full-node-key-value-store-backup)로의 암묵적 폴백은 없다. 풀 노드 운영자, RPC provider, 그리고 data indexer operator는 과거 데이터를 가져오기 위한 명시적 의존성이 될 수 있는 유사한 아카이브 스토어의 자체 인스턴스를 실행하는 것이 권장된다. [Archival Store and Service](#archival-store-and-service)에 대해 더 알아보라.
+
+GraphQL RPC와의 비교를 위해 [When to use gRPC vs GraphQL with General-purpose Indexer](#when-to-use-grpc-vs-graphql-with-general-purpose-indexer)를 참조하라.
+
+:::info
+
+[gRPC API](../../../concepts/grpc-overview.mdx)는 beta이며 사용자 피드백에 따라 변경될 수 있는 다소 안정적인 릴리스이다. 프로덕션이 아닌 환경에서 테스트와 프로덕션 준비를 위해 이를 사용할 수 있다.
+
+:::
+
+**High-level timeline**
+
+아래에 표시된 목표 시점은 잠정적이며 프로젝트 진행 상황과 사용자 피드백에 따라 업데이트될 수 있다.
+
+Tentative time | Milestone | Description
+--- | --- | ---
+:heavy_check_mark: April 2025 | 폴링 기반 API 초기 세트의 beta 릴리스이다. | 애플리케이션에서 초기 gRPC 통합을 검증하기 시작하고 보고 싶은 개선 사항에 대한 피드백을 공유할 수 있다.
+:heavy_check_mark: July 2025 | 스트리밍 API와 나머지 폴링 기반 API 세트의 beta 릴리스이다. | 사용 사례가 낮은 지연 시간의 스트리밍 데이터를 필요로 한다면 이 시점은 해당 통합을 검증하기 시작하기에 적절한 때이다. 또한 이 시점에는 API 커버리지의 기능이 완성될 것이므로 프로덕션이 아닌 환경에서 애플리케이션을 마이그레이션하기 시작할 수 있다.
+2025년 9월-10월 | 폴링 기반 및 스트리밍 API의 GA 릴리스이다. | 프로덕션 환경에서 애플리케이션의 마이그레이션과 전환을 시작하라. **이 시점에서 JSON-RPC는 deprecated되며 마이그레이션 고지 기간이 시작된다.**
+2026년 4월 | 마이그레이션 타임라인의 끝 | **이 시점에서 JSON-RPC는 완전히 비활성화될 것이다.** 이 타임라인은 약 7개월의 마이그레이션 고지 기간을 가정한다.
+
+### General-purpose Indexer
+
+앞서 언급했듯이 [General-purpose Indexer](../../../concepts/graphql-indexer.mdx)에는 [custom indexing framework](../../../concepts/custom-indexing-framework.mdx)의 성능이 높고 확장 가능한 구현체가 포함된다. 기저 프레임워크는 remote checkpoint store와 풀 노드 RPC를 사용하여 데이터를 수집한다.
+
+General-purpose Indexer는 서로 다른 종류의 Sui 네트워크 데이터를 Postgres 관계형 테이블로 병렬로 로드하도록 이를 매끄럽게 구성할 수 있다는 점에서 선언적이다. 이는 Postgres 호환 데이터베이스로의 데이터 수집 성능을 개선한다. 또한 Postgres 호환 데이터베이스의 서로 다른 테이블에 대해 pruning을 구성할 수 있어 원하는 성능과 비용 특성의 조합에 맞게 이를 튜닝할 수 있다.
+
+:::info
+
+General-purpose Indexer는 beta이며 사용자 피드백에 따라 변경될 수 있는 다소 안정적인 릴리스이다. 프로덕션이 아닌 환경에서 테스트와 프로덕션 준비를 위해 이를 사용할 수 있다.
+
+:::
+
+### GraphQL RPC
+
+[GraphQL RPC Server](../../../concepts/graphql-indexer.mdx)는 General-purpose Indexer의 Postgres 호환 데이터베이스, [Archival Service](#archival-store-and-service), 그리고 풀 노드에서 데이터를 읽는 성능이 높은 GraphQL RPC 레이어이다. GraphQL RPC는 gRPC API의 대안이다.현재 애플리케이션에서 JSON-RPC를 이미 사용하고 있다면 General-purpose Indexer, Postgres 호환 데이터베이스, 그리고 GraphQL RPC server의 결합 스택을 직접 운영하거나 RPC provider 또는 인덱서 운영자로부터 서비스로 이를 활용함으로써 GraphQL RPC로 마이그레이션하는 옵션이 있다.
+
+GraphQL RPC Server is a lightweight server component that allows you to combine data from multiple tables in the Postgres-compatible database using GraphQL's expressive querying system, which is appealing to frontend developers.
+
+gRPC API와의 비교를 위해 [When to use gRPC vs GraphQL with General-purpose Indexer](#when-to-use-grpc-vs-graphql-with-general-purpose-indexer)를 참조하라.
+
+:::info
+
+GraphQL RPC Server는 beta이며 사용자 피드백에 따라 변경될 수 있는 다소 안정적인 릴리스이다. 프로덕션이 아닌 환경에서 테스트와 프로덕션 준비를 위해 이를 사용할 수 있다.
+
+:::
+
+**High-level timeline**
+
+이 표에 표시된 목표 시점은 잠정적이며 프로젝트 진행 상황과 사용자 피드백에 따라 업데이트될 수 있다.
+
+Tentative time | Milestone | Description
+--- | --- | ---
+:heavy_check_mark: September 2025 | Beta release of GraphQL RPC Server and General-purpose Indexer. | You can start validating the setup of General-purpose Indexer, along with testing the GraphQL RPC Server to access the indexed Sui data. You can also start migrating your application in the non-production environments, and share feedback on the improvements you want to see.
+September-October 2025 | Deprecation of JSON-RPC. | **JSON-RPC will be deprecated at this point and migration notice period will start.**
+December 2025 | GA release of GraphQL RPC Server and General-purpose Indexer. | Begin migration and cutover of your application in the production environment.
+April 2026 | End of migration timeline. | **JSON-RPC will be fully deactivated at this point.** This timeline assumes about 7 months of migration notice period.
+
+### Archival Store and Service
+
+Long-term access to historical on-chain data is essential for developers, although Full nodes enforce limited retention for scalability and performance. Use the [Archival Store and Service](../../../concepts/archival-store.mdx) to access historical on-chain data data through a pluggable storage backend (like [Bigtable](https://cloud.google.com/bigtable)) and a [gRPC interface compatible with the `LedgerService` endpoint](../../../concepts/grpc-overview.mdx).
+
+This infrastructure serves as the historical backbone for GraphQL RPC, gRPC-based apps, and data platforms, providing efficient point-lookups for old transactions, checkpoints, and object states, even after Full nodes have pruned them.
+
+You can:
+
+- Query the archival store via gRPC-based archival service for missing data when using a Full node
+- Power GraphQL RPC queries that span unretained data
+- Host the service yourself, use a provider, or rely on the public-good version (with rate limits)
+
+Learn more about [Archival Store and Service](../../../concepts/archival-store.mdx).
+
+### When to use gRPC vs GraphQL with General-purpose Indexer
+
+You can use the high-level criteria mentioned in the following table to determine whether gRPC API or GraphQL RPC with General-purpose Indexer would better serve your use case. It's not an exhaustive list and it's expected that either of the options could work suitably for some of the use cases.
+
+Dimension | gRPC API | GraphQL RPC with General-purpose Indexer
+--- | --- | ---
+Type of application or data consumer. | Ideal for Web3 exchanges, DeFi market maker apps, other DeFi protocols or apps with ultra low-latency needs. | Ideal for webapp builders or builders with slightly relaxed latency needs.
+Query patterns. | Okay to read data from different endpoints separately and combine on the client-side; faster serialization, parsing, and validation due to binary format. | Allows easier decoupling of the client with the ability to combine data from different tables in a single request; returns consistent data from different tables across similar checkpoints, including for paginated results.
+Retention period requirements. | Default retention period will be two weeks with actual configuration dependent on the full node operator and their needs and goals; see history-related note after the table. | Default retention period in Postgres database will be four weeks with actual configuration depending on your or a RPC provider or data indexer operator's needs; see history-related note after the table.
+Streaming needs. | Will include a streaming or subscription API before beta release. | Subscription API is planned but will be available after GA.
+Incremental costs. | Little to no incremental costs if already using full node JSON-RPC. | Somewhat significant incremental costs if already using full node JSON-RPC and if retention period and query patterns differences are insignificant.
+
+:::info
+
+This table only mentions the default retention period for both options. The expectation is that it's reasonable for a full node operator, RPC provider, or data indexer operator to configure that to a few times higher without significantly impacting the performance. Also by default, GraphQL RPC Server can directly connect to a archival key-value store for historical data beyond the retention period configured for the underlying Postgres database. Whereas in comparison, gRPC API doesn't have such direct connectivity to an archival key-value store.
+
+Relevant guidelines will be provided before each option's respective GA release. Those will include recommendations for how to access historical data beyond the configured retention period for your interface of choice.
+
+:::
+
+Refer to the following articles outlining general differences between gRPC and GraphQL. Please validate the accuracy and authenticity of the differences using your own experiments.
+
+- https://stackoverflow.blog/2022/11/28/when-to-use-grpc-vs-graphql/
+- https://blog.postman.com/grpc-vs-graphql/
+
+## Related links
+
+<relatedlink to="/concepts/graphql-rpc"></relatedlink><relatedlink to="/concepts/custom-indexing-framework"></relatedlink><relatedlink to="/concepts/custom-indexer/pipeline-architecture"></relatedlink><relatedlink to="/concepts/archival-store"></relatedlink><relatedlink to="/guides/developer/advanced/custom-indexer"></relatedlink><relatedlink to="/concepts/graphql-indexer"></relatedlink><relatedlink href="/references/fullnode-protocol" label="Sui Full Node gRPC" desc="Generated documentation from the Sui gRPC schema."></relatedlink><relatedlink href="/references/sui-api/sui-graphql/beta/reference" label="GraphQL Beta schema" desc="Schema documentation for GraphQL Beta."></relatedlink>
