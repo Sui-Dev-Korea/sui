@@ -1,0 +1,54 @@
+---
+title: Coin Management
+description: Sui는 transaction에 owned object로 코인을 사용하기 때문에, programmable transaction block 개발 시 코인을 명시적으로 관리해야 한다.
+keywords:
+  - owned objects
+  - address-owned objects
+  - parallel transactions
+  - coins
+  - coin management
+  - typescript
+  - rust
+  - typescript SDK
+  - rust SDK
+  - gas smashing
+  - concurrency
+  - generic coins
+  - coin<sui>
+---
+
+Sui에서 프로그래밍할 때 핵심 개념 중 하나는 owned object이다. Address-owned object는 높은 병렬 처리가 가능한 transaction을 허용한다는 점에서 중요하다. 또한 누군가가 독점적으로 소유하는 자산이나 리소스에 논리적으로 대응된다. 코인은 owned object 사용의 대표적인 사례로, 현금이 실생활에서의 참고 사례이다. 그러나 owned object 패러다임은, 특히 코인과 관련하여, 잔액 개념을 가진 다른 블록체인과 다소 다르다. 다시 말해, 다른 시스템, 특히 계정 기반 시스템에서 코인은 은행 계좌의 잔액처럼 단일 위치(필드)에 보관된다.
+
+Sui는 잔액 대신 owned object를 사용하기 때문에, 여러 개의 코인, 경우에 따라서는 상당히 많은 수의 코인을 소유하는 것이 일반적이다. 일부 시나리오에서는 그 코인들 중 일부 또는 전부를 단일 object로 병합해야 한다. 때로는 transaction을 실행하는 데 필요한 금액이 발신자가 소유한 단일 코인보다 많아 병합이 필수적인 단계가 되기도 한다.
+
+## SDK usage
+
+Sui SDK([TypeScript](https://sdk.mystenlabs.com/typescript) 및 [Rust](/references/rust-sdk.mdx))는 코인을 대신 관리하여, 수동으로 코인 관리를 하는 오버헤드를 제거한다. SDK는 가능할 때마다 코인을 병합하려 시도하며, transaction이 순차적으로 실행된다고 가정한다. 이는 지갑 기반 transaction 및 일반적인 시나리오에서 합리적인 가정이다. 고도의 병렬 또는 동시 실행이 필요하지 않는 한, Sui는 이 기능에 의존할 것을 권장한다.
+
+## Gas smashing
+
+Transaction을 실행할 때 Sui는 여러 개의 코인을 결제 수단으로 제공할 수 있다. 다시 말해, 결제는 단일 코인이 아닌 코인의 vector가 될 수 있다. 가스 스매싱으로 알려진 이 기능은 코인을 자동으로 병합하고, 작성하는 PTB에 가스 외의 다른 목적으로도 사용할 수 있는 단일 가스 코인을 제공한다.
+
+기본적으로 원하는 만큼 많은 코인을 제공할 수 있으며(프로토콜 설정에 정의된 최대 한도 내에서), 모두 결제 수단으로 제공된 첫 번째 코인에 병합(스매싱)된다. 해당 코인은 가스 예산을 차감한 후 transaction 내에서 사용 가능하며, 모든 command에 사용할 수 있다. 코인이 사용되지 않으면 사용자에게 반환된다.
+
+가스 스매싱은 코인의 최적 관리를 위해 이해해야 할 중요한 기능이자 핵심 개념이다. 자세한 내용은 [Gas Smashing](/concepts/transactions/gas-smashing.mdx)을 참고한다.
+
+## Generic coins
+
+가스 스매싱은 가스 결제에 사용할 수 있는 유일한 코인 타입인 `Coin<Sui>` object에 적합하다.
+
+그 외 모든 코인 타입은 사용자가 명시적으로 관리해야 한다. PTB는 여러 코인을 하나로 합치는 데 사용할 수 있는 `mergeCoins` command를 제공한다. 그리고 이를 분리하는 보완적 연산인 `splitCoins`도 제공한다.
+
+비용 측면에서, 이는 매우 저렴한 transaction이지만, 사용자가 자신의 코인 현황과 필요량을 파악하고 있어야 한다.
+
+## Concurrency
+
+코인, 특히 `Coin<Sui>`를 단일 코인 또는 매우 적은 수의 코인으로 병합하는 것은 높은 동시성이 요구되는 시나리오에서 문제가 될 수 있다.
+
+모든 `Coin<Sui>`를 하나로 병합하면, 모든 transaction을 순차적으로 제출해야 한다. 코인은 owned object이므로 버전과 함께 제공되어야 하며, transaction에 서명할 때 시스템에 의해 잠기게 되어 잠긴 transaction이 실행될 때까지 다른 transaction에서 사용하는 것이 사실상 불가능해진다. 또한 동일한 코인으로 여러 transaction에 서명하려는 시도는 equivocation을 초래하여, 해당 epoch가 끝날 때까지 코인이 사용 불가능한 상태로 잠길 수 있다.
+
+따라서 높은 동시성이 필요한 경우, 먼저 코인을 동시에 실행할 transaction 수만큼의 코인으로 분리해야 한다. 또는 여러 다른 코인(가스 스매싱)을 각 transaction에 제공할 수도 있다. 다른 transaction에서 사용하는 코인 집합이 전혀 겹치지 않도록 하는 것이 매우 중요하다.
+
+높은 동시성을 다룰 때 발생할 수 있는 문제는 다양하다. Transaction 실행에서의 동시성은 유일한 성능 병목이 아니다. Transaction을 생성하고 제출하는 과정에서 올바른 object를 탐색하고 가져오거나 transaction을 드라이 런하기 위해 풀 노드와 여러 번의 왕복 통신이 필요할 수 있다. 이러한 왕복 통신은 성능에 상당한 영향을 미칠 수 있다.
+
+동시성은 어려운 주제이며 이 문서의 범위를 벗어난다. 동시성 상황에서 코인 관리를 다룰 때는 최대한 주의를 기울여야 하며, 올바른 전략은 보편적으로 적용 가능한 것이 아니라 특정 시나리오에 따라 달라지는 경우가 많다.
