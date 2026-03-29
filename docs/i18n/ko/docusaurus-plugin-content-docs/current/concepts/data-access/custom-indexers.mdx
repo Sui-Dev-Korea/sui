@@ -1,18 +1,18 @@
 ---
-title: Custom Indexers
+title: 커스텀 인덱서
 description: "`sui-indexer-alt-framework`는 Sui에서 고성능 custom blockchain indexer를 구축하기 위한 강력한 Rust 프레임워크이다. 데이터 수집, 처리, 저장을 위한 커스터마이즈 가능한 프로덕션 레벨 컴포넌트를 제공한다."
 keywords: [ indexer, custom indexer, data processing, blockchain indexer, sui-indexer-alt-framework ]
 ---
 
-Sui는 transactions, events, object changes 등 풍부하고 복잡한 데이터를 생성한다. Sui가 이러한 데이터에 접근할 수 있는 표준 API를 제공하더라도, 많은 애플리케이션은 특정 events 추적, 분석 집계, 대시보드 구축, 특화된 데이터베이스 생성과 같은 워크플로를 위해 맞춤형 데이터 처리를 필요로 한다. Custom indexers를 사용하면 필요한 특정 blockchain 데이터를 추출하고, 변환하고, 저장할 수 있다. Sui APIs를 반복적으로 조회하거나 복잡한 filtering logic을 구축하는 대신, 원시 blockchain 데이터를 한 번 처리해 원하는 형식으로 저장한다.
+Sui는 transactions, events, object changes 등 풍부하고 복잡한 데이터를 생성한다. Sui가 이러한 데이터에 접근할 수 있는 표준 API를 제공하더라도, 많은 애플리케이션은 특정 events 추적, 분석 집계, 대시보드 구축, 특화된 데이터베이스 생성과 같은 워크플로를 위해 맞춤형 데이터 처리를 필요로 한다. 커스텀 인덱서를 사용하면 필요한 특정 blockchain 데이터를 추출하고, 변환하고, 저장할 수 있다. Sui APIs를 반복적으로 조회하거나 복잡한 filtering logic을 구축하는 대신, 원시 blockchain 데이터를 한 번 처리해 원하는 형식으로 저장한다.
 
-Custom indexers는 DEX 거래량 추적, NFT collection activity 모니터링, 분석 대시보드 구축, cross-chain data 집계와 같은 사용 사례를 가능하게 한다. `sui-indexer-alt-framework`를 사용해 Custom indexers를 구축하는데, 이 프레임워크는 데이터 수집, 처리, 저장을 위한 프로덕션 레벨 컴포넌트를 제공하면서 indexing logic에 대한 완전한 제어권도 제공한다.
+커스텀 인덱서는 DEX 거래량 추적, NFT collection activity 모니터링, 분석 대시보드 구축, cross-chain data 집계와 같은 사용 사례를 가능하게 한다. `sui-indexer-alt-framework`를 사용해 커스텀 인덱서를 구축하는데, 이 프레임워크는 데이터 수집, 처리, 저장을 위한 프로덕션 레벨 컴포넌트를 제공하면서 indexing logic에 대한 완전한 제어권도 제공한다.
 
 ## When to use
 
-애플리케이션의 데이터 요구사항을 RPC providers의 managed services로 충족할 수 없거나, General-purpose Indexer가 사용 사례에 비해 너무 복잡한 경우 Custom indexers를 사용한다. Custom indexers는 앱별 또는 프로토콜별 로직과 데이터 레이아웃에 적합한 선택이다.
+애플리케이션의 데이터 요구사항을 RPC providers의 managed services로 충족할 수 없거나, General-purpose Indexer가 사용 사례에 비해 너무 복잡한 경우 커스텀 인덱서를 사용한다. 커스텀 인덱서는 앱별 또는 프로토콜별 로직과 데이터 레이아웃에 적합한 선택이다.
 
-다음과 같은 경우 Custom indexers를 고려한다:
+다음과 같은 경우 커스텀 인덱서를 고려한다:
 
 - 애플리케이션 데이터의 types, granularity, retention period를 더 세밀하게 제어해야 한다.
 - gRPC 또는 GraphQL RPC가 제공하지 않는 특정 쿼리 패턴이 있다.
@@ -24,7 +24,7 @@ Custom indexers는 DEX 거래량 추적, NFT collection activity 모니터링, �
 
 큰 흐름에서 보면, 인덱싱 프레임워크는 사전 정의된 데이터 소스에서 사용 가능한 최신 checkpoints를 지속적으로 폴링하고 해당 checkpoint data를 파이프라인의 처리 로직으로 스트리밍하는 스트리밍 파이프라인이다.
 
-Sui의 checkpoints는 일관된 blockchain state snapshots를 나타내는 transaction batch이다. 각 checkpoint에는 완전한 transaction details, events, object changes, execution results가 보장된 순서로 포함된다. checkpoints에 대한 자세한 내용은 [Life of a Transaction](/guides/developer/transactions/transaction-lifecycle)를 참조한다.
+Sui의 checkpoints는 일관된 blockchain state snapshots를 나타내는 transaction batch이다. 각 checkpoint에는 완전한 transaction details, events, object changes, execution results가 보장된 순서로 포함된다. checkpoints에 대한 자세한 내용은 [트랜잭션 생명주기](/guides/developer/transactions/transaction-lifecycle)를 참조한다.
 
 ![Overview](images/overview.png)
 
@@ -71,4 +71,4 @@ Sui의 checkpoints는 일관된 blockchain state snapshots를 나타내는 trans
 
 ## Building custom indexers
 
-애플리케이션 전용 데이터를 위한 자체 pipelines를 구축하려면 [Building Your First Custom Indexer](/guides/developer/accessing-data/custom-indexer/build.mdx)를 참조한다. 필요에 맞는 구성이 이미 준비되어 있을 수 있으므로 [data indexer operator](/references/awesome-sui.mdx#indexers--data-services)에 문의할 수도 있다.
+애플리케이션 전용 데이터를 위한 자체 pipelines를 구축하려면 [커스텀 인덱서 만들기](/guides/developer/accessing-data/custom-indexer/build.mdx)를 참조한다. 필요에 맞는 구성이 이미 준비되어 있을 수 있으므로 [data indexer operator](/references/awesome-sui.mdx#indexers--data-services)에 문의할 수도 있다.

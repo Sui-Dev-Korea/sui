@@ -1,5 +1,5 @@
 ---
-title: Database Snapshots
+title: 데이터베이스 스냅샷
 description: Sui network의 데이터베이스 스냅샷은 풀 노드 운영자가 genesis 이후 발생한 모든 transactions를 실행하지 않고도 풀 노드를 bootstrap할 수 있게 한다.
 keywords: [ node snapshots, database snapshots, full node snapshots, formal snapshots, rocksdb, rocksdb snapshot, restoring a node, restoring a full node, restoring from snapshot, managed snapshots, enabling snapshots ]
 ---
@@ -19,7 +19,7 @@ Sui는 두 가지 유형의 스냅샷을 지원한다:
 
 :::info
 
-포멀 스냅샷은 과거 data lookup을 수행하는 RPC node를 운영하는 경우에는 적합하지 않다. node data management에 대한 자세한 내용은 [Data Management](./data-management.mdx)를 참고한다.
+포멀 스냅샷은 과거 data lookup을 수행하는 RPC node를 운영하는 경우에는 적합하지 않다. node data management에 대한 자세한 내용은 [데이터 관리](./data-management.mdx)를 참고한다.
 
 :::
 
@@ -62,7 +62,7 @@ RocksDB snapshot으로 복원하려면 다음 단계를 따른다:
 ### Restoring using formal snapshots
 
 포멀 스냅샷으로 복원하려면 `sui-tool` binary를 사용한다. 다른 `sui` binaries와 함께 `sui-tool`을 다운로드할 수 있다.
-자세한 내용은 [Install Sui](/guides/developer/getting-started/sui-install.mdx)를 참고한다.
+자세한 내용은 [Sui 설치](/guides/developer/getting-started/sui-install.mdx)를 참고한다.
 
 다음 단계에 따라 포멀 스냅샷에서 node를 복원할 수 있다:
 

@@ -1,5 +1,5 @@
 ---
-title: Life of a Transaction
+title: 트랜잭션 생명주기
 description: Sui 네트워크에서의 transaction의 생명 주기는 다른 블록체인과 몇 가지 차이점이 있다.
 ---
 
@@ -115,7 +115,7 @@ Validator가 transaction을 실행한 후, 해당 transaction에서 나온 서�
 
 초다수의 validator가 transaction을 실행하고 결과 인증서가 존재하면, 해당 transaction의 결과(전송, 새로 mint된 object 등)가 구현된 것이다. 이 시점에서 네트워크는 그 결과에 의존하는 transaction들을 처리할 수 있다.
 
-Owned object만 포함하는 transaction의 경우, 이는 합의 이전에 0.5초 이내에 발생한다. transaction에 shared object가 포함되면 이는 합의 직후에 발생하며 몇 초가 걸릴 수 있다. 이 시점에서 이제 동일한 object 입력에 대해 더 많은 transaction을 처리할 수 있으므로 해당 transaction은 정산 확정성에 도달한 것이다. 자세한 내용은 [Object Ownership](/guides/developer/objects/object-ownership)을 참조하라.
+Owned object만 포함하는 transaction의 경우, 이는 합의 이전에 0.5초 이내에 발생한다. transaction에 shared object가 포함되면 이는 합의 직후에 발생하며 몇 초가 걸릴 수 있다. 이 시점에서 이제 동일한 object 입력에 대해 더 많은 transaction을 처리할 수 있으므로 해당 transaction은 정산 확정성에 도달한 것이다. 자세한 내용은 [객체 소유권 유형](/guides/developer/objects/object-ownership)을 참조하라.
 
 ## An example path to an effects certificate
 
@@ -161,7 +161,7 @@ Full node가 지갑 앱으로 결과 인증서를 보내기 전에, 요청이 �
 
 이러한 추가 단계의 목적은 특히 지갑 앱이 동일한 full node를 자주 호출할 경우 full node를 가능한 한 최신 상태로 유지하는 데 있다. 이 커피숍 예시에서는 사소할 수 있으나, 게임과 같은 고빈도 애플리케이션에서는 중요할 수 있다.
 
-앱이 transaction을 구성할 때 일반적으로 full node가 이를 위한 gas object를 선택하도록 요청한다. Gas object는 owned object이며, 이는 full node가 오래되어 해당 object의 올바른 버전을 알지 못하면 잘못된 transaction으로 이어질 수 있고, 더 나아가 클라이언트 소프트웨어가 이를 적절히 처리하지 못할 경우 클라이언트 equivocation으로 이어질 수 있음을 의미한다. `EffectsCertificate`를 반환하기 전에 full node에서 실행하는 것은 이러한 상황을 피하는 한 가지 방법이다. 요청은 `WaitForLocalExecution` 파라미터를 사용하여 이러한 동작을 요구할 수 있다. 클라이언트 equivocation에 대한 자세한 내용은 [Sponsored Transactions](/guides/developer/transactions/sponsor-txn.mdx) 를 참조한다.
+앱이 transaction을 구성할 때 일반적으로 full node가 이를 위한 gas object를 선택하도록 요청한다. Gas object는 owned object이며, 이는 full node가 오래되어 해당 object의 올바른 버전을 알지 못하면 잘못된 transaction으로 이어질 수 있고, 더 나아가 클라이언트 소프트웨어가 이를 적절히 처리하지 못할 경우 클라이언트 equivocation으로 이어질 수 있음을 의미한다. `EffectsCertificate`를 반환하기 전에 full node에서 실행하는 것은 이러한 상황을 피하는 한 가지 방법이다. 요청은 `WaitForLocalExecution` 파라미터를 사용하여 이러한 동작을 요구할 수 있다. 클라이언트 equivocation에 대한 자세한 내용은 [스폰서드 트랜잭션](/guides/developer/transactions/sponsor-txn.mdx) 를 참조한다.
 
 그러나 `WaitForLocalExecution`을 사용하는 것이 항상 최선의 선택은 아니다. 예를 들어 이 커피 결제에서는 큰 이점 없이 종단 간 지연을 한 층 추가한다. 이 경우, `WaitForEffects`파라미터를 사용하면 사용자가 느끼는 지연 시간이 약간 더 짧아진다.
 

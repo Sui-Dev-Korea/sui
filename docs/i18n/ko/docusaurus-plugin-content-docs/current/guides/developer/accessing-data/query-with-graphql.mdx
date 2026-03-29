@@ -1,5 +1,5 @@
 ---
-title: Using GraphQL RPC
+title: GraphQL RPC 사용하기
 description: 일반적인 작업 예시와 함께, GraphQL service를 사용해 Sui RPC를 질의하는 실용 가이드이다.
 keywords: [ rpc, sui rpc, graphql, query transactions, query blocks, query block info, query dynamic field, execute transaction, graphql examples ]
 ---
@@ -29,7 +29,7 @@ full node에서 gRPC를 활성화한 [list of RPC or data providers](https://www
 GraphQL introspection은 RPC service가 지원하는 schema를 노출한다.
 IDE의 **Docs** pane(Book 아이콘, 좌상단)과 **Search** dialog(macOS에서는 <kbd>Cmd</kbd> + <kbd>K</kbd>, Windows와 Linux에서는 <kbd>Ctrl</kbd> + <kbd>K</kbd>)는 introspection 출력을 대화형으로 탐색하는 방법을 제공한다.
 
-지원되는 schema에 대한 전체 문서는 [GraphQL reference](/references/sui-graphql)를 참조한다.
+지원되는 schema에 대한 전체 문서는 [Sui RPC용 GraphQL (베타)](/references/sui-graphql)를 참조한다.
 [official GraphQL introspection documentation](https://graphql.org/learn/introspection/)는 introspection 개요와 이를 프로그래밍 방식으로 다루는 방법을 제공한다.
 
 ## Headers
@@ -518,7 +518,7 @@ GraphQL query는 retention 범위가 서로 다른 여러 data source에 의존�
 :::tip Operators
 
 retention은 stack operator가 구성한 datasource pipeline의 pruning policy에 따라 달라진다.
-production 구성 예시는 [Indexer Stack Setup](/guides/operator/indexer-stack-setup)을 참조한다.
+production 구성 예시는 [GraphQL 및 General-purpose Indexer](/guides/operator/indexer-stack-setup)을 참조한다.
 
 :::
 
@@ -989,7 +989,7 @@ mutation ($tx: String!, $sigs: [String!]!) {
 ## Migrating to GraphQL from JSON-RPC
 
 다음 섹션의 예시는 JSON-RPC 호출과 그에 상응하는 GraphQL 구조를 모두 보여주기 위해 탭으로 구성되어 있다.
-사용 가능한 모든 GraphQL 기능의 포괄적인 목록은 [reference](/references/sui-graphql)를 참조한다.
+사용 가능한 모든 GraphQL 기능의 포괄적인 목록은 [Sui RPC용 GraphQL (베타)](/references/sui-graphql)를 참조한다.
 
 #### Example 1: Get total transactions
 

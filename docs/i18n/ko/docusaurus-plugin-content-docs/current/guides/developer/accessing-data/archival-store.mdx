@@ -1,5 +1,5 @@
 ---
-title: Using the Archival Service
+title: 아카이브 서비스 사용하기
 description: Archival Service gRPC API를 통해 과거 Sui network 데이터를 질의한다.
 keywords: [ archival store, archival service, historical data, grpc, ledger service, bigtable, sui-kv-rpc ]
 ---
@@ -7,7 +7,7 @@ keywords: [ archival store, archival service, historical data, grpc, ledger serv
 아카이브 서비스(Archival Service)는 full node에서 사용할 수 있는 것과 동일한 [`LedgerService`](/references/fullnode-protocol) gRPC API를 통해 과거 Sui network 데이터에 대한 access를 제공한다.
 full node가 필요한 데이터를 pruning했을 때 fallback으로 사용하거나, 과거 질의를 위한 전용 source로 사용한다.
 
-핵심 개념은 [Archival Store and Service concepts page](/concepts/data-access/archival-store)를 참조한다.
+핵심 개념은 [아카이브 스토어 및 서비스](/concepts/data-access/archival-store) 개념 페이지를 참조한다.
 
 ## Public endpoints
 
@@ -23,7 +23,7 @@ Sui Foundation은 공익 차원에서 아카이브 서비스를 운영한다:
 아카이브 서비스는 Sui full node와 동일한 [`LedgerService`](/references/fullnode-protocol) gRPC API를 노출한다.
 full node 대신 아카이브 서비스 endpoint를 가리키도록 설정해 어떤 gRPC client로든 질의한다.
 
-`grpcurl`, Buf CLI, TypeScript, Go, Python을 사용하는 자세한 예시는 [Using gRPC](/guides/developer/accessing-data/grpc-overview)를 참조한다.
+`grpcurl`, Buf CLI, TypeScript, Go, Python을 사용하는 자세한 예시는 [gRPC 사용하기](/guides/developer/accessing-data/grpc-overview)를 참조한다.
 
 예를 들어 `grpcurl`을 사용해 과거 transaction을 가져오려면 다음과 같이 한다:
 
@@ -44,4 +44,4 @@ grpcurl -d '{
 ## Running your own instance
 
 production에서 사용하거나 rate limit를 피하려면 전체 archival stack을 직접 실행할 수 있다.
-Bigtable, indexer, gRPC service 설정 방법은 [Archival Stack Setup](/guides/operator/archival-stack-setup) operator guide를 참조한다.
+Bigtable, indexer, gRPC service 설정 방법은 operator guide인 [아카이브 스토어 및 서비스 실행하기](/guides/operator/archival-stack-setup)를 참조한다.

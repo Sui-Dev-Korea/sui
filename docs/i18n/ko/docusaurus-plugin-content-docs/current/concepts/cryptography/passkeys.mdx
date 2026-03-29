@@ -1,11 +1,11 @@
 ---
-title: Passkey
+title: 패스키
 description: Sui는 passkey authenticator에 안전하게 저장된 private key를 사용해 앱에 로그인하고 transactions에 서명할 수 있게 하는 passkey signature scheme을 지원한다. 이는 WebAuthn standard를 사용한다.
 ---
 
 passkey signature scheme은 Sui에서 transactions를 제출하는 안전하고 사용자 친화적인 대안을 제공한다. 이는 WebAuthn standard를 기반으로 구축되었으며 YubiKeys와 같은 hardware security keys, smartphones 및 tablets와 같은 mobile devices, Face ID 및 Touch ID와 같은 platform-based authenticators를 사용해 인증하고 transactions에 서명할 수 있게 한다.
 
-Passkey는 seed phrases나 private keys를 수동으로 관리할 필요를 제거하여 인증을 단순화한다. 대신 device-based authentication과 cloud synchronization에 의존하여 여러 devices 전반에서 원활하고 phishing-resistant한 접근을 가능하게 한다. 또한 [multisig setup](/guides/developer/transactions/transaction-auth/multisig.mdx)에서 passkey를 사용할 수 있으며, 이를 통해 안전하고 복구 가능한 wallet 경험을 구축하는 더 큰 유연성을 제공한다.
+Passkey는 seed phrases나 private keys를 수동으로 관리할 필요를 제거하여 인증을 단순화한다. 대신 device-based authentication과 cloud synchronization에 의존하여 여러 devices 전반에서 원활하고 phishing-resistant한 접근을 가능하게 한다. 또한 [다중 서명](/guides/developer/transactions/transaction-auth/multisig.mdx) 구성에서 passkey를 사용할 수 있으며, 이를 통해 안전하고 복구 가능한 wallet 경험을 구축하는 더 큰 유연성을 제공한다.
 
 passkey signature scheme을 지원함으로써 Sui는 보안성과 접근성을 향상시켜 강화된 보안으로 계정을 더 쉽게 관리할 수 있게 한다. passkey 기반 wallets는 origin에 연결되므로 피싱되거나 다른 사이트에서 사용될 수 없다. 이는 passkey를 더 안전한 인증 옵션으로 만든다.
 
@@ -23,7 +23,7 @@ passkey signature scheme을 지원함으로써 Sui는 보안성과 접근성을 
 
 - cloud-synced passkey로 접근을 복구한다.
 
-- passkey를 다른 authentication types와 결합하여 2-of-2 또는 m-of-n [multisig wallets](/guides/developer/transactions/transaction-auth/multisig.mdx)를 구축해 multisig wallets와 함께 동작한다. 이는 안전한 복구 옵션과 shared access patterns를 가능하게 한다.
+- passkey를 다른 authentication types와 결합하여 2-of-2 또는 m-of-n [다중 서명](/guides/developer/transactions/transaction-auth/multisig.mdx) 지갑을 구축해 multisig wallets와 함께 동작한다. 이는 안전한 복구 옵션과 shared access patterns를 가능하게 한다.
 
 ## Limitations of passkey
 

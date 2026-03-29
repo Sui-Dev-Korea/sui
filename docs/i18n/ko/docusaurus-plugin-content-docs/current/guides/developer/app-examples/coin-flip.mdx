@@ -30,7 +30,7 @@ smart contract와 frontend의 source code 위치는 다음과 같다:
 - **One-time witnesses:** 이 가이드는 [one-time witnesses](/concepts/sui-move-concepts.mdx)를 사용하는 방법을 설명하며, 이를 통해 `HouseData` object의 단일 인스턴스만 존재하도록 보장한다.
 - **Asserts:** 이 가이드는 특정 조건이 충족되지 않을 때 함수를 중단시키기 위해 [asserts](https://move-book.com/move-basics/assert-and-abort.html?highlight=asserts#assert)를 사용하는 방법을 설명한다.
 - **Address-owned objects:** 이 가이드는 필요할 때 [address-owned objects](/guides/developer/objects/object-ownership/address-owned)를 사용하는 방법을 설명한다.
-- **Events:** 이 가이드는 contract에서 이벤트를 발생시키는 방법을 설명하며, 이를 통해 온체인 활동을 추적할 수 있다. 이벤트에 대해 더 알아보려면 Sui에서 이벤트를 실제로 사용하는 방법을 다룬 [Using Events](/guides/developer/accessing-data/using-events.mdx)와 이벤트 구조 및 Move에서 이벤트를 발생시키는 방법을 설명하는 [Events in The Move Book](https://move-book.com/programmability/events.html)을 참조한다.
+- **Events:** 이 가이드는 contract에서 이벤트를 발생시키는 방법을 설명하며, 이를 통해 온체인 활동을 추적할 수 있다. 이벤트에 대해 더 알아보려면 Sui에서 이벤트를 실제로 사용하는 방법을 다룬 [이벤트 사용하기](/guides/developer/accessing-data/using-events.mdx)와 이벤트 구조 및 Move에서 이벤트를 발생시키는 방법을 설명하는 [Events in The Move Book](https://move-book.com/programmability/events.html)을 참조한다.
 - **스토리지 리베이트:** 이 가이드는 [storage fee rebates](/concepts/tokenomics/tokenomics-overview.mdx)에 관한 모범 사례를 보여준다.
 - **MEV attack protection:** 이 가이드는 [MEV attacks](https://github.com/MystenLabs/satoshi-coin-flip?tab=readme-ov-file#mev-attack-resistant-single-player-satoshi-smart-contract-flow), contract를 MEV 저항적으로 만드는 방법, 그리고 보호 수준과 사용자 경험 사이의 trade-off를 소개한다.
 
@@ -931,7 +931,7 @@ dApp Kit에는 사용자의 온보딩을 돕기 위해 재사용할 수 있는 �
   }}
 ```
 
-Sui에서 [programmable transaction block](/guides/developer/transactions/ptbs/prog-txn-blocks)(PTB)을 사용하려면 `Transaction`을 생성한다.
+Sui에서 [프로그래머블 트랜잭션 블록 (PTB)](/guides/developer/transactions/ptbs/prog-txn-blocks)을 사용하려면 `Transaction`을 생성한다.
 Move 호출을 시작하려면 smart contract에 있는 공개 함수의 전역 식별자를 알아야 한다.
 전역 식별자는 보통 다음 형태를 가진다:
 
@@ -1125,7 +1125,7 @@ try {
 
 :::info
 
-dApp에서 이벤트를 다루는 방법에 대해 더 알아보려면 [Using Events](/guides/developer/accessing-data/using-events.mdx)를 참조한다.
+dApp에서 이벤트를 다루는 방법에 대해 더 알아보려면 [이벤트 사용하기](/guides/developer/accessing-data/using-events.mdx)를 참조한다.
 
 :::
 

@@ -1,30 +1,30 @@
 ---
-title: Coin Standard
-description: Coin standard는 Sui 네트워크에서 여러 사용 사례를 충족하기 위해 폭넓은 대체 가능 토큰을 생성할 수 있게 한다.
-sidebar_label: Coin
+title: 코인 표준
+description: 코인 표준은 Sui 네트워크에서 여러 사용 사례를 충족하기 위해 폭넓은 대체 가능 토큰을 생성할 수 있게 한다.
+sidebar_label: 코인
 keywords: [ sui coin standard, erc-20, erc-20 equivalent, creating coins, coin standard, fungible tokens, fungible token standard, treasury capability, regulated coins, denylist object, coin metadata, create coin with SDK, use SDK to create coin, mint coin, minting coins ]
 pagination_prev: null
 ---
 
 :::tip
 
-Coin standard와 Currency standard는 모두 대체 가능 토큰을 생성하는 데 사용된다. 하지만, 이들은 서로 다른 생성 방법을 사용하며 메타데이터를 서로 다른 유형의 object에 저장한다.
+코인 표준과 Currency Standard는 모두 대체 가능 토큰을 생성하는 데 사용된다. 하지만, 이들은 서로 다른 생성 방법을 사용하며 메타데이터를 서로 다른 유형의 object에 저장한다.
 
 Coin은 `coin::create_currency`를 사용하여 토큰을 생성하는 반면 Currency는 `sui::coin_registry`를 사용한다.
 
 Coin은 `CoinMetadata`를 사용하는 반면 Currency는 `Currency`를 사용한다.
 
-Coin standard 또는 Currency standard를 사용하여 Sui에서 생성된 대체 가능 토큰은 _coins_로 지칭된다.
+코인 표준 또는 Currency Standard를 사용하여 Sui에서 생성된 대체 가능 토큰은 _coins_로 지칭된다.
 
 Sui에서 [Closed-Loop Token standard](/standards/closed-loop-token.mdx)를 사용하여 생성된 대체 가능 토큰에 대해서는, 문서에서 _tokens_라는 용어를 사용한다. 실제로는, 이 두 object에 대한 용어는 종종 서로 바꿔서 사용된다.
 
 :::
 
-Coin Standard는 Sui에서 화폐를 생성하기 위해 Move 스마트 계약이 사용하는 기술 표준이다. `sui::coin` 모듈은 이 표준을 정의하는 로직을 제공한다.
+코인 표준은 Sui에서 화폐를 생성하기 위해 Move 스마트 계약이 사용하는 기술 표준이다. `sui::coin` 모듈은 이 표준을 정의하는 로직을 제공한다.
 
 Sui에서 화폐 생성이 표준화되었다는 것은 지갑, 거래소, 그리고 다른 스마트 계약이 추가적인 처리 로직 없이 SUI를 관리하는 것과 동일하게 Sui에서 생성된 화폐를 관리할 수 있음을 의미한다.
 
-SUI 네이티브 화폐와 네트워크에서의 사용에 대해 더 알아보려면 [Sui Tokenomics](/concepts/tokenomics)를 참조한다.
+SUI 네이티브 화폐와 네트워크에서의 사용에 대해 더 알아보려면 [Sui 토크노믹스](/concepts/tokenomics)를 참조한다.
 
 ## Fungible tokens
 

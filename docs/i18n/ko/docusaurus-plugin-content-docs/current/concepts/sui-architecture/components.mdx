@@ -1,5 +1,5 @@
 ---
-title: Components of Sui
+title: Sui의 구성 요소
 slug: /concepts/architecture
 description: Sui는 자체 합의와 transaction block 검증을 수행하는 레이어 1 블록체인이다. Sui는 블록체인 자체, transactions와 같은 블록체인 활동, 그리고 이러한 활동을 검증하는 validator 엔티티로 구성된다.
 keywords: [ sui blockchain, sui components, sui validators, sui transactions, components of sui, what is sui comprised of, delegated proof of stake, delegated proof-of-stake, dpos, consensus, sui networks, sui mainnet, sui testnet, sui devnet, move, move language ]
@@ -33,7 +33,7 @@ Sui는 이러한 필수 구성 요소로 이루어진 여러 네트워크를 운
 
 - **Localnet:** 최적화된 개발을 위해 자신의 컴퓨터에서 실행할 수 있는 로컬 네트워크이다.
 
-[Sui networks](/concepts/sui-architecture/networks.mdx)에 대해 자세히 알아본다.
+[Sui 네트워크](/concepts/sui-architecture/networks.mdx)에 대해 자세히 알아본다.
 
 ### Nodes
 
@@ -45,7 +45,7 @@ Sui에는 두 가지 유형의 node가 있다:
 
 2. **Validator node:** staking, gas price references, tallying rules와 같이 풀 노드보다 더 많은 작업을 수행한다.
 
-[nodes on Sui](/guides/operator/index.mdx)에 대해 자세히 알아본다.
+자세한 내용은 [운영자 가이드](/guides/operator/index.mdx)를 참조한다.
 
 ## Delegated proof-of-stake consensus
 
@@ -53,8 +53,8 @@ Sui는 transactions를 검증하기 위해 위임 지분 증명(DPoS) 합의 메
 
 Sui의 합의에 대해 자세히 알아보려면 다음을 참조한다:
 
-- [Sui Consensus](/concepts/sui-architecture/consensus.mdx)
-- [Validator Committee](/concepts/sui-architecture/consensus.mdx)
+- [합의](/concepts/sui-architecture/consensus.mdx)
+- [validator 위원회](/concepts/sui-architecture/consensus.mdx)
 
 ## Transactions
 
@@ -64,7 +64,7 @@ Sui의 transactions는 inputs에 대해 실행되는 여러 commands로 구성�
 
 1. **System transactions:** validator nodes만 제출할 수 있다. epoch 변경이나 checkpoint 시작과 같은 네트워크 기능을 위한 transactions이다.
 
-[transactions](/guides/developer/transactions/txn-overview.mdx)에 대해 자세히 알아보거나, [programmable transaction blocks](/guides/developer/transactions/ptbs/prog-txn-blocks)에 대해 자세히 알아본다.
+[트랜잭션](/guides/developer/transactions/txn-overview.mdx)에 대해 자세히 알아보거나, [프로그래머블 트랜잭션 블록 (PTB)](/guides/developer/transactions/ptbs/prog-txn-blocks)에 대해 자세히 알아본다.
 
 ## Tokens
 
@@ -74,10 +74,10 @@ Sui의 네이티브 토큰은 **SUI**이다. Sui의 transactions는 종종 1 SUI
 
 Sui의 tokenomics에 대해 자세히 알아보려면 다음 주제를 참조한다:
 
-- [Sui Tokenomics](/concepts/tokenomics)
-- [Gas Fees](/concepts/tokenomics/gas-in-sui.mdx)
-- [Staking and Unstaking](/concepts/tokenomics/staking-unstaking.mdx)
-- [Sui Bridging](/concepts/tokenomics/sui-bridging.mdx)
+- [Sui 토크노믹스](/concepts/tokenomics)
+- [가스 수수료](/concepts/tokenomics/gas-in-sui.mdx)
+- [스테이킹 및 언스테이킹](/concepts/tokenomics/staking-unstaking.mdx)
+- [토큰 브리징](/concepts/tokenomics/sui-bridging.mdx)
 
 ## Objects
 
@@ -85,7 +85,7 @@ Sui의 기본 storage 단위는 object이다. chain의 blocks는 실제로 addre
 
 모든 object에는 transactions에서 어떻게 사용할 수 있는지 결정하는 owner 필드가 있다. Objects는 address나 party가 소유할 수 있으며, immutable, shared, wrapped일 수도 있다.
 
-[Sui Object Model](/guides/developer/objects/object-model.mdx) 또는 [Object Ownership](/guides/developer/objects/object-ownership)에 대해 자세히 알아본다.
+[Sui 객체 모델](/guides/developer/objects/object-model.mdx) 또는 [객체 소유권 유형](/guides/developer/objects/object-ownership)에 대해 자세히 알아본다.
 
 ## Move
 
@@ -93,4 +93,4 @@ Move는 NFT를 생성하거나 거래하고, apps를 사용하고, 기타 모든
 
 Move는 크게 다른 데이터 및 실행 모델을 가진 블록체인 전반에서 공통 라이브러리, 도구, developer community를 가능하게 하기 위해 플랫폼에 종속되지 않는다.
 
-Move에 대해 자세히 알아보려면 [Move Concepts](/concepts/sui-move-concepts.mdx)를 참조한다.
+Move에 대해 자세히 알아보려면 [Move 개념](/concepts/sui-move-concepts.mdx)를 참조한다.

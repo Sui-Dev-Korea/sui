@@ -1,10 +1,10 @@
 ---
-title: Archival Store and Service
+title: 아카이브 스토어 및 서비스
 description: 확장 가능하고 성능이 우수한 과거 데이터 스토어에서 제공되는 빠른 조회용 과거 데이터 API이다.
 keywords: [ archival store, archival service, historical data, data retention, long-term storage, bigtable, grpc, point lookups, pruned data ]
 ---
 
-확장성과 성능을 위해 풀 노드는 제한된 리텐션만 적용하지만, 개발자에게는 온체인 과거 데이터에 대한 장기 접근이 필수적이다. Archival Store and Service는 풀 노드나 인덱서 데이터베이스가 일반적으로 유지하는 범위를 넘어서는 Sui 과거 데이터에 접근할 수 있도록 확장 가능하고 일관된 기반을 제공한다. 이 인프라는 GraphQL RPC, gRPC 기반 앱, 데이터 플랫폼의 과거 데이터 기반 역할을 하며, 풀 노드가 데이터를 pruning한 뒤에도 오래된 transactions, checkpoints, object states에 대한 효율적인 포인트 조회를 제공한다.
+확장성과 성능을 위해 풀 노드는 제한된 리텐션만 적용하지만, 개발자에게는 온체인 과거 데이터에 대한 장기 접근이 필수적이다. 아카이브 스토어 및 서비스(Archival Store and Service)는 풀 노드나 인덱서 데이터베이스가 일반적으로 유지하는 범위를 넘어서는 Sui 과거 데이터에 접근할 수 있도록 확장 가능하고 일관된 기반을 제공한다. 이 인프라는 GraphQL RPC, gRPC 기반 앱, 데이터 플랫폼의 과거 데이터 기반 역할을 하며, 풀 노드가 데이터를 pruning한 뒤에도 오래된 transactions, checkpoints, object states에 대한 효율적인 포인트 조회를 제공한다.
 
 ## When to use
 
@@ -25,6 +25,6 @@ keywords: [ archival store, archival service, historical data, data retention, l
 ## How the Archival Store and Service fits into the application stack
 
 - **Archival Store:** checkpoint로 인덱싱된 Sui 데이터를 보관하는 장기 storage 시스템([Bigtable](https://cloud.google.com/bigtable) 등)이다.
-- **Archival Service:** 이 스토어에 대한 접근을 노출해 과거 데이터의 포인트 조회를 가능하게 하는 [gRPC API (LedgerService)](/concepts/data-access/grpc) 계층이다.
+- **Archival Service:** 이 스토어에 대한 접근을 노출해 과거 데이터의 포인트 조회를 가능하게 하는 [gRPC](/concepts/data-access/grpc) `LedgerService` 계층이다.
 
 풀 노드를 사용할 때 누락된 데이터를 찾기 위해 gRPC 기반 Archival Service를 통해 archival store를 조회할 수 있으며, 리텐션 밖 데이터까지 포함하는 GraphQL RPC 쿼리를 처리하는 데에도 사용할 수 있다. 서비스를 직접 호스팅할 수도 있고, 제공자를 사용할 수도 있으며, 속도 제한이 있는 public-good 버전에 의존할 수도 있다.

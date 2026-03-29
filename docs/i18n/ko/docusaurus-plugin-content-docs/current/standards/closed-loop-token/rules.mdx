@@ -1,5 +1,5 @@
 ---
-title: Rules
+title: 규칙
 description: "Rule 모듈은 `TokenPolicy` 내의 모든 액션에 적용되는 프로그래머블 제한을 만들기 위해 사용된다."
 keywords:
   - rule module
@@ -15,7 +15,7 @@ keywords:
   - token regulation
 ---
 
-Rules는 [`TokenPolicy`](./token-policy.mdx)에서 모든 액션에 적용할 수 있는 프로그래머블 제한 사항이다. 이는 closed-loop 시스템에서 특정 비즈니스 로직의 컴플라이언스, 규제, 그리고 집행을 위한 도구이다.
+규칙은 [`TokenPolicy`](./token-policy.mdx)에서 모든 액션에 적용할 수 있는 프로그래머블 제한 사항이다. 이는 closed-loop 시스템에서 특정 비즈니스 로직의 컴플라이언스, 규제, 그리고 집행을 위한 도구이다.
 
 ## Rule structure
 
@@ -32,7 +32,7 @@ struct Rule has drop {}
 
 ## Modular rules
 
-Rules를 별도의 재사용 가능한 모듈로 게시할 수 있다. 이는 서로 다른 token policy에서 사용할 수 있는 rule 라이브러리를 만들 수 있게 하여, 코드 재사용을 극대화하고 오류 위험을 최소화한다.
+규칙을 별도의 재사용 가능한 모듈로 게시할 수 있다. 이는 서로 다른 token policy에서 사용할 수 있는 rule 라이브러리를 만들 수 있게 하여, 코드 재사용을 극대화하고 오류 위험을 최소화한다.
 
 Rule 모듈은 `verify`와 유사한 일반 모듈이며, 이 함수는 일반적으로 `TokenPolicy`, [`ActionRequest`](./action-request.mdx), `TxContext`를 인수로 받는다. 이 함수는 액션을 검증하고 `ActionRequest`에 rule 타입을 stamp하는 책임이 있다.
 
@@ -71,7 +71,7 @@ module example::pass_rule {
 1. `rule` 모듈은 구성의 타입과 구조를 정의한다.
 2. 구성의 추가 또는 수정 및 제거는 `TokenPolicy` 소유자에게만 허용된다.
 3. Rule만 구성을 읽을 수 있다.
-4. Rules는 `TokenPolicy` 소유자의 승인 없이 구성을 수정할 수 없다.
+4. 규칙은 `TokenPolicy` 소유자의 승인 없이 구성을 수정할 수 없다.
 
 Rule 생성자에게 가능한 유일한 attack vector는 모듈을 업그레이드하고 제한을 우회하는 함수를 만드는 것이다. 신뢰할 수 있는 개발자가 제공하는 rules를 사용해야 한다.
 
@@ -96,7 +96,7 @@ public fun add_rule_config<T, Rule: drop, Config: store>(
 
 ### Read the configuration
 
-Rules는 `TokenPolicy`에 저장된 구성을 읽을 수 있다.
+규칙은 `TokenPolicy`에 저장된 구성을 읽을 수 있다.
 
 ```move
 // module: sui::token
@@ -118,7 +118,7 @@ public fun rule_config_mut<T, Rule: drop, Config: store>(
 
 ### Remove configuration
 
-Rules에 대한 좋은 관행은 rule이 이를 위해 커스텀 타입을 사용할 수 있으므로 구성을 제거하는 방법을 제공하는 것이다. 그러나 토큰 소유자는 언제나 `remove_rule_config` 함수를 호출하여 구성을 제거할 수 있다.
+규칙에 대한 좋은 관행은 rule이 이를 위해 커스텀 타입을 사용할 수 있으므로 구성을 제거하는 방법을 제공하는 것이다. 그러나 토큰 소유자는 언제나 `remove_rule_config` 함수를 호출하여 구성을 제거할 수 있다.
 
 ```move
 // module: sui::token

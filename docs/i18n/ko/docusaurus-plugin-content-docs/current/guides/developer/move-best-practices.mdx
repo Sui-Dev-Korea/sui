@@ -1,5 +1,5 @@
 ---
-title: Move Conventions
+title: Move 모범 사례
 description: Sui 개발을 위한 Move 2024 권장 모범 사례.
 ---
 
@@ -17,7 +17,7 @@ Sui 패키지는 다음으로 구성된다:
 - 패키지의 의존성과 기타 정보를 선언하는 `Move.toml` 매니페스트 파일
 - Sui Move 툴체인이 자동으로 생성하는 `Move.lock` 파일로, 의존성 버전을 고정하고 서로 다른 네트워크에 존재하는 패키지의 게시 및 업그레이드 버전을 추적한다.
 
-이러한 이유로 `Move.lock` 파일은 항상 패키지에 포함되어야 한다 (`.gitignore` 파일에 추가하지 말아야 한다). 매니페스트 파일의 이전 `published-at` 필드 대신 [automated address management](https://docs.sui.io/concepts/sui-move-concepts/packages/automated-address-management)를 사용한다.
+이러한 이유로 `Move.lock` 파일은 항상 패키지에 포함되어야 한다 (`.gitignore` 파일에 추가하지 말아야 한다). 매니페스트 파일의 이전 `published-at` 필드 대신 [자동 주소 관리](/guides/developer/packages/automated-address-management.mdx)를 사용한다.
 
 선택적으로, 패키지 테스트를 포함하는 `tests` 디렉터리와 패키지 사용 사례를 제공하는 `examples` 디렉터리를 추가할 수 있다. 두 디렉터리 모두 패키지를 게시할 때 온체인에 업로드되지 않는다.
 

@@ -1,5 +1,5 @@
 ---
-title: Address-Owned Objects
+title: 주소 소유 객체
 description: Address-owned object는 Sui의 32바이트 address가 소유하며, 이 address는 account address 또는 object ID일 수 있다. 이러한 object를 생성하고 접근하는 방법을 학습한다.
 keywords:
   - address-owned objects
@@ -32,7 +32,7 @@ Object를 address-owned로 선언한 이후, 그 object의 생애 동안 소유�
 
 Object의 주소 소유자가 object ID에 해당하는지 여부에 따라 address-owned object에 접근하는 방법은 두 가지이다.
 
-Object의 주소 소유자가 object ID인 경우, [Transfer to Object](../transfers/transfer-to-object.mdx)에 정의된 메커니즘을 사용하여 transaction 실행 중에 동적 인증 후 접근해야 한다.
+Object의 주소 소유자가 object ID인 경우, [객체로 전송](../transfers/transfer-to-object.mdx)에 정의된 메커니즘을 사용하여 transaction 실행 중에 동적 인증 후 접근해야 한다.
 
 Object의 주소 소유자가 서명으로 파생된 주소 (account address)인 경우, 해당 주소가 서명한 transaction의 실행 중에 owned object를 직접 사용하고 접근할 수 있다. 다른 주소는 transaction 내에서 해당 owned object에 어떤 방식으로도 접근할 수 없으며, 읽는 것조차 불가능하다.
 
