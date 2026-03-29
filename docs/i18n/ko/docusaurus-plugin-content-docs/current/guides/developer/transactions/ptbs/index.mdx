@@ -1,5 +1,5 @@
 ---
-title: Programmable Transaction Blocks
+title: PTB 개요
 description: Programmable transaction blocks는 Sui에서 transaction을 완료하는 command의 집합이다.
 keywords:
   - programmable transaction blocks
@@ -25,7 +25,7 @@ PTB는 단일 실행에서 최대 1,024개의 고유 operation을 수행할 수 
 이 주제의 나머지 부분은 transaction command 실행의 의미론을 다룬다. 이는 Sui object 모델과 Move 언어에 대한 친숙함을 가정한다. 해당 주제에 대한 자세한 내용은 다음 문서를 참조하라:
 
 - [Object model](/guides/developer/objects/object-model.mdx)
-- [Move concepts](/concepts/sui-move-concepts.mdx)
+- [Move 개념](/concepts/sui-move-concepts.mdx)
 
 ## Transaction type
 
@@ -237,7 +237,7 @@ transitive dependencies `TransitiveDependencies: [ObjectID]`는 새 패키지가
 
 `UpgradeTicket: sui::package::UpgradeTicket`는 upgrade되는 패키지에 대한 upgrade ticket이며 `sui::package::UpgradeCap`으로부터 생성된다. ticket은 값으로 취해진다(move된다).
 
-이 command는 upgrade에 대한 proof를 제공하는 `sui::package::UpgradeReceipt` 타입의 단일 result를 생성한다. upgrade에 대한 자세한 내용은 [Upgrading Packages](/guides/developer/packages/upgrade.mdx)를 참조하라.
+이 command는 upgrade에 대한 proof를 제공하는 `sui::package::UpgradeReceipt` 타입의 단일 result를 생성한다. upgrade에 대한 자세한 내용은 [패키지 업그레이드](/guides/developer/packages/upgrade.mdx)를 참조하라.
 
 ### End of execution
 

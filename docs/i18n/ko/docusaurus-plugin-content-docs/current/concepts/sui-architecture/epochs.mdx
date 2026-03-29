@@ -1,12 +1,12 @@
 ---
-title: Epochs, Equivocation, and Reconfiguration
+title: 에포크, equivocation, 재구성
 description: Epochs는 validator 집합이 변하지 않는 Sui의 시간 구간을 정의한다. Equivocation은 objects가 transactions 전반에서 잘못 사용될 때 발생한다. Reconfiguration은 epoch 경계에서 네트워크 파라미터를 조정한다.
 keywords: [ epochs, equivocation, reconfiguration, validators, object versioning ]
 ---
 
 Sui에서 epoch은 네트워크가 정의하는 시간 구간이다. 이 시간 동안 Sui [validator](/guides/operator/validator/validator-config.mdx) 집합과 그들의 stakes는 변하지 않는다. [Mainnet](/concepts/sui-architecture/networks.mdx)과 [Testnet](/concepts/sui-architecture/networks.mdx) 모두에서 epoch은 약 24시간이다. Devnet의 epochs는 1시간이다. 이 기간은 validators가 임시적인 validator 변경을 걱정하지 않고 transactions를 효율적으로 처리할 수 있게 한다.
 
-Epoch 값은 모든 [transactions](/guides/developer/transactions/txn-overview.mdx)의 metadata에 포함된다. transaction은 설정된 epoch 이전에 실행되는 경우에만 유효하다.
+Epoch 값은 모든 [트랜잭션](/guides/developer/transactions/txn-overview.mdx)의 metadata에 포함된다. transaction은 설정된 epoch 이전에 실행되는 경우에만 유효하다.
 
 ## Equivocation
 
@@ -24,7 +24,7 @@ _Equivocation_ 은 owned object 쌍(`ObjectId`, `SequenceNumber`)이 여러 비-
 
 두 transactions가 모두 final되지 않았더라도 equivocated transactions를 제출하면 개발자와 사용자 모두에게 다른 문제가 계속 발생한다. 예를 들어 equivocation이 감지되면 관련 objects는 현재 epoch이 끝날 때까지 lock된다. 어느 transaction도 진행할 수 없고 해당 objects는 다른 어떤 transaction에서도 사용할 수 없다. 악의적인 행위자는 중요 objects를 lock하고 의도적으로 앱을 방해하기 위해 equivocated transactions를 의도적으로 제출할 수 있다.
 
-smart contracts가 [unintentionally locking objects](/guides/developer/common-errors) [`sui-tool`](https://github.com/MystenLabs/sui/tree/main/crates/sui-tool) 유틸리티를 설치하고 `locked-object` 명령을 사용해 특정 RPC 네트워크(`--fullnode-rpc-url` 값)에서 전달한 자산의 locked 상태를 확인할 수 있다. address를 제공하면 `locked-object`는 해당 address가 소유한 모든 gas objects가 lock되었는지 확인한다. 특정 object가 lock되었는지 확인하려면 object ID를 전달하라. 명령이 대상으로 삼는 object를 해제하려면 `--rescue` 플래그를 포함하라. object가 아직 validators의 과반수에 의해 lock되지 않았다면 rescue가 가능하다.
+smart contract에서 객체가 의도치 않게 잠기는 문제가 발생하면 [자주 발생하는 오류 해결하기](/guides/developer/common-errors) 문서를 참고한다. [`sui-tool`](https://github.com/MystenLabs/sui/tree/main/crates/sui-tool) 유틸리티를 설치하고 `locked-object` 명령을 사용해 특정 RPC 네트워크(`--fullnode-rpc-url` 값)에서 전달한 자산의 locked 상태를 확인할 수 있다. address를 제공하면 `locked-object`는 해당 address가 소유한 모든 gas objects가 lock되었는지 확인한다. 특정 object가 lock되었는지 확인하려면 object ID를 전달하라. 명령이 대상으로 삼는 object를 해제하려면 `--rescue` 플래그를 포함하라. object가 아직 validators의 과반수에 의해 lock되지 않았다면 rescue가 가능하다.
 
 ### Double spending
 
@@ -42,7 +42,7 @@ Sui 네트워크에는 equivocation에 관여하는 validators를 처벌하기 �
 
 1. 대부분의 smart contracts에서 equivocation은 의도된 동작이 아니다. 의도치 않은 equivocation의 흔한 원천은 같은 address가 수행하는 여러 transactions에서 나온다. gas fees를 적절히 처리하지 않으면 하나 이상의 transaction에 같은 [coin](/standards/coin.mdx)과 version을 사용하려다 smart contract를 lock할 수 있다.
 
-    **Recommendation**: 단일 thread를 사용한다면 같은 owned object를 사용하는 transactions를 직렬화하라. [Programmable transaction blocks](/guides/developer/transactions/ptbs/building-ptb)는 transactions가 같은 owned object에 대해 여러 작업을 수행할 수 있게 한다. PTB는 본질적으로 단일한 직렬 transaction이므로 `SequenceNumber` 오류를 방지할 수 있다.
+    **Recommendation**: 단일 thread를 사용한다면 같은 owned object를 사용하는 transactions를 직렬화하라. [PTB 구성하기](/guides/developer/transactions/ptbs/building-ptb)는 transactions가 같은 owned object에 대해 여러 작업을 수행할 수 있게 한다. PTB는 본질적으로 단일한 직렬 transaction이므로 `SequenceNumber` 오류를 방지할 수 있다.
 
     **Recommendation**: 항상 PTB가 제공하는 고유한 batching을 활용하라. 예를 들어 많은 users에게 object를 mint하고 전송하려는 에어드롭 시나리오를 생각해 보자. PTB는 하나의 PTB에 최대 1,024개의 작업을 허용하므로 단일 transaction에서 512명의 users에게 에어드롭 object를 mint하고 전송할 수 있다. 이 접근 방식은 매번 한 사용자에게 mint 및 transfer를 수행하는 512개의 개별 transactions를 반복하는 것보다 훨씬 비용 효율적이다. transactions를 배치하면 병렬 실행의 필요성을 제거할 수 있지만 PTB의 원자적 특성을 고려해야 한다. 하나의 instruction이 실패하면 PTB 전체가 실패하기 때문이다. 따라서 일부 사용 사례에서는 병렬 transactions가 더 선호될 수 있다.
 
@@ -58,7 +58,7 @@ Reconfiguration은 각 epoch의 끝에서 발생하는 중요한 과정이다. �
 
     - **Synchronous moment:** 이는 네트워크에서 유일한 완전 동기 이벤트이며 일관성을 유지하는 데 중요하다.
 
-1. **Distribution of gas rewards:** Computation gas fees는 validator staking reward pool에 분배되며 stakers는 이 풀에서 인출할 수 있다. Storage fees는 [Sui tokenomics](/concepts/tokenomics)에서 중요한 역할을 하는 storage fund에 할당된다.
+1. **Distribution of gas rewards:** Computation gas fees는 validator staking reward pool에 분배되며 stakers는 이 풀에서 인출할 수 있다. Storage fees는 [Sui 토크노믹스](/concepts/tokenomics)에서 중요한 역할을 하는 storage fund에 할당된다.
 
 1. **Validator set change:** epoch 동안의 보류된 staking 및 unstaking 요청은 final되어 validators의 stake 분배에 반영된다. 새로운 validators 추가와 기존 validators 제거를 포함한 보류 중인 validator change requests도 처리된다. 이것이 validator 집합과 stake 분배를 변경할 수 있는 유일한 기회이다.
 

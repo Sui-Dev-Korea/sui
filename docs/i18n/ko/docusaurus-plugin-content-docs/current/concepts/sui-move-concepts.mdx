@@ -1,5 +1,5 @@
 ---
-title: Move Concepts
+title: Move 개념
 description: Move는 온체인 objects를 조작하는 안전한 packages를 작성하기 위한 오픈 소스 언어이다.
 keywords: [ move on sui, move language, what is move, move objects, move smart contracts, move objects, move packages, move, move concepts ]
 ---
@@ -58,7 +58,7 @@ Sui에서 `key` ability는 struct가 object type임을 나타내며 struct의 �
 
 ### Entry functions {#entry-functions}
 
-`entry` keyword는 Sui의 Move에서 특정 사용 사례를 가진다. 어떤 기능을 온체인 누구나 사용할 수 있게 하되 다른 Move 로직으로 래핑되지는 않게 하고 싶을 때 `entry`를 사용한다. 즉 함수는 [programmable transaction blocks (PTBs)](/guides/developer/transactions/ptbs/prog-txn-blocks)에서는 호출할 수 있지만 다른 Sui packages에서는 호출할 수 없다. 예를 들어 이는 Sui의 온체인 randomness 표준을 사용할 때 다른 스마트 계약 엔지니어가 randomness 생성을 사실상 프런트런 또는 백런하는 로직을 만들지 못하게 하는 데 활용된다. 자세한 내용은 [on-chain randomness page](/guides/developer/on-chain-primitives/randomness-onchain.mdx#use-non-public-entry-functions)에서 확인하라.
+`entry` keyword는 Sui의 Move에서 특정 사용 사례를 가진다. 어떤 기능을 온체인 누구나 사용할 수 있게 하되 다른 Move 로직으로 래핑되지는 않게 하고 싶을 때 `entry`를 사용한다. 즉 함수는 [programmable transaction blocks (PTBs)](/guides/developer/transactions/ptbs/prog-txn-blocks)에서는 호출할 수 있지만 다른 Sui packages에서는 호출할 수 없다. 예를 들어 이는 Sui의 온체인 randomness 표준을 사용할 때 다른 스마트 계약 엔지니어가 randomness 생성을 사실상 프런트런 또는 백런하는 로직을 만들지 못하게 하는 데 활용된다. 자세한 내용은 [온체인 랜덤니스](/guides/developer/on-chain-primitives/randomness-onchain.mdx#use-non-public-entry-functions)에서 확인하라.
 
 함수를 private로 만들고(`public` visibility keyword를 추가하지 않는다) `entry fun example_function`과 같이 `entry` keyword로 표시하라.
 

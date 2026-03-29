@@ -1,5 +1,5 @@
 ---
-title: What is zkLogin?
+title: zkLogin이란?
 description: zkLogin은 두 항목을 공개적으로 연결하지 않고 OAuth credential을 사용하여 Sui address에서 transaction을 전송할 수 있게 해주는 Sui primitive 기능이다.
 keywords: [ zklogin, how to use zklogin, generate ephemeral key pair, fetch JWT, decode JWT, generate salt, generate user Sui address, fetch ZK proof, assemble zkLogin signature, oauth, openid ]
 ---
@@ -26,7 +26,7 @@ zkLogin이 Sui에 가져오는 핵심 차별점은 다음과 같다:
 
 1. Compatible with existing identity providers: zkLogin은 OpenID Connect를 채택한 provider와 호환되므로 OAuth provider 자체 외의 중간 identity issuer나 verifier를 신뢰할 필요가 없다.
 
-애플리케이션이나 wallet에 zkLogin을 통합하려는 builder라면 [zkLogin integration guide](/guides/developer/cryptography/zklogin-integration/)를 참고한다.
+애플리케이션이나 wallet에 zkLogin을 통합하려는 builder라면 [zkLogin 통합](/guides/developer/cryptography/zklogin-integration/)을 참고한다.
 
 ## OpenID providers
 
@@ -100,7 +100,7 @@ zkLogin은 현재 OpenID specification이 provider가 이 identifier를 변경�
 
 2. `nonce`: JWT payload에 포함된 application-defined field이며, ephemeral public key, JWT randomness, maximum epoch(Sui가 정의한 expiry epoch)의 해시로 계산된다. 구체적으로 zkLogin 호환 nonce는 `nonce = ToBase64URL(Poseidon_BN254([ext_eph_pk_bigint / 2^128, ext_eph_pk_bigint % 2^128, max_epoch, jwt_randomness]).to_bytes()[len - 20..])`로 전달되어야 하며 여기서 `ext_eph_pk_bigint`는 `ext_eph_pk`의 BigInt 표현이다.
 
-3. `ext_eph_pk`: ephemeral public key(`flag || eph_pk`)의 byte 표현이다. 크기는 signature scheme 선택에 따라 달라진다(flag로 표시되며 [Signatures](/guides/developer/transactions/transaction-auth/auth-overview)에 정의된다).
+3. `ext_eph_pk`: ephemeral public key(`flag || eph_pk`)의 byte 표현이다. 크기는 signature scheme 선택에 따라 달라진다(flag로 표시되며 [서명](/guides/developer/transactions/transaction-auth/auth-overview#signatures)에 정의된다).
 
 4. `user_salt`: OAuth identifier를 온체인 address와 분리하기 위해 도입된 값이다.
 
@@ -116,7 +116,7 @@ zkLogin은 현재 OpenID specification이 provider가 이 identifier를 변경�
 
 1. Application frontend: zkLogin을 지원하는 wallet 또는 frontend application을 말한다. frontend는 ephemeral private key 저장, OAuth login flow 유도, zkLogin transaction 생성 및 서명을 담당한다.
 
-2. Salt backup service: 고유 사용자별 salt를 반환하는 backend service이다. salt를 유지하는 다른 전략은 [zkLogin Integration Guide](/guides/developer/cryptography/zklogin-integration/)를 참조한다.
+2. Salt backup service: 고유 사용자별 salt를 반환하는 backend service이다. salt를 유지하는 다른 전략은 [zkLogin 통합](/guides/developer/cryptography/zklogin-integration/)을 참조한다.
 
 3. Zero-knowledge proving service: JWT, JWT randomness, user salt, max epoch에 기반한 zero-knowledge proof를 생성하는 backend service이다. 이 proof는 zkLogin transaction을 위한 ephemeral signature와 함께 온체인에 제출된다.
 

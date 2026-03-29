@@ -1,5 +1,5 @@
 ---
-title: Sui Full Node Configuration
+title: Sui 풀 노드 구성
 description: transactions, checkpoints, epoch changes 같은 blockchain 활동을 검증하기 위해 Sui 풀 노드를 운영한다.
 keywords: [ fullnode configuration, full node configuration, sui full nodes, state synchronization, state sync, full node architecture, node hardware requirements, node software requirements, grpc, starting a full node, running a full node ]
 ---
@@ -124,11 +124,11 @@ Sui 풀 노드는 여러 방식으로 실행할 수 있으며(bare metal, virtua
 
 어떤 환경에서 실행하든 공통으로 고려해야 할 사항이 있다:
 
-* [Genesis](./genesis.mdx): 연결하려는 network의 genesis blob을 다운로드하고 `sui-node`에서 사용할 수 있게 해야 한다.
-* [Data Storage](./data-management.mdx): Sui 풀 노드는 blockchain history를 저장하기 위해 상당한 디스크 공간이 필요할 수 있다. 풀 노드를 사용해 RPC requests를 제공할 계획이라면 index files 저장도 고려해야 하며, 이 역시 상당한 디스크 공간이 필요하다.
-* [Monitoring](./monitoring.mdx): Sui 풀 노드는 node의 건강 상태와 Sui network 상태에 대한 metrics를 노출한다.
-* [Updates](./updates.mdx): Sui 풀 노드는 network와 동기화 상태를 유지하려면 최신 버전으로 업데이트되어야 한다.
-* [Archival Fallback](./archives.mdx): archival fallback을 사용하면 chain history의 어느 시점에서든 checkpoints를 동기화할 수 있다. 아래의 network `seed-peers`는 몇 개 epoch 분량의 history만 유지한다.
+* [제네시스](./genesis.mdx): 연결하려는 network의 genesis blob을 다운로드하고 `sui-node`에서 사용할 수 있게 해야 한다.
+* [데이터 관리](./data-management.mdx): Sui 풀 노드는 blockchain history를 저장하기 위해 상당한 디스크 공간이 필요할 수 있다. 풀 노드를 사용해 RPC requests를 제공할 계획이라면 index files 저장도 고려해야 하며, 이 역시 상당한 디스크 공간이 필요하다.
+* [Sui 노드 모니터링](./monitoring.mdx): Sui 풀 노드는 node의 건강 상태와 Sui network 상태에 대한 metrics를 노출한다.
+* [풀 노드 업데이트하기](./updates.mdx): Sui 풀 노드는 network와 동기화 상태를 유지하려면 최신 버전으로 업데이트되어야 한다.
+* [Sui 아카이브](./archives.mdx): archival fallback을 사용하면 chain history의 어느 시점에서든 checkpoints를 동기화할 수 있다. 아래의 network `seed-peers`는 몇 개 epoch 분량의 history만 유지한다.
 
 ### Using Docker Compose
 
@@ -213,7 +213,7 @@ production 환경에서 `sui-node`를 실행할 준비가 되면 다음 단계�
     </TabItem>
 
     </Tabs>
-1. Optional: network의 `seed-peers`보다 뒤처졌을 때 checkpoints를 동기화할 수 있게 하는 [Archival Fallback](./archives.mdx)을 설정한다.
+1. Optional: network의 `seed-peers`보다 뒤처졌을 때 checkpoints를 동기화할 수 있게 하는 [Sui 아카이브](./archives.mdx)를 설정한다.
 1. Optional: 기본 resource paths를 사용할 경우 이 단계를 건너뛴다. custom paths를 사용하려면 `fullnode.yaml` file을 편집한다.
 1. `db-path` field를 풀 노드 database path로 업데이트한다.
     `db-path: "/db-files/sui-fullnode"`
@@ -227,7 +227,7 @@ production 환경에서 `sui-node`를 실행할 준비가 되면 다음 단계�
 
 풀 노드를 genesis 시작점부터 동기화해서는 안 된다. 이렇게 하면 시간이 매우 오래 걸리고 많은 resources를 소비하며, 디스크도 쉽게 가득 찰 수 있다.
 
-대신 최근 snapshot에서 풀 노드를 시작한다. snapshot 획득 방법은 [Sui Snapshots guide](./snapshots.mdx)에서 확인한다.
+대신 최근 snapshot에서 풀 노드를 시작한다. snapshot 획득 방법은 [데이터베이스 스냅샷](./snapshots.mdx)에서 확인한다.
 
 이제 풀 노드 config file을 설정했고 snapshot도 확보했으므로, `fullnode.yaml` configuration file과 함께 `sui-node` binary를 실행해 풀 노드를 시작할 수 있다:
 

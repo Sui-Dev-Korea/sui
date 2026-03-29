@@ -1,10 +1,10 @@
 ---
-title: Query the Pool
+title: 풀 조회
 description: Pool은 SUI/USDC와 같은 고유한 market pair를 나타내는 shared object이다.
 keywords: [ deepbook, deepbookv3, pool, balancemanager, tradeproof, query a pool, query pool, whitelist status, base quantity against quote, quote quantity against base, DEEP fees, input token fees, quote quantity against quote or base, check fee required, reserve mid price, reserve pool mid price ]
 ---
 
-`Pool` shared object는 SUI/USDC 시장과 같은 시장을 나타낸다. 해당 `Pool`은 그 고유한 쌍(SUI/USDC)을 나타내는 유일한 object이며, 그 쌍은 해당 `Pool`의 유일한 member이다. pools의 구조에 대해 더 알아보려면 [DeepBookV3 Design](../design.mdx#pool)을 참조한다.
+`Pool` shared object는 SUI/USDC 시장과 같은 시장을 나타낸다. 해당 `Pool`은 그 고유한 쌍(SUI/USDC)을 나타내는 유일한 object이며, 그 쌍은 해당 `Pool`의 유일한 member이다. pools의 구조에 대해 더 알아보려면 [설계](../design.mdx#pool)을 참조한다.
 
 거래를 수행하려면 관련 `Pool`에 `BalanceManager`와 `TradeProof`를 전달한다. `Pool`과 달리 `BalanceManager` shared object는 어떤 타입의 토큰도 포함할 수 있으므로, 동일한 `BalanceManager`가 여러 `Pool`에 접근하여 다양한 거래 페어링과 상호작용할 수 있다. 더 알아보려면 [BalanceManager](./balance-manager.mdx)를 참조한다.
 

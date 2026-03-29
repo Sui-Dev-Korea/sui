@@ -1,12 +1,12 @@
 ---
-title: Sui On-Chain Signatures Verification in Move
+title: Move에서 Sui 온체인 서명 검증하기
 description: Sui는 여러 signature scheme을 통해 Move smart contract 내부 검증을 지원한다. 지원되는 signature scheme에는 Ed25519, Secp256k1 recoverable, Secp256k1 non-recoverable, Secp256r1 non-recoverable, Secp256r1 recoverable, BLS G1, BLS G2가 포함된다.
 keywords: [ Ed25519, Secp256k1 recoverable, Secp256k1 non-recoverable, Secp256r1 non-recoverable, Secp256r1 recoverable, BLS G1, BLS G2, signature schemes, signature verification fastcrypto, on-chain verification ]
 ---
 
 Sui의 Move contract는 여러 서명 방식(signature scheme)에 대한 on-chain 검증을 지원한다.
 on-chain 검증에서 지원되는 모든 signature가 사용자 signature 검증에서 지원되는 것은 아니다.
-transaction authorization에 유효한 서명 방식은 [Sui Signatures](/guides/developer/transactions/transaction-auth/auth-overview)를 참조한다.
+transaction authorization에 유효한 서명 방식은 [서명](/guides/developer/transactions/transaction-auth/auth-overview#signatures) 섹션을 참조한다.
 
 이 문서는 다음 내용을 다룬다:
 

@@ -1,12 +1,12 @@
 ---
-title: Install Sui
+title: Sui 설치
 description: 시스템에 Sui framework와 필요한 prerequisite를 설치한다.
 keywords: [ install sui, how to install sui, install sui cli, interact with sui networks, connect to sui networks, sui command line interface ]
 pagination_prev: null
 pagination_next: null
 ---
 
-# Install Sui
+# Sui 설치
 
 Sui는 탈중앙화 애플리케이션을 빌드하는 데 적합한 네이티브 primitive 전체 스택을 갖춘 확장 가능하고 성능이 뛰어난 layer-1 블록체인이다.
 
@@ -14,7 +14,7 @@ Sui는 탈중앙화 애플리케이션을 빌드하는 데 적합한 네이티�
 
 다른 체인과 달리 Sui는 네트워크의 모든 항목이 object인 [object-centric model](/guides/developer/objects/object-model.mdx)을 사용한다.
 
-[Transactions](/guides/developer/transactions/txn-overview.mdx)은 object를 입력으로 사용하며, 이는 기존 object를 변경하거나 새 object를 만든다.
+[트랜잭션](/guides/developer/transactions/txn-overview.mdx)은 object를 입력으로 사용하며, 이는 기존 object를 변경하거나 새 object를 만든다.
 
 각 object는 고유한 온체인 ID를 가진다.
 
@@ -57,15 +57,15 @@ Sui CLI를 설치하려면 [`suiup`](https://github.com/MystenLabs/suiup)을 사
 
 Quick install은 대부분의 사용 사례에 적합하다.
 
-설치 과정을 더 세밀하게 제어하고 싶다면 [install from source](/guides/developer/getting-started/install-source.mdx)하거나 [install binaries](/guides/developer/getting-started/install-binaries.mdx)할 수 있다.
+설치 과정을 더 세밀하게 제어하고 싶다면 [소스에서 설치](/guides/developer/getting-started/install-source.mdx)하거나 [바이너리로 설치](/guides/developer/getting-started/install-binaries.mdx)할 수 있다.
 
 이전 개발 환경에서 Sui가 이미 설치되어 있다면 [latest version](/guides/developer/getting-started/install-binaries.mdx)으로 반드시 업그레이드한다.
 
 :::info Looking for a project to clone?
 
-Smart contract를 만들고 게시하려면 먼저 [configure a Sui client](/guides/developer/getting-started/configure-sui-client.mdx)하고 [obtain SUI tokens](/guides/developer/getting-started/get-coins.mdx)해야 한다.
+Smart contract를 만들고 게시하려면 먼저 [Sui 클라이언트 설정](/guides/developer/getting-started/configure-sui-client.mdx)하고 [Faucet에서 SUI 받기](/guides/developer/getting-started/get-coins.mdx)해야 한다.
 
-그다음 [create a "Hello, World!" example](/guides/developer/getting-started/hello-world.mdx) 또는 [clone another example](/guides/developer/app-examples)로 빌드를 시작할 수 있다.
+그다음 [Hello, World!](/guides/developer/getting-started/hello-world.mdx) 또는 [앱 예시](/guides/developer/app-examples)로 빌드를 시작할 수 있다.
 
 :::
 
@@ -92,17 +92,17 @@ Smart contract를 만들고 게시하려면 먼저 [configure a Sui client](/gui
 
 <div className="next-steps-module">
   <div className="next-steps-header">
-    <h3>Next steps</h3>
+    <h3>다음 단계</h3>
   </div>
   <div className="next-steps-grid">
     <Card className="plausible-event-name=install+client+button"
-      title="Configure a Sui Client"
+      title="Sui 클라이언트 설정"
       href="/guides/developer/getting-started/configure-sui-client"
     >
       Sui address를 얻고 Testnet에 연결하기 위해 Sui client를 구성한다.
     </Card>
     <Card className="plausible-event-name=install+faucet+button"
-      title="Get SUI from Faucet"
+      title="Faucet에서 SUI 받기"
       href="/guides/developer/getting-started/get-coins"
     >
       Testnet에 package를 배포하기 위해 faucet에서 SUI를 받는다.

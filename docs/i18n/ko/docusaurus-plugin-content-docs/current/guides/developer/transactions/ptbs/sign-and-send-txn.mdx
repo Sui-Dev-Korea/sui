@@ -1,5 +1,5 @@
 ---
-title: Signing and Sending Transactions
+title: 트랜잭션 서명 및 전송
 description: Sui의 각 transaction은 transaction 결과를 정의하는 입력과 함께 실행되는 특정 기능 호출을 나타낸다.
 keywords: [transactions, transaction inputs, smart contract functions, signatures, Ed25519 pure, ECDSA Secp256k1, ECDSA Secp256r1, Multisig, zkLogin]
 ---
@@ -7,7 +7,7 @@ keywords: [transactions, transaction inputs, smart contract functions, signature
 Sui의 transaction은 입력을 바탕으로 실행되어 transaction 결과를 정의하는 특정 기능에 대한 호출을 나타낸다.
 
 입력은 owned object, immutable object, shared object를 가리키는 object reference이거나, 예를 들어 Move call의 인자로 쓰이는 byte vector 같은 encoded value일 수 있다.
-transaction은 보통 [programmable transaction blocks](/guides/developer/transactions/ptbs/building-ptb)(PTBs)를 사용해 구성되며, 구성된 뒤 사용자가 서명하고 온체인에서 실행되도록 제출한다.
+transaction은 보통 [PTB 구성하기](/guides/developer/transactions/ptbs/building-ptb) 가이드에서 설명하는 방식대로 구성되며, 구성된 뒤 사용자가 서명하고 온체인에서 실행되도록 제출한다.
 
 signature는 wallet이 소유한 private key로 제공되며, 그 public key는 transaction sender의 Sui address와 일치해야 한다.
 
@@ -25,7 +25,7 @@ Sui는 intent message의 Blake2b hash digest(`intent || bcs bytes of tx_data`)�
 - zkLogin
 
 Ed25519 Pure, ECDSA Secp256k1, ECDSA Secp256r1은 `SuiKeyPair`를 사용해 인스턴스화할 수 있으며 transaction 서명에 사용할 수 있다.
-이 가이드는 Multisig와 zkLogin에는 적용되지 않으므로, 지침은 각 전용 페이지([Multisig](/guides/developer/transactions/transaction-auth/multisig)와 [zkLogin](https://docs.sui.io/guides/developer/cryptography/zklogin-integration))를 참조한다.
+이 가이드는 Multisig와 zkLogin에는 적용되지 않으므로, 지침은 각 전용 페이지([다중 서명](/guides/developer/transactions/transaction-auth/multisig)와 [zkLogin 통합](https://docs.sui.io/guides/developer/cryptography/zklogin-integration))를 참조한다.
 
 signature와 transaction bytes가 있으면 transaction을 제출해 실행시킬 수 있다.
 
@@ -33,10 +33,10 @@ signature와 transaction bytes가 있으면 transaction을 제출해 실행시�
 
 다음 상위 수준 과정은 온체인 transaction을 구성하고 서명하고 실행하는 전체 흐름을 설명한다:
 
-- 여러 command를 연결한 `Transaction`을 만들어 transaction 데이터를 구성한다. 자세한 내용은 [Building Programmable Transaction Blocks](/guides/developer/transactions/ptbs/building-ptb)를 참조한다.
+- 여러 command를 연결한 `Transaction`을 만들어 transaction 데이터를 구성한다. 자세한 내용은 [PTB 구성하기](/guides/developer/transactions/ptbs/building-ptb)를 참조한다.
 - SDK의 내장 gas 추정과 coin selection이 gas coin을 선택한다.
 
-- [signature](/guides/developer/transactions/transaction-auth/auth-overview)를 생성하도록 transaction에 서명한다.
+- [서명](/guides/developer/transactions/transaction-auth/auth-overview#signatures)을 생성하도록 transaction에 서명한다.
 
 - `Transaction`과 그 signature를 제출해 온체인 실행을 요청한다.
 
@@ -98,7 +98,7 @@ const kp_import_2 = Secp256r1Keypair.fromSecretKey(
 	fromHex('0xd463e11c7915945e86ac2b72d88b8190cfad8ff7b48e7eb892c275a5cf0a3e82'),
 );
 
-// $MNEMONICS는 wordlist에 있는 12/15/18/21/24개 단어를 가리키며, 예를 들어 "retire skin goose will hurry this field stadium drastic label husband venture cruel toe wire" 같은 형태이다. 자세한 내용은 [Keys and Addresses](/guides/developer/transactions/transaction-auth/auth-overview)를 참조한다.
+// $MNEMONICS는 wordlist에 있는 12/15/18/21/24개 단어를 가리키며, 예를 들어 "retire skin goose will hurry this field stadium drastic label husband venture cruel toe wire" 같은 형태이다. 자세한 내용은 [키와 주소](/guides/developer/transactions/transaction-auth/auth-overview#keys-and-addresses)를 참조한다.
 const kp_derive_0 = Ed25519Keypair.deriveKeypair('$MNEMONICS');
 const kp_derive_1 = Secp256k1Keypair.deriveKeypair('$MNEMONICS');
 const kp_derive_2 = Secp256r1Keypair.deriveKeypair('$MNEMONICS');
@@ -189,7 +189,7 @@ Sui Rust SDK를 사용하면 `SuiKeyPair`를 인스턴스화하고 그 public ke
 ```
 
 기본 gas coin, gas budget, gas price를 사용한 예시 programmable transaction으로 구성한 transaction data에 다음으로 서명한다.
-자세한 내용은 [Building Programmable Transaction Blocks](./building-ptb.mdx)를 참조한다.
+자세한 내용은 [PTB 구성하기](./building-ptb.mdx)를 참조한다.
 
 ```rust
     // 예시 programmable transaction을 구성한다.
@@ -273,7 +273,7 @@ sui keytool import "0xd463e11c7915945e86ac2b72d88b8190cfad8ff7b48e7eb892c275a5cf
 sui keytool import "0xd463e11c7915945e86ac2b72d88b8190cfad8ff7b48e7eb892c275a5cf0a3e82" secp256r1
 
 # derivation path가 있는 mnemonics(복구 구문)를 keystore로 import한다.
-# $MNEMONICS는 wordlist에 있는 12/15/18/21/24개 단어를 가리키며, 예를 들어 "retire skin goose will hurry this field stadium drastic label husband venture cruel toe wire" 같은 형태이다. 자세한 내용은 [Keys and Addresses](/guides/developer/transactions/transaction-auth/auth-overview)를 참조한다.
+# $MNEMONICS는 wordlist에 있는 12/15/18/21/24개 단어를 가리키며, 예를 들어 "retire skin goose will hurry this field stadium drastic label husband venture cruel toe wire" 같은 형태이다. 자세한 내용은 [키와 주소](/guides/developer/transactions/transaction-auth/auth-overview#keys-and-addresses)를 참조한다.
 
 sui keytool import "$MNEMONICS" ed25519
 sui keytool import "$MNEMONICS" secp256k1
@@ -285,7 +285,7 @@ CLI에서 transfer transaction을 생성한다.
 `$GAS_COIN_ID`는 gas에 사용할 sender 소유 object ID를 가리킨다.
 `$GAS_BUDGET`은 transaction 실행에 사용할 예산을 가리킨다.
 그 다음 sender address에 대응하는 private key로 서명한다.
-`$MNEMONICS`는 wordlist에 있는 12/15/18/21/24개 단어를 가리키며, 예를 들어 "retire skin goose will hurry this field stadium drastic label husband venture cruel toe wire" 같은 형태이다. 자세한 내용은 [Keys and Addresses](/guides/developer/transactions/transaction-auth/auth-overview)를 참조한다.
+`$MNEMONICS`는 wordlist에 있는 12/15/18/21/24개 단어를 가리키며, 예를 들어 "retire skin goose will hurry this field stadium drastic label husband venture cruel toe wire" 같은 형태이다. 자세한 내용은 [키와 주소](/guides/developer/transactions/transaction-auth/auth-overview#keys-and-addresses)를 참조한다.
 
 <ImportContent source="info-gas-budget.mdx" mode="snippet" />
 
@@ -307,8 +307,8 @@ $ sui client execute-signed-tx --tx-bytes $TX_BYTES --signatures $SERIALIZED_SIG
 
 ### Notes
 
-1. 이 가이드는 단일 private key로 서명하는 방법을 보여준다. 더 복잡한 signing policy를 설정하는 것이 적절할 때는 [Multisig](/guides/developer/transactions/transaction-auth/multisig.mdx)를 참조한다.
-2. 마찬가지로 native zkLogin은 위 단계를 따르지 않으므로, zkLogin address를 파생하고 ephemeral key pair로 zkLogin signature를 생성하는 방법을 이해하려면 [the docs](/guides/developer/cryptography/zklogin-integration/)를 참조한다.
-3. 이전 도구 대신 자체 signing mechanism을 구현하기로 했다면, 각 scheme에 대해 허용되는 signature specification은 [Signatures](/guides/developer/transactions/transaction-auth/auth-overview) 문서를 참조한다.
-4. Flag는 signature scheme을 구분하는 1 byte이다. 지원되는 scheme과 해당 flag는 [Signatures](/guides/developer/transactions/transaction-auth/auth-overview)에서 확인한다.
-5. `execute_transaction_block` endpoint는 signature 목록을 받으므로, sponsored transaction을 사용하지 않는 한 정확히 1개의 사용자 signature만 포함해야 하고, sponsored transaction을 쓰는 경우에는 gas object에 대한 두 번째 signature를 제공할 수 있다. 자세한 내용은 [Sponsored Transactions](/guides/developer/transactions/sponsor-txn.mdx)를 참조한다.
+1. 이 가이드는 단일 private key로 서명하는 방법을 보여준다. 더 복잡한 signing policy를 설정하는 것이 적절할 때는 [다중 서명](/guides/developer/transactions/transaction-auth/multisig.mdx)를 참조한다.
+2. 마찬가지로 native zkLogin은 위 단계를 따르지 않으므로, zkLogin address를 파생하고 ephemeral key pair로 zkLogin signature를 생성하는 방법을 이해하려면 [zkLogin 통합](/guides/developer/cryptography/zklogin-integration/)을 참조한다.
+3. 이전 도구 대신 자체 signing mechanism을 구현하기로 했다면, 각 scheme에 대해 허용되는 signature specification은 [서명](/guides/developer/transactions/transaction-auth/auth-overview#signatures) 문서를 참조한다.
+4. Flag는 signature scheme을 구분하는 1 byte이다. 지원되는 scheme과 해당 flag는 [서명](/guides/developer/transactions/transaction-auth/auth-overview#signatures)에서 확인한다.
+5. `execute_transaction_block` endpoint는 signature 목록을 받으므로, sponsored transaction을 사용하지 않는 한 정확히 1개의 사용자 signature만 포함해야 하고, sponsored transaction을 쓰는 경우에는 gas object에 대한 두 번째 signature를 제공할 수 있다. 자세한 내용은 [스폰서드 트랜잭션](/guides/developer/transactions/sponsor-txn.mdx)를 참조한다.

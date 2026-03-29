@@ -1,5 +1,5 @@
 ---
-title: Build a Custom Indexer
+title: 커스텀 인덱서 만들기
 description: "`sui-indexer-alt-framework` 모듈을 사용해 custom indexer를 구축한다. example indexer는 Sui checkpoint에서 transaction digest를 추출해 로컬 PostgreSQL에 저장하는 sequential pipeline을 보여준다."
 keywords:
   - indexer
@@ -8,7 +8,7 @@ keywords:
   - indexer pipeline
 ---
 
-이 가이드는 커스텀 인덱서(custom indexer)를 구축하는 실용적인 예시를 제공한다. indexer framework의 개념적 개요는 [Custom Indexing Framework](/concepts/data-access/custom-indexers) 및 [Indexer Pipeline Architecture](/concepts/data-access/pipeline-architecture)를 참고한다.
+이 가이드는 커스텀 인덱서(custom indexer)를 구축하는 실용적인 예시를 제공한다. indexer framework의 개념적 개요는 [커스텀 인덱싱 프레임워크](/concepts/data-access/custom-indexers) 및 [인덱서 파이프라인 아키텍처](/concepts/data-access/pipeline-architecture)를 참고한다.
 
 완전한 커스텀 인덱서를 구축하려면 `sui-indexer-alt-framework`를 사용한다. 다음 단계에서는 Sui checkpoint에서 transaction digest를 추출하여 로컬 PostgreSQL에 저장하는 sequential pipeline을 만드는 방법을 보여준다. framework의 [source code for the framework](https://github.com/MystenLabs/sui/tree/main/crates/sui-indexer-alt-framework)는 GitHub의 Sui repo에서 찾을 수 있다.
 
@@ -438,4 +438,3 @@ $ SELECT * FROM transaction_digests LIMIT 5;
 동작하는 커스텀 indexer를 구축했다. 🎉
 
 여기에서 다룬 핵심 개념은 모든 커스텀 indexer에 적용되며, 데이터 구조를 정의하고 `Processor`와 `Handler` trait을 구현한 다음 framework에 인프라 관리를 맡기면 된다.
-

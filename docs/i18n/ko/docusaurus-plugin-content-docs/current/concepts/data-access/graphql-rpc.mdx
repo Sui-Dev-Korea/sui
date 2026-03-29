@@ -1,12 +1,12 @@
 ---
-title: GraphQL for Sui RPC (Beta)
+title: Sui RPC용 GraphQL (베타)
 description: GraphQL을 사용하여 Sui RPC 호출을 수행한다. 이 기능은 현재 Beta이다.
 keywords: [ graphql, graphql headers, x-sui-rpc-version, x-sui-rpc-show-usage, variables, fragments, pagination, graphql limits, make rpc call, sui rpc calls ]
 ---
 
 GraphQL은 Sui 네트워크를 유연하게 쿼리하는 방법을 제공한다. 이 페이지는 요청 헤더, variables 및 fragments를 사용한 쿼리 구성, pagination 전략, 쿼리 범위, 서비스 제한을 포함하여 Sui RPC에서 GraphQL을 사용할 때의 핵심 개념을 다룬다.
 
-실용적인 예시는 [Querying Sui RPC with GraphQL](/guides/developer/accessing-data/query-with-graphql.mdx)을 참조하라. GraphQL의 전반적인 기초는 [GraphQL](https://graphql.org/learn/) 및 [GitHub](https://docs.github.com/en/graphql/guides/introduction-to-graphql)의 소개 문서를 참조하라.
+실용적인 예시는 [GraphQL RPC 사용하기](/guides/developer/accessing-data/query-with-graphql.mdx)을 참조하라. GraphQL의 전반적인 기초는 [GraphQL](https://graphql.org/learn/) 및 [GitHub](https://docs.github.com/en/graphql/guides/introduction-to-graphql)의 소개 문서를 참조하라.
 
 :::info
 
@@ -42,9 +42,9 @@ GraphQL과 General-purpose Indexer 스택의 핵심 구성 요소는 다음을 �
 
 - **Postgres-compatible database:** GraphQL queries를 위한 indexed 데이터를 저장한다. [GCP AlloyDB](https://cloud.google.com/products/alloydb)로 테스트되었지만 어떤 Postgres-compatible database든 실행할 수 있다. 대체 데이터베이스를 테스트하고 성능, 비용, 운영 특성에 대한 피드백을 공유하라.
 
-- **GraphQL service:** indexed 데이터에 대해 구조화된 queries를 제공한다. [GraphQL specification](https://graphql.org/)을 따르며 지원되는 schema는 [GraphQL API reference](/references/sui-graphql)에 문서화되어 있다.
+- **GraphQL service:** indexed 데이터에 대해 구조화된 queries를 제공한다. [GraphQL specification](https://graphql.org/)을 따르며 지원되는 schema는 [Sui RPC용 GraphQL (베타)](/references/sui-graphql)에 문서화되어 있다.
 
-- **Archival Service:** key-value store에서 과거 데이터에 대한 point lookup을 가능하게 한다. 사용할 수 없는 경우 GraphQL service는 lookups를 위해 Postgres-compatible database로 폴백하며, 이 경우 해당 데이터베이스의 retention policy에 의해 제한될 수 있다. 자세한 내용은 [Archival Store and Service](/guides/developer/accessing-data/archival-store)를 참조하라.
+- **Archival Service:** key-value store에서 과거 데이터에 대한 point lookup을 가능하게 한다. 사용할 수 없는 경우 GraphQL service는 lookups를 위해 Postgres-compatible database로 폴백하며, 이 경우 해당 데이터베이스의 retention policy에 의해 제한될 수 있다. 자세한 내용은 [아카이브 서비스 사용하기](/guides/developer/accessing-data/archival-store)를 참조하라.
 
 - **Consistent Store:** 최근 1시간 이내 네트워크의 최신 상태(objects owned by addresses, objects by type, balances by address and type)에 대한 queries에 응답한다. 일관성은 queries를 특정 최근 checkpoint에 고정함으로써 보장된다.
 
@@ -94,7 +94,7 @@ GraphQL 및 Indexer 데이터 스택은 다음 구성으로 실행하거나 사�
 
 ## Working with the GraphQL service
 
-GraphQL service는 GraphQL 개념에 부합하는 query surface를 노출한다. 이 서비스는 pagination, filtering, consistent snapshot queries를 허용한다. 또한 schema, query cost limits, logging에 대한 런타임 구성도 지원한다. GraphQL schema는 [GraphQL reference](/references/sui-graphql)에 정의되어 있다. 여기에서 지원되는 타입과 fields를 살펴보고, GraphiQL IDE를 사용해 queries를 테스트하고, 최신 schema에 대한 문서를 읽을 수 있다.
+GraphQL service는 GraphQL 개념에 부합하는 query surface를 노출한다. 이 서비스는 pagination, filtering, consistent snapshot queries를 허용한다. 또한 schema, query cost limits, logging에 대한 런타임 구성도 지원한다. GraphQL schema는 [Sui RPC용 GraphQL (베타)](/references/sui-graphql)에 정의되어 있다. 여기에서 지원되는 타입과 fields를 살펴보고, GraphiQL IDE를 사용해 queries를 테스트하고, 최신 schema에 대한 문서를 읽을 수 있다.
 
 GraphQL service는 stateless하고 수평 확장이 가능한 단일 binary로 배포된다. Queries는 필요에 따라 Postgres-compatible database(과거 데이터에 대한 filters), Archival Service(point lookups), Consistent Store(실시간 데이터), full node(실행 및 simulation) 중 하나 이상에서 제공되는 데이터로 응답한다. 이러한 stores에 대한 접근은 서비스 시작 시 서비스와 함께 구성해야 하며, 그렇지 않으면 서비스가 요청에 올바르게 응답하지 못할 수 있다. 설정, 구성, 실행 방법에 대한 자세한 내용은 [README](https://github.com/MystenLabs/sui/tree/main/crates/sui-indexer-alt-graphql)를 참조하라.
 
@@ -183,7 +183,7 @@ Consistent Store는 온체인의 실시간 데이터를 인덱싱하고 최근 c
 
 ## For RPC providers and data operators
 
-GraphQL RPC와 General-purpose Indexer 스택을 서비스로 운영하는 경우, 빌더에게 성능이 좋고 비용 효율적인 경험을 제공하도록 구성을 맞추기 위한 몇 가지 핵심 고려 사항은 다음과 같다. 단계별 설정 및 운영 지침은 [GraphQL and General-Purpose Indexer guide](/guides/operator/indexer-stack-setup.mdx)를 참조하라.
+GraphQL RPC와 General-purpose Indexer 스택을 서비스로 운영하는 경우, 빌더에게 성능이 좋고 비용 효율적인 경험을 제공하도록 구성을 맞추기 위한 몇 가지 핵심 고려 사항은 다음과 같다. 단계별 설정 및 운영 지침은 [GraphQL 및 General-purpose Indexer](/guides/operator/indexer-stack-setup.mdx)를 참조하라.
 
 ### How much data to index and retain
 
@@ -205,7 +205,7 @@ events, objects, transactions와 같이 포함할 데이터를 인덱싱 pipelin
 
 모든 프로덕션 배포에서는 Postgres와 [Archival Service](/guides/developer/accessing-data/archival-store.mdx)를 함께 사용하여 관련 데이터가 Postgres에 존재하지 않을 때 transactions, objects, checkpoints의 point lookup을 지원하라. Archival Service는 과거 버전과 checkpoint 데이터의 백엔드 역할을 하여 Postgres 인스턴스에 가해지는 부담을 줄인다. 엄밀히 필수는 아니지만, 높은 retention의 GraphQL 또는 gRPC 워크로드를 지원하려는 모든 프로덕션 구성에서는 Archival Service를 사용하는 것이 좋다.
 
-현재 구현은 매우 확장 가능하고 성능 좋은 데이터 스토어인 [GCP Bigtable](https://cloud.google.com/bigtable)을 지원한다. 자체 archival store를 운영할 계획이라면 indexer 설정과 RPC service 구현을 위해 각각 `sui-kvstore`와 `sui-kv-rpc`를 참조하라. indexer 설정 시에는 반드시 [custom indexing framework](/guides/developer/accessing-data/custom-indexing-framework)를 사용하라. 다른 확장형 데이터 스토어 지원에 기여하고 싶다면 GitHub에서 새 이슈를 만들어 문의하라.
+현재 구현은 매우 확장 가능하고 성능 좋은 데이터 스토어인 [GCP Bigtable](https://cloud.google.com/bigtable)을 지원한다. 자체 archival store를 운영할 계획이라면 indexer 설정과 RPC service 구현을 위해 각각 `sui-kvstore`와 `sui-kv-rpc`를 참조하라. indexer 설정 시에는 반드시 [커스텀 인덱싱 프레임워크](/guides/developer/accessing-data/custom-indexing-framework)를 사용하라. 다른 확장형 데이터 스토어 지원에 기여하고 싶다면 GitHub에서 새 이슈를 만들어 문의하라.
 
 <details>
 <summary>

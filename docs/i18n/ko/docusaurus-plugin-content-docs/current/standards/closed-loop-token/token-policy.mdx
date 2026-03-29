@@ -1,5 +1,5 @@
 ---
-title: Token Policy
+title: 토큰 정책
 description: "`TokenPolicy`는 token의 허용된 action과 조건을 정의하는 shared object이다. Wallets 및 기타 금융 서비스는 `TokenPolicy` object를 자주 사용한다."
 keywords:
   - token policy
@@ -51,7 +51,7 @@ public fun allow<T>(
 
 ## Adding rules
 
-`TokenPolicy`는 각 action에 대해 custom 조건을 지정할 수 있다. 이러한 조건을 rules라고 하며, 일반적으로 별도의 Move module로 구현된다. rule의 식별자는 해당 type이다. 자세한 내용은 [Rules](./rules.mdx)를 참고한다.
+`TokenPolicy`는 각 action에 대해 custom 조건을 지정할 수 있다. 이러한 조건을 rules라고 하며, 일반적으로 별도의 Move module로 구현된다. rule의 식별자는 해당 type이다. 자세한 내용은 [규칙](./rules.mdx)를 참고한다.
 
 `TokenPolicy`의 의사 코드 구조는 다음과 같다. 각 action에는 여러 rules를 연결할 수 있다.
 
@@ -106,4 +106,4 @@ public fun flush<T>(
 | remove_rule_for_action | `TokenPolicy`에서 action의 rule을 제거한다 |
 | confirm_request | `TokenPolicy`로 `ActionRequest`를 confirm한다 |
 | confirm_request_mut | `confirm_request`와 유사하지만 `spend` action에서만 동작한다 |
-| flush | `TokenPolicy`에서 spent balance를 flush한다(참고: [Spending](./spending.mdx)) |
+| flush | `TokenPolicy`에서 spent balance를 flush한다(참고: [지출](./spending.mdx)) |

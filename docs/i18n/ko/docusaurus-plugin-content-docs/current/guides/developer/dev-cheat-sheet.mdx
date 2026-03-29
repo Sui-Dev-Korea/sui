@@ -1,6 +1,6 @@
 ---
-title: Sui Developer Cheat Sheet
-sidebar_label: Dev Cheat Sheet
+title: Sui 개발자 치트 시트
+sidebar_label: Sui 개발자 치트 시트
 description: Sui 개발자를 위한 모범 사례 빠른 참조 문서이다.
 keywords: [ cheat sheet, quick reference, best practices, general best practices, composability, testing, apps, signing, zklogin, app best practices, dev best practices, testing best practices, signing best practices ]
 pagination_prev: null
@@ -13,7 +13,7 @@ Sui Network 개발자를 위한 모범 사례 빠른 참조이다.
 ### General
 
 - Move 개발의 모범 사례는 [Code Quality Checklist](https://move-book.com/guides/code-quality-checklist/)를 읽는다.
-- 일관된 naming과 coding style을 위해 [Move conventions](/guides/developer/move-best-practices.mdx)을 따른다.
+- 일관된 naming과 coding style을 위해 [Move 모범 사례](/guides/developer/move-best-practices.mdx)을 따른다.
 - 최대 크기를 ≤ 1000 item으로 알 수 있는 collection에는 `vector` 기반 collection(`vector`, `VecSet`, `VecMap`, `PriorityQueue`)을 사용한다.
   - 제3자 추가를 허용하는 collection, 더 큰 collection, 크기를 알 수 없는 collection에는 dynamic field 기반 collection(`Table`, `Bag`, `ObjectBag`, `ObjectTable`, `LinkedTable`)을 사용한다.
   - Move object의 최대 크기는 250KB이다. 더 큰 object를 생성하려고 시도하면 transaction이 중단된다. object에 계속 커지는 `vector` 기반 collection이 없도록 한다.
@@ -22,11 +22,11 @@ Sui Network 개발자를 위한 모범 사례 빠른 참조이다.
 ### Composability
 
 - wallet, 앱, explorer에서 object가 표시되는 방식을 사용자 지정하려면 [Sui Object Display](https://move-book.com/programmability/display)를 사용한다.
-- “self-transfers”를 피한다. 가능하면 현재 함수에서 object를 반환하여 [programmable transaction block](/guides/developer/transactions/ptbs/building-ptb)의 다른 command에서 사용할 수 있게 한다.
+- “self-transfers”를 피한다. 가능하면 현재 함수에서 object를 반환하여 [PTB 구성하기](/guides/developer/transactions/ptbs/building-ptb)에서 설명하는 다른 command에서 사용할 수 있게 한다.
 
 ### Package upgrades
 
-- package를 게시하기 전에 [package upgrades](../../guides/developer/packages/upgrade.mdx)를 읽는다.
+- package를 게시하기 전에 [패키지 업그레이드](../../guides/developer/packages/upgrade.mdx)를 읽는다.
 - package는 immutable하므로 게시된 package는 어떤 것이든 영구적으로 호출될 수 있다. 이전 version이 호출되지 않도록 [object versioning](/guides/developer/packages/upgrade.mdx#versioned-shared-objects)을 사용한다.
 - package `P1`을 `P2`로 업그레이드하면 `P1`에 의존하는 다른 package와 client는 계속 `P1`을 사용한다. 이들은 `P2`로 자동 업데이트되지 않는다. 의존 package와 client code 모두 `P2`를 가리키도록 명시적으로 업데이트해야 한다.
 - 의존 package에 의해 확장되기를 기대하는 package는 모든 version이 준수하는 표준(변하지 않는) interface를 제공하여 각 업그레이드 때 확장을 깨뜨리지 않을 수 있다. Wormhole의 bridge 예제 전반에 걸친 [message sending](https://github.com/wormhole-foundation/wormhole/blob/74dea3bf22f0e27628b432c3e9eac05c85786a99/sui/wormhole/sources/publish_message.move)을 참고한다. outbound message를 생성하는 extension package는 Wormhole package의 어떤 version에서든 [`prepare_message`](https://github.com/wormhole-foundation/wormhole/blob/74dea3bf22f0e27628b432c3e9eac05c85786a99/sui/wormhole/sources/publish_message.move#L68-L90)를 사용해 [`MessageTicket`](https://github.com/wormhole-foundation/wormhole/blob/74dea3bf22f0e27628b432c3e9eac05c85786a99/sui/wormhole/sources/publish_message.move#L52-L66)을 생성할 수 있고, message를 보내는 client code는 그 `MessageTicket`을 package 최신 version의 [`publish_message`](https://github.com/wormhole-foundation/wormhole/blob/74dea3bf22f0e27628b432c3e9eac05c85786a99/sui/wormhole/sources/publish_message.move#L92-L152)에 전달해야 한다.

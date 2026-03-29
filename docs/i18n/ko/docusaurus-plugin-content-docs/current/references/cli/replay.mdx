@@ -5,7 +5,7 @@ description: Sui CLI를 사용하여 주어진 transaction을 replay하여 그 �
 
 Replay는 특정 transaction을 replay하여 transaction 효과를 확인하고 분석할 수 있는 도구이다. 간단히 말해, replay 도구는 transaction을 로컬에서 실행하고 해당 효과를 체인에 존재하는 효과와 비교한다.
 
-Replay 도구를 사용하면 `--trace` 플래그를 전달하여 Move 디버거에서 사용할 수 있는 transaction 실행 추적을 생성할 수 있다. Move 디버거에 대한 자세한 내용은 [Move Debugger](../ide/debugger.mdx) 페이지를 참조한다. [gas profiling](./trace-analysis.mdx)과 같은 것은 다양한 [analyses on the transaction traces](./trace-analysis.mdx#profiling-a-transaction)로 수행할 수 있다.
+Replay 도구를 사용하면 `--trace` 플래그를 전달하여 Move 디버거에서 사용할 수 있는 transaction 실행 추적을 생성할 수 있다. Move 디버거에 대한 자세한 내용은 [Move Trace Debugger](../ide/debugger.mdx) 페이지를 참조한다. [gas profiling](./trace-analysis.mdx)과 같은 것은 다양한 [Sui 트레이스 분석](./trace-analysis.mdx#profile-a-transaction)으로 수행할 수 있다.
 
 ## Usage
 
@@ -125,4 +125,4 @@ Transaction Gas Report for 5sbk5UYpQv1i84zkSBSWmowAmPTxw71U7Bb1gbiW5w4y
 ╰────────────────────────────────────────────────────────────────────┴───────┴────────────┴────────────╯
 ```
 
-위 답변은  transaction 효과 정보, 가스 보고서, 그리고 각 object의 크기 및 비용에 대한 더 자세한 목록을 제공한다. 가스 비용에 대한 자세한 내용은 [gas in sui](../../concepts/tokenomics/gas-in-sui.mdx) 페이지를 참조한다.
+위 답변은  transaction 효과 정보, 가스 보고서, 그리고 각 object의 크기 및 비용에 대한 더 자세한 목록을 제공한다. 가스 비용에 대한 자세한 내용은 [가스 수수료](../../concepts/tokenomics/gas-in-sui.mdx) 페이지를 참조한다.

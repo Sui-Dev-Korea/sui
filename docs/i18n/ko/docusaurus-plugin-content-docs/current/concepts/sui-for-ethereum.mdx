@@ -1,5 +1,5 @@
 ---
-title: Ethereum -> Sui
+title: Ethereum에서 Sui로
 description: EVM 경험이 있다면 Sui에서 첫 앱을 구축한다
 keywords: [ ethereum, solidity, EVM,  ]
 pagination_prev: null
@@ -17,7 +17,7 @@ pagination_prev: null
 | Access control | `Ownable` 및 `AccessControl` contract를 통한 identity/role 기반 access control이다. | 주로 owned objects를 통한 [capability based access control](https://move-book.com/programmability/capability.html)이다. Identity/role 기반 access control도 가능하다. |
 | Contract upgrades | Proxy contract가 사용자 transactions를 전달한다. | 새 contracts는 이전 것과 [layout-compatible](/guides/developer/packages/upgrade#upgrade-requirements)해야 한다. Shared objects의 버전 관리도 고려해야 한다. |
 | Development environment | Hardhat, Foundry | [Move VSCode extension](https://marketplace.visualstudio.com/items?itemName=mysten.move). |
-| Mutate contract state | 컴파일 시 ABI 인터페이스를 통해 transactions를 전송한다. | 런타임 [programmable transaction block](/guides/developer/transactions/ptbs/prog-txn-blocks) (PTB) 구성을 통해 transaction을 전송한다. |
+| Mutate contract state | 컴파일 시 ABI 인터페이스를 통해 transactions를 전송한다. | 런타임 [프로그래머블 트랜잭션 블록 (PTB)](/guides/developer/transactions/ptbs/prog-txn-blocks) 구성을 통해 transaction을 전송한다. |
 
 ## Object model
 
@@ -32,7 +32,7 @@ Object ownership에는 몇 가지 뉘앙스가 있지만 핵심 유형은 다음
 - **Address-owned objects:** 이 objects는 하나의 address가 소유한다. 스마트 계약과 상호작용하지 않고도 이 objects를 전송하거나 받을 수 있다. 예를 들면 currency, NFTs, 또는 특정 functions 접근을 제한하는 토큰이 있다.
 - **Shared objects:** 누구나 사용할 수 있는 공개 접근 objects이다. 이 objects에 저장된 데이터를 변경하려면 일반적으로 스마트 계약에서 규칙을 정의해야 한다.
 
-Sui의 모든 ownership 유형은 [Object Ownership](/guides/developer/objects/object-ownership)을 참조하라.
+Sui의 모든 ownership 유형은 [객체 소유권 유형](/guides/developer/objects/object-ownership)을 참조하라.
 
 ## Access control
 
@@ -75,7 +75,7 @@ Move에서는 PTB가 이 문제를 해결한다. PTB는 빌더에게 런타임�
 
 Sui의 빌더는 PTB를 활용해 그렇지 않으면 다루기 어려운 경험을 제공한다. 좋은 예는 최적의 가격으로 여러 DeFi 프로토콜에 걸쳐 토큰 스왑을 라우팅하는 DeFi aggregator이다. Sui에서 aggregator는 표시된 가격으로 transaction이 실행되거나 완전히 revert된다는 보장을 가진 단일 PTB를 사용한다. PTB는 가장 강력한 Sui 기능 중 하나이다. 경험상 Sui에서 가장 성공적인 빌더는 이 기능을 단지 transactions를 배치하는 방법으로 취급하지 않고 초기에 자주 활용하는 빌더이다.
 
-PTB에 대한 자세한 내용은 [Programmable Transaction Blocks](/guides/developer/transactions/ptbs/prog-txn-blocks)를 참조하라.
+PTB에 대한 자세한 내용은 [프로그래머블 트랜잭션 블록 (PTB)](/guides/developer/transactions/ptbs/prog-txn-blocks)를 참조하라.
 
 ## More comparison
 

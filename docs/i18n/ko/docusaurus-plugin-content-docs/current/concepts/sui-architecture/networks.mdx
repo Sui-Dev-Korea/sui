@@ -1,5 +1,5 @@
 ---
-title: Networks
+title: 네트워크
 description: Sui는 프로덕션용 Mainnet, 스테이징용 Testnet, 새 기능 개발용 Devnet, 로컬 개발용 Localnet을 포함한 여러 네트워크를 운영한다.
 keywords: [ networks, mainnet, testnet, devnet, localnet, sui networks, rpc endpoints ]
 ---
@@ -14,13 +14,13 @@ Full nodes는 transactions에 서명할 수 없으며 네트워크 상태의 읽
 
 Validator nodes는 transactions에 서명할 수 있지만 최신 transactions만 저장한다.
 
-[nodes on Sui](/guides/operator/index.mdx)에 대해 자세히 알아본다.
+자세한 내용은 [운영자 가이드](/guides/operator/index.mdx)를 참조한다.
 
 ## Mainnet
 
 Mainnet은 모든 프로덕션 환경 애플리케이션과 transactions를 담당한다. Mainnet의 모든 활동에는 법정 통화 가치를 가지는 실제 SUI 또는 MIST tokens가 든다. SUI 또는 MIST는 거래소에서 구매해야 하며, 남는 SUI 또는 MIST는 이후 거래소에서 법정 통화 가치로 판매할 수 있다. Mainnet의 모든 활동은 공개되며 [suiscan](https://suiscan.xyz/mainnet/home)과 같은 explorers를 통해 볼 수 있다.
 
-Mainnet의 [Epochs](/concepts/sui-architecture/epochs.mdx)는 약 24시간이다. 데이터는 항상 네트워크에 영속 저장된다. [data storage and storage fees](/concepts/sui-architecture/sui-storage.mdx)에 대해 자세히 알아본다.
+Mainnet의 [에포크](/concepts/sui-architecture/epochs.mdx)는 약 24시간이다. 데이터는 항상 네트워크에 영속 저장된다. [데이터 저장과 스토리지 수수료](/concepts/sui-architecture/sui-storage.mdx)에 대해 자세히 알아본다.
 
 Mainnet의 RPC URL은 `https://fullnode.mainnet.sui.io:443`이다.
 
@@ -30,7 +30,7 @@ Testnet은 개발자가 코드를 프로덕션에 배치하기 전에 테스트�
 
 Testnet의 모든 활동은 공개되며 [SuiVision](https://testnet.suivision.xyz/)과 같은 explorers를 통해 볼 수 있다.
 
-Testnet의 [Epochs](/concepts/sui-architecture/epochs.mdx)는 약 24시간이다. Testnet의 데이터는 가끔 삭제될 수 있으므로 영속 저장이 보장되지 않는다. 영구 저장소로 의존해서는 안 된다. Testnet 데이터는 정기 업데이트 과정을 거치며 유지되고, 계획된 데이터 삭제는 미리 공지된다.
+Testnet의 [에포크](/concepts/sui-architecture/epochs.mdx)는 약 24시간이다. Testnet의 데이터는 가끔 삭제될 수 있으므로 영속 저장이 보장되지 않는다. 영구 저장소로 의존해서는 안 된다. Testnet 데이터는 정기 업데이트 과정을 거치며 유지되고, 계획된 데이터 삭제는 미리 공지된다.
 
 Testnet의 RPC URL은 `https://fullnode.testnet.sui.io:443`이다.
 
@@ -40,7 +40,7 @@ Devnet은 새 기능을 개발하는 데 사용되는 불안정한 네트워크�
 
 Devnet의 모든 활동은 공개되며 [suiscan](https://suiscan.xyz/devnet/home)과 같은 explorers를 통해 볼 수 있다.
 
-Devnet의 [Epochs](/concepts/sui-architecture/epochs.mdx)는 1시간이다. Devnet은 고급 사용 사례에 더 적합하므로 새로운 개발자에게는 권장되지 않는다. Devnet의 데이터는 [예정된 업데이트 프로세스](https://sui.io/networkinfo)의 일부로 **매주** 삭제된다.
+Devnet의 [에포크](/concepts/sui-architecture/epochs.mdx)는 1시간이다. Devnet은 고급 사용 사례에 더 적합하므로 새로운 개발자에게는 권장되지 않는다. Devnet의 데이터는 [예정된 업데이트 프로세스](https://sui.io/networkinfo)의 일부로 **매주** 삭제된다.
 
 Devnet의 RPC URL은 `https://fullnode.devnet.sui.io:443`이다.
 

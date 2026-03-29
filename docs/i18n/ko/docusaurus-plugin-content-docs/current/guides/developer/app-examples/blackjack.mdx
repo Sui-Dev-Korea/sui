@@ -166,7 +166,7 @@ Frontend의 메인 코드는 [`app/src/`](https://github.com/MystenLabs/blackjac
 
 - **State management:** 두 게임 모두에서 상태 관리는 중요하다. Blackjack에서는 React state hook을 사용해 플레이어와 딜러의 hand 및 점수를 관리하는 일이 여기에 해당한다. Coin Flip에서는 하우스 잔액과 기타 게임 관련 세부 정보를 추적하는 `HouseData` 같은 Move struct를 통해 상태를 관리한다.
 
-- **Randomness and fair play:** 두 게임 모두 공정성을 위해 randomness를 강조한다. 두 게임 모두 Sui의 [on-chain randomness module](/guides/developer/on-chain-primitives/randomness-onchain.mdx)을 사용하여 모든 게임에 대해 검증 가능하고 진정으로 random한 결과를 보장한다.
+- **Randomness and fair play:** 두 게임 모두 공정성을 위해 randomness를 강조한다. 두 게임 모두 Sui의 [온체인 랜덤니스](/guides/developer/on-chain-primitives/randomness-onchain.mdx)를 사용하여 모든 게임에 대해 검증 가능하고 진정으로 random한 결과를 보장한다.
 
 - **Smart contract interactions:** 각 게임에는 bet 배치, 카드 배분(Blackjack), 추측 수행(Coin Flip) 같은 게임 action을 위한 smart contract 상호작용이 포함된다. 이러한 상호작용은 블록체인에서 게임 로직을 실행하는 데 중요하다.
 

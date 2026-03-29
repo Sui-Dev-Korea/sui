@@ -75,13 +75,13 @@ Sui Move module은 Sui Move package의 typed data인 Sui **Move object**를 다�
 <Tabs className="tabsHeadingCentered--small">
 <TabItem value="prereq" label="Prerequisites">
 
-- [x] [Install the latest version of Sui](/guides/developer/getting-started/sui-install.mdx).
+- [x] [Sui 설치](/guides/developer/getting-started/sui-install.mdx).
 
-- [x] [Configure the Sui client](/guides/developer/getting-started/configure-sui-client.mdx).
+- [x] [Sui 클라이언트 설정](/guides/developer/getting-started/configure-sui-client.mdx).
 
-- [x] [Create a Sui address](/guides/developer/getting-started/get-address.mdx).
+- [x] [Sui 주소 만들기](/guides/developer/getting-started/get-address.mdx).
 
-- [x] [Get SUI Testnet tokens](/guides/developer/getting-started/get-coins.mdx).
+- [x] [Faucet에서 SUI 받기](/guides/developer/getting-started/get-coins.mdx).
 
 - [x] Move extension을 제공하므로 권장되는 다음 IDE 중 하나를 다운로드해 설치한다:
 
@@ -412,7 +412,7 @@ Move package를 네트워크에 게시하면 네트워크는 bytecode를 고유�
 
 Package ID와 module은 모두 command line에서 package와 상호작용하는 데 필요하다.
 
-나중에 [Connecting a Frontend](/guides/developer/getting-started/app-frontends.mdx) 가이드에서 사용하므로 두 값을 모두 기록해 둔다.
+나중에 [Move 패키지에 프런트엔드 연결](/guides/developer/getting-started/app-frontends.mdx) 가이드에서 사용하므로 두 값을 모두 기록해 둔다.
 
 ## Interact with the Move package
 
@@ -497,7 +497,7 @@ Failed to sign transaction by a quorum of validators because one or more of its 
 
 같은 object가 동시에 여러 transaction에 의해 수정되지 않도록 address가 object를 '잠가' 충돌하는 수정을 방지한다.
 
-여러 transaction command를 함께 batch하고 싶다면 [programmable transaction blocks](/guides/developer/transactions/ptbs/prog-txn-blocks)를 사용할 수 있다.
+여러 transaction command를 함께 batch하고 싶다면 [프로그래머블 트랜잭션 블록 (PTB)](/guides/developer/transactions/ptbs/prog-txn-blocks)를 사용할 수 있다.
 
 Transaction에는 전체 크기, object 수, 입력 수와 관련된 제한도 있다.
 
@@ -505,23 +505,23 @@ Transaction에는 전체 크기, object 수, 입력 수와 관련된 제한도 �
 
 <div className="next-steps-module">
   <div className="next-steps-header">
-    <h3>Next steps</h3>
+    <h3>다음 단계</h3>
   </div>
   <div className="next-steps-grid">
       <Card className="plausible-event-name=hello+frontend+button"
-      title="Create a Full Stack App"
+      title="Move 패키지에 프런트엔드 연결"
       href="/guides/developer/getting-started/app-frontends"
     >
       "Hello, World!" smart contract에 frontend interface를 연결한다.
     </Card>
     <Card className="plausible-event-name=hello+data+button"
-      title="Access Sui Data"
+      title="데이터 접근"
       href="/concepts/data-access/data-serving"
     >
       Sui에서 data에 접근하는 방법을 더 알아본다.
     </Card>
     <Card className="plausible-event-name=hello+community+button"
-      title="Join the Community"
+      title="다음 단계"
       href="/guides/developer/getting-started/next-steps"
     >
       Sui developer 커뮤니티에 참여하고, 다른 example project를 시도하거나, 더 많은 문서를 읽는다.

@@ -1,5 +1,5 @@
 ---
-title: Action Request
+title: 액션 요청
 description: " Tokens는 transfers, conversions, 또는 spends를 기본적으로 허용하지 않는다. 이러한 action을 허용하려면 `ActionRequest`를 사용한다."
 keywords:
   - action request
@@ -38,7 +38,7 @@ Function | Action name | Description | Special fields in `ActionRequest`
 - `recipient`: `transfer` action에서 token을 수신하는 account이다(custom action에 사용한다).
 - `spent_balance`: [`spend` action](./spending.mdx)에서 spend된 token의 balance이다(custom action에 사용한다).
 
-Rules는 이러한 field를 사용해 action을 허용해야 하는지 여부를 결정할 수 있다. Rules는 restriction logic을 구현하는 custom module이다. 자세한 내용은 [Rules](./rules.mdx)를 참조한다.
+규칙은 이러한 field를 사용해 action을 허용해야 하는지 여부를 결정할 수 있다. 규칙은 restriction logic을 구현하는 custom module이다. 자세한 내용은 [규칙](./rules.mdx)를 참조한다.
 
 `ActionRequest`를 생성하는 function의 예시는 다음과 같다:
 

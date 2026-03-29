@@ -1,5 +1,5 @@
 ---
-title: Multisig
+title: 다중 서명
 description: multisig transaction은 단일 키가 아닌 인증을 위해 여러 키를 필요로 한다. Sui는 순수 Ed25519, ECDSA Secp256k1, ECDSA Secp256r1 암호화 키에 대한 multisig transaction을 지원한다.
 keywords:
   - multi-signature
@@ -11,7 +11,7 @@ keywords:
   - ECDSA Secp256r1
 ---
 
-Sui는 단일 키 서명이 아닌 인증을 위해 여러 키를 필요로 하는 다중 서명(multisig) transaction을 지원한다. 기술적으로 Sui는 `n`개 중 `k`개의 서명이 필요한 형태의 다중 서명 transaction을 지원하며, 여기서 `k`는 임계값이고 `n`은 모든 참여 당사자의 총 가중치이다. 최대 참여 당사자 수는 10명이다. Sui가 지원하는 단일 키 서명에 대해 자세히 알아보려면 [Signatures](/guides/developer/transactions/transaction-auth/auth-overview)를 참고한다.
+Sui는 단일 키 서명이 아닌 인증을 위해 여러 키를 필요로 하는 다중 서명(multisig) transaction을 지원한다. 기술적으로 Sui는 `n`개 중 `k`개의 서명이 필요한 형태의 다중 서명 transaction을 지원하며, 여기서 `k`는 임계값이고 `n`은 모든 참여 당사자의 총 가중치이다. 최대 참여 당사자 수는 10명이다. Sui가 지원하는 단일 키 서명에 대해 자세히 알아보려면 [서명](/guides/developer/transactions/transaction-auth/auth-overview#signatures)을 참고한다.
 
 다중 서명에 유효한 참여 키는 순수 Ed25519, ECDSA Secp256k1, ECDSA Secp256r1이다. 각 참여 키에 대해 ([u8](https://doc.rust-lang.org/std/primitive.u8.html)) 가중치가 설정되고 임계값은 [u16](https://doc.rust-lang.org/std/primitive.u16.html)으로 설정할 수 있다. 직렬화된 다중 서명에 가중치 합이 임계값을 통과하는 충분한 유효 서명이 포함되어 있으면 Sui는 다중 서명을 유효한 것으로 간주하고 transaction이 실행된다.
 

@@ -1,5 +1,5 @@
 ---
-title: Custom Indexer and Walrus
+title: 커스텀 인덱서와 Walrus
 description: Walrus는 콘텐츠 자체에서 파생된 고유 식별자를 사용해 데이터를 검색하는 content-addressable storage protocol이며 파일 경로나 위치를 사용하지 않는다. 커스텀 Sui Indexer를 Walrus와 통합하면 새로운 사용자 경험을 제공할 수 있다.
 keywords: [ walrus, indexer, custom indexer, custom indexer framework, blob, sequential pipeline, blog ]
 ---
@@ -10,7 +10,7 @@ keywords: [ walrus, indexer, custom indexer, custom indexer framework, blob, seq
 
 `Metadata` dynamic field는 on-chain object의 데이터를 runtime에 확장할 수 있게 해 주는 key-value 확장이다. 설정된 경우 이 dynamic field는 [key-value attribute pairs의 mapping](https://docs.wal.app/usage/client-cli.html?highlight=attribute#blob-attributes)으로 동작한다.
 
-[custom indexer framework](/guides/developer/accessing-data/custom-indexing-framework)를 사용해 Walrus의 기존 기능을 확장할 수 있다.
+[커스텀 인덱싱 프레임워크](/guides/developer/accessing-data/custom-indexing-framework)를 사용해 Walrus의 기존 기능을 확장할 수 있다.
 
 :::info
 
@@ -113,4 +113,3 @@ publisher가 작성한 post 목록을 사용자에게 제공하려면 서비스�
 - blob lifetime을 관리하는 호출과 `Metadata` dynamic field를 ping하는 호출을 동일 transaction 안에서 수행하는 PTB를 구성한다.
 
 write 측에서 추가 작업을 수행하고 싶지 않다면 선택지는 첫 번째와 두 번째 방법으로 제한된다. 이를 위해서는 앞에서 설명한 metadata indexing 작업을 수행하는 pipeline 하나와 `BlobCertified` event(또는 `Blob` object 변경)를 index하는 또 다른 pipeline, 이렇게 두 개의 pipeline이 필요하다.
-

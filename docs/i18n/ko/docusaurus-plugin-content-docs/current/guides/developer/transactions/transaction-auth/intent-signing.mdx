@@ -1,5 +1,5 @@
 ---
-title: Intent Signing
+title: 인텐트 서명
 description: 인텐트 서명은 사용자와 authority 서명 모두가 서명하는 데이터에 간결한 도메인 구분자를 제공한다. 각 서명이 커밋하는 데이터는 인텐트 메시지라고 하며, Sui의 모든 서명은 이를 포함해야 한다.
 keywords:
   - intent
@@ -84,7 +84,7 @@ const signature = await this.sign(intentMessage);
 
 1. 인텐트 메시지를 3바이트 인텐트와 transaction 데이터의 BCS 직렬화된 바이트를 연결한 것으로 직렬화한다.
 2. Blake2b 해시를 적용하여 32바이트 digest를 얻는다.
-3. digest를 서명자의 해당 체계에 대한 서명 API에 전달한다. 지원되는 서명 방식은 순수 Ed25519, ECDSA Secp256k1, ECDSA Secp256r1이다. 각 서명 방식의 요구사항은 [Sui Signatures](/guides/developer/transactions/transaction-auth/auth-overview#signature-requirements)를 참조한다.
+3. digest를 서명자의 해당 체계에 대한 서명 API에 전달한다. 지원되는 서명 방식은 순수 Ed25519, ECDSA Secp256k1, ECDSA Secp256r1이다. 각 서명 방식의 요구사항은 [서명 요구 사항](/guides/developer/transactions/transaction-auth/auth-overview#signature-requirements)을 참조한다.
 
 ## Authority signature
 

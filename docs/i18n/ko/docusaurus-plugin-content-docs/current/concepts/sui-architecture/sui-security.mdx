@@ -1,5 +1,5 @@
 ---
-title: Security
+title: 보안
 description: coins와 tokens를 포함한 Sui의 자산은 objects의 타입이며, smart contract의 사전 정의된 로직에 따라 달리 정의되지 않는 한 소유자만 사용할 수 있다.
 keywords: [ security, security guarantees, asset security, asset owners, object security, security architecture ]
 ---
@@ -20,7 +20,7 @@ Sui의 보안 기능은 objects에 대해 특정 속성을 보장한다:
 
 ## Security architecture {#security-architecture}
 
-Sui 네트워크는 [set of validators](/concepts/sui-architecture/consensus.mdx)에 의해 운영되며, 이들은 [transactions](/guides/developer/transactions/txn-overview.mdx)을 처리한다. 이들은 네트워크에 제출되고 처리된 어떤 transactions가 유효하고 [_consensus_](/concepts/sui-architecture/consensus.mdx)를 통해 final되어야 하는지에 대해 합의한다.
+Sui 네트워크는 [set of validators](/concepts/sui-architecture/consensus.mdx)에 의해 운영되며, 이들은 [트랜잭션](/guides/developer/transactions/txn-overview.mdx)을 처리한다. 이들은 네트워크에 제출되고 처리된 어떤 transactions가 유효하고 [_consensus_](/concepts/sui-architecture/consensus.mdx)를 통해 final되어야 하는지에 대해 합의한다.
 
 Consensus는 Byzantine fault tolerant broadcast를 사용하여 결함이 있는 validators의 일부를 허용한다. 모든 validators의 2/3를 초과하는 비율이 올바르게 운영되면 Sui는 모든 보안 속성을 유지한다. 그러나 이 수가 2/3보다 커지더라도 여러 audit 속성은 유지된다.
 
@@ -38,7 +38,7 @@ private signature key는 사용자에게 objects와 tokens를 보내는 데 사�
 
 자신의 objects를 다루는 transactions가 신뢰하는 smart contracts, 즉 자신 또는 신뢰하는 다른 사람이 audit했고 그 로직을 이해하는 contracts를 사용하도록 해야 한다. Sui smart contracts는 third parties가 이를 audit할 수 있게 하고 수정을 방지하여 보안 보장을 높이기 위해 immutable objects로 정의된다.
 
-Move smart contract language는 audit과 verification을 쉽게 할 수 있도록 설계되었다. [introduction to smart contracts in Move](/concepts/sui-move-concepts)에 관심이 있을 수 있다.
+Move smart contract language는 audit과 verification을 쉽게 할 수 있도록 설계되었다. [Move 개념](/concepts/sui-move-concepts)에 관심이 있을 수 있다.
 
 Shared objects는 여러 users가 자신의 owned objects 일부와 하나 이상의 shared objects를 포함하는 transactions를 통해 해당 objects에서 동작할 수 있게 한다. 이러한 shared objects는 shared object 타입을 정의한 smart contract에 따라 서로 다른 users 사이를 안전하게 중재하는 protocols를 구현하는 데 사용되는 데이터와 로직을 나타낸다. 그러나 smart contract는 서로 다른 addresses가 shared objects를 어떻게 사용할 수 있는지에 대해 추가 제한을 정의할 수 있다.
 

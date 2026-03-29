@@ -1,5 +1,5 @@
 ---
-title: Transaction Authentication Overview
+title: 트랜잭션 인증 개요
 description: Sui의 cryptographic key, address, signature를 이해한다. Sui는 여러 cryptography algorithm과 primitive를 지원하며 그들 사이를 빠르게 전환할 수 있다.
 keywords: [ authentication, keys, addresses, signatures, Ed25519, ECDSA, multisig, zkLogin, passkey, BIP-32, BIP-44, BIP-39, key derivation, signature requirements ]
 ---
@@ -7,7 +7,7 @@ keywords: [ authentication, keys, addresses, signatures, Ed25519, ECDSA, multisi
 Sui의 transaction 인증은 세 가지 핵심 개념을 포함한다: 사용자가 제어하는 cryptographic key, 온체인 계정을 식별하는 address, 그리고 소유권을 증명하는 signature이다.
 Sui는 널리 받아들여진 wallet specification과 여러 서명 방식(signature scheme)을 사용해 이 개념들을 구현한다.
 
-## Keys and addresses
+## 키와 주소 {#keys-and-addresses}
 
 Sui는 사용자 key 관리를 돕기 위해 암호화폐 업계에서 널리 받아들여지는 wallet specification인 [BIP-32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)와 그 변형인 [SLIP-0010](https://github.com/satoshilabs/slips/blob/master/slip-0010), [BIP-44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki), [BIP-39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki)을 따른다.
 Sui는 서명된 transaction을 위해 pure Ed25519, ECDSA Secp256k1, ECDSA Secp256r1, 다중 서명(multisig)을 지원한다.
@@ -66,9 +66,9 @@ Sui는 올바르게 checksum된 BIP-39 word list에서 12, 15, 18, 21, 24개 단
 ### Address format
 
 32-byte Sui address를 파생하기 위해 Sui는 서명 방식 flag 1-byte와 public key byte를 이어 붙인 값을 [BLAKE2b](https://www.blake2.net/) (256 bits output) hashing 함수로 해시한다.
-현재 Sui address는 pure Ed25519, Secp256k1, Secp256r1, 그리고 다중 서명인 [multisig](/guides/developer/transactions/transaction-auth/multisig.mdx)를 지원하며, 각각에 대응하는 flag byte는 0x00, 0x01, 0x02, 0x03이다.
+현재 Sui address는 pure Ed25519, Secp256k1, Secp256r1, 그리고 다중 서명인 [다중 서명](/guides/developer/transactions/transaction-auth/multisig.mdx)를 지원하며, 각각에 대응하는 flag byte는 0x00, 0x01, 0x02, 0x03이다.
 
-## Signatures
+## 서명 {#signatures}
 
 사용자가 서명된 transaction을 제출할 때는 serialized signature와 serialized transaction data가 함께 제출된다.
 serialized transaction data는 struct `TransactionData`의 [Binary Canonical Serialization](https://crates.io/crates/bcs) serialized bytes이며, serialized signature는 `flag || sig || pk` byte를 이어 붙인 것으로 정의된다.
@@ -99,7 +99,7 @@ Sui signature는 세 구성 요소를 이어 붙인 형태로 이루어진다:
 ### Signature requirements {#signature-requirements}
 
 signature는 transaction data의 intent message hash에 commit해야 하며, 이를 위해 BCS serialized transaction data 앞에 3-byte intent를 덧붙여 구성할 수 있다.
-intent가 무엇이고 intent message를 어떻게 구성하는지 더 알아보려면 [Intent Signing](/guides/developer/transactions/transaction-auth/intent-signing.mdx)을 참조한다.
+intent가 무엇이고 intent message를 어떻게 구성하는지 더 알아보려면 [인텐트 서명](/guides/developer/transactions/transaction-auth/intent-signing.mdx)을 참조한다.
 
 signing API를 호출할 때는 먼저 transaction data의 intent message를 Blake2b를 사용해 32 byte로 해시해야 한다.
 이 외부 해싱은 signing API 내부에서 수행되는 해싱과는 별개이다.
@@ -133,13 +133,13 @@ pure Ed25519의 경우에는 SHA-512를 사용해야 한다.
 
 고급 서명 방식에 대한 더 자세한 정보는 다음을 참조한다:
 
-- **zkLogin**: zero-knowledge login signature에 대한 자세한 내용은 [zkLogin](/guides/developer/cryptography/zklogin-integration/)을 참조한다.
+- **zkLogin**: zero-knowledge login signature에 대한 자세한 내용은 [zkLogin 통합](/guides/developer/cryptography/zklogin-integration/)을 참조한다.
 
 - **Passkey**: passkey 구현 세부 사항은 [SIP-8](https://github.com/sui-foundation/sips/blob/main/sips/sip-9.md)을 참조한다.
 
-- **Multisig**: 다중 서명 transaction은 [Multisig](/guides/developer/transactions/transaction-auth/multisig.mdx)를 참조한다.
+- **Multisig**: 다중 서명 transaction은 [다중 서명](/guides/developer/transactions/transaction-auth/multisig.mdx)를 참조한다.
 
-- **Offline Signing**: transaction을 오프라인으로 서명하는 구체적 예시는 [Offline Signing](/guides/developer/transactions/transaction-auth/offline-signing.mdx)을 참조한다.
+- **Offline Signing**: transaction을 오프라인으로 서명하는 구체적 예시는 [오프라인 서명](/guides/developer/transactions/transaction-auth/offline-signing.mdx)을 참조한다.
 
 ## Authority signatures
 
@@ -160,7 +160,7 @@ Sui는 또한 어떤 validator가 서명했는지를 나타내는 bitmap을 집�
 
 BLS12381 aggregated signature에 대한 잠재적인 rogue key attack에 대응하기 위해 authority 등록 중에 secret key의 proof of knowledge(KOSK)를 사용한다.
 authority가 validator set에 추가되기를 요청할 때 proof of possession이 제출되고 검증된다.
-proof of possession을 만드는 방법은 [Intent Signing](/guides/developer/transactions/transaction-auth/intent-signing.mdx)을 참조한다.
+proof of possession을 만드는 방법은 [인텐트 서명](/guides/developer/transactions/transaction-auth/intent-signing.mdx)을 참조한다.
 대부분의 standard와 달리 Sui proof of knowledge scheme은 address에도 commit하며, 이는 다른 악의적인 validator가 validator BLS key를 재사용하는 공격에 대한 추가 보호를 제공한다.
 
 ### Account key pair {#account-pair}

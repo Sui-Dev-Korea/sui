@@ -1,5 +1,5 @@
 ---
-title: Packages
+title: 패키지
 description: Sui의 Move 패키지는 해당 패키지가 on-chain object와 상호 작용하는 방식을 정의하는 하나 이상의 모듈을 포함한다. 패키지를 업그레이드하면 이에 의존하는 패키지를 손상시키지 않고 코드를 개선하거나 기능을 추가할 수 있다.
 ---
 
@@ -29,4 +29,4 @@ Sui의 Move 패키지는 해당 패키지가 on-chain object와 상호 작용하
 
 Move 함수 `sui::package::make_immutable`를 호출하여 패키지의 `UpgradeCap`을 파괴하고 해당 패키지를 영구적으로 불변하게 만들 수 있다. 이것은 단일 키 위험을 제거하지만, 동시에 향후의 모든 버그 수정 및 기능 추가를 방지한다.
 
-더 유연한 접근 방식을 위해서는, 업그레이드할 수 있는 기능을 포기하지 않으면서 `UpgradeCap` 접근을 보호하기 위해 [custom upgrade policies](./custom-policies.mdx)를 사용하라.
+더 유연한 접근 방식을 위해서는, 업그레이드할 수 있는 기능을 포기하지 않으면서 `UpgradeCap` 접근을 보호하기 위해 [사용자 정의 업그레이드 정책](./custom-policies.mdx)를 사용하라.

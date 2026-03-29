@@ -1,12 +1,12 @@
 ---
-title: Running the Archival Store and Service
+title: 아카이브 스토어 및 서비스 실행하기
 description: 프로덕션에서 archival 인덱서, Bigtable 스토어, gRPC 서비스를 실행하기 위한 설정 지침이다.
 keywords: [archival, bigtable, grpc, kvstore, indexer, setup, historical data]
 ---
 
 <ImportContent source="indexer-archival.mdx" mode="snippet" />
 
-스택에 대한 자세한 내용은 [Archival Store and Service](/concepts/data-access/archival-store.mdx)를 참조하라.
+스택에 대한 자세한 내용은 [아카이브 스토어 및 서비스](/concepts/data-access/archival-store.mdx)를 참조하라.
 
 ## Architecture overview
 
@@ -34,7 +34,7 @@ graph LR
 - 대상 네트워크용 Sui checkpoint bucket 접근:
    - **Mainnet:** GCS bucket `mysten-mainnet-checkpoints` 또는 `https://checkpoints.mainnet.sui.io`
    - **Testnet:** GCS bucket `mysten-testnet-checkpoints` 또는 `https://checkpoints.testnet.sui.io`
-- gRPC가 활성화된 [Sui full node](/guides/operator/sui-full-node.mdx). 초기 백필 이후에는 더 낮은 지연 시간을 위해 bucket을 폴링하는 대신 풀 노드에서 checkpoint를 스트리밍할 수 있다. [Steady-state operation](#steady-state-operation)을 참조하라.
+- gRPC가 활성화된 풀 노드. 설정 방법은 [Sui 풀 노드 구성](/guides/operator/sui-full-node.mdx)을 참조하라. 초기 백필 이후에는 더 낮은 지연 시간을 위해 bucket을 폴링하는 대신 풀 노드에서 checkpoint를 스트리밍할 수 있다. [Steady-state operation](#steady-state-operation)을 참조하라.
 
 </TabItem>
 </Tabs>

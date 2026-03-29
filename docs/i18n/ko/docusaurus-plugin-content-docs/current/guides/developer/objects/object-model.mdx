@@ -1,5 +1,5 @@
 ---
-title: Object Model
+title: Sui 객체 모델
 description: Sui 블록체인 위의 모든 것은 메타데이터, 소유권 유형, 그리고 reference 체계를 가진 object이다.
 keywords:
   - object model
@@ -27,9 +27,9 @@ Sui의 기본 스토리지 단위는 object이다. 키-값 저장소를 포함�
 각 Sui object는 다음과 같은 메타데이터를 가진다:
 
 - 32바이트의 전역 고유 ID. Object ID는 object를 생성한 transaction의 digest와 transaction에 의해 생성된 ID 수를 인코딩하는 카운터에서 파생된다.
-- 이를 수정하는 모든 transaction마다 단조 증가하는 8바이트 부호 없는 정수 버전 ([Object and Package Versioning](./versioning.mdx) 참조).
+- 이를 수정하는 모든 transaction마다 단조 증가하는 8바이트 부호 없는 정수 버전 ([객체 및 패키지 버전 관리](./versioning.mdx) 참조).
 - 이 object를 출력으로 포함한 마지막 transaction을 나타내는 32바이트 transaction digest.
-- 이 object에 접근할 수 있는 방법을 나타내는 32바이트 소유자 필드. 자세한 내용은 [Object Ownership](./object-ownership/index.mdx)을 참조한다.
+- 이 object에 접근할 수 있는 방법을 나타내는 32바이트 소유자 필드. 자세한 내용은 [객체 소유권 유형](./object-ownership/index.mdx)을 참조한다.
 
 공통 메타데이터 외에도, object는 [Binary Canonical Serialization (BCS)](https://docs.rs/bcs/latest/bcs/)로 인코딩된 페이로드를 포함하는 카테고리별 가변 크기 내용 필드를 가진다.
 
