@@ -1,0 +1,102 @@
+{
+  "pages.home.hero.title": {
+    "message": "Sui 문서",
+    "description": "Homepage hero title"
+  },
+  "pages.home.hero.subtitle": {
+    "message": "예시, 가이드, 개념을 통해 Sui의 강점을 살펴보세요",
+    "description": "Homepage hero subtitle"
+  },
+  "pages.home.cards.developers.title": {
+    "message": "개발자",
+    "description": "Homepage card title for developers"
+  },
+  "pages.home.links.gettingStarted": {
+    "message": "시작하기",
+    "description": "Homepage link text to getting started docs"
+  },
+  "pages.home.links.developerBasics": {
+    "message": "Sui 개발 기초",
+    "description": "Homepage link text to guides overview"
+  },
+  "pages.home.links.move": {
+    "message": "Move",
+    "description": "Homepage link text to Move concepts"
+  },
+  "pages.home.cards.validators.title": {
+    "message": "validator와 노드 운영자",
+    "description": "Homepage card title for validators and node operators"
+  },
+  "pages.home.links.validatorConfiguration": {
+    "message": "validator 배포 및 구성",
+    "description": "Homepage link text to validator configuration"
+  },
+  "pages.home.links.runSuiFullNode": {
+    "message": "Sui 풀 노드 구성",
+    "description": "Homepage link text to full node guide"
+  },
+  "pages.home.links.suiBridgeNodeConfiguration": {
+    "message": "Sui Bridge validator 노드 구성",
+    "description": "Homepage link text to Sui Bridge node configuration"
+  },
+  "pages.home.cards.about.title": {
+    "message": "Sui 소개",
+    "description": "Homepage card title for about Sui"
+  },
+  "pages.home.links.tokenomics": {
+    "message": "Sui 토크노믹스",
+    "description": "Homepage link text to tokenomics docs"
+  },
+  "pages.home.links.cryptography": {
+    "message": "암호학",
+    "description": "Homepage link text to cryptography docs"
+  },
+  "pages.home.links.standards": {
+    "message": "표준",
+    "description": "Homepage link text to standards docs"
+  },
+  "pages.home.cards.references.title": {
+    "message": "레퍼런스",
+    "description": "Homepage card title for references"
+  },
+  "pages.home.links.suiDappKit": {
+    "message": "Sui dApp Kit",
+    "description": "Homepage external link text to Sui dApp Kit"
+  },
+  "pages.home.links.suiApi": {
+    "message": "Sui RPC",
+    "description": "Homepage link text to Sui API docs"
+  },
+  "pages.home.links.suiFramework": {
+    "message": "Sui Framework",
+    "description": "Homepage external link text to Sui Framework docs"
+  },
+  "pages.home.links.rustSdk": {
+    "message": "Rust SDK",
+    "description": "Homepage external link text to Rust SDK docs"
+  },
+  "pages.home.cards.resources.title": {
+    "message": "리소스",
+    "description": "Homepage card title for resources"
+  },
+  "pages.home.links.suiEcosystem": {
+    "message": "Sui 생태계",
+    "description": "Homepage external link text to Sui ecosystem"
+  },
+  "pages.home.links.awesomeSui": {
+    "message": "Awesome Sui",
+    "description": "Homepage link text to Awesome Sui docs"
+  },
+  "pages.home.links.suiBlog": {
+    "message": "Sui 블로그",
+    "description": "Homepage external link text to Sui blog"
+  },
+  "pages.home.links.developerCheatSheet": {
+    "message": "Sui 개발자 치트 시트",
+    "description": "Homepage link text to the developer cheat sheet"
+  },
+  "pages.home.cta.buildDapp": {
+    "message": "Sui에서 dApp 빌드하기",
+    "description": "Homepage call-to-action text"
+  }
+}
