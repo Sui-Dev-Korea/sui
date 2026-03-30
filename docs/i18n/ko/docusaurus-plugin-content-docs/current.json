@@ -1,0 +1,234 @@
+{
+  "version.label": {
+    "message": "현재",
+    "description": "The label for version current"
+  },
+  "sidebar.guidesSidebar.doc.Developer Guides": {
+    "message": "개발자 가이드",
+    "description": "The label for doc Developer Guides in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Getting Started": {
+    "message": "시작하기",
+    "description": "The label for category Getting Started in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Install Sui": {
+    "message": "Sui 설치",
+    "description": "The label for category Install Sui in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Objects": {
+    "message": "객체",
+    "description": "The label for category Objects in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Types of Object Ownership": {
+    "message": "객체 소유권 유형",
+    "description": "The label for category Types of Object Ownership in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Transfering Objects": {
+    "message": "객체 전송하기",
+    "description": "The label for category Transfering Objects in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Dynamic Fields": {
+    "message": "동적 필드",
+    "description": "The label for category Dynamic Fields in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Packages": {
+    "message": "패키지",
+    "description": "The label for category Packages in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Transactions": {
+    "message": "트랜잭션",
+    "description": "The label for category Transactions in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Programmable Transaction Blocks (PTBs)": {
+    "message": "프로그래머블 트랜잭션 블록(PTB)",
+    "description": "The label for category Programmable Transaction Blocks (PTBs) in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Transaction Authentication": {
+    "message": "트랜잭션 인증",
+    "description": "The label for category Transaction Authentication in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Accessing Data": {
+    "message": "데이터 접근",
+    "description": "The label for category Accessing Data in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Custom Indexing Framework": {
+    "message": "커스텀 인덱싱 프레임워크",
+    "description": "The label for category Custom Indexing Framework in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Currencies and Tokens": {
+    "message": "통화와 토큰",
+    "description": "The label for category Currencies and Tokens in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.NFTs": {
+    "message": "NFT",
+    "description": "The label for category NFTs in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Wallets": {
+    "message": "지갑",
+    "description": "The label for category Wallets in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.On-Chain Primitives": {
+    "message": "온체인 프리미티브",
+    "description": "The label for category On-Chain Primitives in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Cryptography": {
+    "message": "암호학",
+    "description": "The label for category Cryptography in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.zkLogin Integration Guide": {
+    "message": "zkLogin 통합 가이드",
+    "description": "The label for category zkLogin Integration Guide in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Nautilus": {
+    "message": "Nautilus",
+    "description": "The label for category Nautilus in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.App Examples": {
+    "message": "앱 예시",
+    "description": "The label for category App Examples in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Oracles": {
+    "message": "오라클",
+    "description": "The label for category Oracles in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Operator Guides": {
+    "message": "운영자 가이드",
+    "description": "The label for category Operator Guides in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.Sui Validator Nodes": {
+    "message": "Sui 밸리데이터 노드",
+    "description": "The label for category Sui Validator Nodes in sidebar guidesSidebar"
+  },
+  "sidebar.guidesSidebar.category.SuiPlay0X1": {
+    "message": "SuiPlay0X1",
+    "description": "The label for category SuiPlay0X1 in sidebar guidesSidebar"
+  },
+  "sidebar.conceptsSidebar.category.Architecture": {
+    "message": "Sui 아키텍처",
+    "description": "The label for category Architecture in sidebar conceptsSidebar"
+  },
+  "sidebar.conceptsSidebar.category.Tokenomics": {
+    "message": "Sui 토크노믹스",
+    "description": "The label for category Tokenomics in sidebar conceptsSidebar"
+  },
+  "sidebar.conceptsSidebar.category.Accessing Data": {
+    "message": "데이터 접근",
+    "description": "The label for category Accessing Data in sidebar conceptsSidebar"
+  },
+  "sidebar.conceptsSidebar.category.Custom Indexers": {
+    "message": "커스텀 인덱서",
+    "description": "The label for category Custom Indexers in sidebar conceptsSidebar"
+  },
+  "sidebar.conceptsSidebar.category.Cryptography": {
+    "message": "암호학",
+    "description": "The label for category Cryptography in sidebar conceptsSidebar"
+  },
+  "sidebar.referencesSidebar.doc.References": {
+    "message": "레퍼런스",
+    "description": "The label for doc References in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.category.Sui RPC": {
+    "message": "Sui RPC",
+    "description": "The label for category Sui RPC in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.category.GraphQL": {
+    "message": "GraphQL",
+    "description": "The label for category GraphQL in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.category.Alpha": {
+    "message": "알파",
+    "description": "The label for category Alpha in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.category.Beta": {
+    "message": "베타",
+    "description": "The label for category Beta in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.link.JSON-RPC": {
+    "message": "JSON-RPC",
+    "description": "The label for link JSON-RPC in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.category.Sui CLI": {
+    "message": "Sui CLI",
+    "description": "The label for category Sui CLI in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.category.Sui IDE Support": {
+    "message": "Sui IDE 지원",
+    "description": "The label for category Sui IDE Support in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.category.Sui SDKs": {
+    "message": "Sui 및 커뮤니티 SDK",
+    "description": "The label for category Sui SDKs in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.link.dApp Kit": {
+    "message": "dApp Kit",
+    "description": "The label for link dApp Kit in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.link.Rust SDK": {
+    "message": "Rust SDK",
+    "description": "The label for link Rust SDK in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.link.TypeScript SDK": {
+    "message": "TypeScript SDK",
+    "description": "The label for link TypeScript SDK in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.link.zkSend SDK": {
+    "message": "zkSend SDK",
+    "description": "The label for link zkSend SDK in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.category.Move": {
+    "message": "Move",
+    "description": "The label for category Move in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.category.Framework": {
+    "message": "프레임워크",
+    "description": "The label for category Framework in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.category.Packages": {
+    "message": "패키지",
+    "description": "The label for category Packages in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.link.The Move Book": {
+    "message": "The Move Book",
+    "description": "The label for link The Move Book in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.link.The Move Reference": {
+    "message": "The Move Reference",
+    "description": "The label for link The Move Reference in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.category.Contribute": {
+    "message": "기여",
+    "description": "The label for category Contribute in sidebar referencesSidebar"
+  },
+  "sidebar.referencesSidebar.link.Submit a SIP": {
+    "message": "SIP 제출",
+    "description": "The label for link Submit a SIP in sidebar referencesSidebar"
+  },
+  "sidebar.standardsSidebar.category.Closed-Loop Token": {
+    "message": "Closed-Loop Token",
+    "description": "The label for category Closed-Loop Token in sidebar standardsSidebar"
+  },
+  "sidebar.standardsSidebar.category.DeepBookV3": {
+    "message": "DeepBookV3",
+    "description": "The label for category DeepBookV3 in sidebar standardsSidebar"
+  },
+  "sidebar.standardsSidebar.category.deepbookv3-contract-information": {
+    "message": "컨트랙트 정보",
+    "description": "The label for category deepbookv3-contract-information in sidebar standardsSidebar"
+  },
+  "sidebar.standardsSidebar.category.deepbookv3-sdk": {
+    "message": "SDK",
+    "description": "The label for category deepbookv3-sdk in sidebar standardsSidebar"
+  },
+  "sidebar.standardsSidebar.category.DeepBook Margin": {
+    "message": "DeepBook Margin",
+    "description": "The label for category DeepBook Margin in sidebar standardsSidebar"
+  },
+  "sidebar.standardsSidebar.category.deepbook-margin-contract-information": {
+    "message": "컨트랙트 정보",
+    "description": "The label for category deepbook-margin-contract-information in sidebar standardsSidebar"
+  },
+  "sidebar.standardsSidebar.category.deepbook-margin-sdk": {
+    "message": "SDK",
+    "description": "The label for category deepbook-margin-sdk in sidebar standardsSidebar"
+  }
+}
