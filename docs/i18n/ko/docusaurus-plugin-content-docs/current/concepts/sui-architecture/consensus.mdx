@@ -8,15 +8,15 @@ Consensus는 블록체인 네트워크의 대다수 nodes가 어떤 transactions
 
 ## Validator nodes
 
-Consensus에 참여하려면 validators는 네트워크에 [stake SUI tokens](/guides/operator/validator/validator-rewards.mdx)해야 한다. Sui는 어떤 validators가 네트워크를 운영하고 그들의 voting power가 얼마인지를 결정하기 위해 delegated proof-of-stake (DPoS)를 사용한다. Validators는 transaction fees의 일부, [staking rewards](/guides/operator/validator/validator-rewards.mdx), 그리고 잘못된 행동 시 stake 및 staking rewards의 slashing을 통해 선의로 참여하도록 유도된다.
+Consensus에 참여하려면 validators는 네트워크에 [stake SUI tokens](/guides/operator/validator/validator-rewards.mdx)해야 한다. Sui는 어떤 validators가 네트워크를 운영하고 그들의 투표권이 얼마인지를 결정하기 위해 delegated proof-of-stake (DPoS)를 사용한다. Validators는 transaction fees의 일부, [staking rewards](/guides/operator/validator/validator-rewards.mdx), 그리고 잘못된 행동 시 stake 및 staking rewards의 slashing을 통해 선의로 참여하도록 유도된다.
 
 ### Epochs
 
-[epoch](/concepts/sui-architecture/epochs.mdx)은 Sui validators와 그들의 stakes가 변하지 않는 시간 구간이다. [Mainnet](/concepts/sui-architecture/networks.mdx)과 [Testnet](/concepts/sui-architecture/networks.mdx) 모두에서 epoch은 약 24시간이다. epoch 경계에서는 [reconfiguration](/concepts/sui-architecture/epochs.mdx)이 발생할 수 있으며 네트워크에 참여하는 validators 집합과 그들의 voting power를 바꿀 수 있다. 개념적으로 재구성은 이전 epoch의 최종 상태를 제네시스로, 새로운 validators 집합을 운영자로 하는 Sui 프로토콜의 새 인스턴스를 시작한다. validator 집합 변화 외에도 staking 및 un-staking, staking rewards 분배와 같은 [tokenomics](/concepts/tokenomics) 작업도 epoch 경계에서 처리된다.
+[epoch](/concepts/sui-architecture/epochs.mdx)은 Sui validators와 그들의 stakes가 변하지 않는 시간 구간이다. [Mainnet](/concepts/sui-architecture/networks.mdx)과 [Testnet](/concepts/sui-architecture/networks.mdx) 모두에서 epoch은 약 24시간이다. epoch 경계에서는 [reconfiguration](/concepts/sui-architecture/epochs.mdx)이 발생할 수 있으며 네트워크에 참여하는 validators 집합과 그들의 투표권을 바꿀 수 있다. 개념적으로 재구성은 이전 epoch의 최종 상태를 제네시스로, 새로운 validators 집합을 운영자로 하는 Sui 프로토콜의 새 인스턴스를 시작한다. validator 집합 변화 외에도 staking 및 un-staking, staking rewards 분배와 같은 [tokenomics](/concepts/tokenomics) 작업도 epoch 경계에서 처리된다.
 
 ### Quorums
 
-정족수는 특정 epoch 동안 총 voting power의 3분의 2를 초과하는(>2/3) combined voting power를 가진 [validators](/guides/operator/validator/validator-config.mdx) 집합이다. 예를 들어, 모든 validators가 동일한 voting power를 가진 4개의 validators로 운영되는 Sui 인스턴스에서는 3명의 validators를 포함하는 어떤 그룹이든 정족수이다.
+정족수는 특정 epoch 동안 총 투표권의 3분의 2를 초과하는(>2/3) 합산 투표권을 가진 [validators](/guides/operator/validator/validator-config.mdx) 집합이다. 예를 들어, 모든 validators가 동일한 투표권을 가진 4개의 validators로 운영되는 Sui 인스턴스에서는 3명의 validators를 포함하는 어떤 그룹이든 정족수이다.
 
 정족수 크기 >2/3은 비잔틴 fault tolerance (BFT)를 보장한다. validator는 transaction에 정족수의 암호학적 서명이 함께 있을 때만 transaction을 커밋한다. Sui는 transaction과 그 바이트에 대한 정족수 서명의 조합을 certificate라고 부른다. certificates만 커밋하는 정책은 비잔틴 fault tolerance를 보장한다. 즉, >2/3의 validators가 프로토콜을 충실히 따른다면 그들은 결국 committed certificates 집합과 그 effects 모두에 합의하게 된다.
 
