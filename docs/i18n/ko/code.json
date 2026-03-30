@@ -98,5 +98,17 @@
   "pages.home.cta.buildDapp": {
     "message": "Sui에서 dApp 빌드하기",
     "description": "Homepage call-to-action text"
+  },
+  "pages.home.seo.title": {
+    "message": "Sui 한국어 문서",
+    "description": "Homepage SEO title"
+  },
+  "pages.home.seo.description": {
+    "message": "Sui 개발 문서를 한국어로 제공합니다. 가이드, 개념, 표준, 레퍼런스를 한곳에서 확인하세요.",
+    "description": "Homepage SEO description"
+  },
+  "pages.home.seo.keywords": {
+    "message": "Sui 문서, Sui 한국어 문서, Sui 가이드, Sui 개념, Sui 표준, Sui 레퍼런스, Move",
+    "description": "Homepage SEO keywords"
   }
 }
