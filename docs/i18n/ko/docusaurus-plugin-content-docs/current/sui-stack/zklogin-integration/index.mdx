@@ -68,7 +68,7 @@ JWT를 가져오려면 "Token Exchange URL"로 추가 POST call이 필요하다.
 | Slack     | `https://slack.com/openid/connect/authorize?response_type=code&client_id=$CLIENT_ID&redirect_uri=$REDIRECT_URL&nonce=$NONCE&scope=openid`                                           | `https://slack.com/api/openid.connect.token?code=$AUTH_CODE&client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET`                      | Yes            |
 | Microsoft | `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=$CLIENT_ID&scope=openid&response_type=id_token&nonce=$NONCE&redirect_uri=$REDIRECT_URL`                   | Yes                                                                                                                                 |
 
-## Decoding JWT
+## JWT decoding
 
 redirect가 성공하면 OpenID provider가 JWT를 URL parameter로 붙인다.
 다음은 Google flow를 사용하는 예시이다.
@@ -96,7 +96,7 @@ export interface JwtPayload {
 }
 ```
 
-## User salt management
+## user salt 관리
 
 zkLogin은 user salt를 사용해 zkLogin Sui address를 계산한다([definition](/sui-stack/zklogin-integration) 참조).
 salt는 16-byte 값이거나 `2n**128n`보다 작은 integer여야 한다.
@@ -124,7 +124,7 @@ Response: {"salt":"129390038577185583942388216820280642146"}
 user salt는 Web2 credential과 Web3 credential을 연결하지 않도록 OAuth identifier(`sub`)를 온체인 Sui address와 분리하는 데 사용된다.
 salt를 잃거나 잘못 사용하면 이 연결이 가능해질 수 있지만, fund 제어나 zkLogin asset 권한 자체가 손상되지는 않는다.
 
-## Get the user's Sui address
+## 사용자 Sui address 가져오기
 
 OAuth flow가 완료되면 redirect URL에서 JWT를 찾을 수 있다.
 이 값과 user salt를 함께 사용해 zkLogin address를 다음과 같이 도출할 수 있다:
@@ -135,7 +135,7 @@ import { jwtToAddress } from '@mysten/sui/zklogin';
 const zkLoginUserAddress = jwtToAddress(jwt, userSalt, false);
 ```
 
-## Get the zero-knowledge proof
+## zero-knowledge proof 가져오기
 
 다음 단계는 ZK proof를 가져오는 것이다.
 이것은 ephemeral key pair가 유효하다는 것을 증명하는 ephemeral key pair에 대한 attestation(proof)이다.
@@ -157,7 +157,7 @@ ZK proof 생성은 client side에서 resource 집약적이고 느릴 수 있으�
 1. Mysten Labs-maintained proving service를 호출한다.
 1. 제공된 Docker image를 사용해 backend에서 proving service를 실행한다.
 
-### Call the Mysten Labs-maintained proving service
+### Mysten Labs가 유지 관리하는 proving service 호출
 
 Mainnet용 Mysten hosted ZK Proving Service를 사용하려면 [Enoki docs](https://docs.enoki.mystenlabs.com/)를 참고하고 접근 권한을 위해 문의한다.
 
@@ -221,7 +221,7 @@ Response:
 }
 ```
 
-### How to handle CORS error
+### CORS error 처리 방법
 
 Frontend app에서 발생할 수 있는 CORS error를 피하려면 이 call을 backend service로 위임하는 것이 권장된다.
 
@@ -237,7 +237,7 @@ export type PartialZkLoginSignature = Omit<
 const partialZkLoginSignature = proofResponse as PartialZkLoginSignature;
 ```
 
-### Run the proving service in your backend
+### backend에서 proving service 실행
 
 1. zkey를 다운로드하기 전에 [Git Large File Storage](https://git-lfs.com/)(large file versioning을 위한 open source Git extension)를 설치한다.
 

@@ -16,7 +16,19 @@ pagination_next: null
 ---
 
 
-Sui faucet은 Sui 개발자가 Sui의 Devnet 및 Testnet 네트워크에서 프로그램을 배포하고 상호작용하기 위한 무료 SUI 테스트 토큰을 얻을 수 있는 유용한 도구이다. Sui Mainnet용 faucet은 없다.
+Sui network에서 transaction을 수행하려면 gas와 storage를 지불할 SUI token이 필요하다.
+
+Mainnet application의 경우 Coinbase, OKX, Robinhood 같은 exchange에서 실제 SUI를 구매해야 한다. 그 가치는 supply and demand, network utility, perceived value 같은 market factor에 의해 결정된다.
+
+Mainnet token은 실제 비용이 들기 때문에 development가 비쌀 수 있다. 그래서 Sui는 Mainnet feature를 mirror하고 안전하게 build 및 test할 수 있는 Devnet과 Testnet network를 제공한다.
+
+:::important
+
+Devnet과 Testnet의 SUI token은 무료이며 monetary value가 없다.
+
+:::
+
+Sui faucet에서 무료 SUI token을 받을 수 있으며, 이를 사용해 Devnet, Testnet 또는 local network에서 smart contract와 object를 deploy하고 상호작용할 수 있다. Mainnet용 faucet은 없다.
 
 <Tabs className="tabsHeadingCentered--small">
 <TabItem value="prereq" label="Prerequisites">
@@ -51,7 +63,7 @@ $ sui client new-address ed25519
 
 </TabItem>
 </Tabs>
-## Request test tokens through the online faucet {#online-faucet}
+## faucet에서 SUI token 요청 {#online-faucet}
 
 https://faucet.sui.io/: 온라인 faucet을 방문하여 SUI 토큰을 요청한다.
 
@@ -63,7 +75,43 @@ https://faucet.sui.io/: 온라인 faucet을 방문하여 SUI 토큰을 요청한
 
 더 많은 SUI를 요청하려면 브라우저를 새로 고침하고 Request SUI 버튼을 다시 클릭한다. 그러나 요청은 속도 제한이 있으므로, 요청이 너무 많으면 더 많은 토큰을 요청하기 전에 대기 시간이 발생한다.
 
-### Return unused Testnet SUI
+### community faucet
+
+다음 community-provided faucet을 사용해 SUI token을 받을 수도 있다:
+
+- [N1Stake faucet](http://faucet.n1stake.com/)
+
+- [SuiLearn faucet](http://faucet.suilearn.io/)
+
+이러한 faucet은 하루 한 번 또는 몇 시간마다 한 번처럼 자체 limit을 가진다.
+
+### token balance verify
+
+SUI token balance를 확인하고 faucet에서 token을 받았는지 확인하려면 다음 command를 사용한다:
+
+```
+$ sui client balance
+```
+
+또는 [SuiVision](https://suivision.xyz/)이나 [SuiScan](https://suiscan.xyz/mainnet/accounts) 같은 Sui Explorer를 사용해 address의 SUI token balance를 확인할 수 있다.
+
+SUI token balance가 있어야 한다:
+
+```
+╭────────────────────────────────────────────╮
+│ Balance of coins owned by this address     │
+├────────────────────────────────────────────┤
+│ ╭────────────────────────────────────────╮ │
+│ │ coin       balance (raw)  balance      │ │
+│ ├────────────────────────────────────────┤ │
+│ │ Sui        56804696124     0.50 SUI    │ │
+│ ╰────────────────────────────────────────╯ │
+╰────────────────────────────────────────────╯
+```
+
+Balance가 없다면 [request SUI tokens from faucet](#online-faucet) 단계를 반복하거나 [alternative faucet method](#alternative-faucets)를 사용한다.
+
+### 사용하지 않은 Testnet SUI 반환
 
 Testnet faucet은 한정된 SUI pool에서 토큰을 인출한다. Pool이 고갈되면 나머지 커뮤니티에 대한 faucet 서비스가 중단된다. 이를 방지하려면 온라인 faucet을 사용하여 사용하지 않은 SUI를 pool에 반환할 수 있다.
 
@@ -72,56 +120,89 @@ Testnet faucet은 한정된 SUI pool에서 토큰을 인출한다. Pool이 고�
 - 온라인 faucet에 지갑을 연결하고 **Return tokens to faucet** 버튼을 클릭한다. 지갑을 사용하여 transaction을 승인하면 Testnet SUI가 pool에 반환된다.
 - 지갑을 연결하지 않으려면 반환 address 오른쪽에 있는 **Copy** 버튼을 클릭하고 별도의 transaction을 통해 토큰을 전송한다.
 
-## Request test tokens through the CLI
+**Sui CLI**
 
 [Sui CLI](/references/cli/client)를 사용하여 Devnet, Testnet 또는 로컬 네트워크에서 address에 대한 토큰을 요청한다. `sui client faucet`은 현재 Sui CLI에 설정된 활성 네트워크와 활성 address를 사용하지만, 다음 두 가지 인수를 통해 사용자 지정 데이터를 지정할 수 있다:
 
 - 특정 address(또는 별칭)를 제공하는 `--address` 인수,
 - 사용자 지정 faucet 엔드포인트를 제공하는 `--url` 인수.
 
-## Request test tokens through Discord
+## SUI token을 얻는 대체 방법 {#alternative-faucets}
 
-1. [Discord](https://discord.gg/sui)에 참가한다. 새로 만든 Discord 계정으로 Sui Discord 채널에 참가하려고 하면, 검증을 위해 며칠 기다려야 할 수 있다.
-2. Sui [#devnet-faucet](https://discord.com/channels/916379725201563759/971488439931392130) 또는 [#testnet-faucet](https://discord.com/channels/916379725201563759/1037811694564560966) Discord 채널에서 테스트 SUI 토큰을 요청한다. 클라이언트 address와 함께 다음 메시지를 채널에 전송한다: `!faucet <Your client address>`
+Testnet 또는 Devnet 배포를 위한 SUI 토큰을 얻는 대체 방법이 필요한 경우 여러 옵션이 있다.
 
-## Request test tokens through the Slush wallet
+:::tip
 
-[Slush](https://chromewebstore.google.com/detail/slush-%E2%80%94-a-sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil) 내에서 테스트 토큰을 요청할 수 있다.
+Testnet 및 Devnet에서 SUI 토큰을 얻는 모든 방법에는 rate limit이 있다. 많은 양의 SUI 토큰이 필요하면 local network를 사용한다.
 
-## Request test tokens through cURL
+:::
 
-다음 cURL 명령을 사용하여 faucet 서버에서 직접 토큰을 요청한다:
+<Tabs>
 
-```
-curl --location --request POST 'https://faucet.devnet.sui.io/v2/gas' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "FixedAmountRequest": {
-        "recipient": "<YOUR SUI ADDRESS>"
+<TabItem value="discord" label="Discord">
+
+1. [Discord](https://discord.gg/sui)에 참가한다.
+
+   새로 만든 Discord 계정으로 Sui Discord 채널에 참가하려고 하면, 검증을 위해 며칠 기다려야 할 수 있다.
+1. Sui [#devnet-faucet](https://discord.com/channels/916379725201563759/971488439931392130) 또는 [#testnet-faucet](https://discord.com/channels/916379725201563759/1037811694564560966) Discord 채널에서 SUI 토큰을 요청한다. `<YOUR SUI ADDRESS>`를 client address로 바꿔 다음 메시지를 채널에 보낸다:
+   ```sh
+   !faucet <YOUR SUI ADDRESS>
+   ```
+
+</TabItem>
+<TabItem value="curl" label="cURL">
+
+다음 cURL 명령을 사용해 console 변수를 설정하고 faucet server에서 직접 토큰을 요청한다. `NETWORK`는 `testnet` 또는 `devnet`으로 설정한다.
+
+```sh
+$ ADDRESS=$(sui client active-address)
+$ NETWORK=testnet
+$ curl --location --request POST "https://faucet.${NETWORK}.sui.io/v2/gas" \
+--header "Content-Type: application/json" \
+--data-raw "{
+    \"FixedAmountRequest\": {
+        \"recipient\": \"${ADDRESS}\"
     }
-}'
+}"
 ```
 
-로컬 네트워크를 사용 중인 경우, 네트워크를 실행하는 패키지에 따라 `'https://faucet.devnet.sui.io/v2/gas'`를 적절한 값으로 교체한다:
+local network로 작업하는 경우 `"https://faucet.${NETWORK}.sui.io/v2/gas"`를 네트워크를 실행하는 package에 따라 적절한 값으로 바꾼다:
 
 - `sui-faucet`: `http://127.0.0.1:5003/gas`
 - `sui`: `http://127.0.0.1:9123/gas`
 
-## Request test tokens through TypeScript SDK
+</TabItem>
+<TabItem value="typescript" label="TypeScript SDK">
 
-Sui TypeScript SDK를 사용하여 faucet에 액세스할 수도 있다.
+[Sui TypeScript SDK](https://sdk.mystenlabs.com/typescript)를 사용해 faucet에 접근할 수 있다.
 
 ```typescript
 import { getFaucetHost, requestSuiFromFaucetV2 } from '@mysten/sui/faucet';
 
-// Devnet faucet 서버에서 토큰을 가져온다
+// Devnet faucet server에서 토큰을 가져온다
 await requestSuiFromFaucetV2({
 	// Devnet에 연결한다
 	host: getFaucetHost('devnet'),
 	recipient: '<YOUR SUI ADDRESS>',
 });
 ```
+</TabItem>
+</Tabs>
 
-## Test tokens on a local network
+## local network의 SUI token
 
 로컬 Sui 네트워크를 실행 중인 경우, local faucet에서 토큰을 얻을 수 있다. 자세한 내용은 [로컬 네트워크 연결](./local-network#use-the-local-faucet) 항목을 참조한다.
+
+<div className="next-steps-module">
+  <div className="next-steps-header">
+    <h3>다음 단계</h3>
+  </div>
+  <div className="next-steps-grid">
+        <Card className="plausible-event-name=faucet+hello+button"
+      title="Hello, World!"
+      href="/getting-started/onboarding/hello-world"
+    >
+      "Hello, World!" 프로젝트를 clone하고 build한다.
+    </Card>
+  </div>
+</div>

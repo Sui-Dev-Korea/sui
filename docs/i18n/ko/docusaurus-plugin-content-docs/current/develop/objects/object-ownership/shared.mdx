@@ -10,12 +10,34 @@ keywords:
   - accessing public objects
 ---
 
+shared object는 네트워크의 누구나 접근할 수 있는 공개 mutable object이다. 여러 사용자 또는 smart contract가 동일한 object와 동시에 상호작용할 수 있도록 설계되어 있다.
 
-`sui::transfer::share_object` 함수를 사용하여 shared object를 생성하면, 네트워크 상에서 공개적으로 접근할 수 있다. shared object의 확장된 기능과 접근성은 필요할 경우 접근을 보호하기 위한 추가 작업이 필요하다.
+## Shared object 생성
+
+[`sui::transfer::share_object`](/references/framework/sui_sui/transfer#sui_transfer_share_object) 함수를 사용하여 shared object를 생성하면, 네트워크 상에서 공개적으로 접근할 수 있다. shared object의 확장된 기능과 접근성은 필요할 경우 접근을 보호하기 위한 추가 작업이 필요하다.
 
 shared object에는 `key` ability가 필요하다.
 
-## Usage Example
+```move
+public struct Donut has key { id: UID }
+
+fun init(ctx: &mut TxContext) {
+    transfer::transfer(ShopOwnerCap {
+        id: object::new(ctx)
+    }, ctx.sender());
+
+    transfer::share_object(DonutShop {
+        id: object::new(ctx),
+        price: 1000,
+        balance: balance::zero()
+    })
+```
+
+## Shared object를 사용하는 시점
+
+shared object는 marketplace, game 또는 여러 당사자가 global state에 접근하거나 이를 수정해야 하는 기타 시나리오에 적합하다.
+
+## Shared object와 상호작용
 
 다음 예시는 디지털 도넛을 판매하는 상점을 생성한다. 모두가 이 상점에 접근하여 도넛을 구매할 수 있어야 하므로, 예시는 <code>sui::transfer::share_object</code>를 사용하여 상점을 shared object로 생성한다.
 

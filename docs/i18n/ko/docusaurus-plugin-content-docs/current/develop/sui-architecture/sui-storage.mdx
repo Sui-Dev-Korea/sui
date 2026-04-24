@@ -7,7 +7,7 @@ keywords: [ storage, storage architecture, storage fund, storage rebates, storag
 
 모든 블록체인에서의 운영 비용은 두 가지 주요 구성 요소로 이루어진다: **compute**는 로직(transaction)을 처리하는 데 필요한 연산 능력이고, **storage**는 데이터와 transaction 결과를 저장하는 데 필요한 디지털 공간이다.
 
-## Storage architecture
+## storage architecture
 
 다음 표는 주요 스토리지 구성 요소를 요약한다:
 
@@ -19,7 +19,7 @@ keywords: [ storage, storage architecture, storage fund, storage rebates, storag
 | Full node snapshots | Cloud storage | Full node 데이터의 snapshots은 validator 또는 full node 백업 및 복구를 위해 cloud storage에 저장된다. | ~1.6TB |
 | Checkpoints bucket | Cloud storage | pruning되었을 수 있는 과거 object의 동기화를 지원하기 위해 블록체인 상태 데이터를 cloud storage에 저장한다. | ~30TB |
 
-### Validators
+### validator
 
 Validators는 데이터베이스 증가를 제한하기 위해 pruning을 활성화해야 한다.
 
@@ -27,7 +27,7 @@ Transaction-per-second (TPS) 비율이 증가에 영향을 미치지만, 전체 
 
 Transaction 유형도 데이터 증가에 영향을 준다.
 
-### Pruning full nodes
+### full node pruning
 
 Pruning full nodes는 pruning 설정이 동일하기 때문에 디스크 사용량 면에서 validators와 유사하다.
 
@@ -41,7 +41,7 @@ Pruning full nodes는 pruning 설정이 동일하기 때문에 디스크 사용�
 
 이는 단일 epoch의 데이터베이스 snapshot 크기이다.
 
-### Unpruned full nodes
+### unpruned full node
 
 Unpruned full nodes는 드물며 몇 가지 사용 사례에 적용된다:
 
@@ -55,7 +55,7 @@ Growth examples:
 
 - ~183 TPS인 2주 기간 동안 사용량은 4.34TB에서 4.92TB로 증가했다(일일 약 40GB).
 
-### Full node snapshots
+### full node snapshot
 
 [snapshots](/operators/snapshots)에는 두 가지 유형이 있다:
 
@@ -63,7 +63,7 @@ Growth examples:
 
 - **Formal snapshots:** 경량이며 최근 Mainnet epoch의 경우 약 30GB이다.
 
-### Checkpoints bucket
+### checkpoint bucket
 
 Checkpoints bucket은 full node 또는 ingestion daemon이 기록한 블록체인 상태 데이터를 cloud storage bucket에 저장한다.
 
@@ -73,7 +73,7 @@ Growth examples:
 
 - 2주 기간 동안 사용량은 1.18TB에서 1.32TB로 증가했다(일일 약 10GB).
 
-## Cost of storage
+## storage 비용
 
 object를 생성하거나 수정하는 모든 transaction에는 스토리지 수수료가 발생한다.
 
@@ -104,7 +104,7 @@ Sui에서 compute는 비교적 고정되어 있으며 수백 개의 validator가
 
 transaction의 총 스토리지 수수료는 transaction의 총 가스 수수료의 일부로 청구된다.
 
-### Storage fund
+### storage fund
 
 transaction의 총 스토리지 비용은 transaction에서 사용한 각 스토리지 unit을 기준으로 한다.
 
@@ -130,7 +130,7 @@ transaction에 1킬로바이트 object가 포함되면 스토리지 수수료는
 
 스토리지 기금이 얻는 초과 staking 보상은 다시 스토리지 기금에 재투자되어 validator를 보상하는 데 필요한 역량을 스토리지 기금이 갖추도록 보장한다.
 
-### Storage rebates
+### storage rebate
 
 스토리지 기금의 설계는 데이터를 저장하는 비용이 이를 온체인에 유지하는 가치보다 크다면 사용자가 데이터를 삭제하도록 장려한다.
 

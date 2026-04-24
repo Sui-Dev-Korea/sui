@@ -29,6 +29,6 @@ Hot wallet과 cold wallet은 모두 **self-custodial**일 수 있다. 즉, 사�
 
 Sui의 모든 transaction에는 SUI로 지불하는 [gas fee](/develop/transaction-payment/gas-in-sui)가 필요하다. 이 fee는 computation(transaction 처리)과 storage(transaction이 생성하거나 변경하는 온체인 data)라는 두 cost를 포함한다. Validator는 각 epoch 시작 시 network-wide reference gas price에 합의하므로, gas budget을 설정할 때 신뢰할 수 있는 기준이 된다. transaction이 온체인 data를 삭제하면 partial storage rebate를 받는다.
 
-## Staking
+## staking
 
 Sui의 proof-of-stake mechanism에 참여하기 위해 [SUI token을 stake](/develop/sui-architecture/tokenomics-overview)할 수 있다. Staking은 token을 validator에게 delegate하고, validator는 그 stake를 transaction 처리용 voting power로 사용한다. 그 대가로 각 epoch에 수집된 computation fee에서 나온 staking rewards를 받는다. 대부분의 Sui-compatible wallet에는 staking 기능이 포함되어 있다. 선택하는 validator는 reward rate에 영향을 주는데, performance가 나쁜 validator는 rewards가 줄어들 수 있기 때문이다.

@@ -29,32 +29,32 @@ zkLogin이 Sui에 가져오는 핵심 차별점은 다음과 같다:
 
 애플리케이션이나 wallet에 zkLogin을 통합하려는 builder라면 [zkLogin 통합](/sui-stack/zklogin-integration)을 참고한다.
 
-## OpenID providers
+## OpenID provider 설정
 
 <ImportContent source="openid-providers" mode="snippet" />
 
-## Terminology and notations
+## 용어와 표기
 
 이 섹션은 [the OpenID specification](https://openid.net/specs/openid-connect-core-1_0.html#Terminology)에 정의된 관련 OpenID 용어와 zkLogin에서의 사용 방식을 설명하고, 프로토콜 세부사항에 대한 정의를 함께 제공한다.
 
-### OpenID provider (OP)
+### OpenID provider(OP) 설명
 
 OpenID provider는 최종 사용자를 인증하고 인증 이벤트와 최종 사용자에 대한 claim을 relying party에 제공할 수 있는 OAuth 2.0 authorization server이다.
 이는 JSON web token payload의 `iss` field에서 식별된다.
-zkLogin이 현재 지원하는 엔티티는 [table of available OPs](#openid-providers)를 확인한다.
+zkLogin이 현재 지원하는 엔티티는 [사용 가능한 OP 표](#openid-provider-설정)를 확인한다.
 
-### Relying party (RP) or client
+### Relying party (RP) 또는 client
 
 relying party는 OpenID provider로부터 최종 사용자 인증과 claim이 필요한 OAuth 2.0 client application이다.
 이는 애플리케이션을 생성할 때 OP가 할당한다.
 이는 JWT payload의 `aud` field에서 식별되며 zkLogin enabled wallet 또는 application을 의미한다.
 
-### Subject identifier (sub)
+### Subject identifier(sub) 설명
 
 subject identifier는 issuer 내에서 최종 사용자에 대해 로컬하게 유일한 식별자이며 RP가 소비하도록 의도된 값이다.
 Sui는 이를 사용자 address를 도출하는 key claim으로 사용한다.
 
-### JSON Web Key (JWK)
+### JSON Web Key(JWK) 설명
 
 JSON Web Key는 OP에 대한 public key 집합을 나타내는 JSON data structure이다.
 공개 endpoint(예: https://www.googleapis.com/oauth2/v3/certs)를 질의하면 provider의 `kid`에 대응하는 유효한 public key를 검색할 수 있다.
@@ -62,7 +62,7 @@ JWT header의 `kid`와 일치하면 JWT는 payload와 대응 JWK에 대해 검�
 Sui에서는 모든 authority가 JWK endpoint를 독립적으로 호출하고, 지원되는 모든 provider에 대한 최신 JWK view는 protocol upgrade 중에 업데이트된다.
 JWK의 정확성은 validator stake의 정족수(2f+1)에 의해 보장된다.
 
-### JSON Web Token (JWT)
+### JSON Web Token(JWT) 설명
 
 JSON Web Token은 OAuth login flow를 완료한 뒤 RP로 가는 redirect URI 안에 있다(`https://redirect.com?id_token=$JWT_TOKEN`처럼).
 JWT는 `header`, `payload`, `signature`를 포함한다.
@@ -89,19 +89,19 @@ signature는 `jwt_message = header + . + payload`와 `kid`로 식별되는 그 J
 zkLogin transaction의 경우 `iat`와 `exp` claim(timestamp)은 사용되지 않는다.
 대신 `nonce`가 expiry time을 지정한다.
 
-### Key claim
+### Key claim 설명
 
 `sub` 또는 `email`처럼 address를 도출하는 데 사용되는 claim이 key claim이다.
 당연히 한 번 설정된 후 다시 변경되지 않는 claim을 사용하는 것이 이상적이다.
 zkLogin은 현재 OpenID specification이 provider가 이 identifier를 변경하지 못하게 요구하기 때문에 `sub`를 key claim으로 지원한다.
 
-### Notations
+### Notation 표기
 
 1. `(eph_sk, eph_pk)`: ephemeral signature를 생성하는 데 사용되는 private/public key pair이다. 서명 메커니즘은 전통적인 transaction 서명과 같지만, 짧은 session 동안만 저장되고 새 OAuth session에서 갱신될 수 있기 때문에 ephemeral하다. ephemeral public key는 `nonce` 계산에 사용된다.
 
 2. `nonce`: JWT payload에 포함된 application-defined field이며, ephemeral public key, JWT randomness, maximum epoch(Sui가 정의한 expiry epoch)의 해시로 계산된다. 구체적으로 zkLogin 호환 nonce는 `nonce = ToBase64URL(Poseidon_BN254([ext_eph_pk_bigint / 2^128, ext_eph_pk_bigint % 2^128, max_epoch, jwt_randomness]).to_bytes()[len - 20..])`로 전달되어야 하며 여기서 `ext_eph_pk_bigint`는 `ext_eph_pk`의 BigInt 표현이다.
 
-3. `ext_eph_pk`: ephemeral public key(`flag || eph_pk`)의 byte 표현이다. 크기는 signature scheme 선택에 따라 달라진다(flag로 표시되며 [서명](/develop/transactions/transaction-auth/auth-overview#signatures)에 정의된다).
+3. `ext_eph_pk`: ephemeral public key(`flag || eph_pk`)의 byte 표현이다. 크기는 signature scheme 선택에 따라 달라진다(flag로 표시되며 [서명](/develop/transactions/transaction-auth/auth-overview#서명)에 정의된다).
 
 4. `user_salt`: OAuth identifier를 온체인 address와 분리하기 위해 도입된 값이다.
 
@@ -113,7 +113,7 @@ zkLogin은 현재 OpenID specification이 provider가 이 identifier를 변경�
 
 8. `hashBytesToField(str, maxLen)`: [Poseidon hash](https://eprint.iacr.org/2019/458.pdf)를 사용해 ASCII string을 field element로 해싱한다.
 
-## Entities
+## Entity 구성
 
 1. Application frontend: zkLogin을 지원하는 wallet 또는 frontend application을 말한다. frontend는 ephemeral private key 저장, OAuth login flow 유도, zkLogin transaction 생성 및 서명을 담당한다.
 
@@ -121,7 +121,7 @@ zkLogin은 현재 OpenID specification이 provider가 이 identifier를 변경�
 
 3. Zero-knowledge proving service: JWT, JWT randomness, user salt, max epoch에 기반한 zero-knowledge proof를 생성하는 backend service이다. 이 proof는 zkLogin transaction을 위한 ephemeral signature와 함께 온체인에 제출된다.
 
-## How zkLogin works {#how-zklogin-works}
+## zkLogin 작동 방식 {#how-zklogin-works}
 
 high level에서 zkLogin protocol은 다음과 같이 동작한다:
 
@@ -135,18 +135,18 @@ high level에서 zkLogin protocol은 다음과 같이 동작한다:
 
 ![zkLogin flow diagram](images/zklogin-flow.png 'zkLogin complete flow')
 
-#### Step 0: zkLogin uses Groth16 for zkSNARK instantiation, which requires a common reference string (CRS) linked to the circuit.
+#### Step 0: zkLogin은 zkSNARK instance 생성을 위해 Groth16을 사용하며, circuit에 연결된 common reference string(CRS)이 필요하다.
 
 ceremony는 proving service의 proving key와 Sui authority의 verifying key를 생성하는 데 사용되는 CRS를 생성한다.
 
-#### Steps 1-3: Login to an OpenID provider (OP) to obtain a JWT containing a nonce.
+#### Steps 1-3: OpenID provider(OP)에 login해 nonce가 포함된 JWT를 얻는다.
 
 ephemeral key pair `(eph_sk, eph_pk)`를 생성하고 `eph_pk`, expiry time(`max_epoch`), randomness(`jwt_randomness`)를 nonce에 포함한다.
 login 후 JWT는 application의 redirect URL에 나타난다.
 
-#### Steps 4-5: The application frontend sends the JWT to a salt service. The service returns the unique `user_salt` based on `iss`, `aud`, and `sub`.
+#### Steps 4-5: Application frontend가 JWT를 salt service로 보낸다. Service는 `iss`, `aud`, `sub`를 기반으로 unique `user_salt`를 반환한다.
 
-#### Steps 6-7: Send the JWT, user salt, ephemeral public key, JWT randomness, and key claim name (for example, `sub`) to the proving service.
+#### Steps 6-7: JWT, user salt, ephemeral public key, JWT randomness, key claim name(예: `sub`)을 proving service로 보낸다.
 
 proving service는 다음을 증명하는 zero-knowledge proof를 생성한다:
 
@@ -155,13 +155,13 @@ proving service는 다음을 증명하는 zero-knowledge proof를 생성한다:
 - provider의 JWT에 대한 RSA signature를 검증한다.
 - address가 key claim과 user salt와 일관됨을 확인한다.
 
-#### Step 8: The application computes your address based on `iss`, `aud`, and `sub`.
+#### Step 8: Application이 `iss`, `aud`, `sub`를 기반으로 address를 계산한다.
 
-#### Steps 9-10: Sign the transaction with the ephemeral private key and submit it with the ephemeral signature, ZK proof, and other inputs to Sui.
+#### Steps 9-10: Ephemeral private key로 transaction에 sign하고 ephemeral signature, ZK proof, 기타 input과 함께 Sui에 submit한다.
 
 Step 10 이후 Sui authority는 provider의 JWK(합의에 의해 저장됨)와 ephemeral signature를 대조해 ZK proof를 검증한다.
 
-## Address definition
+## Address definition 정의
 
 address는 다음 입력으로 계산된다:
 
@@ -179,7 +179,7 @@ address는 다음 입력으로 계산된다:
 
 마지막으로 Sui는 `addr_seed = Poseidon_BN254(kc_name_F, kc_value_F, aud_F, Poseidon_BN254(user_salt))`일 때 `zk_login_address = Blake2b_256(zk_login_flag, iss_L, iss, addr_seed)`를 도출한다.
 
-## Ceremony
+## Ceremony 절차
 
 OAuth artifact의 프라이버시를 보존하기 위해 소유에 대한 zero-knowledge proof가 제공된다.
 zkLogin은 proof 크기와 검증 효율성 측면에서 가장 효율적인 범용 zkSNARK이기 때문에 zero-knowledge proof를 인스턴스화하기 위해 Groth16 [zkSNARK](https://en.wikipedia.org/wiki/Non-interactive_zero-knowledge_proof)를 사용한다.
@@ -199,7 +199,7 @@ MMORPG protocol은 순차적 protocol이므로 사전 동기화나 순서 지정
 각 참여자는 이전 참여자의 출력을 다운로드하고, 자신의 entropy를 생성한 뒤 받은 결과 위에 덧씌워 자신의 기여를 만들고, 이를 다음 참여자에게 전달해야 한다.
 이 protocol은 최소 1명의 참여자가 protocol을 성실히 따르고 강한 entropy를 생성해 신뢰성 있게 폐기하면 보안을 보장한다.
 
-### How was the ceremony performed?
+### Ceremony 수행 방식
 
 Sui validator, 암호학자, Web3 전문가, 세계적으로 저명한 학자, 비즈니스 리더 등 다양한 배경과 소속을 가진 100명이 넘는 사람에게 초대장이 발송되었다.
 ceremony는 2023년 9월 12일부터 18일까지 진행되도록 계획되었지만, 고정된 슬롯 없이 원하는 시점에 참여할 수 있게 했다.
@@ -233,7 +233,7 @@ ceremony는 1단계에서 회로와 무관한 [perpetual powers of tau](https://
 proving key는 zkLogin용 zero-knowledge proof를 생성하는 데 사용되며 zero-knowledge proving service와 함께 저장된다.
 verifying key는 Sui에서 zkLogin transaction을 검증하는 데 사용되는 validator software([release 1.10.1](https://github.com/MystenLabs/sui/releases/tag/mainnet-v1.10.1)의 protocol version 25)의 일부로 [deployed](https://github.com/MystenLabs/sui/pull/13822)되었다.
 
-## Security and privacy
+## Security와 privacy
 
 다음 섹션은 모든 zkLogin artifact, 그들의 보안 가정, 그리고 유실이나 노출의 결과를 설명한다.
 
@@ -247,7 +247,7 @@ client ID용 JWT는 redirect URL을 통해 application frontend로 직접 전송
 
 그러나 대응 ephemeral private key가 안전한 이상 JWT 유출이 fund 손실을 의미하지는 않는다.
 
-### User salt
+### User salt 설명
 
 user salt는 zkLogin wallet에 접근하는 데 필요하다.
 이 값은 ZK proof 생성과 zkLogin address 도출 모두에 필수적이다.
@@ -257,17 +257,17 @@ user salt가 유출되어도 fund 손실을 의미하지는 않지만, 공격자
 특히 pairwise ID를 사용하는 경우(예: Facebook)에는 subject identifier가 각 RP에 대해 고유하므로 문제가 없다.
 그러나 public reusable ID를 사용하는 경우(예: Google, Twitch)에는 전역적으로 고유한 `sub` 값이 사용자를 식별하는 데 쓰일 수 있다.
 
-### Ephemeral private key
+### Ephemeral private key 설명
 
 ephemeral private key의 수명은 유효한 zero-knowledge proof를 생성하기 위해 nonce에 지정된 maximum epoch에 묶여 있다.
 이를 잃어버려도 transaction 서명을 위해 새 ephemeral private key를 생성할 수 있으며, 새로운 nonce를 사용해 새로 생성한 zero-knowledge proof가 함께 제공된다.
 하지만 ephemeral private key가 탈취되면 fund를 이동하려면 user salt와 유효한 zero-knowledge proof를 함께 획득해야 한다.
 
-### Proof
+### Proof 증명
 
 proof 자체를 획득하는 것만으로는 유효한 zkLogin transaction을 만들 수 없는데, transaction에 대한 ephemeral signature도 필요하기 때문이다.
 
-### Privacy
+### Privacy 보호
 
 기본적으로 OAuth subject identifier(예: `sub`)와 Sui address 사이에는 연결이 없다.
 이것이 user salt의 목적이다.
@@ -279,38 +279,80 @@ ZK proving service와 salt service(운영되는 경우)는 user salt와 JWT를 �
 
 ## FAQ
 
-#### What providers is zkLogin compatible with?
+#### zkLogin과 compatible한 provider는 무엇인가?
 
-- zkLogin은 OAuth 2.0 framework 위에 구축된 OpenID Connect와 함께 동작하는 provider를 지원할 수 있다. 이는 OAuth 2.0 호환 provider의 일부이다. 활성화된 모든 provider는 [latest table](#openid-providers)를 참조한다. 다른 호환 provider도 향후 protocol upgrade를 통해 활성화될 예정이다.
+- zkLogin은 OAuth 2.0 framework 위에 구축된 OpenID Connect와 함께 동작하는 provider를 지원할 수 있다. 이는 OAuth 2.0 호환 provider의 일부이다. 활성화된 모든 provider는 [최신 표](#openid-provider-설정)를 참조한다. 다른 호환 provider도 향후 protocol upgrade를 통해 활성화될 예정이다.
 
-#### How is a zkLogin Wallet different from a traditional private key wallet?
+#### zkLogin Wallet은 traditional private key wallet과 어떻게 다른가?
 
 - 전통적인 private key wallet은 mnemonic과 passphrase를 지속적으로 기억해야 하며 private key 탈취를 방지하기 위해 안전한 저장소가 필요하다. 반면 zkLogin wallet은 session expiry가 있는 ephemeral private key 저장소와 expiry가 있는 OAuth login flow만 필요하다. ephemeral key를 잊어도 fund 손실이 발생하지 않는데, 언제든 다시 sign in하여 새 ephemeral key와 새 ZK proof를 생성할 수 있기 때문이다.
 
-#### How is zkLogin different from MPC or multisig wallets?
+#### zkLogin은 MPC 또는 multisig wallet과 어떻게 다른가?
 
 - Multi-Party Computation(MPC)와 다중 서명(multisig) wallet은 여러 key 또는 여러 key share를 분산 저장하고, signature를 수락하기 위한 threshold 값을 정의하는 방식에 의존한다. zkLogin은 어떤 개별 private key도 분할하지 않지만, OAuth provider로 인증할 때 fresh nonce를 사용해 ephemeral private key를 등록한다. zkLogin의 주된 장점은 MPC나 다중 서명 같은 private key management 기법으로도 persistent private key를 어디에서도 관리할 필요가 없다는 점이다. zkLogin은 첫 번째 요소가 OAuth account이고 두 번째 요소가 salt인 address용 2FA scheme으로 생각할 수 있다. 또한 Sui는 다중 서명 wallet을 네이티브로 지원하므로, k-of-N 설정에서 zkLogin 부분을 2FA로 사용하는 등 추가 보안을 위해 다중 서명 wallet 안에 하나 이상의 zkLogin signer를 포함할 수 있다.
 
-#### If a OAuth account is compromised, what happens to the zkLogin address?
+#### OAuth account가 compromise되면 zkLogin address에는 어떤 일이 발생하는가?
 
 - zkLogin은 2FA 시스템이므로 OAuth account가 탈취되더라도 salt까지 별도로 탈취하지 않는 한 zkLogin address에 접근할 수 없다.
 
-#### If you lose access to my OAuth account, do you lose access to the zkLogin address?
+#### OAuth account access를 잃으면 zkLogin address access도 잃는가?
 
 - 그렇다. zkLogin을 사용하려면 OAuth account에 login하고 현재의 JWT를 생성할 수 있어야 한다.
 
-#### Does losing an OAuth credential mean the loss of funds in the zkLogin wallet?
+#### OAuth credential을 잃으면 zkLogin wallet의 fund도 잃는가?
 
 - 잊어버린 OAuth credential은 일반적으로 해당 provider에서 비밀번호를 재설정해 복구할 수 있다. 불행히도 OAuth credential이 탈취된 경우 공격자는 `user_salt`가 여전히 필요하며, 어느 wallet이 사용되는지도 알아야 그 account를 탈취할 수 있다. 최신 `user_salt` provider는 유효하고 만료되지 않은 JWT를 제시하는 주체에게조차 user salt 제공을 막기 위한 추가 2FA 보안 조치를 둘 수도 있다. 또한 zkLogin address는 사용자 identity나 사용된 wallet에 대한 어떤 정보도 드러내지 않으므로, 블록체인만 모니터링해서 수행하는 표적 공격은 더 어렵다는 점도 중요하다. OAuth account에 대한 접근을 영구적으로 잃으면 해당 wallet에 대한 접근도 잃는다. 잃어버린 OAuth account 복구가 필요하다면, wallet provider는 네이티브 Sui 다중 서명 기능을 지원하고 backup method를 추가하는 것이 좋다. 예를 들어 첫 번째 요소는 Google이고 두 번째 요소는 Facebook OAuth인 1-of-2 다중 서명 zkLogin wallet처럼, 모든 signer가 zkLogin을 사용하는 다중 서명 wallet도 가능하다.
 
-#### Canyou convert or merge a traditional private key wallet into a zkLogin one, or the reverse?
+#### Traditional private key wallet을 zkLogin wallet으로 변환하거나 병합할 수 있는가? 반대도 가능한가?
 
 - 아니다. zkLogin wallet address는 private key address와 다르게 도출된다.
 
-#### Does my zkLogin address ever change?
+#### zkLogin address는 바뀌는가?
 
 - zkLogin address는 `sub`, `iss`, `aud`, `user_salt`로부터 도출된다. 같은 OAuth provider로 같은 wallet에 login하면 JWT 자체는 매번 달라 보일 수 있어도 JWT의 `sub`, `iss`, `aud`, `user_salt`는 변하지 않으므로 address는 변하지 않는다. 그러나 다른 OAuth provider로 login하면 `iss`와 `aud`가 provider마다 다르게 정의되므로 address가 바뀐다. 추가로 각 wallet 또는 application은 자체 `user_salt`를 유지하므로, 같은 provider로 다른 wallet에 login해도 다른 address가 생길 수 있다.
 
-#### Can you have multiple addresses with the same OAuth provider?
+#### 같은 OAuth provider로 여러 address를 가질 수 있는가?
 
 - 그렇다. 각 account에 대해 다른 wallet provider 또는 다른 `user_salt`를 사용하면 가능하다. 이는 서로 다른 account 간 fund를 분리하는 데 유용하다.
+
+#### zkLogin Wallet은 custodial인가?
+
+- 아니다. zkLogin wallet은 사용자 대신 자금을 보관하지 않는다. Transaction에는 사용자의 ephemeral private key signature와 zkLogin proof가 필요하다.
+
+#### Zero-knowledge proof 생성 비용이 큰데, transaction마다 새 proof를 생성해야 하는가?
+
+- 아니다. Proof는 nonce에 포함된 maximum epoch까지 재사용할 수 있다. 같은 ephemeral key와 유효한 proof를 사용하는 동안 여러 transaction에 서명할 수 있다.
+
+#### zkLogin은 mobile에서 동작하는가?
+
+- 그렇다. Mobile application은 OAuth login flow, ephemeral key management, proof generation 또는 proving service integration을 제공하면 zkLogin을 사용할 수 있다.
+
+#### OAuth credential을 잃어도 account recovery가 가능한가?
+
+- OAuth credential 복구는 OAuth provider와 wallet provider의 recovery flow에 따른다. OAuth account에 영구적으로 접근할 수 없고 backup method도 없다면 해당 zkLogin address에 접근할 수 없다.
+
+#### zkLogin circuit의 assumption은 무엇인가?
+
+- zkLogin circuit은 OpenID provider의 JWT signing key, ceremony에서 생성된 CRS, user salt 처리, ephemeral key 보호가 의도대로 동작한다는 가정 위에 있다.
+
+#### zkLogin은 social login을 지원하는 다른 solution과 어떻게 다른가?
+
+- zkLogin은 OAuth identity를 직접 온체인에 공개하지 않고 zero-knowledge proof로 인증을 검증한다. 또한 Sui address는 OAuth subject와 user salt에서 도출된다.
+
+#### Offchain에서 zkLogin signature를 verify하는 방법
+
+- 다음 옵션은 Sui의 JWK state와 현재 epoch를 사용해 transaction data 또는 personal message에 대한 zkLogin signature를 지원한다.
+
+1. [Sui TypeScript SDK](https://sdk.mystenlabs.com/typescript)를 사용한다. 이 방법은 [GraphQL client](/references/sui-graphql)를 초기화하고 내부적으로 endpoint를 호출한다.
+
+1. GraphQL endpoint를 직접 사용한다: `https://sui-[network].mystenlabs.com/graphql`. `[network]`를 적절한 값으로 바꾼다. 자세한 내용은 <UnsafeLink href="/references/sui-api/sui-graphql/beta/reference/operations/queries/verify-zk-login-signature">GraphQL documentation</UnsafeLink>을 참고한다. 서버를 실행하거나 JWK rotation을 처리할 계획이 없다면 이 방법을 권장한다.
+
+1. [Sui Keytool CLI](/references/cli/keytool)를 사용한다. 이 방법은 debug 용도로 권장된다.
+
+   ```sh
+   $ sui keytool zk-login-sig-verify --sig $ZKLOGIN_SIG --bytes $BYTES --intent-scope 3 --network devnet --curr-epoch 3
+   ```
+
+#### Multisig wallet 안에서 zkLogin을 사용할 수 있는가?
+
+- 그렇다. Sui는 multisig wallet을 지원하며, multisig signer 중 하나 이상을 zkLogin signer로 사용할 수 있다.

@@ -25,15 +25,7 @@ public native fun public_freeze_object<T: key>(obj: T);
 
 이 함수의 사용 예시는 [color_object example module tests](https://github.com/MystenLabs/sui/blob/main/examples/move/color_object/sources/example.move) 중 하나에서 확인할 수 있다. 이 테스트는 새로운 (owned) `ColorObject`를 생성한 후 `public_freeze_object` 를 호출하여 immutable object로 변환한다.
 
-```move
-{
-    ts.next_tx(alice);
-    // Create a new ColorObject
-    let c = new(255, 0, 255, ts.ctx());
-    // Make it immutable.
-    transfer::public_freeze_object(c);
-};
-```
+<ImportContent source="examples/move/color_object/sources/example.move" mode="code" fun="test_immutable" noComments />
 
 이 테스트에서는 처음에 `ColorObject`를 소유하고 있어야 한다. Object를 freeze한 이후에는 immutable 상태가 되며, owner가 사라진다.
 
@@ -72,7 +64,7 @@ Immutable object는 오직 read-only reference를 통해서만 접근할 수 있
 
 이는 다음 예시에서 확인할 수 있다:
 
-```move
+```sh
 let sender1 = @0x1;
 let scenario_val = test_scenario::begin(sender1);
 let scenario = &mut scenario_val;
@@ -91,7 +83,7 @@ scenario.next_tx(sender1);
 
 `has_most_recent_for_sender<ColorObject>` 함수는 해당 object가 더 이상 소유되지 않기 때문에 더 이상 `true`를 반환하지 않는다. 해당 object를 다시 소유하기 위해서는:
 
-```move
+```sh
 // Any sender can work.
 let sender2 = @0x2;
 scenario.next_tx(sender2);
@@ -107,7 +99,7 @@ scenario.next_tx(sender2);
 
 객체의 변경 불가능함을 검증하기 위해서는 `ColorObject`를 수정하려는 함수를 생성한다:
 
-```move
+```sh
 public fun update(
     object: &mut ColorObject,
     red: u8, green: u8, blue: u8,
@@ -166,19 +158,19 @@ $ sui client objects $ADDR
 
 `$OBJECT`는 더 이상 목록에 표시되지 않는다. 다음 명령어를 사용해 object 정보를 조회하면 immutable 상태임을 확인할 수 있다:
 
-```sh
+```move
 $ sui client object $OBJECT
 ```
 
 출력 결과에는 다음과 같은 정보가 포함된다:
 
-```sh
+```move
 Owner: Immutable  // This field shows the object's immutable status
 ```
 
 이 object를 변경하려 시도할 경우, 다음과 같은 결과가 나타난다:
 
-```sh
+```move
 $ sui client call --gas-budget <GAS-AMOUNT> --package $PACKAGE --module "color_object" --function "update" --args \"$OBJECT\" 0 0 0
 ```
 

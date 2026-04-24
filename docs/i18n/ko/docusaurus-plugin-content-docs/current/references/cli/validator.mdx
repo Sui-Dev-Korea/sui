@@ -13,9 +13,13 @@ keywords:
 
 Sui CLI의 `validator` 명령어는 Sui 네트워크의 validator 기능에 대한 명령어 수준의 접근을 제공한다.
 
-## Commands
+## 명령
 
 터미널이나 콘솔에 `sui validator --help` 입력하면 사용 가능한 명령에 대한 다음 정보가 표시된다.
+
+```sh
+$ sui validator --help
+```
 
 ```sh
 Usage: sui validator [OPTIONS] [COMMAND]
@@ -41,7 +45,7 @@ Options:
   -h, --help                	Print help
 ```
 
-## Examples
+## 예시
 
 다음 예시는 가장 자주 사용되는 명령어 몇 가지이다.
 
@@ -51,7 +55,11 @@ Options:
 $ sui validator  update-gas-price 500
 ```
 
-<details>   <summary>   Toggle output   </summary> </details>
+<details>
+<summary>
+출력 보기
+</summary>
+
 
 ```sh
 ----- Transaction Digest ----
@@ -144,6 +152,8 @@ A8z83EqjmgwRNFV6sme6A5tTTTQPjiLgiW76neyvhLud
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
+</details>
+
 
 
 ### Set gas price for the next epoch
@@ -160,7 +170,11 @@ $ sui validator request_set_gas_price --args 0x5 \"42\" --gas-budget GAS-BUDGET-
 $ sui validator display-metadata 0x3...de5
 ```
 
-<details>   <summary>   Toggle output   </summary> </details>
+<details>
+<summary>
+출력 보기
+</summary>
+
 
 ```sh
 0x3...de5's valdiator status: Active
@@ -420,6 +434,8 @@ SuiValidatorSummary {
 	exchange_rates_size: 231,
 ```
 
+</details>
+
 
 
 ### Report a bad / non-performant validator
@@ -428,7 +444,11 @@ SuiValidatorSummary {
 $ sui validator report-validator  0xf...3d9
 ```
 
-<details>   <summary>   Toggle output   </summary> </details>
+<details>
+<summary>
+출력 보기
+</summary>
+
 
 ```sh
 ----- Transaction Digest ----
@@ -516,9 +536,11 @@ $ sui validator report-validator  0xf...3d9
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
+</details>
 
 
-## Help
+
+## 도움말
 
 각 명령에는 자체 도움말 섹션이 있다. 예를 들어 `sui validator report-validator --help` 입력하면 다음과 같은 프롬프트가 표시된다.
 

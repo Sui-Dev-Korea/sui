@@ -18,7 +18,7 @@ keywords:
 
 DeepBook referral system은 사용자가 trader를 플랫폼으로 추천해 수수료를 벌 수 있게 한다. Referrer는 특정 pool에 대한 `DeepBookPoolReferral` object를 mint할 수 있고, trader는 자신의 `BalanceManager`를 referral과 연결할 수 있다. 연결된 referral을 가진 trader가 거래를 실행하면 그들의 trading fee 일부가 referral multiplier에 따라 referrer에게 할당된다.
 
-## How referrals work
+## referral 작동 방식
 
 1. **Mint a referral:** 누구나 특정 multiplier를 사용해 특정 pool에 대한 `DeepBookPoolReferral`을 mint할 수 있다. referral은 mint된 pool에 영구적으로 연결되며 그 pool의 거래에서만 수수료를 벌 수 있다.
 1. **Set referral:** trader는 `TradeCap`을 사용하여 자신의 `BalanceManager`를 pool별 referral과 연결한다. 각 `BalanceManager`는 여러 pool의 서로 다른 referral과 동시에 연결될 수 있다.
@@ -30,7 +30,7 @@ DeepBook referral system은 사용자가 trader를 플랫폼으로 추천해 수
 다음은 DeepBook이 제공하는 referral 관련 함수이다.
 
 <details>
-<summary>Mint a referral</summary>
+<summary>referral mint</summary>
 
 특정 multiplier를 사용해 특정 pool에 대한 새 `DeepBookPoolReferral` object를 mint한다. multiplier는 referrer에게 할당되는 trading fee의 비율을 결정한다. multiplier는 0.1의 배수여야 하며(예: 0.1, 0.2, 0.3, ...), 2.0을 초과할 수 없다. 생성된 referral의 ID를 반환한다.
 
@@ -46,7 +46,7 @@ DeepBook referral system은 사용자가 trader를 플랫폼으로 추천해 수
 </details>
 
 <details>
-<summary>Update referral multiplier</summary>
+<summary>referral multiplier update</summary>
 
 기존 pool referral의 multiplier를 업데이트한다. referral owner만 multiplier를 업데이트할 수 있다. 새로운 multiplier는 0.1의 배수여야 하며 2.0을 초과할 수 없다.
 
@@ -193,7 +193,7 @@ pool referral object와 연결된 pool ID를 가져온다.
 
 </details>
 
-## Events
+## 이벤트
 
 <details>
 <summary>`DeepBookReferralCreatedEvent`</summary>

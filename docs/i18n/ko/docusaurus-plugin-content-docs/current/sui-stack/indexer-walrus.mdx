@@ -55,7 +55,7 @@ LIMIT $2;
 
 ## Custom indexer implementation
 
-이 예제는 [sequential pipeline](/develop/accessing-data/custom-indexer/pipeline-architecture#sequential-pipeline-architecture)을 사용하며 각 checkpoint가 엄격한 순서로 한 번씩만 commit되고 단일 atomic operation으로 처리되도록 보장한다. sequential pipeline 아키텍처는 이 프로젝트에 필수는 아니지만 concurrent 아키텍처를 구현하는 것보다 더 단순한 선택지이다. 프로젝트가 필요로 하는 시점에는 언제든지 [concurrent pipeline으로 확장](/develop/accessing-data/custom-indexer/pipeline-architecture#decision-framework)할 수 있다.
+이 예제는 [sequential pipeline](/develop/accessing-data/custom-indexer/pipeline-architecture#sequential-pipeline-architecture)을 사용하며 각 checkpoint가 엄격한 순서로 한 번씩만 commit되고 단일 atomic operation으로 처리되도록 보장한다. sequential pipeline 아키텍처는 이 프로젝트에 필수는 아니지만 concurrent 아키텍처를 구현하는 것보다 더 단순한 선택지이다. 프로젝트가 필요로 하는 시점에는 언제든지 [concurrent pipeline으로 확장](/develop/accessing-data/custom-indexer/pipeline-architecture#결정-framework)할 수 있다.
 
 이 구현은 checkpoint 경계에서 최신 object 상태를 추적한다. `Metadata` dynamic field가 생성, 변경, wrapped, 삭제 또는 unwrap될 때 해당 field는 object changes 아래의 transaction output에 나타난다. 이 field를 생성하는 [example transaction](https://suivision.xyz/txblock/3Qcuo2FaTZL5wfdi7JzPELcmkuZm7hVfdNrkLrdkKioN?tab=Changes)을 Testnet에서 확인할 수 있다. 이러한 dynamic field의 타입은 `0x2::dynamic_field::Field<vector<u8>, 0xabc...123::metadata::Metadata>`이다.
 

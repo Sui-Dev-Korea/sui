@@ -18,66 +18,23 @@ Sui CLI `client` 명령어는 Sui 네트워크와 상호 작용할 수 있는 �
 
 <ImportContent source="cli-check-install" mode="snippet" />
 
-## Commands
+## 명령
 
-다음 목록은 `sui client` 명령에 사용할 수 있는 모든 하위 명령을 항목별로 나열한 것이다.
-
-```
-Usage: sui client [OPTIONS] [COMMAND]
-
-Commands:
-  active-address              Default address used for commands when none specified
-  active-env                  Default environment used for commands when none specified
-  addresses                   Obtain the Addresses managed by the client
-  balance                     List the coin balance of an address
-  call                        Call Move function
-  chain-identifier            Query the chain identifier from the rpc endpoint
-  dynamic-field               Query a dynamic field by its address
-  envs                        List all Sui environments
-  execute-signed-tx           Execute a Signed Transaction. This is useful when the user prefers to sign elsewhere and use this command to execute
-  execute-combined-signed-tx  Execute a combined serialized SenderSignedData string
-  faucet                      Request gas coin from faucet. By default, it will use the active address and the active network
-  gas                         Obtain all gas objects owned by the address. An address' alias can be used instead of the address
-  merge-coin                  Merge two coin objects into one coin
-  new-address                 Generate new address and key pair with key pair scheme flag {ed25519 | secp256k1 | secp256r1} with optional derivation path, default to m/44'/784'/0'/0'/0' for ed25519 or m/54'/784'/0'/0/0
-                                  for secp256k1 or m/74'/784'/0'/0/0 for secp256r1. Word length can be { word12 | word15 | word18 | word21 | word24} default to word12 if not specified
-  new-env                     Add new Sui environment
-  object                      Get object information
-  objects                     Obtain all objects owned by the address. It also accepts an address by its alias
-  pay                         Pay coins to recipients following specified amounts, with input coins. Length of recipients must be the same as that of amounts
-  pay-all-sui                 Pay all residual SUI coins to the recipient with input coins, after deducting the gas cost. The input coins also include the coin for gas payment, so no extra gas coin is required
-  pay-sui                     Pay SUI coins to recipients following following specified amounts, with input coins. Length of recipients must be the same as that of amounts. The input coins also include the coin for
-                                  gas payment, so no extra gas coin is required
-  publish                     Publish Move modules
-  split-coin                  Split a coin object into multiple coins
-  switch                      Switch active address and network(e.g., devnet, local rpc server)
-  tx-block                    Get the effects of executing the given transaction block
-  transfer                    Transfer object
-  transfer-sui                Transfer SUI, and pay gas with the same SUI coin object. If amount is specified, only the amount is transferred; otherwise the entire object is transferred
-  upgrade                     Upgrade Move modules
-  verify-bytecode-meter       Run the bytecode verifier on the package
-  verify-source               Verify local Move packages against on-chain packages, and optionally their dependencies
-  replay-transaction          Replay a given transaction to view transaction effects. Set environment variable MOVE_VM_STEP=1 to debug
-  replay-batch                Replay transactions listed in a file
-  replay-checkpoint           Replay all transactions in a range of checkpoints
-  help                        Print this message or the help of the given subcommand(s)
-
-Options:
-      --client.config <CONFIG>  Sets the file storing the state of our user accounts (an empty one will be created if missing)
-      --json                    Return command outputs in json format
-  -y, --yes
-  -h, --help                    Print help
+```sh
+$ sui client --help
 ```
 
-## JSON output
+<ImportContent source="console-output/sui-client-help" mode="snippet" />
+
+## JSON 출력
 
 Sui CLI의 인간 친화적인 형식인 기본 형식 대신 JSON 형식으로 응답을 표시하려면 명령어에 `--json` 플래그를 추가한다. 이는 데이터 세트가 매우 큰 경우, 특히 작은 화면에서 결과가 제대로 표시되지 않을 때 유용하다. 이러한 경우에 `--json` 플래그를 사용하면 편리하다.
 
-## Examples
+## 예시
 
 다음 예시는 가장 자주 사용되는 몇 가지 명령어이다.
 
-### List available network environments
+### 사용 가능한 network environment 나열
 
 `sui client envs` 명령어를 사용하여 CLI에 설정된 네트워크 환경을 확인할 수 있다. 이러한 환경 정보는 Sui 구성 디렉터리( `~/.sui/sui_config` )의 client.yaml 파일에도 저장되어 있다.
 
@@ -89,7 +46,7 @@ Sui CLI의 인간 친화적인 형식인 기본 형식 대신 JSON 형식으로 
 ╰────────┴────────────────────────────────────┴────────╯
 ```
 
-### Create network environment
+### network environment 생성
 
 `client new-env`를 사용하여 새로운 네트워크 환경에 대한 세부 정보를 추가한다. 이 예제에서는 Sui 메인넷을 가리키는 환경 포인터를 생성한다. `alias` 값을 설정하면 환경 참조 시 오타 발생 가능성을 줄일 수 있다. 이 명령어를 실행하면 Sui는 `~/.sui/sui_config` 에 있는 `client.yaml` 파일을 새 정보로 업데이트한다.
 
@@ -99,7 +56,7 @@ $ sui client new-env --alias=mainnet --rpc https://fullnode.mainnet.sui.io:443
 Added new Sui env [mainnet] to config.
 ```
 
-### Set current environment
+### 현재 environment 설정
 
 `sui client switch` 명령을 사용하여 현재 네트워크를 변경한다. 이 예제에서는 현재 네트워크를 `mainnet` 으로 전환한다.
 
@@ -113,7 +70,7 @@ Active environment switched to [mainnet]
 
 이 명령을 실행한 후 `sui client envs` 명령을 실행하면 표에서 `mainnet` 행의 `active` 열에 별표가 표시된다.
 
-### Get current active address
+### 현재 active address 가져오기
 
 `sui client active-address` 명령어를 사용하면 현재 주소를 확인할 수 있다. CLI는 사용자가 Sui 주소 값을 제공하지 않을 경우, 현재 활성 주소를 사용하여 주소별 CLI 명령어(예: `sui client objects` )를 실행한다.
 
@@ -125,7 +82,7 @@ $ sui client active-address
 0x514692f08249c3e9951234ce29074695840422564bff85e424b56de462913e0d
 ```
 
-### Request a SUI coin from faucet
+### faucet에서 SUI coin 요청
 
 표준 공개 RPC(예: `fullnode.devnet.sui.io:443` ) 중 하나를 사용하는 경우 `faucet` 명령어를 사용하여 가스 코인을 요청할 수 있다. 사용자 지정 faucet 서비스를 사용하는 경우 `--url` 옵션을 사용하여 faucet URL을 전달한다. `faucet` 명령어는 로컬 네트워크에서도 작동한다. 사용자 지정 faucet 포트로 네트워크를 시작하는 경우 `--url` 옵션을 포함한다.
 
@@ -137,7 +94,7 @@ $ sui client faucet
 Request successful. It can take up to 1 minute to get the coin. Run sui client gas to check your gas coins.
 ```
 
-### Get objects owned by an address
+### address가 소유한 object 가져오기
 
 `sui client objects` 사용하여 현재 활성 주소가 소유한 object에 대한 요약 정보를 나열할 수 있다. 특정 주소에 대한 object 목록을 표시하려면 명령에 Sui 주소 값을 제공할 수 있다. 이 예는 현재 활성 주소에 대한 object 목록이다.
 
@@ -162,7 +119,7 @@ $ sui client objects 0x36df11369cf00ecf0be68d6ba965b0abe2e883bc5245911e3a29ebfa0
 ╰───────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
-### Get complete object information
+### 전체 object 정보 가져오기
 
 `sui client object <OBJECT-ID>`를 사용하여 지정한 ID에 대한 object 정보를 나열할 수 있다. 이 예시에서는 코인 object의 정보를 표시하고 있다.
 
@@ -193,7 +150,7 @@ $ sui client object 0xfffbb30ccb631f15f6cd36700589fc9c31cb04af28a95f3ed26d62daf3
 ╰───────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
-### Get dynamic fields of an object
+### object의 dynamic field 가져오기
 
 `sui client dynamic-field <DYNAMIC-FIELD-ID>` 명령을 사용하여 지정한 ID를 가진 동적 필드의 세부 정보를 나열할 수 있다.
 
@@ -222,7 +179,7 @@ $ sui client dynamic-field 0x5
 ╰─────────────┴───────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
-### Send SUI or objects
+### SUI 또는 object 전송
 
 이 예제에서는 SUI를 전송하거나 object를 한 주소에서 다른 주소로 전송하는 방법을 살펴본다. 우선, SUI를 보내거나 object를 전송하는 데에는 `pay` 와 `transfer` 두 가지 주요 명령어가 있다. `pay` 와 `transfer` 각각 `pay-sui` , `pay-all-sui` , `transfer-sui` 와 같은 하위 명령어가 있다.
 
@@ -243,7 +200,7 @@ $ sui client dynamic-field 0x5
 │ hungry-spodumene  │ 0x0fe375fff0ee40d20c54a7f2478b9b5c7eaa3625b7611f9661ec5faefb4a6fea │ *              │
 │ eloquent-amber    │ 0x3d78abc33ccd173c521b4f9e78b21ea2c989960b631732c539efaa38bda30976 │                │
 ╰───────────────────┴────────────────────────────────────────────────────────────────────┴────────────────╯
-```
+````
 
 주소 `hungry-spodumene`가 몇 개의 동전을 가지고 있다:
 
@@ -455,7 +412,7 @@ $ sui client gas eloquent-amber
 ╰────────────────────────────────────────────────────────────────────┴────────────────────┴──────────────────╯
 ```
 
-### Replay a transaction
+### transaction replay
 
 `sui client replay-transaction --tx-digest <TRANSACTION-DIGEST>` 명령어를 사용하여 transaction을 로컬에서 다시 실행하고 transaction의 영향을 확인할 수 있다. 이 명령어는 클라이언트 환경 변수에 지정된 풀 노드에서 transaction 종속성을 가져온다. 오래전에 발생한 transaction의 경우, 해당 transaction에 대한 체인 데이터가 삭제되지 않은 풀 노드를 클라이언트 풀 노드로 설정하는 것이 좋다. 이렇게 하면 로컬에서 실행된 transaction의 결과가 온체인에 저장된 transaction의 결과와 일치하는지 확인할 수 있다.
 
@@ -465,7 +422,7 @@ $ sui client replay-transaction --tx-digest 51MzJP2Uesvza8vXGpPCGbfLrY6UCfdvdoEr
 
 transaction 재생 및 디버깅 또는 프로파일링에 transaction을 활용하는 방법에 대한 자세한 내용은 [Sui Replay CLI](./replay), [Move Trace Debugger](../ide/debugger), 그리고 [Sui 트레이스 분석](./trace-analysis) 가이드를 참조바란다.
 
-## Publish a Move package
+## Move package publish
 
 `sui client` 명령어의 주요 용도 중 하나는 Sui 네트워크에 스마트컨트랙트를 게시하는 것이다. 이 예제에서는 현재 환경을 데브넷 네트워크로 전환한 다음, Sui 저장소 에 있는 기존 Move 예제 중 하나를 빌드, 테스트 및 게시한다: [sui/examples/move](https://github.com/MystenLabs/sui/tree/main/examples/move)
 
@@ -690,34 +647,8 @@ transaction 재생 및 디버깅 또는 프로파일링에 transaction을 활용
     ╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
     ```
 
-## Help
+## 도움말
 
 각 명령어에는 자체 도움말 섹션이 있다. 예를 들어, `sui client call --help` 입력하면 다음과 같은 메시지가 표시된다:
 
-```sh
-Call Move function
-
-Usage: sui client call [OPTIONS] --package <PACKAGE> --module <MODULE> --function <FUNCTION>
-
-Options:
-      --package <PACKAGE>               Object ID of the package, which contains the module
-      --module <MODULE>                 The name of the module in the package
-      --function <FUNCTION>             Function name in module
-      --type-args <TYPE_ARGS>...        Type arguments to the generic function being called. All must be specified, or the call will fail
-      --args <ARGS>...                  Simplified ordered args like in the function syntax ObjectIDs, Addresses must be hex strings
-      --gas <GAS>                       ID of the gas object for gas payment. If not provided, a gas object with at least gas_budget value will be selected
-      --gas-budget <GAS_BUDGET>         An optional gas budget for this transaction (in MIST). If gas budget is not provided, the tool will first perform a dry
-                                        run to estimate the gas cost, and then it will execute the transaction. Please note that this incurs a small cost in
-                                        performance due to the additional dry run call
-      --dry-run                         Perform a dry run of the transaction, without executing it
-      --dev-inspect                     Perform a dev inspect
-      --serialize-unsigned-transaction  Instead of executing the transaction, serialize the bcs bytes of the unsigned transaction data (TransactionData) using
-                                        base64 encoding, and print out the string <TX_BYTES>. The string can be used to execute transaction with `sui client
-                                        execute-signed-tx --tx-bytes <TX_BYTES>`
-      --serialize-signed-transaction    Instead of executing the transaction, serialize the bcs bytes of the signed transaction data (SenderSignedData) using
-                                        base64 encoding, and print out the string <SIGNED_TX_BYTES>. The string can be used to execute transaction with `sui
-                                        client execute-combined-signed-tx --signed-tx-bytes <SIGNED_TX_BYTES>`
-      --json                            Return command outputs in json format
-  -h, --help                            Print help
-  -V, --version                         Print version
-```
+<ImportContent source="console-output/sui-client-call-help" mode="snippet" />

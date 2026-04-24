@@ -1,14 +1,14 @@
 ---
-title: Kiosk Joining Patterns
-description: Use the asset tokenization packages to create fractional NFTs and fungible tokenized assets on Sui, with support for Kiosk-based transfer policies.
+title: Kiosk join pattern
+description: Kiosk 기반 transfer policy를 지원하면서 asset tokenization package를 사용해 Sui에서 fractional NFT와 fungible tokenized asset을 생성한다.
 keywords: [asset tokenization, fractional NFT, tokenized asset, kiosk, transfer policy, WASM, bytecode template]
 ---
 
-This reference implementation uses the [Kiosk standard](/onchain-finance/kiosk) to ensure that tokenized assets operate within their defined policy. Use the implementation as presented to have marketable tokenized assets that support rules like royalties and commissions.
+이 reference implementation은 tokenized asset이 정의된 policy 안에서 동작하도록 [Kiosk standard](/onchain-finance/kiosk)를 사용한다. 이 implementation을 그대로 사용하면 royalty와 commission 같은 rule을 지원하는 marketable tokenized asset을 만들 수 있다.
 
-If Kiosk is not a requirement, you can exclude the unlock module and the proxy methods related to transfer policies.
+Kiosk가 requirement가 아니라면 unlock module과 transfer policy 관련 proxy method를 제외할 수 있다.
 
-Instead of implementing the unlock functionality in multiple steps inside a PTB, you could create a method that performs the purchase, borrowing, unlocking, and joining of an asset all in one function. The following example shows how that would look for the joining operation:
+PTB 안에서 unlock functionality를 여러 step으로 구현하는 대신, asset의 purchase, borrowing, unlocking, joining을 하나의 function에서 수행하는 method를 만들 수 있다. 다음 example은 join operation이 어떤 형태인지 보여준다:
 
 ```rust
 public fun kiosk_join<T>(
@@ -37,28 +37,28 @@ public fun kiosk_join<T>(
 }
 ```
 
-### Example alteration for use case
+### 사용 사례에 맞춘 example 변경
 
 :::caution
 
-The following example splits (effectively replacing) the `AssetCap<T>` into two new objects: the `Treasury<T>` and the `AdminCap<T>`. Carefully re-design the access to methods defined in the original package because this change can introduce unwanted effects. This required re-design is not entirely contained in this example and only some methods are changed for demonstration purposes.
+다음 example은 `AssetCap<T>`를 두 개의 새 object인 `Treasury<T>`와 `AdminCap<T>`로 split하여 사실상 대체한다. 이 변경은 원치 않는 effect를 만들 수 있으므로 original package에 정의된 method 접근 방식을 신중하게 다시 설계해야 한다. 필요한 re-design 전체가 이 example에 모두 포함되어 있지는 않으며, demonstration 목적으로 일부 method만 변경한다.
 
 :::
 
-Assume you want to allow users to also burn assets, not only admins. This still needs to be an authorized operation, but it allows the flexibility of consuming tokenized assets for a use case-specific purpose (for example, burning all of the collectibles you have gathered to combine them). To achieve this, the admin can mint tickets that contain the ID of the asset they are allowed to burn. To support this functionality, you must redesign the smart contract and separate the admin from the asset treasury of each asset, which now holds only supply-related information. The following sample changes are needed:
+admin뿐 아니라 user도 asset을 burn할 수 있게 하려는 상황을 가정한다. 이는 여전히 authorized operation이어야 하지만, use case-specific purpose를 위해 tokenized asset을 consume할 수 있는 flexibility를 제공한다(예: 모아 둔 collectible을 모두 burn하여 combine). 이를 위해 admin은 burn이 허용된 asset의 ID를 담은 ticket을 mint할 수 있다. 이 functionality를 지원하려면 smart contract를 redesign하고 admin을 각 asset의 asset treasury에서 분리해야 하며, treasury는 이제 supply-related information만 보유한다. 다음 sample change가 필요하다:
 
-#### Structs
+#### Struct
 
-Create a ticket that has only the `key` ability so that the receiver cannot trade it:
+receiver가 trade할 수 없도록 `key` ability만 가진 ticket을 생성한다:
 
 ```rust
 struct BurnTicket<phantom T> has key {
 	id: UID,
-	tokenized_asset_id: ID // the tokenized asset that this ticket gives access to burn
+	tokenized_asset_id: ID // 이 ticket이 burn access를 부여하는 tokenized asset
 }
 ```
 
-The struct that now holds only treasury-related information (resulting from splitting the `AssetCap`, which is no longer part of this design) is created as a shared object. Change functions like `mint` to also take as input both the `Treasury` object and the `AdminCap` object:
+이제 treasury-related information만 보유하는 struct(`AssetCap`을 split한 결과이며, `AssetCap`은 더 이상 이 design의 일부가 아님)는 shared object로 생성된다. `mint` 같은 function이 `Treasury` object와 `AdminCap` object를 모두 input으로 받도록 변경한다:
 
 ```rust
 struct Treasury<phantom T> has key, store {
@@ -68,7 +68,7 @@ struct Treasury<phantom T> has key, store {
 }
 ```
 
-The other half of the `AssetCap` functionality retains the admin capability and the configuration of burnability. It is an owned object sent to the creator of type `<T>`:
+`AssetCap` functionality의 나머지 절반은 admin capability와 burnability configuration을 유지한다. 이는 type `<T>`의 creator에게 전송되는 owned object이다:
 
 ```rust
 struct AdminCap<phantom T> has key, store {
@@ -77,9 +77,9 @@ struct AdminCap<phantom T> has key, store {
 }
 ```
 
-#### Method signatures
+#### Method signature
 
-The `AdminCap` here acts both as an admin capability and a type insurance, encoding the information of both the asset type that is allowed to be deleted with this ticket. This function should assert that the asset `T` is burnable and return a `BurnTicket<T>`:
+여기서 `AdminCap`은 admin capability이자 type insurance로 동작하며, 이 ticket으로 delete가 허용된 asset type 정보를 encode한다. 이 function은 asset `T`가 burnable임을 assert하고 `BurnTicket<T>`를 반환해야 한다:
 
 ```rust
 public fun mint_burn_ticket<T>(
@@ -89,7 +89,7 @@ public fun mint_burn_ticket<T>(
 ): BurnTicket
 ```
 
-Burning on the user side requires accessing the shared `Treasury` object. This function burns the tokenized asset and decreases the supply:
+user side에서 burning하려면 shared `Treasury` object에 access해야 한다. 이 function은 tokenized asset을 burn하고 supply를 줄인다:
 
 ```rust
 public fun burn_with_ticket<T>(

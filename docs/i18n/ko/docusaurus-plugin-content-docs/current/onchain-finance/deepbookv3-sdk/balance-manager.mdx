@@ -20,7 +20,7 @@ keywords:
 
 `BalanceManager`는 모든 asset balance를 보관하는 DeepBookV3의 핵심 구성 요소이다. SDK는 balance manager를 생성, 관리, 그리고 상호작용하기 위한 포괄적인 함수를 제공한다.
 
-## Balance manager functions
+## BalanceManager 함수
 
 DeepBookV3 SDK는 balance manager를 관리하기 위한 다음 함수를 제공한다.
 
@@ -38,7 +38,7 @@ DeepBookV3 SDK는 balance manager를 관리하기 위한 다음 함수를 제공
 
 custom owner로 새 balance manager를 생성하려면 `createBalanceManagerWithOwner`를 사용한다. manager object를 반환한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `ownerAddress`: owner의 address를 나타내는 String이다.
 
@@ -51,7 +51,7 @@ custom owner로 새 balance manager를 생성하려면 `createBalanceManagerWith
 
 생성되었지만 아직 공유되지 않은 balance manager를 공유하려면 `shareBalanceManager`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `manager`: 공유할 balance manager를 나타내는 `TransactionArgument`이다.
 
@@ -59,14 +59,14 @@ custom owner로 새 balance manager를 생성하려면 `createBalanceManagerWith
 
 </details>
 
-## Deposit and withdraw functions
+## 예치 및 인출 함수
 
 <details>
 <summary>depositIntoManager</summary>
 
 balance manager에 fund를 deposit하려면 `depositIntoManager`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 - `coinKey`: deposit할 coin을 식별하는 String이다.
@@ -81,7 +81,7 @@ balance manager에 fund를 deposit하려면 `depositIntoManager`를 사용한다
 
 balance manager에서 fund를 인출하려면 `withdrawFromManager`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 - `coinKey`: 인출할 coin을 식별하는 String이다.
@@ -97,7 +97,7 @@ balance manager에서 fund를 인출하려면 `withdrawFromManager`를 사용한
 
 balance manager에서 특정 coin 타입의 모든 fund를 인출하려면 `withdrawAllFromManager`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 - `coinKey`: 인출할 coin을 식별하는 String이다.
@@ -112,7 +112,7 @@ balance manager에서 특정 coin 타입의 모든 fund를 인출하려면 `with
 
 balance manager에서 특정 coin의 balance를 확인하려면 `checkManagerBalance`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 - `coinKey`: 확인할 coin을 식별하는 String이다.
@@ -128,7 +128,7 @@ balance manager에서 특정 coin의 balance를 확인하려면 `checkManagerBal
 
 balance manager에 대한 trade proof를 생성하려면 `generateProof`를 사용한다. `tradeCap` 설정 여부에 따라 적절한 함수를 자동으로 호출한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 
@@ -141,7 +141,7 @@ balance manager에 대한 trade proof를 생성하려면 `generateProof`를 사�
 
 balance manager의 owner로서 trade proof를 생성하려면 `generateProofAsOwner`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerId`: balance manager의 ID를 나타내는 String이다.
 
@@ -154,7 +154,7 @@ balance manager의 owner로서 trade proof를 생성하려면 `generateProofAsOw
 
 `tradeCap`을 사용하여 trade proof를 생성하려면 `generateProofAsTrader`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerId`: balance manager의 ID를 나타내는 String이다.
 - `tradeCapId`: trade cap의 ID를 나타내는 String이다.
@@ -170,7 +170,7 @@ balance manager의 owner로서 trade proof를 생성하려면 `generateProofAsOw
 
 balance manager에 대한 `tradeCap`을 mint하려면 `mintTradeCap`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 
@@ -183,7 +183,7 @@ balance manager에 대한 `tradeCap`을 mint하려면 `mintTradeCap`을 사용�
 
 balance manager에 대한 `depositCap`을 mint하려면 `mintDepositCap`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 
@@ -196,7 +196,7 @@ balance manager에 대한 `depositCap`을 mint하려면 `mintDepositCap`을 사�
 
 balance manager에 대한 `withdrawCap`을 mint하려면 `mintWithdrawalCap`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 
@@ -209,7 +209,7 @@ balance manager에 대한 `withdrawCap`을 mint하려면 `mintWithdrawalCap`을 
 
 `depositCap`을 사용해 balance manager에 fund를 deposit하려면 `depositWithCap`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 - `coinKey`: deposit할 coin을 식별하는 String이다.
@@ -224,7 +224,7 @@ balance manager에 대한 `withdrawCap`을 mint하려면 `mintWithdrawalCap`을 
 
 `withdrawCap`을 사용해 balance manager에서 fund를 인출하려면 `withdrawWithCap`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 - `coinKey`: 인출할 coin을 식별하는 String이다.
@@ -239,7 +239,7 @@ balance manager에 대한 `withdrawCap`을 mint하려면 `mintWithdrawalCap`을 
 
 `TradeCap`을 revoke하려면 `revokeTradeCap`을 사용한다. 이는 연관된 `DepositCap`과 `WithdrawCap`도 revoke한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 - `tradeCapId`: revoke할 TradeCap의 ID를 나타내는 String이다.
@@ -248,14 +248,14 @@ balance manager에 대한 `withdrawCap`을 mint하려면 `mintWithdrawalCap`을 
 
 </details>
 
-## Referral functions
+## referral function
 
 <details>
 <summary>setBalanceManagerReferral</summary>
 
 balance manager에 대해 pool-specific referral을 설정하려면 `setBalanceManagerReferral`을 사용한다. permission checking을 위해 `tradeCap`이 필요하다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 - `referral`: referral ID(DeepBookPoolReferral)를 나타내는 String이다.
@@ -270,7 +270,7 @@ balance manager에 대해 pool-specific referral을 설정하려면 `setBalanceM
 
 특정 pool에 대해 balance manager에서 referral을 제거하려면 `unsetBalanceManagerReferral`을 사용한다. permission checking을 위해 `tradeCap`이 필요하다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 - `poolKey`: referral을 해제할 pool을 식별하는 String이다.
@@ -285,7 +285,7 @@ balance manager에 대해 pool-specific referral을 설정하려면 `setBalanceM
 
 특정 pool에 대해 balance manager와 연관된 referral ID를 가져오려면 `getBalanceManagerReferralId`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 - `poolKey`: pool을 식별하는 String이다.
@@ -301,7 +301,7 @@ balance manager에 대해 pool-specific referral을 설정하려면 `setBalanceM
 
 registry에 balance manager를 등록하려면 `registerBalanceManager`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 
@@ -309,14 +309,14 @@ registry에 balance manager를 등록하려면 `registerBalanceManager`를 사�
 
 </details>
 
-## Read-only functions
+## read-only function
 
 <details>
 <summary>owner</summary>
 
 balance manager의 owner address를 가져오려면 `owner`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 
@@ -329,7 +329,7 @@ balance manager의 owner address를 가져오려면 `owner`를 사용한다. 이
 
 balance manager의 ID를 가져오려면 `id`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: balance manager를 식별하는 String이다.
 
@@ -342,7 +342,7 @@ balance manager의 ID를 가져오려면 `id`를 사용한다. 이 호출은 `Tr
 
 pool referral(DeepBookPoolReferral)의 owner address를 가져오려면 `balanceManagerReferralOwner`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `referralId`: referral ID를 나타내는 String이다.
 
@@ -355,7 +355,7 @@ pool referral(DeepBookPoolReferral)의 owner address를 가져오려면 `balance
 
 pool referral(DeepBookPoolReferral)과 연관된 pool ID를 가져오려면 `balanceManagerReferralPoolId`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `referralId`: referral의 ID를 나타내는 String이다.
 
@@ -363,11 +363,11 @@ pool referral(DeepBookPoolReferral)과 연관된 pool ID를 가져오려면 `bal
 
 </details>
 
-## Examples
+## 예시
 
 다음 예시는 일반적인 balance manager operation을 시연한다.
 
-### Create and share a balance manager
+### BalanceManager 생성 및 share
 
 ```tsx
 // 예시: 새 balance manager를 생성하고 share한다
@@ -376,7 +376,7 @@ createBalanceManager = (tx: Transaction) => {
 };
 ```
 
-### Create a balance manager with custom owner
+### custom owner로 BalanceManager 생성
 
 ```tsx
 // 예시: custom owner로 balance manager를 생성하고 share한다
@@ -391,7 +391,7 @@ createManagerWithOwner = (tx: Transaction) => {
 };
 ```
 
-### Deposit and withdraw funds
+### fund deposit 및 withdraw
 
 ```tsx
 // 예시: balance manager에 USDC를 예치한다
@@ -423,7 +423,7 @@ withdrawAllDeep = (tx: Transaction) => {
 };
 ```
 
-### Mint and use capabilities
+### capability mint 및 사용
 
 ```tsx
 // 예시: TradeCap을 mint하고 사용한다
@@ -460,7 +460,7 @@ withdrawWithCapability = (tx: Transaction) => {
 };
 ```
 
-### Generate trade proofs
+### trade proof 생성
 
 ```tsx
 // 예시: trade proof를 생성하고 이를 사용해 order를 넣는다
@@ -486,7 +486,7 @@ placeOrderWithProof = (tx: Transaction) => {
 };
 ```
 
-### Set and manage referrals
+### referral 설정 및 관리
 
 ```tsx
 // 예시: balance manager에 pool-specific referral을 설정한다
@@ -510,7 +510,7 @@ unsetManagerReferral = (tx: Transaction) => {
 };
 ```
 
-### Complete workflow
+### workflow 완료
 
 ```tsx
 // 예시: balance manager 설정 workflow를 완료한다

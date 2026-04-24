@@ -1,7 +1,7 @@
 ---
-title: Migrating from Coin to Address Balances
-sidebar_label: Migrating from Coin to Address Balances
-description: What changes with address balances on Sui and what action to take for existing integrations.
+title: Coin에서 주소 잔액으로 마이그레이션하기
+sidebar_label: Coin에서 주소 잔액으로 마이그레이션하기
+description: Sui의 주소 잔액 도입으로 무엇이 바뀌며 기존 통합에서 어떤 조치를 해야 하는지 설명한다.
 keywords:
   [
     address balances,
@@ -12,38 +12,39 @@ keywords:
     backward compatibility,
     SIP-58,
   ]
+draft: true
 ---
 
-Address balances introduce a canonical balance system for fungible assets tied to Sui addresses. This supplements the `Coin<T>` model with direct address-owned balances, simplifying transaction construction and eliminating coin selection complexity.
+주소 잔액은 Sui 주소에 직접 연결된 대체 가능 자산을 위한 canonical balance system을 도입한다. 이는 `Coin<T>` model을 direct address-owned balance로 보완하여 transaction construction을 단순화하고 coin selection complexity를 없앤다.
 
-For the full specification, see [SIP-58: Sui Address Balances](https://github.com/sui-foundation/sips/blob/main/sips/sip-58.md). For implementation details on sending, withdrawing, and paying gas from address balances, see [Using Address Balances](/guides/developer/digital-assets/address-balances/using-address-balances).
+전체 specification은 [SIP-58: Sui Address Balances](https://github.com/sui-foundation/sips/blob/main/sips/sip-58.md)를 참조한다. 주소 잔액에서 보내기, 인출, gas 지불을 구현하는 자세한 내용은 [주소 잔액 사용하기](/guides/developer/digital-assets/address-balances/using-address-balances)를 참조한다.
 
-## Read this first
+## 먼저 읽기
 
-This rollout initially has very limited impact:
+이 rollout은 처음에는 영향 범위가 매우 제한적이다.
 
-- Nothing is deprecated or removed. All transactions that are currently valid continue to be valid. Coin objects are not forcibly migrated to address balances.
-- No contracts need to be rewritten. Contracts can continue to accept `Coin<T>` and `&mut Coin<T>` as before.
-- Coins can still be sent through `transfer::public_transfer` or the `TransferObjects` command.
+- deprecated되거나 제거되는 것은 없다. 현재 유효한 모든 transaction은 계속 유효하다. coin object가 주소 잔액으로 강제 마이그레이션되지 않는다.
+- contract를 다시 작성할 필요가 없다. contract는 이전처럼 `Coin<T>`와 `&mut Coin<T>`를 계속 받을 수 있다.
+- coin은 여전히 `transfer::public_transfer` 또는 `TransferObjects` command를 통해 보낼 수 있다.
 
-### Impact for wallets, exchanges, and custody providers
+### 지갑, 거래소, 수탁 제공자에 미치는 영향
 
-Anyone operating a wallet (custodial, non-custodial, or exchange wallets) might be impacted by this change. Users can now send funds to your address through `send_funds()` instead of transferring a coin object. If a wallet receives funds this way, but does not have proper support for address balances, the user will not be able to see or access the funds. The user might then believe the funds have been lost. The funds cannot actually be lost, but this can cause confusion for affected users.
+wallet(custodial, non-custodial, exchange wallet)을 운영하는 모든 주체는 이 변경의 영향을 받을 수 있다. 사용자는 이제 coin object를 전송하는 대신 `send_funds()`를 통해 사용자의 주소로 funds를 보낼 수 있다. wallet이 이 방식으로 funds를 받았지만 주소 잔액을 제대로 지원하지 않으면 사용자는 funds를 보거나 접근할 수 없다. 사용자는 funds를 잃었다고 생각할 수 있다. 실제로 funds가 사라지는 것은 아니지만, 영향을 받는 사용자에게 혼란을 줄 수 있다.
 
-Initially, this should not happen often because most of the ecosystem will continue to transfer coin objects. However, because there is no way to prevent funds from arriving at any given wallet via an address balance transfer, wallet implementors should be prepared.
+처음에는 ecosystem 대부분이 coin object 전송을 계속 사용할 것이므로 이런 일이 자주 발생하지는 않을 것이다. 하지만 특정 wallet에 주소 잔액 전송으로 funds가 도착하는 것을 막을 방법은 없으므로, wallet 구현자는 대비해야 한다.
 
-User funds can also become split across both coins and address balances. Balance queries (through JSON-RPC, gRPC, or GraphQL) show the combined total. To send funds that include the address balance portion, you must either:
+사용자 funds는 coin과 주소 잔액 양쪽으로 나뉠 수도 있다. Balance query(JSON-RPC, gRPC, GraphQL)는 합산 total을 표시한다. 주소 잔액 부분이 포함된 funds를 보내려면 다음 중 하나를 사용해야 한다.
 
-- Use `coinWithBalance` from the TypeScript SDK (v2+), which automatically draws from both sources.
-- Implement manual withdrawal logic as described in [Using Address Balances](/guides/developer/digital-assets/address-balances/using-address-balances).
+- TypeScript SDK(v2+)의 `coinWithBalance`를 사용한다. 이 방식은 두 source에서 자동으로 인출한다.
+- [주소 잔액 사용하기](/guides/developer/digital-assets/address-balances/using-address-balances)에 설명된 manual withdrawal logic을 구현한다.
 
-## Changes to balance queries
+## 잔액 쿼리 변경 사항
 
-Balance query responses now include address balance information alongside coin object totals.
+Balance query response는 이제 coin object total과 함께 주소 잔액 정보를 포함한다.
 
 ### JSON-RPC
 
-The `suix_getBalance` and `suix_getAllBalances` methods now return a `fundsInAddressBalance` field. The `totalBalance` field includes both coin objects and address balance funds:
+`suix_getBalance`와 `suix_getAllBalances` method는 이제 `fundsInAddressBalance` field를 반환한다. `totalBalance` field에는 coin object와 주소 잔액 funds가 모두 포함된다.
 
 ```json
 {
@@ -55,15 +56,15 @@ The `suix_getBalance` and `suix_getAllBalances` methods now return a `fundsInAdd
 }
 ```
 
-To get only the coin-based balance, subtract `fundsInAddressBalance` from `totalBalance`.
+coin 기반 잔액만 얻으려면 `totalBalance`에서 `fundsInAddressBalance`를 뺀다.
 
 ### gRPC
 
-The `GetBalance` and `ListBalances` methods from `StateService` now return separate fields for coin and address balances:
+`StateService`의 `GetBalance`와 `ListBalances` method는 이제 coin 잔액과 주소 잔액을 별도 field로 반환한다.
 
-- `coinBalance`: Total held in coin objects.
-- `addressBalance`: Amount held in address balance.
-- `balance`: Sum of the two.
+- `coinBalance`: coin object에 보관된 total.
+- `addressBalance`: 주소 잔액에 보관된 amount.
+- `balance`: 두 값의 합계.
 
 ```json
 {
@@ -78,15 +79,15 @@ The `GetBalance` and `ListBalances` methods from `StateService` now return separ
 
 ### GraphQL
 
-The `balance` and `balances` fields on address types now include `addressBalance`, `coinBalance`, and `totalBalance` fields. See [GraphQL Reference - `IAddressable.balance`](/references/sui-api/sui-graphql/beta/reference/types/interfaces/iaddressable) for the full schema.
+address type의 `balance`와 `balances` field는 이제 `addressBalance`, `coinBalance`, `totalBalance` field를 포함한다. 전체 schema는 [GraphQL Reference - `IAddressable.balance`](/references/sui-api/sui-graphql/beta/reference/types/interfaces/iaddressable)를 참조한다.
 
-## Changes to balance computation from checkpoint data
+## 체크포인트 데이터에서 잔액 계산 변경 사항
 
-It is recommended that you use the balance changes provided by JSON RPC or gRPC.
+가능하면 JSON-RPC 또는 gRPC가 제공하는 balance changes를 사용한다.
 
-If you compute balance changes from checkpoint data, you must now process accumulator events from `TransactionEffects` in addition to coin object diffs.
+checkpoint data에서 balance changes를 계산한다면 이제 coin object diff 외에도 `TransactionEffects`의 accumulator event를 처리해야 한다.
 
-The Sui framework provides a helper for this process:
+Sui framework는 이 과정을 위한 helper를 제공한다.
 
 ```rust
 use sui_types::balance_change::{derive_balance_changes, BalanceChange};
@@ -98,13 +99,13 @@ let balance_changes: Vec<BalanceChange> = derive_balance_changes(
 );
 ```
 
-Each `BalanceChange` contains the address, coin type, and a signed amount (negative for spent, positive for received).
+각 `BalanceChange`는 address, coin type, signed amount(사용하면 음수, 받으면 양수)를 포함한다.
 
-See the [reference implementation](https://github.com/MystenLabs/sui/blob/e23cc4bb0215ec065785a19772f22eda8ada14ae/crates/sui-types/src/balance_change.rs#L86) for the full algorithm.
+전체 algorithm은 [reference implementation](https://github.com/MystenLabs/sui/blob/e23cc4bb0215ec065785a19772f22eda8ada14ae/crates/sui-types/src/balance_change.rs#L86)을 참조한다.
 
-### Accessing accumulator events
+### accumulator event 접근
 
-Accumulator events are embedded in `TransactionEffects`. Access them through the `TransactionEffectsAPI` trait:
+Accumulator event는 `TransactionEffects`에 embedded되어 있다. `TransactionEffectsAPI` trait를 통해 접근한다.
 
 ```rust
 use sui_types::effects::TransactionEffectsAPI;
@@ -112,13 +113,15 @@ use sui_types::effects::TransactionEffectsAPI;
 let events = effects.accumulator_events();
 ```
 
-Each event contains the target address, a balance type, an operation (`Split` for withdrawal, `Merge` for deposit), and the amount. See [sui-types/src/effects/mod.rs](https://github.com/MystenLabs/sui/blob/main/crates/sui-types/src/effects/mod.rs) for the full API.
+각 event는 target address, balance type, operation(`Split`은 withdrawal, `Merge`는 deposit), amount를 포함한다. 전체 API는 [sui-types/src/effects/mod.rs](https://github.com/MystenLabs/sui/blob/main/crates/sui-types/src/effects/mod.rs)를 참조한다.
 
-## Backward compatibility
+## 이전 버전과의 호환성
 
-### Existing contracts
+기존 contract와 client는 모두 계속 동작한다. 다음 섹션은 무엇이 바뀌고 무엇이 동일하게 유지되는지 설명한다.
 
-Contracts that accept `Coin<T>` or `Balance<T>` remain callable without changes. The `redeem_funds` functions (in the `sui::coin` and `sui::balance` modules respectively) convert withdrawals to the expected types within the PTB. For example:
+### 기존 contract
+
+`Coin<T>` 또는 `Balance<T>`를 받는 contract는 변경 없이 계속 호출할 수 있다. `redeem_funds` function(`sui::coin` 및 `sui::balance` module 각각)은 PTB 안에서 withdrawal을 예상 type으로 변환한다. 예:
 
 ```
 inputs: [withdrawal<0x2::sui::SUI>(100)]
@@ -127,10 +130,10 @@ commands:
 1: 0x2::transfer::public_transfer(result(0))
 ```
 
-### Legacy clients
+### Legacy client
 
-A JSON-RPC compatibility layer presents synthetic coin objects representing address balance reservations. This preserves basic functionality for clients that cannot upgrade but should not be relied upon for new development.
+JSON-RPC compatibility layer는 주소 잔액 reservation을 나타내는 synthetic coin object를 제공한다. 이는 업그레이드할 수 없는 client를 위한 기본 기능을 보존하지만, 새 개발에서는 의존하지 않아야 한다.
 
-## Converting existing coins to address balances
+## 기존 coin을 주소 잔액으로 변환
 
-Migration is optional. The SDK automatically selects coins or address balances as needed. To consolidate existing coin objects into an address balance, see [Converting Existing Coins to Address Balances](/guides/developer/digital-assets/address-balances/using-address-balances#converting-existing-coins-to-address-balances) in the usage guide.
+Migration은 선택 사항이다. SDK는 필요에 따라 coin 또는 주소 잔액을 자동으로 선택한다. 기존 coin object를 주소 잔액으로 consolidate하려면 usage guide의 [기존 Coin을 주소 잔액으로 변환](/guides/developer/digital-assets/address-balances/using-address-balances#기존-coin을-주소-잔액으로-변환)을 참조한다.

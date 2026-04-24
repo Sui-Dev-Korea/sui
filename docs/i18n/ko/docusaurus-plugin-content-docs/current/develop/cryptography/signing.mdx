@@ -1,5 +1,6 @@
 ---
 title: Move에서 Sui 온체인 서명 검증하기
+sidebar_label: Move에서 Sui 온체인 서명 검증하기
 description: Sui는 여러 signature scheme을 통해 Move smart contract 내부 검증을 지원한다. 지원되는 signature scheme에는 Ed25519, Secp256k1 recoverable, Secp256k1 non-recoverable, Secp256r1 non-recoverable, Secp256r1 recoverable, BLS G1, BLS G2가 포함된다.
 keywords: [ Ed25519, Secp256k1 recoverable, Secp256k1 non-recoverable, Secp256r1 non-recoverable, Secp256r1 recoverable, BLS G1, BLS G2, signature schemes, signature verification fastcrypto, on-chain verification ]
 ---
@@ -7,26 +8,15 @@ keywords: [ Ed25519, Secp256k1 recoverable, Secp256k1 non-recoverable, Secp256r1
 
 Sui의 Move contract는 여러 서명 방식(signature scheme)에 대한 on-chain 검증을 지원한다.
 on-chain 검증에서 지원되는 모든 signature가 사용자 signature 검증에서 지원되는 것은 아니다.
-transaction authorization에 유효한 서명 방식은 [서명](/develop/transactions/transaction-auth/auth-overview#signatures) 섹션을 참조한다.
+transaction authorization에 유효한 서명 방식은 [서명](/develop/transactions/transaction-auth/auth-overview#서명) 섹션을 참조한다.
 
-이 문서는 다음 내용을 다룬다:
+:::caution
 
-1. [fastcrypto](https://github.com/MystenLabs/fastcrypto)의 CLI tool을 사용해 주어진 scheme의 signature를 만드는 방법. 이는 testing과 debugging 전용이며, 프로덕션에서는 사용하지 않는다.
-1. signature, message, public key를 제출해 on-chain에서 Move method를 호출하여 검증하는 방법.
+이 가이드는 [`fastcrypto`](https://github.com/MystenLabs/fastcrypto)의 CLI tool을 사용해 주어진 scheme의 signature를 만드는 방법을 포함한다. 이는 testing과 debugging 전용이며, production에서는 **사용하지 않는다**.
 
-다루는 서명 방식은 다음과 같다:
+:::
 
-- Ed25519 signature (64 bytes)
-- Secp256k1 non-recoverable signature (64 bytes)
-- Secp256k1 recoverable signature (65 bytes)
-- Secp256r1 non-recoverable signature (64 bytes)
-- Secp256r1 recoverable signature (65 bytes)
-- BLS G1 signature (minSig setting)
-- BLS G2 signature (minPk setting)
-
-## Usage
-
-### Set up fastcrypto CLI binary
+## `fastcrypto` CLI binary 설정
 
 ```sh
 git@github.com:MystenLabs/fastcrypto.git
@@ -34,14 +24,14 @@ cd fastcrypto/
 cargo build --bin sigs-cli
 ```
 
-### Sign with CLI and submit to on-chain Move method
+## CLI로 서명하고 온체인 Move method에 제출
 
-#### Ed25519 signature (64 bytes)
+### Ed25519 signature (64 bytes)
 
-1. key를 생성하고 message에 서명한다.
+#### Step 1: key를 생성하고 message에 서명한다.
 
 ```sh
-target/debug/sigs-cli keygen --scheme ed25519 --seed 0000000000000000000000000000000000000000000000000000000000000000                
+target/debug/sigs-cli keygen --scheme ed25519 --seed 0000000000000000000000000000000000000000000000000000000000000000
 Private key in hex: $SK
 Public key in hex: $PK
 
@@ -51,7 +41,7 @@ Signature in hex: $SIG
 Public key in hex: $PK
 ```
 
-2. Move에서 verify method를 호출한다. 모든 input은 hex format의 byte로 표현된다:
+#### Step 2: Move에서 verify method를 호출한다. 모든 input은 hex format의 bytes로 표현된다:
 
 ```move
     use sui::ed25519;
@@ -63,12 +53,12 @@ Public key in hex: $PK
     assert!(verify == true, 0);
 ```
 
-#### Secp256k1 non-recoverable signature (64 bytes)
+### Secp256k1 non-recoverable signature (64 bytes)
 
-1. key를 생성하고 message에 서명한다.
+#### Step 1: key를 생성하고 message에 서명한다.
 
 ```sh
-target/debug/sigs-cli keygen --scheme secp256k1 --seed 0000000000000000000000000000000000000000000000000000000000000000                
+target/debug/sigs-cli keygen --scheme secp256k1 --seed 0000000000000000000000000000000000000000000000000000000000000000
 Private key in hex: $SK
 Public key in hex: $PK
 
@@ -78,11 +68,11 @@ Signature in hex: $SIG
 Public key in hex: $PK
 ```
 
-2. Move에서 verify method를 호출한다.
+#### Step 2: Move에서 verify method를 호출한다.
 
 ```move
     use sui::ecdsa_k1;
-    
+
     let msg = x"$MSG";
     let pk = x"$PK";
     let sig = x"$SIG";
@@ -91,12 +81,12 @@ Public key in hex: $PK
     assert!(verify == true, 0);
 ```
 
-#### Secp256k1 recoverable signature (65 bytes)
+### Secp256k1 recoverable signature (65 bytes)
 
-1. key를 생성하고 message에 서명한다.
+#### Step 1: key를 생성하고 message에 서명한다.
 
 ```sh
-target/debug/sigs-cli keygen --scheme secp256k1-rec --seed 0000000000000000000000000000000000000000000000000000000000000000                
+target/debug/sigs-cli keygen --scheme secp256k1-rec --seed 0000000000000000000000000000000000000000000000000000000000000000
 Private key in hex: $SK
 Public key in hex: $PK
 
@@ -106,7 +96,7 @@ Signature in hex: $SIG
 Public key in hex: $PK
 ```
 
-2. Move에서 ecrecover method를 호출하고 equality를 확인한다.
+#### Step 2:Call the ecrecover method in Move and check equality.
 
 ```move
     use sui::ecdsa_k1;
@@ -119,12 +109,12 @@ Public key in hex: $PK
     assert!(pk == recovered, 0);
 ```
 
-#### Secp256r1 non-recoverable signature (64 bytes)
+### Secp256r1 non-recoverable signature (64 bytes)
 
-1. key를 생성하고 message에 서명한다.
+#### Step 1: key를 생성하고 message에 서명한다.
 
 ```sh
-target/debug/sigs-cli keygen --scheme secp256r1 --seed 0000000000000000000000000000000000000000000000000000000000000000                
+target/debug/sigs-cli keygen --scheme secp256r1 --seed 0000000000000000000000000000000000000000000000000000000000000000
 Private key in hex: $SK
 Public key in hex: $PK
 
@@ -134,7 +124,7 @@ Signature in hex: $SIG
 Public key in hex: $PK
 ```
 
-2. Move에서 verify method를 호출한다.
+#### Step 2:Call the verify method in Move.
 
 ```move
     use sui::ecdsa_r1;
@@ -147,12 +137,12 @@ Public key in hex: $PK
     assert!(verify == true, 0);
 ```
 
-#### Secp256r1 recoverable signature (65 bytes)
+### Secp256r1 recoverable signature (65 bytes)
 
-1. key를 생성하고 message에 서명한다.
+#### Step 1: key를 생성하고 message에 서명한다.
 
 ```sh
-target/debug/sigs-cli keygen --scheme secp256r1-rec --seed 0000000000000000000000000000000000000000000000000000000000000000                
+target/debug/sigs-cli keygen --scheme secp256r1-rec --seed 0000000000000000000000000000000000000000000000000000000000000000
 Private key in hex: $SK
 Public key in hex: $PK
 
@@ -162,7 +152,7 @@ Signature in hex: $SIG
 Public key in hex: $PK
 ```
 
-2. Move에서 ecrecover method를 호출하고 equality를 확인한다.
+#### Step 2:Call the ecrecover method in Move and check equality.
 
 ```move
     use sui::ecdsa_r1;
@@ -175,12 +165,12 @@ Public key in hex: $PK
     assert!(pk == recovered, 0);
 ```
 
-#### BLS G1 signature (48 bytes, minSig setting)
+### BLS G1 signature (48 bytes, minSig setting)
 
-1. key를 생성하고 message에 서명한다.
+#### Step 1: key를 생성하고 message에 서명한다.
 
 ```sh
-target/debug/sigs-cli keygen --scheme bls12381-minsig --seed 0000000000000000000000000000000000000000000000000000000000000000                
+target/debug/sigs-cli keygen --scheme bls12381-minsig --seed 0000000000000000000000000000000000000000000000000000000000000000
 Private key in hex: $SK
 Public key in hex: $PK
 
@@ -190,7 +180,7 @@ Signature in hex: $SIG
 Public key in hex: $PK
 ```
 
-2. Move에서 verify method를 호출한다.
+#### Step 2:Call the verify method in Move.
 
 ```move
     use sui::bls12381;
@@ -202,12 +192,12 @@ Public key in hex: $PK
     assert!(verified == true, 0);
 ```
 
-#### BLS G1 signature (96 bytes, minPk setting)
+### BLS G1 signature (96 bytes, minPk setting)
 
-1. key를 생성하고 message에 서명한다.
+#### Step 1: key를 생성하고 message에 서명한다.
 
 ```sh
-target/debug/sigs-cli keygen --scheme bls12381-minpk --seed 0000000000000000000000000000000000000000000000000000000000000000                
+target/debug/sigs-cli keygen --scheme bls12381-minpk --seed 0000000000000000000000000000000000000000000000000000000000000000
 Private key in hex: $SK
 Public key in hex: $PK
 
@@ -217,7 +207,7 @@ Signature in hex: $SIG
 Public key in hex: $PK
 ```
 
-2. Move에서 verify method를 호출한다.
+#### Step 2:Call the verify method in Move.
 
 ```move
     use sui::bls12381;

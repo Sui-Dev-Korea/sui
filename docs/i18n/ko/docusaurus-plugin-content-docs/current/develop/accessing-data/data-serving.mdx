@@ -16,7 +16,7 @@ Sui data에 접근하는 primary interface는 다음과 같다:
 
 - [Custom indexers](/develop/accessing-data/custom-indexer/custom-indexers): custom indexing framework를 사용해 application-specific data를 위한 [pipeline을 직접 만든다](/develop/accessing-data/custom-indexer/build).
 
-## Latest data access interfaces
+## 최신 data access interface
 
 ![Future state data serving stack](./images/access-interfaces_accessing-data_v1.svg)
 
@@ -25,7 +25,7 @@ latest 및 legacy Sui data stack의 비교는 아래 video를 확인한다.
 <iframe width="560" height="315" src="https://www.youtube.com/embed/CL7H4QQSWd0?si=Mt2xo3HNfm2mbRtE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 :::
 
-## Supported SDKs
+## 지원 SDK
 
 다음 SDK를 사용하여 Sui의 data와 상호작용할 수 있다.
 
@@ -35,13 +35,13 @@ latest 및 legacy Sui data stack의 비교는 아래 video를 확인한다.
 
 - [Rust SDK - GraphQL](https://docs.rs/sui-graphql/latest/sui_graphql/)
 
-- Community-maintained [Python SDK](https://github.com/FrankC01/pysui)
+- community-maintained [Python SDK](https://github.com/FrankC01/pysui)
 
-## When to use gRPC or GraphQL with General-purpose Indexer
+## General-purpose Indexer에서 gRPC 또는 GraphQL을 사용하는 시점
 
 다음 표에 언급된 high-level criteria를 사용하여 gRPC API와 General-purpose Indexer를 사용하는 GraphQL RPC 중 어느 쪽이 사용 사례에 더 적합한지 판단할 수 있다. 이 목록은 exhaustive하지 않으며 일부 사용 사례에는 두 option 모두 적절하게 동작할 수 있다.
 
-| Dimension | gRPC API | GraphQL RPC with General-purpose Indexer |
+| 관점 | gRPC API | General-purpose Indexer 기반 GraphQL RPC |
 | -------- | ------- | ------- |
 | Type of application or data consumer. | Web3 exchange, DeFi market maker app, ultra low-latency need가 있는 기타 DeFi protocol 또는 app에 적합하다. | web application builder 또는 latency need가 다소 완화된 builder에 적합하다. |
 | Query patterns. | 서로 다른 endpoint에서 data를 별도로 읽고 client-side에서 결합해도 괜찮다. binary format 덕분에 serialization, parsing, validation이 더 빠르다. | 단일 request에서 서로 다른 table의 data를 결합할 수 있어 client를 더 쉽게 decouple할 수 있으며, paginated result를 포함해 유사한 checkpoint 전반에서 서로 다른 table의 consistent data를 반환한다. |
@@ -56,7 +56,7 @@ gRPC와 GraphQL의 일반적인 차이를 설명하는 다음 글을 참조한�
 - https://stackoverflow.blog/2022/11/28/when-to-use-grpc-vs-graphql/
 - https://blog.postman.com/grpc-vs-graphql/
 
-## Legacy data access interfaces
+## Legacy data access interface
 
 :::info
 
@@ -66,4 +66,4 @@ gRPC와 GraphQL의 일반적인 차이를 설명하는 다음 글을 참조한�
 
 Sui [full nodes](/operators/full-node/sui-full-node)에 hosted된 [JSON-RPC](/references/sui-api)에 직접 연결한다. 이 full node는 [RPC providers](https://sui.io/developers#dev-tools)(`RPC`로 filter) 또는 [data indexer operators](https://github.com/sui-foundation/awesome-sui?tab=readme-ov-file#indexers--data-services)가 운영한다. Mainnet, Testnet, Devnet load balancer URL은 Sui Foundation-managed full node를 추상화한다. production에서는 사용하지 않는다.
 
-JSON-RPC를 사용해 real-time 또는 historical data를 얻을 수 있다. historical data의 retention period는 node operator가 구현하는 [pruning strategy](/operators/data-management/managing-data#sui-full-node-pruning-policies)에 따라 달라지지만, 모든 full node의 default configuration은 Sui Foundation이 관리하는 [Archival Store](#archival-store-and-service)로 암묵적으로 fallback한다.
+JSON-RPC를 사용해 real-time 또는 historical data를 얻을 수 있다. historical data의 retention period는 node operator가 구현하는 [pruning strategy](/operators/data-management/managing-data#sui-node-pruning-policy)에 따라 달라지지만, 모든 full node의 default configuration은 Sui Foundation이 관리하는 [Archival Store](/develop/accessing-data/archival-store)로 암묵적으로 fallback한다.

@@ -18,7 +18,7 @@ Sui의 Move API를 사용하면 BN254 또는 BLS12-381 elliptic curve constructi
 Groth16은 verification key를 생성하기 위해 각 circuit마다 trusted setup을 요구한다.
 API는 특정 verification key를 pinning하지 않으며 각 사용자는 자체 parameter를 생성하거나 기존 verification을 자신의 app에 사용할 수 있다.
 
-## Usage
+## 사용법
 
 다음 예시는 Circom으로 작성한 진술에서 Groth16 proof를 만들고, 그 proof를 Sui Move API를 사용해 검증하는 방법을 보여준다.
 API는 현재 최대 8개의 public input을 지원한다.

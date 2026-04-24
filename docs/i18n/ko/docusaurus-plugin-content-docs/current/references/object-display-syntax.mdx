@@ -1,24 +1,24 @@
 ---
-title: Object Display V2 Syntax
-description: Learn how to use Display V2 format strings to render Sui Move object values into human-readable strings, JSON, or encoded representations.
+title: Object Display V2 문법
+description: Display V2 format string을 사용해 Sui Move object value를 사람이 읽을 수 있는 string, JSON 또는 encoded representation으로 render하는 방법을 설명한다.
 keywords: [ display, template, format string, move, rendering ]
 ---
 
-Display V2 is a template language for rendering Sui Move object values into human-readable strings, JSON, or encoded representations. A `Display` object defines a set of key-value pairs where both keys and values are **format strings**.
+Display V2는 Sui Move object value를 사람이 읽을 수 있는 string, JSON 또는 encoded representation으로 render하기 위한 template language이다. `Display` object는 key와 value가 모두 **format string**인 key-value pair set을 정의한다.
 
-## Format strings
+## Format string 형식
 
-A format string is a mix of literal text and **expressions** delimited by `{` and `}`.
+format string은 literal text와 `{` 및 `}`로 구분된 **expression**의 조합이다.
 
 ```
 Hello, {name}! You have {balance} SUI.
 ```
 
-To output a literal brace, double it: `{{` produces `{`, `}}` produces `}`.
+literal brace를 출력하려면 두 번 쓴다. `{{`는 `{`를, `}}`는 `}`를 생성한다.
 
-## Expressions
+## Expression 표현식
 
-Each expression inside `{...}` has 3 parts:
+`{...}` 안의 각 expression은 3개 부분으로 구성된다.
 
 ```
 { chain | alternate | ... : transform }
@@ -26,17 +26,16 @@ Each expression inside `{...}` has 3 parts:
   primary fallbacks         output format
 ```
 
-- **Chains:** Separated by `|`, evaluated left-to-right. The first non-null result is used.
-- **Transform:** An optional output format prefixed with `:` that controls how the value renders.
+- **Chain:** `|`로 구분되며 left-to-right로 evaluate된다. 첫 번째 non-null result가 사용된다.
+- **Transform:** value가 render되는 방식을 제어하는 optional output format이며 `:` prefix를 사용한다.
 
-If all chains evaluate to null, the entire format string evaluates to `null`.
+모든 chain이 null로 evaluate되면 전체 format string은 `null`로 evaluate된다.
 
-## Access chains
+## Access chain 접근 경로
 
-A chain navigates into an object's data. It starts from either the root object or a literal value, then follows a sequence of accessors.
+chain은 object data 안으로 navigate한다. root object 또는 literal value에서 시작한 뒤 accessor sequence를 따른다.
 
-If you omit the root, the chain starts from the object currently being displayed. You can also
-refer to that root object explicitly with `$self`.
+root를 생략하면 chain은 현재 표시 중인 object에서 시작한다. `$self`로 해당 root object를 명시적으로 참조할 수도 있다.
 
 ```
 {name}                  — equivalent to {$self.name}
@@ -44,9 +43,9 @@ refer to that root object explicitly with `$self`.
 {$self.id}              — explicit access from the root object
 ```
 
-### Field access
+### Field access 접근
 
-Access named fields with dot notation:
+dot notation으로 named field에 접근한다.
 
 ```
 {name}                  — top-level field "name"
@@ -54,18 +53,18 @@ Access named fields with dot notation:
 {url.url.bytes}         — deeply nested field
 ```
 
-### Positional access
+### Positional access 접근
 
-Access unnamed (positional) fields by numeric index:
+numeric index로 unnamed(positional) field에 접근한다.
 
 ```
 {pos.0}                 — first positional field
 {tuple.0.1}             — nested positional access
 ```
 
-### Vector and array indexing
+### vector 및 array indexing
 
-Index into a `vector` or `VecMap` with `[...]`:
+`[...]`를 사용해 `vector` 또는 `VecMap` 안으로 index한다.
 
 ```
 {items[0u64]}           — first element
@@ -74,15 +73,15 @@ Index into a `vector` or `VecMap` with `[...]`:
 {items[ns[0u64]]}       — nested: use element of `ns` as index into `items`
 ```
 
-For `VecMap<K, V>`, the index matches against keys:
+`VecMap<K, V>`의 경우 index는 key와 match된다.
 
 ```
 {scores[6u32]}          — look up key 6u32 in the VecMap, returns the value
 ```
 
-### Dynamic field access (`->`)
+### Dynamic field access (`->`) 접근
 
-Load a dynamic field from onchain storage:
+onchain storage에서 dynamic field를 load한다.
 
 ```
 {parent->['key']}       — dynamic field with string key 'key'
@@ -91,11 +90,11 @@ Load a dynamic field from onchain storage:
 {parent->[field]}       — use a field's evaluated value as the dynamic field name
 ```
 
-Each `->` access costs 1 object load from the budget.
+각 `->` access는 budget에서 object load 1개를 사용한다.
 
-### Dynamic object field access (`=>`)
+### Dynamic object field access (`=>`) 접근
 
-Load a dynamic object field (the value is a full Sui object):
+dynamic object field를 load한다(value는 full Sui object).
 
 ```
 {parent=>['key']}       — dynamic object field with string key 'key'
@@ -103,11 +102,11 @@ Load a dynamic object field (the value is a full Sui object):
 {parent.id=>['key'].id} — load the object and read its UID
 ```
 
-Each `=>` access costs 2 object loads (1 for the wrapper `Field`, 1 for the object).
+각 `=>` access는 object load 2개를 사용한다(wrapper `Field` 1개, object 1개).
 
-### Derived object access (`~>`)
+### Derived object access (`~>`) 접근
 
-Load a derived object from onchain storage using the parent object and a derived key:
+parent object와 derived key를 사용해 onchain storage에서 derived object를 load한다.
 
 ```
 {parent~>['key']}       — derived object with string key 'key'
@@ -116,14 +115,13 @@ Load a derived object from onchain storage using the parent object and a derived
 {registry~>[$self]}     — use the current object as the derived key
 ```
 
-Each `~>` access costs 1 object load from the budget.
+각 `~>` access는 budget에서 object load 1개를 사용한다.
 
-## Literal values
+## Literal value 값
 
-Literals can appear as expression roots or as keys for dynamic field, dynamic object field, and
-derived object lookups.
+Literal은 expression root로 나타날 수 있으며 dynamic field, dynamic object field, derived object lookup의 key로도 사용할 수 있다.
 
-### Scalars
+### Scalar 값
 
 | **Syntax** | **Type** | **Example** |
 |--------|------|---------|
@@ -137,24 +135,24 @@ derived object lookups.
 | `42u256` | `u256` | `{42u256}` |
 | `@0x1abc` | `address` | `{@0x1abc}` |
 
-Bare numbers like `42` are not valid. A type suffix is always required.
+`42` 같은 bare number는 유효하지 않다. type suffix가 항상 필요하다.
 
-### Strings
+### String 값
 
 | **Syntax** | **Description** |
 |--------|-------------|
 | `'hello'` | UTF-8 string (`0x1::string::String`) |
-| `b'hello'` | Byte string (UTF-8 encoded bytes, `vector<u8>`) |
-| `x'48656c6c6f'` | Hex byte string (`vector<u8>`) |
+| `b'hello'` | byte string(UTF-8 encoded bytes, `vector<u8>`) |
+| `x'48656c6c6f'` | hex byte string(`vector<u8>`) |
 
-Strings use single quotes. Access individual bytes with `.bytes[i]` (for string literals) or direct indexing `[i]` (for byte literals):
+string은 single quote를 사용한다. 개별 byte에는 `.bytes[i]`(string literal의 경우) 또는 direct indexing `[i]`(byte literal의 경우)로 접근한다.
 
 ```
 {'ABC'.bytes[0u64]}     — 65 (ASCII 'A')
 {b'ABC'[1u64]}          — 66 (ASCII 'B')
 ```
 
-### Vectors
+### Vector 값
 
 ```
 {vector[1u8, 2u8, 3u8]}             — inferred element type
@@ -162,33 +160,33 @@ Strings use single quotes. Access individual bytes with `.bytes[i]` (for string 
 {vector<u32>}                        — empty vector with type annotation
 ```
 
-### Struct literals
+### Struct literal 값
 
-Positional fields:
+positional field:
 
 ```
 {0x1::m::MyStruct(42u64, 'hello')}
 {0x2::table::Table<address, u64>(a, b)}    — with type parameters
 ```
 
-Named fields:
+named field:
 
 ```
 {0x1::m::MyStruct { id: @0x123, value: 42u64 }}
 ```
 
-### Enum and variant literals
+### enum 및 variant literal
 
 ```
 {0x1::option::Option<u64>::Some#1(42u64)}          — variant name + index
 {0x1::m::MyEnum::Variant#0(field1, field2)}        — positional fields
 ```
 
-The `#N` suffix after the variant name is the variant's discriminant index.
+variant name 뒤의 `#N` suffix는 variant의 discriminant index이다.
 
-## Alternates (fallbacks)
+## Alternate(fallback) 처리
 
-Use `|` to provide fallback chains. If the first chain returns null (missing field, out-of-bounds index, and so on), the next alternate is tried:
+fallback chain을 제공하려면 `|`를 사용한다. 첫 번째 chain이 null(missing field, out-of-bounds index 등)을 반환하면 다음 alternate를 시도한다.
 
 ```
 {name | 'Unknown'}              — fall back to literal string
@@ -197,15 +195,15 @@ Use `|` to provide fallback chains. If the first chain returns null (missing fie
 {bar | 42u64}                   — fall back to numeric literal
 ```
 
-If all alternates fail, the expression evaluates to null, and the entire format string becomes `null`.
+모든 alternate가 실패하면 expression은 null로 evaluate되고 전체 format string은 `null`이 된다.
 
-## Transforms
+## Transform 변환
 
-A transform is applied to the final value with `:transform` syntax. It controls how the value serializes into the output.
+transform은 `:transform` syntax로 final value에 적용된다. value가 output으로 serialize되는 방식을 제어한다.
 
 ### `str` (default)
 
-Renders the value as a human-readable string. This is the default when you do not specify a transform.
+value를 사람이 읽을 수 있는 string으로 render한다. transform을 지정하지 않으면 이것이 default이다.
 
 ```
 {amount}           — same as {amount:str}
@@ -214,14 +212,14 @@ Renders the value as a human-readable string. This is the default when you do no
 
 | **Value type** | **Output** |
 |-----------|--------|
-| `u8`-`u256` | Decimal number: `42` |
+| `u8`-`u256` | decimal number: `42` |
 | `bool` | `true` or `false` |
 | `address` | `0x`-prefixed canonical hex: `0x0000...1234` |
 | `String` or `vector<u8>` | UTF-8 decoded string |
 
 ### `hex`
 
-Renders the value as lowercase hexadecimal, zero-padded to the type's width.
+value를 lowercase hexadecimal로 render하며 type width에 맞춰 zero-pad한다.
 
 ```
 {value:hex}
@@ -235,12 +233,12 @@ Renders the value as lowercase hexadecimal, zero-padded to the type's width.
 | `u64` | 16 characters: `000000000000002a` |
 | `u128` | 32 characters |
 | `u256` | 64 characters |
-| `address` | 64 characters (no `0x` prefix) |
-| `vector<u8>` | Each byte as 2 hex characters |
+| `address` | 64 characters(`0x` prefix 없음) |
+| `vector<u8>` | 각 byte를 2 hex character로 |
 
 ### `base64`
 
-Base64-encodes the byte representation of the value.
+value의 byte representation을 Base64-encode한다.
 
 ```
 {value:base64}                  — standard base64, with padding
@@ -251,18 +249,18 @@ Base64-encodes the byte representation of the value.
 
 ### `bcs`
 
-BCS-serializes the entire value, then base64-encodes the result. Supports the same modifiers as `base64`:
+전체 value를 BCS-serialize한 뒤 결과를 base64-encode한다. `base64`와 같은 modifier를 지원한다.
 
 ```
 {value:bcs}                     — BCS bytes, standard base64
 {value:bcs(url, nopad)}         — BCS bytes, URL-safe base64 without padding
 ```
 
-This is useful for aggregate types (structs, enums, vectors) that you cannot render with `str` or `hex`.
+이는 `str` 또는 `hex`로 render할 수 없는 aggregate type(struct, enum, vector)에 유용하다.
 
 ### `json`
 
-Outputs the value as a structured JSON value (not a quoted string). This is only valid when the expression is the **sole content** of the format string.
+value를 structured JSON value(quoted string 아님)로 출력한다. expression이 format string의 **유일한 content**일 때만 유효하다.
 
 ```
 {inner:json}
@@ -275,43 +273,43 @@ Outputs the value as a structured JSON value (not a quoted string). This is only
 | `u64`, `u128`, `u256` | String: `"42"` |
 | `address` | String: `"0x0000...1234"` |
 | `String` | String: `"hello"` |
-| `vector<u8>` | String (base64): `"AQID"` |
+| `vector<u8>` | String(base64): `"AQID"` |
 | struct | Object: `{ "field": value, ... }` |
 | enum | Object: `{ "@variant": "Name", "field": value, ... }` |
 | vector | Array: `[v1, v2, ...]` |
 
 ### `timestamp` (alias: `ts`)
 
-Interprets a numeric value as Unix milliseconds and formats as ISO 8601:
+numeric value를 Unix millisecond로 해석하고 ISO 8601로 format한다.
 
 ```
 {created_at:ts}                 — "2023-04-12T17:00:00Z"
 {1681318800000u64:ts}           — literal timestamp
 ```
 
-Only works with numeric types that fit in `i64`.
+`i64`에 들어가는 numeric type에서만 동작한다.
 
 ### `url`
 
-Like `str`, but percent-encodes reserved URL characters (RFC 3986 unreserved set: `A-Z a-z 0-9 - . _ ~`):
+`str`과 유사하지만 reserved URL character를 percent-encode한다(RFC 3986 unreserved set: `A-Z a-z 0-9 - . _ ~`).
 
 ```
 {label:url}                     — "hello%20world" for "hello world"
 ```
 
-Numeric and address types pass through unchanged because they contain no reserved characters.
+numeric 및 address type은 reserved character가 없으므로 변경 없이 pass through된다.
 
-## Option auto-unwrapping
+## Option auto-unwrapping 처리
 
-`Option<T>` values are automatically unwrapped. If the option is `Some(v)`, the access continues into `v`. If it is `None`, the chain evaluates to null.
+`Option<T>` value는 자동으로 unwrap된다. option이 `Some(v)`이면 access가 `v` 안으로 계속된다. `None`이면 chain은 null로 evaluate된다.
 
 ```
 {maybe_name}       — null if None, the string value if Some("...")
 ```
 
-## Enum variant field access
+## Enum variant field access 접근
 
-When you access fields on an enum, the access succeeds only if the current variant has the requested field. Otherwise it evaluates to null. This allows a single Display definition to handle multiple variants gracefully:
+enum에서 field에 접근할 때 current variant가 요청된 field를 가질 때만 access가 성공한다. 그렇지 않으면 null로 evaluate된다. 이를 통해 하나의 Display definition이 여러 variant를 자연스럽게 처리할 수 있다.
 
 ```move
 enum Status {
@@ -327,21 +325,21 @@ enum Status {
 ("complete", "count = {count}, timestamp = {timestamp}")
 ```
 
-For a `Pending` value, only the `"pending"` key produces output. The others are `null`.
+`Pending` value의 경우 `"pending"` key만 output을 생성한다. 나머지는 `null`이다.
 
-## Escaped braces
+## Escaped brace 처리
 
-To include literal `{` or `}` in the output, double them:
+output에 literal `{` 또는 `}`를 포함하려면 두 번 쓴다.
 
 ```
 {{{ns[0u8]}, {ns[1u16]}, {ns[2u8]}}}
 ```
 
-This outputs `{2, 1, 0}`. The outer `{{` and `}}` are literal braces, while the inner `{...}` are expressions.
+이는 `{2, 1, 0}`을 출력한다. outer `{{`와 `}}`는 literal brace이고, inner `{...}`는 expression이다.
 
-## Display object structure
+## Display object structure 구조
 
-A Display object is a list of (key, value) format string pairs. Both keys and values are parsed as format strings, allowing computed keys.
+Display object는 (key, value) format string pair의 list이다. key와 value 모두 format string으로 parse되므로 computed key를 허용한다.
 
 ```
 ("name",        "{name}")
@@ -351,7 +349,7 @@ A Display object is a list of (key, value) format string pairs. Both keys and va
 ("data",         "{inner:json}")
 ```
 
-Result (for a given object):
+결과(주어진 object에 대해):
 
 ```json
 {
@@ -363,21 +361,21 @@ Result (for a given object):
 }
 ```
 
-Keys must evaluate to unique, non-null strings. Values that fail to evaluate produce `null` (partial failure is allowed).
+key는 unique하고 non-null string으로 evaluate되어야 한다. evaluate에 실패한 value는 `null`을 생성한다(partial failure 허용).
 
-## Limits
+## Limit 제한
 
-Parsing and evaluation are bounded by configurable limits:
+parsing과 evaluation은 configurable limit로 제한된다.
 
 | **Limit** | **Default** | **Description** |
 |-------|---------|-------------|
-| `max_depth` | 32 | Maximum nesting depth during parsing |
-| `max_nodes` | 32,768 | Maximum AST nodes across all format strings in a Display |
-| `max_loads` | 8 | Maximum object loads (`->` costs 1, `=>` costs 2) |
+| `max_depth` | 32 | parsing 중 maximum nesting depth |
+| `max_nodes` | 32,768 | Display의 모든 format string에 걸친 maximum AST node |
+| `max_loads` | 8 | maximum object load(`->`는 1, `=>`는 2) |
 
-Exceeding any limit produces an error (`TooDeep`, `TooBig`, or `TooManyLoads`).
+limit를 초과하면 error(`TooDeep`, `TooBig`, `TooManyLoads`)가 생성된다.
 
-## Formal grammar
+## Formal grammar 정의
 
 ```
 format   ::= strand*
@@ -427,15 +425,15 @@ xmod     ::= '(' b64mod (',' b64mod)* ','? ')'
 b64mod   ::= 'url' | 'nopad'
 ```
 
-## Error reference
+## Error reference 참조
 
 | **Error** | **Cause** |
 |-------|-------|
-| `UnexpectedToken` | Syntax error from an unexpected token during parsing |
-| `UnexpectedEos` | Syntax error from an unexpected end of input |
-| `TooBig` | AST node budget (`max_nodes`) exceeded |
-| `TooDeep` | Nesting depth (`max_depth`) exceeded |
-| `TooManyLoads` | Object load budget (`max_loads`) exceeded |
-| `TooMuchOutput` | Output size limit exceeded during rendering |
-| `TransformInvalid` | Transform cannot be applied to the value type (for example, `:hex` on a struct) |
-| `VectorTypeMismatch` | Mixed element types in a vector literal |
+| `UnexpectedToken` | parsing 중 unexpected token으로 인한 syntax error |
+| `UnexpectedEos` | unexpected end of input으로 인한 syntax error |
+| `TooBig` | AST node budget(`max_nodes`) 초과 |
+| `TooDeep` | nesting depth(`max_depth`) 초과 |
+| `TooManyLoads` | object load budget(`max_loads`) 초과 |
+| `TooMuchOutput` | rendering 중 output size limit 초과 |
+| `TransformInvalid` | transform을 value type에 적용할 수 없음(예: struct에 `:hex`) |
+| `VectorTypeMismatch` | vector literal의 mixed element type |

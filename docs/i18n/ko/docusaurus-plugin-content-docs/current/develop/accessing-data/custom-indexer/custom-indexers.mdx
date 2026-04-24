@@ -9,7 +9,7 @@ Sui는 transactions, events, object changes 등 풍부하고 복잡한 데이터
 
 커스텀 인덱서는 DEX 거래량 추적, NFT collection activity 모니터링, 분석 대시보드 구축, cross-chain data 집계와 같은 사용 사례를 가능하게 한다. `sui-indexer-alt-framework`를 사용해 커스텀 인덱서를 구축하는데, 이 프레임워크는 데이터 수집, 처리, 저장을 위한 프로덕션 레벨 컴포넌트를 제공하면서 indexing logic에 대한 완전한 제어권도 제공한다.
 
-## When to use
+## 사용 시점
 
 애플리케이션의 데이터 요구사항을 RPC providers의 managed services로 충족할 수 없거나, General-purpose Indexer가 사용 사례에 비해 너무 복잡한 경우 커스텀 인덱서를 사용한다. 커스텀 인덱서는 앱별 또는 프로토콜별 로직과 데이터 레이아웃에 적합한 선택이다.
 
@@ -29,7 +29,7 @@ Sui의 checkpoints는 일관된 blockchain state snapshots를 나타내는 trans
 
 ![Overview](../images/overview.png)
 
-### Architecture overview
+### 아키텍처 개요
 
 다음 다이어그램은 custom indexer architecture를 자세히 보여준다.
 
@@ -37,7 +37,7 @@ Sui의 checkpoints는 일관된 blockchain state snapshots를 나타내는 trans
 
 사용자의 indexer는 여러 개의 조정된 백그라운드 작업(스레드)을 가진 하나의 실행 가능한 프로그램으로 동작한다. 수집 레이어는 새로운 checkpoints를 폴링하는 동안 처리 파이프라인은 데이터를 변환하고 저장하며, 이 모든 작업은 동일한 프로세스 내에서 수행된다.
 
-### Data sources
+### 데이터 source
 
 인덱싱 프레임워크는 checkpoint data를 수집하는 방식을 유연하게 선택할 수 있도록 여러 데이터 소스를 지원한다. 이 소스들은 두 가지 범주로 나뉜다:
 
@@ -53,23 +53,23 @@ Sui의 checkpoints는 일관된 blockchain state snapshots를 나타내는 trans
 
 구성 예시와 각 source를 언제 사용해야 하는지에 대한 자세한 안내는 [Checkpoint Data Sources](/develop/accessing-data/custom-indexer/indexer-data-integration#checkpoint-data-sources)를 참조한다.
 
-### Ingestion layer
+### ingestion layer
 
 인덱싱 프레임워크는 checkpoint data를 신뢰성 있게 가져오고 분배하는 복잡한 작업을 처리하는 ingestion layer를 관리한다. `Broadcaster`는 데이터 소스로부터 checkpoints를 받아 병렬로 실행되는 여러 처리 파이프라인에 효율적으로 분배한다. 이는 서로 다른 데이터 처리 워크플로를 동시에 실행하는 indexers에 필수적이다.
 
 `Broadcaster`는 subscribers가 보고한 가장 높은 워터마크를 기준으로 backpressure를 적용해, 가장 느린 pipeline이 처리할 수 있는 속도보다 더 빠르게 데이터를 밀어넣지 않도록 보장한다.
 
-### Processing layer
+### processing layer
 
 인덱싱 프레임워크와 사용자의 코드가 모두 processing layer를 관리하며, 이 레이어에서 사용자의 custom logic이 프레임워크와 통합된다. 파이프라인 프레임워크 컴포넌트는 checkpoint 처리를 오케스트레이션하고, 처리량을 극대화하기 위해 동시성을 관리하며, 진행 상황 추적과 데이터 일관성 보장을 위해 워터마크를 유지하고, ingestion부터 storage까지 전체 데이터 흐름을 조정하므로 시스템의 핵심이다. 프레임워크 컴포넌트는 선택한 pipeline 유형에 따라 조정된다:
 
 - **Sequential pipelines**는 배치 기능이 있는 순차 처리에 최적화된 다른 컴포넌트를 사용한다.
 - **Concurrent pipelines**는 높은 처리량의 비순차 처리를 위해 `Collector`, `Committer`, `Pruner`와 같은 컴포넌트를 사용한다.
 
-### Storage layer
+### storage layer
 
 인덱싱 프레임워크는 유연한 storage layer를 통해 데이터베이스 작업을 추상화한다. PostgreSQL은 Diesel ORM을 사용하는 내장 지원을 제공해 프로덕션 레벨 데이터베이스 작업, connection pooling, migrations, 워터마크 관리를 즉시 제공한다. 커스텀 데이터베이스 구현이 필요한 경우 프레임워크의 storage interfaces를 구현해 문서 저장용 [MongoDB](https://www.mongodb.com/) 또는 분석용 [ClickHouse](https://clickhouse.com/) 등 어떤 데이터베이스도 사용할 수 있다.
 
 ## Building custom indexers
 
-애플리케이션 전용 데이터를 위한 자체 pipelines를 구축하려면 [커스텀 인덱서 만들기](/develop/accessing-data/custom-indexer/build)를 참조한다. 필요에 맞는 구성이 이미 준비되어 있을 수 있으므로 [data indexer operator](/references/awesome-sui#indexers--data-services)에 문의할 수도 있다.
+애플리케이션 전용 데이터를 위한 자체 pipelines를 구축하려면 [커스텀 인덱서 만들기](/develop/accessing-data/custom-indexer/build)를 참조한다. 필요에 맞는 구성이 이미 준비되어 있을 수 있으므로 [data indexer operator](/references/awesome-sui)에 문의할 수도 있다.

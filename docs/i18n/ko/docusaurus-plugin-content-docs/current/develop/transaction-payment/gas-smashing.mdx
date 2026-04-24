@@ -18,11 +18,11 @@ transaction에 gas fee 지불용으로 여러 coin을 제공하면 gas smashing�
 
 하나의 PTB에서 최대 256개 coin을 smash할 수 있다. gas coin이 256개를 넘는 transaction은 실패한다.
 
-## Rebates
+## rebate
 
 첫 번째 coin을 제외한 모든 coin은 삭제되며, 이 과정에서 storage rebate가 생성되는 경우가 많다. Rebate는 같은 transaction에서 gas 지불에 적용할 수 없다. 대신 execution이 완료된 뒤 rebate와 gas 차감 후 남은 balance가 첫 번째 coin에 적립된다.
 
-### Running out of gas with a refund
+### refund가 있는 out-of-gas 상황
 
 smashing은 항상 발생하므로, storage rebate 때문에 transaction이 gas를 모두 소진하면서도 net refund를 만드는 특이한 결과가 생길 수 있다.
 

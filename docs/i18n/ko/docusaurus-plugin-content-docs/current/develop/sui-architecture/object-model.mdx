@@ -17,72 +17,97 @@ keywords:
   - relating objects and transactions
 ---
 
+Object는 네트워크의 기본 storage 단위이다. 온체인의 모든 resource, asset, data 조각은 object이다. 다른 많은 블록체인은 key-value store를 포함하는 account를 중심으로 storage를 구성한다. Sui의 storage는 온체인에서 고유 ID로 addressable한 object를 중심으로 구성된다.
 
-Sui의 기본 스토리지 단위는 object이다. 키-값 저장소를 포함하는 계정을 스토리지의 중심으로 삼는 많은 다른 블록체인과 달리, Sui의 스토리지는 고유 ID로 온체인에서 주소 지정 가능한 object를 중심으로 한다. 스마트 컨트랙트는 object(Sui Move package라고 불림)이며, 이러한 스마트 컨트랙트는 Sui 네트워크에서 object를 조작한다:
+모든 object에는 다음 component가 있다:
 
-- Sui Move package: Sui Move 바이트코드 모듈의 집합이다. 각 모듈은 포함하는 패키지 내에서 고유한 이름을 가진다. 패키지의 온체인 ID와 모듈 이름의 조합이 모듈을 고유하게 식별한다. Sui에 스마트 컨트랙트를 게시할 때, 패키지가 게시 단위이다. 패키지 object를 게시하면, 이는 불변하며 변경하거나 제거할 수 없다. 패키지 object는 이전에 Sui에 게시된 다른 패키지 object에 의존할 수 있다.
-- Sui Move object: Sui Move 패키지의 특정 Sui Move 모듈에 의해 관리되는 타입화된 데이터이다. 각 object 값은 원시 타입(정수 및 address와 같은), 다른 object, 그리고 object가 아닌 구조체를 포함할 수 있는 필드가 있는 구조체이다.
+- 전역적으로 고유한 ID.
 
-## Object metadata
+- address 또는 object일 수 있는 owner.
 
-각 Sui object는 다음과 같은 메타데이터를 가진다:
+- object가 변경될 때마다 증가하는 version number.
 
-- 32바이트의 전역 고유 ID. Object ID는 object를 생성한 transaction의 digest와 transaction에 의해 생성된 ID 수를 인코딩하는 카운터에서 파생된다.
-- 이를 수정하는 모든 transaction마다 단조 증가하는 8바이트 부호 없는 정수 버전 ([객체 및 패키지 버전 관리](/develop/objects/versioning) 참조).
-- 이 object를 출력으로 포함한 마지막 transaction을 나타내는 32바이트 transaction digest.
-- 이 object에 접근할 수 있는 방법을 나타내는 32바이트 소유자 필드. 자세한 내용은 [객체 소유권 유형](/develop/objects/object-ownership)을 참조한다.
+- object를 마지막으로 사용한 transaction의 digest 같은 metadata.
 
-공통 메타데이터 외에도, object는 [Binary Canonical Serialization (BCS)](https://docs.rs/bcs/latest/bcs/)로 인코딩된 페이로드를 포함하는 카테고리별 가변 크기 내용 필드를 가진다.
+## Object type
 
-- Move object는 Move 타입, object가 `public_transfer`를 사용하여 전송 가능한지 여부, 그리고 다시 BCS로 인코딩된 필드를 포함한다.
-- Move package는 패키지의 바이트코드 모듈, 패키지의 각 타입을 도입한 패키지 버전을 식별하는 테이블(타입 원본 테이블), 그리고 각 전이적 의존성을 사용할 해당 패키지의 특정 버전에 매핑하는 테이블(연결 테이블)을 포함한다.
+Object에는 세 가지 type이 있다:
 
-## Referring to objects
+- **Sui object:** 모든 resource, asset, data 조각이다. Sui object는 transaction이 상호작용하는 대상이며 모든 온체인 state의 building block이다.
 
-전체 내용과 메타데이터를 지정하지 않고 object를 간결하게 참조하는 몇 가지 다른 방법이 있으며, 각각 약간 다른 사용 사례가 있다:
+- **Sui Move object:** Move language를 사용해 정의된 object이다. Move object를 만들려면 `sui::object::new`를 사용해 struct를 만들어야 한다. 이 struct는 `key` ability를 가져야 하며, 첫 번째로 정의된 field로 `id: UID` field를 포함해야 한다. 이 struct는 integer와 address 같은 primitive type, 다른 object, object가 아닌 struct도 포함할 수 있다. 이 struct는 Sui object로 온체인에 저장될 수 있다.
 
-- **ID:** 위에서 언급한 object의 전역 고유 ID이다. ID는 시간에 걸쳐 object의 안정적인 식별자이며, object의 현재 상태를 쿼리하거나 두 address 간에 전송된 object를 설명하는 데 유용하다.
-- **Versioned ID:** (ID, version) 쌍이다. Versioned ID는 object의 이력에서 특정 시점의 object 상태를 설명하며, 과거의 어느 시점에서 object의 값이 무엇이었는지 묻거나 object의 특정 뷰가 얼마나 최신인지 결정하는 데 유용하다.
-- **Object reference:** (ID, version, object digest) 삼중이다. Object digest는 object의 내용과 메타데이터의 해시이다. Object reference는 object의 이력에서 특정 시점의 object에 대한 인증된 뷰를 제공한다. Transaction은 transaction의 발신자와 transaction을 처리하는 validator가 object의 내용과 메타데이터에 동의하도록 보장하기 위해 object 입력이 object reference를 통해 지정되도록 요구한다.
+- **Sui Move package:** 다른 object를 조작할 수 있는 smart contract이다. 각 Move package는 Sui Move bytecode module의 집합이다. package 안의 각 module은 포함하는 package 내에서 고유한 name을 가진다. package의 onchain ID와 module name의 조합이 module을 고유하게 식별한다. Sui에 smart contract를 publish할 때 package가 publish 단위이다. package object를 publish한 후에는 immutable이 되며 변경하거나 제거할 수 없다. package object는 이전에 Sui에 publish된 다른 package object에 의존할 수 있다.
 
-## The transaction-object DAG: Relating objects and transactions
+## Object 참조
 
-Transaction은 object를 입력으로 받아 이러한 입력을 읽고/쓰고/변형하며, 변형되거나 새로 생성된 object를 출력으로 생성한다. 각 object는 이를 출력으로 생성한 마지막 transaction(의 해시값)을 알고 있다. 따라서 object와 transaction 간의 관계를 나타내는 자연스러운 방법은 다음과 같은 방향성 비순환 그래프(DAG)이다:
+Object는 다음으로 참조할 수 있다:
 
-- 노드는 transaction이다.
-- Transaction `A`의 출력 object가 transaction `B`의 입력 object인 경우, 방향성 엣지는 transaction `A`에서 transaction `B`로 향한다. 이 엣지는 해당 object의 참조로 레이블링된다 (이는 `A`에 의해 생성되고 `B`에 의해 사용된 object의 정확한 버전을 지정한다).
+- **ID:** object의 전역적으로 고유한 ID이다. object의 current state를 query하거나 두 address 사이에서 어떤 object가 transfer되었는지 설명할 때 유용한, 변경되지 않는 stable identifier이다.
 
-이 DAG의 루트는 입력을 받지 않고 시스템의 초기 상태에 존재하는 object를 생성하는 제네시스 transaction이다. DAG는 커밋된 transaction에 의해 아직 소비되지 않은 변경 가능한 transaction 출력을 식별하고 이러한 출력(그리고 선택적으로 변경 불가능한 transaction 출력)을 입력으로 사용하는 새로운 transaction을 전송함으로써 확장할 수 있다.
+- **Versioned ID:** (ID, version) pair이다. object history의 특정 시점에서 object의 state를 설명하며, 과거 특정 시점의 object 값이 무엇이었는지 묻거나 object가 얼마나 최근에 update되었는지 판단할 때 유용하다.
 
-Transaction의 입력으로 사용 가능한 object 집합은 유효한 object들이며, Sui가 유지하는 전역 상태는 이러한 object의 전체로 구성된다. 특정 Sui address A에 대해 유효한 object는 A가 소유한 모든 object와 시스템의 모든 shared 및 immutable object이다.
+- **Object reference:** (ID, version, object digest) triple이다. object digest는 object의 content와 metadata hash이다. object reference는 object history의 특정 시점에 대한 authenticated view를 제공한다. Transaction은 object input이 object reference를 통해 지정되도록 요구하여 transaction sender와 transaction을 처리하는 validator가 object의 content와 metadata에 동의하도록 보장한다.
 
-이 DAG가 시스템의 모든 커밋된 transaction을 포함할 때, 시스템의 상태와 역사에 대한 완전한(그리고 암호학적으로 감사 가능한) 뷰를 형성한다. 또한 위의 체계를 사용하여 transaction 또는 object의 하위 집합(예: 단일 address가 소유한 object)에 대한 관련 이력의 DAG를 구성할 수 있다.
+## Object ownership 개요
 
-## Limits on transactions, objects, and data
+모든 object에는 transaction에서 누가 사용할 수 있는지를 결정하는 owner field가 있다. 이 field에는 다음 option 중 하나가 들어갈 수 있다:
 
-Sui는 transaction 및 transaction에서 사용되는 데이터에 대해 최대 크기 및 사용된 object 수와 같은 일부 제한이 있다. 제한에 대한 자세한 내용은 The Move Book의 [Building against Limits](https://move-book.com/guides/building-against-limits.html)를 참고한다.
+- **[Address owned](/develop/objects/object-ownership/address-owned):** 특정 signature scheme에서 파생된 account address 또는 object ID인 특정 32-byte address가 소유한다.
 
-[`sui-protocol-config` crate](https://github.com/MystenLabs/sui/blob/main/crates/sui-protocol-config/src/lib.rs)의 `ProtocolConfig` 구조체는 이러한 제한을 항목화한다. 다음 코드를 확장하여 `ProtocolConfig` 구조체와 각 매개변수를 설명하는 주석을 확인한다.
+- **[Immutable](/develop/objects/object-ownership/immutable):** 누구도 소유하지 않으므로 누구나 사용할 수 있다. mutate, transfer, delete할 수 없다.
 
-<details><summary></summary></details>
+- **[Party](/develop/objects/object-ownership/party):** [`sui::transfer::party_transfer`](/references/framework/sui_sui/transfer#sui_transfer_party_transfer) 또는 [`sui::transfer::public_party_transfer`](/references/framework/sui_sui/transfer#sui_transfer_public_party_transfer) function을 사용해 transfer되며, transfer 대상 `Party`가 접근할 수 있다. Party object는 단일 소유일 수 있지만, address-owned object와 달리 consensus로 versioning된다.
+
+- **[Shared](/develop/objects/object-ownership/shared):** [`sui::transfer::share_object`](/references/framework/sui_sui/transfer#sui_transfer_share_object) function을 사용해 ownership이 shared되며 누구나 접근할 수 있다.
+
+- **[Wrapped](/develop/objects/object-ownership/wrapped):** 한 `struct` type이 다른 type 안에 nested된 data structure이다.
+
+## Object metadata 개요
+
+모든 object에는 다음 metadata가 있다:
+
+- **32-byte globally unique ID:** object를 만든 transaction의 digest와 transaction이 생성한 ID 수를 encoding한 counter에서 파생된다.
+
+- **8-byte unsigned integer version:** object를 [modify](/develop/objects/versioning)하는 모든 transaction마다 monotonically increase한다.
+
+- **32-byte transaction digest:** 이 object를 output으로 포함한 마지막 transaction을 나타낸다.
+
+- **32-byte owner field:** 이 object에 [access](/develop/objects/object-ownership)할 수 있는 방식을 나타낸다.
+
+공통 metadata 외에도 object에는 [Binary Canonical Serialization (BCS)](https://docs.rs/bcs/latest/bcs/)로 encoding된 payload를 포함하는 category-specific, variable-sized contents field가 있다:
+
+- Move object는 Move type, object가 `public_transfer`를 사용해 transfer될 수 있는지 여부, 그리고 field를 포함한다.
+
+- Move package는 package의 bytecode module, package의 각 type을 도입한 package version을 식별하는 table(type origin table), 그리고 각 transitive dependency를 사용할 특정 package version에 mapping하는 table(linkage table)을 포함한다.
+
+## transaction-object DAG: object와 transaction의 관계
+
+Transaction은 object를 input으로 받아 이 input을 read, write, mutate한 다음 mutated object 또는 새로 created object를 output으로 만든다. 각 object는 자신을 output으로 만든 마지막 transaction의 hash를 알고 있다. object와 transaction 사이의 관계를 표현하는 자연스러운 방법은 [directed acyclic graph (DAG)](https://en.wikipedia.org/wiki/Directed_acyclic_graph)이다. 이 graph에서 node는 transaction이고, transaction `A`의 output object가 transaction `B`의 input object이면 directed edge가 transaction `A`에서 transaction `B`로 향한다. Edge에는 해당 object의 reference가 label로 붙으며, 이 reference는 `A`가 만든 object의 정확한 version과 `B`가 사용한 version을 지정한다.
+
+이 DAG의 root는 input을 받지 않고 system initial state에 존재하는 object를 만드는 genesis transaction이다. 아직 committed transaction이 consume하지 않은 mutable transaction output을 식별하고, 이 output과 선택적으로 immutable transaction output을 input으로 받는 새 transaction을 보내 DAG를 확장할 수 있다.
+
+Live object는 transaction의 input으로 사용할 수 있다. Sui가 유지하는 global state는 이러한 object 전체로 구성된다. 특정 Sui address `A`의 live object는 `A`가 소유한 모든 object와 system의 모든 shared 및 immutable object이다.
+
+이 DAG가 system의 모든 committed transaction을 포함하면 system state와 history에 대한 완전하고 cryptographically auditable한 view가 된다. 또한 위 scheme을 사용해 transaction 또는 object subset의 relevant history DAG를 구성할 수 있다. 예를 들어 단일 address가 소유한 object를 대상으로 할 수 있다.
+
+## transaction, object, data의 제한
+
+Sui에는 [maximum size and number of objects used](https://move-book.com/guides/building-against-limits) 같은 transaction과 transaction에서 사용하는 data에 대한 일부 limit가 있다.
+
+[`sui-protocol-config` crate](https://github.com/MystenLabs/sui/blob/main/crates/sui-protocol-config/src/lib.rs)의 `ProtocolConfig` struct는 이러한 limit를 항목화한다:
+
+<details>
+<summary>
 
 `lib.rs`
 
-
+</summary>
 
 <ImportContent source="crates/sui-protocol-config/src/lib.rs" mode="code" struct="ProtocolConfig" />
 
+</details>
 
+<ProtocolConfig fields="[max_accumulated_randomness_txn_cost_per_object_in_mysticeti_commit, max_accumulated_txn_cost_per_object_in_mysticeti_commit, max_accumulated_txn_cost_per_object_in_narwhal_commit, max_arguments, max_input_objects, max_gas_computation_bucket, max_gas_payment_objects, max_gas_price, max_move_object_size, max_num_event_emit, max_transactions_per_checkpoint, max_tx_gas, max_tx_size_bytes, max_txn_cost_overage_per_object_in_commit, max_type_argument_depth, max_type_arguments, max_type_nodes, max_type_to_layout_nodes, max_value_stack_size]"/>
 
-다음 탭에서 네트워크를 선택하여 현재 구성된 제한 및 값을 확인한다.
-
-<ProtocolConfig fields="[max_accumulated_randomness_txn_cost_per_object_in_mysticeti_commit, max_accumulated_txn_cost_per_object_in_mysticeti_commit, max_accumulated_txn_cost_per_object_in_narwhal_commit, max_arguments, max_input_objects, max_gas_computation_bucket, max_gas_payment_objects, max_gas_price, max_move_object_size, max_num_event_emit, max_transactions_per_checkpoint, max_tx_gas, max_tx_size_bytes, max_txn_cost_overage_per_object_in_commit, max_type_argument_depth, max_type_arguments, max_type_nodes, max_type_to_layout_nodes, max_value_stack_size]" />
-
-## Related links
-
-<RelatedLink to="/develop/objects/versioning" />
-<RelatedLink to="/develop/objects/object-ownership" />
-<RelatedLink href="https://github.com/MystenLabs/sui/blob/main/crates/sui-protocol-config/src/lib.rs" label="`sui-protocol-config`" desc=" Crate that defines the `ProtocolConfig` struct with limit definitions." />
-<RelatedLink href="https://move-book.com/guides/building-against-limits.html" label="Building against Limits" desc=" The Move Book provides a concise overview for limits most projects deal with." />
-<RelatedLink href="https://move-book.com/" label="The Move Book" desc=" A comprehensive guide to the Move programming language used on the Sui network." />
-<RelatedLink href="https://move-book.com/reference/" label="The Move Reference" desc=" Reference guide for the Move language." />
+다음 탭에서 네트워크를 선택하여 현재 구성된 limit와 값을 확인한다.

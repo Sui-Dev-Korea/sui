@@ -1,5 +1,6 @@
 ---
 title: Sui 거래소 통합 가이드
+sidebar_label: Sui 거래소 통합 가이드
 description: Sui 네트워크의 네이티브 토큰인 SUI를 암호화폐 거래소에 통합하는 데 필요한 주요 작업을 알아본다.
 keywords: [ integrate sui, integrate with SUI token, sui tokens, SUI, integrate sui into exchange, cryptocurrency exchange, decentralized exchange, dex, integrate with dex, sui balance transfer, staking functions, track balance, checkpoints, staking functions ]
 ---
@@ -18,11 +19,11 @@ SUI integration을 구성하기 위한 요구 사항은 다음과 같다:
 
 가장 좋은 결과를 얻으려면 Linux에서 Sui 풀 노드를 실행한다. Sui는 Ubuntu와 Debian distributions를 지원한다. macOS에서도 풀 노드를 실행할 수 있다.
 
-## Configure a Sui full node
+## Sui full node 구성
 
 Sui GitHub repository의 Docker 또는 source code를 사용해 풀 노드를 설정하고 구성하는 방법은 [Sui 풀 노드 구성](/operators/full-node/sui-full-node)을 참조한다.
 
-## Set up Sui addresses
+## Sui address 설정
 
 Sui addresses는 on-chain 초기화가 필요하지 않으며, private key에 대응하기만 하면 address에서 자금을 사용할 수 있다. 공개 키 bytes에 서명 체계 flag byte를 이어 붙인 `flag || pubkey`를 [BLAKE2b](https://www.blake2.net/) (256 bits output) hashing function으로 해시하면 32-byte Sui address를 파생할 수 있다.
 
@@ -40,11 +41,11 @@ let arr = hasher.finalize();
 let sui_address_string = hex::encode(arr);
 ```
 
-## Displaying addresses
+## address 표시
 
 Sui는 `0x` prefix가 있는 address와 없는 address를 모두 지원한다. Sui는 API calls와 사용자 addresses를 표시할 때 항상 `0x` prefix를 포함할 것을 권장한다.
 
-## Track balance changes for an address
+## address의 balance change 추적
 
 미리 정한 간격으로 `suix_getBalance`를 호출해 balance 변화를 추적할 수 있다. 이 호출은 address의 total balance를 반환한다. total에는 모든 coin 또는 token type이 포함되지만, 이 문서는 SUI에 초점을 맞춘다. 연속적인 `suix_getBalance` 요청 사이의 total balance 변화를 추적할 수 있다.
 
@@ -94,7 +95,7 @@ async fn main() -> Result<(), anyhow::Error> {
 }
 ```
 
-## Use events to track balance changes for an address
+## event로 address의 balance change 추적
 
 address에서 발생한 모든 events를 구독해 balance를 추적할 수도 있다. address가 coin을 획득하거나 gas fee를 지불하는 경우처럼 SUI coins와 관련된 events만 포함하도록 filter를 사용한다.
 다음 예시는 bash와 cURL을 사용해 address의 events를 filter하는 방법을 보여준다:
@@ -132,7 +133,7 @@ Sui는 DAG 기반 blockchain이며 node synchronization과 전역 transaction or
  - Checkpoints는 fork, roll back, reorganize되지 않는다.
  - Sui는 초당 약 네 개의 checkpoints를 만든다. 최신 통계는 [Sui public dashboard](https://metrics.sui.io/public-dashboards/4ceb11cc210d4025b122294586961169)에서 확인한다.
 
-### Checkpoint API operations
+### checkpoint API operation
 
 Sui Checkpoint API operations에는 다음이 포함된다:
  - [`sui_getCheckpoint`](/sui-api-ref#sui_getCheckpoint): 지정한 checkpoint를 가져온다.
@@ -147,7 +148,7 @@ addresses 사이에 특정 양의 SUI를 전송하려면 정확히 그 값만큼
 
 특정 양의 SUI를 전송하려면 그 양만큼의 SUI token이 필요하다. 정확한 값을 가진 SUI token을 얻으려면 기존 SUI tokens를 split하거나 merge해야 할 수 있다. Sui는 이를 수행하는 여러 방법을 지원하며, 그중 일부는 coins를 수동으로 split하거나 merge할 필요가 없다.
 
-## Sui API operations for transfers
+## transfer용 Sui API operation
 
 Sui는 addresses 사이의 SUI 전송과 관련하여 다음 API operations를 지원한다:
 
@@ -181,7 +182,7 @@ validators에 tokens를 stake한 SUI holders는 Sui network 보안에 기여한 
 
 Sui Network의 총 voting power는 항상 10,000이다. 각 validator의 voting power는 basis points와 유사하다. 예를 들어 voting power 101은 1.01%이다. Sui의 quorum threshold(transaction를 확인하는 데 필요한 votes 수)는 6,667(2/3 초과)이다. 개별 validator의 voting power는 validator가 얼마나 많은 stake를 보유했는지와 관계없이 1,000(10%)으로 제한된다.
 
-## Staking functions
+## 스테이킹 함수
 
 Sui는 staking과 관련된 다음 API operations를 지원한다. source code는 [sui_system](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-system/sources/sui_system.move) module에서 찾을 수 있다.
 

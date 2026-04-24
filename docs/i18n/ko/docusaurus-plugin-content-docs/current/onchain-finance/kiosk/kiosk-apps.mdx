@@ -18,10 +18,10 @@ Kiosk Apps는 핵심 기능을 그대로 유지하면서 Sui Kiosk의 기능을 
 
 앱에는 두 가지 유형이 있다:
 
-- [Basic apps](#basic-apps)
+- [Basic apps](#basic-app)
 - [Permissioned apps](#permissioned-apps)
 
-## Basic apps
+## basic app
 
 Basic Kiosk Apps는 동작하기 위해 Kiosk Apps API가 필요하지 않다. 일반적으로 Kiosk에 사용자 정의 메타데이터를 추가하거나 `Kiosk` 또는 `KioskOwnerCap` 같은 기존 object를 래핑하거나 함께 사용하는 목적에 쓰인다. API가 필요 없는 앱의 예로는 Personal Kiosk 앱이 있다.
 
@@ -29,7 +29,7 @@ Basic Kiosk Apps는 동작하기 위해 Kiosk Apps API가 필요하지 않다. �
 
 Kiosk는 Sui의 다른 모든 object처럼 `id: UID` 필드를 가지며, 이를 통해 해당 object를 고유하게 식별하고 사용자 정의 dynamic fields 및 dynamic object fields를 담을 수 있다. Kiosk 자체는 dynamic fields를 기반으로 구축되어 있으며 place, list 같은 기능은 dynamic object fields를 기반으로 구축되어 있다.
 
-### The uid_mut_as_owner function
+### uid_mut_as_owner function
 
 Kiosk는 추가 dynamic fields 및 dynamic object fields를 담을 수 있다. `uid_mut_as_owner` 함수는 Kiosk 소유자가 Kiosk object의 UID를 변경 가능하게 접근하여 사용자 정의 필드를 추가하거나 제거할 수 있게 한다.
 
@@ -37,11 +37,11 @@ Kiosk는 추가 dynamic fields 및 dynamic object fields를 담을 수 있다. `
 
 `kiosk::uid_mut_as_owner(self: &mut Kiosk, cap: &KioskOwnerCap): &mut UID`
 
-### The public uid getter
+### public uid getter
 
 누구나 kiosk의 `uid`를 읽을 수 있다. 이렇게 하면 허용된 경우 제3자 모듈이 Kiosk의 필드를 읽을 수 있다. 따라서 object capability 및 기타 패턴을 사용할 수 있다.
 
-### Basic app ideas
+### basic app 아이디어
 
 누구나 읽을 수 있지만 수정은 본인만 가능한 사용자 정의 dynamic fields를 Kiosk에 붙일 수 있으며, 이를 통해 Basic 앱을 구현할 수 있다. 예를 들어, Kiosk 소유자가 Kiosk 이름을 설정하고 dynamic field로 붙여 누구나 읽을 수 있게 하는 Kiosk Name 앱이 있다.
 
@@ -72,7 +72,7 @@ public fun name(self: &Kiosk): Option<String> {
 }
 ```
 
-## Permissioned apps using the Kiosk Apps API {#permissioned-apps}
+## Kiosk Apps API를 사용하는 permissioned app {#permissioned-apps}
 
 Permissioned 앱은 Kiosk에서 동작을 수행하기 위해 Kiosk Apps API를 사용한다. 일반적으로 제3자와의 상호작용을 전제로 하며, 스토리지 접근에 대한 보장을 제공한다(판매자의 악의적 행위 방지).
 
@@ -92,7 +92,7 @@ use sui::kiosk_extension;
 // ...
 ```
 
-## App lifecycle
+## app lifecycle
 
 Sui Kiosk 앱의 생명주기에서 핵심 사항은 다음과 같다:
 
@@ -101,11 +101,11 @@ Sui Kiosk 앱의 생명주기에서 핵심 사항은 다음과 같다:
 - Kiosk 소유자는 `enable` 함수를 호출해 언제든 비활성화된 앱을 다시 활성화할 수 있다.
 - 앱 스토리지가 비어 있을 때만(모든 item이 제거되었을 때만) 앱을 제거할 수 있다.
 
-## Adding an app
+## app 추가
 
 앱이 동작하려면 Kiosk 소유자가 먼저 설치해야 한다. 이를 위해 앱은 Kiosk 소유자가 필요한 모든 권한을 요청하기 위해 호출하는 `add` 함수를 구현해야 한다.
 
-### Implementing add function
+### add function 구현
 
 `kiosk_extension::add` 함수의 시그니처는 앱 witness를 요구하므로, 명시적 구현 없이는 앱을 설치할 수 없다. 다음 예는 `place` 권한이 필요한 앱에 대해 `add` 함수를 구현하는 방법을 보여 준다:
 
@@ -128,11 +128,11 @@ public fun add(kiosk: &mut Kiosk, cap: &KioskOwnerCap, ctx: &mut TxContext) {
 }
 ```
 
-## App permissions
+## app permission
 
 앱은 설치 시 Kiosk 소유자에게 권한을 요청할 수 있다. 권한은 전부 아니면 전무 원칙을 따른다. Kiosk 소유자가 앱을 추가하면 요청한 모든 권한을 얻고, Kiosk 소유자가 앱을 비활성화하면 모든 권한을 잃는다.
 
-### Structure
+### 구조
 
 권한은 비트맵을 저장하는 `u128` 정수로 표현된다. 각 비트는 권한 하나에 대응하며, 첫 번째 비트가 최하위 비트이다. 다음 표는 모든 권한과 해당 비트를 나열한다.
 
@@ -149,7 +149,7 @@ Bit | Decimal | Permission
 
 :::
 
-### Using permissions in the add function
+### add function에서 permission 사용
 
 앱 권한을 담은 상수를 정의하는 것이 좋은 관행으로 여겨진다:
 
@@ -170,7 +170,7 @@ public fun add(kiosk: &mut Kiosk, cap: &KioskOwnerCap, ctx: &mut TxContext) {
 }
 ```
 
-### Accessing protected functions
+### protected function 접근
 
 앱이 권한을 요청하고 부여받았으며(비활성화되지 않았으면) protected 함수에 접근할 수 있다. 다음 예는 `place` 함수에 접근하는 방법을 보여 준다:
 
@@ -194,30 +194,30 @@ public fun place(kiosk: &mut Kiosk, letter: Letter, policy: &TransferPolicy<T>) 
 - `place<Ext, T>(Ext, &mut Kiosk, T, &TransferPolicy<T>)` - place와 유사
 - `lock<Ext, T>(Ext, &mut Kiosk, T, &TransferPolicy<T>)` - lock과 유사
 
-### Checking permissions
+### permission 확인
 
 앱에 `place` 권한이 있는지 확인하려면 `can_place<Ext>(kiosk: &Kiosk): bool` 함수를 사용한다. 마찬가지로 앱에 `lock` 권한이 있는지 확인하려면 `can_lock<Ext>(kiosk: &Kiosk): bool` 함수를 사용할 수 있다. 두 함수 모두 앱이 활성화되어 있는지 확인하므로, 별도로 확인할 필요는 없다.
 
-## App storage
+## app storage
 
 각 앱은 앱 모듈만 접근할 수 있는(앱 witness 제공 시) `Bag` 타입의 격리된 스토리지를 갖는다. Move에서 사용할 수 있는 `Bag` 같은 dynamic collection에 대한 자세한 내용은 [The Move Book](https://move-book.com/programmability/dynamic-collections.html)을 참고한다. 앱을 설치한 후 스토리지를 사용해 데이터를 저장할 수 있다. 이상적으로는 현재 진행 중인 거래나 기타 활동이 없을 때 앱을 Kiosk에서 제거할 수 있도록 스토리지를 관리하는 것이 좋다.
 
 설치되어 있으면 스토리지는 항상 앱에 사용 가능하다. Kiosk 소유자는 해당 로직이 구현되어 있지 않으면 앱 스토리지에 접근할 수 없다.
 
-### Accessing the storage
+### storage 접근
 
 설치된 앱은 다음 함수 중 하나를 사용해 스토리지에 변경 가능하게 또는 변경 불가하게 접근할 수 있다:
 
 - `storage(_ext: Extension {}, kiosk: &Kiosk): Bag`: 앱 스토리지에 대한 참조를 반환한다. 스토리지를 읽을 때 이 함수를 사용한다.
 - `storage_mut(_ext: Extension {}, kiosk: &mut Kiosk): &mut Bag`: 앱 스토리지에 대한 변경 가능 참조를 반환한다. 스토리지를 읽고 쓸 때 이 함수를 사용한다.
 
-## Disabling and removing
+## disable 및 제거
 
 Kiosk 소유자는 언제든 어떤 앱이든 비활성화할 수 있다. 그러면 앱의 모든 권한이 회수되고 Kiosk에서 어떤 동작도 수행할 수 없게 된다. Kiosk 소유자는 언제든 앱을 다시 활성화할 수도 있다.
 
 앱을 비활성화해도 Kiosk에서 제거되지는 않는다. 설치된 앱은 Kiosk에서 완전히 제거될 때까지 자신의 스토리지에 접근할 수 있다.
 
-### Disabling an app
+### app disable
 
 앱을 비활성화하려면 `disable<Ext>(kiosk: &mut Kiosk, cap: &KioskOwnerCap)` 함수를 사용한다. 이 함수는 앱의 모든 권한을 회수하고 Kiosk에서 protected 동작을 수행하지 못하게 한다.
 
@@ -235,7 +235,7 @@ txb.moveCall({
 });
 ```
 
-### Removing an app
+### app 제거
 
 스토리지가 비어 있을 때만 앱을 제거할 수 있다. 제거를 수행하려면 `remove<Ext>(kiosk: &mut Kiosk, cap: &KioskOwnerCap)` 함수를 사용한다. 이 함수는 앱을 제거하고 앱 스토리지와 설정을 풀며 스토리지 비용을 Kiosk 소유자에게 리베이트한다. 이 동작은 Kiosk 소유자만 수행할 수 있다.
 

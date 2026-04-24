@@ -20,7 +20,7 @@ DeepBook Margin TypeScript SDK는 transaction call을 추상화하여 leveraged 
 - [SDK repository](https://github.com/MystenLabs/ts-sdks/tree/main/packages/deepbook-v3)
 - [NPM version](https://www.npmjs.com/package/@mysten/deepbook-v3)
 
-## Install
+## 설치
 
 프로젝트에서 SDK를 사용하려면, margin trading 기능을 포함하는 `@mysten/deepbook-v3` package를 설치한다.
 
@@ -28,7 +28,7 @@ DeepBook Margin TypeScript SDK는 transaction call을 추상화하여 leveraged 
 npm install @mysten/deepbook-v3
 ```
 
-## Constants
+## constant
 
 DeepBook SDK에는 DeepBook Margin의 최신 배포 address와 margin pool 및 configuration을 유지하는 constants file(`/utils/constants.ts`)이 포함된다.
 
@@ -90,7 +90,7 @@ class DeepBookMarginTrader {
 
 coin, pool, 또는 margin manager의 입력을 요구하는 함수는 parameter로 해당 object의 key를 요구한다. SDK는 이 데이터를 메모리에서 `key:value` 관계로 관리한다. 일부 default 데이터는 SDK와 함께 제공된다(`utils/constants.ts` 참조). coin은 `CoinMap`에 저장되고, pool은 `PoolMap`에 저장되며, margin manager는 config의 `MarginManagerMap`에 저장된다.
 
-### Margin manager
+### margin manager
 
 margin trade를 배치하기 전에, client에 margin manager address를 제공해야 한다. manager key는 client에서 `MarginManager` interface로 정의된 object를 가리킨다. [마진 매니저](/onchain-finance/deepbook-margin/contract-information/margin-manager)를 참고한다. client로 margin manager를 initialize한다. margin manager를 생성하지 않으면 client가 margin manager를 생성하도록 의존할 수 있지만, 이 경우 사용자는 client를 다시 initialize해야 한다.
 
@@ -264,7 +264,7 @@ SDK에는 Testnet에서 네 개의 default coin과 Mainnet에서 다섯 개의 d
 
 또한 default로 지원되지 않는 margin pool과 상호작용하기 위해 custom coin으로 SDK를 initialize할 수도 있다. 이를 위해 `CoinMap` object를 생성하고 client constructor에 전달한다.
 
-### Pool
+### pool
 
 coin과 유사하게, SDK에는 default pool이 포함된다. construction 시 `PoolMap`을 제공하여 이 동작을 override할 수 있다.
 
@@ -334,7 +334,7 @@ export class DeepBookMarginTrader {
 }
 ```
 
-### Example setup
+### 예시 setup
 
 다음 예시는 제공되는 default pool과 coin을 사용하며, margin trading 작업을 시연한다.
 
@@ -382,7 +382,7 @@ import { DeepBookMarginTrader } from './deepbookMarginTrader.js';
 })();
 ```
 
-## Margin manager referral functions
+## margin manager referral function
 
 SDK는 margin manager와 함께 referral을 관리하기 위한 함수를 제공한다. referral은 pool-specific이며, margin manager와 연결되기 전에 먼저 core DeepBook SDK를 사용해 mint해야 한다.
 
@@ -403,6 +403,6 @@ traderClient.client.deepbook.marginManager.unsetMarginManagerReferral(
 
 :::info
 
-referral을 mint하려면, core DeepBook SDK의 `mintReferral` 함수를 사용한다. referral의 mint 및 관리에 대한 자세한 내용은 [DeepBookV3 SDK documentation](/onchain-finance/deepbookv3-sdk#referral-functions)을 참조한다.
+referral을 mint하려면, core DeepBook SDK의 `mintReferral` 함수를 사용한다. referral의 mint 및 관리에 대한 자세한 내용은 [DeepBookV3 SDK documentation](/onchain-finance/deepbookv3-sdk/deepbookv3-sdk)을 참조한다.
 
 :::

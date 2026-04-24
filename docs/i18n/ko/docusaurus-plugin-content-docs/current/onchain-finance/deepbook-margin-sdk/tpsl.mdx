@@ -18,7 +18,7 @@ keywords:
 
 TPSL(Take Profit Stop Loss) SDK는 특정 가격 조건이 충족될 때 자동으로 실행되는 conditional order를 관리하기 위한 함수를 제공한다.
 
-## TPSL functions
+## TPSL function
 
 DeepBook Margin SDK는 conditional order를 관리하기 위한 다음 함수를 제공한다.
 
@@ -26,7 +26,7 @@ DeepBook Margin SDK는 conditional order를 관리하기 위한 다음 함수를
 
 가격 조건이 충족될 때 실행되는 conditional order를 추가하려면 `addConditionalOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `marginManagerKey`: margin manager를 식별하는 String이다.
 - `conditionalOrderId`: 이 conditional order에 대한 고유 ID를 나타내는 Number이다.
@@ -40,7 +40,7 @@ DeepBook Margin SDK는 conditional order를 관리하기 위한 다음 함수를
 
 특정 conditional order를 취소하려면 `cancelConditionalOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `marginManagerKey`: margin manager를 식별하는 String이다.
 - `conditionalOrderId`: 취소할 conditional order의 ID를 나타내는 String이다.
@@ -51,7 +51,7 @@ DeepBook Margin SDK는 conditional order를 관리하기 위한 다음 함수를
 
 margin manager에 대한 모든 conditional order를 취소하려면 `cancelAllConditionalOrders`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `marginManagerKey`: margin manager를 식별하는 String이다.
 
@@ -61,14 +61,14 @@ margin manager에 대한 모든 conditional order를 취소하려면 `cancelAllC
 
 trigger된 conditional order를 실행하려면 `executeConditionalOrders`를 사용한다. 이는 누구나 호출할 수 있는 permissionless 함수이다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `marginManagerKey`: margin manager를 식별하는 String이다.
 - `maxOrdersToExecute`: 이 호출에서 실행할 최대 order 수를 나타내는 Number이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="executeConditionalOrders" signatureOnly />
 
-## Helper functions
+## helper function
 
 이 helper 함수들은 conditional order에 대한 condition과 pending order를 생성한다.
 
@@ -76,7 +76,7 @@ trigger된 conditional order를 실행하려면 `executeConditionalOrders`를 �
 
 conditional order를 위한 trigger condition을 생성하려면 `newCondition`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `triggerBelowPrice`: 가격이 trigger price 아래로 떨어질 때 trigger할지 여부를 나타내는 Boolean이다.
@@ -88,7 +88,7 @@ conditional order를 위한 trigger condition을 생성하려면 `newCondition`�
 
 conditional order에서 사용할 pending limit order를 생성하려면 `newPendingLimitOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `params`: 다음을 포함하는 `PendingLimitOrderParams` object이다:
@@ -107,7 +107,7 @@ conditional order에서 사용할 pending limit order를 생성하려면 `newPen
 
 conditional order에서 사용할 pending market order를 생성하려면 `newPendingMarketOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `params`: 다음을 포함하는 `PendingMarketOrderParams` object이다:
@@ -119,7 +119,7 @@ conditional order에서 사용할 pending market order를 생성하려면 `newPe
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="newPendingMarketOrder" signatureOnly />
 
-## Read-only functions
+## read-only function
 
 ### `conditionalOrderIds`
 
@@ -133,27 +133,15 @@ ID로 특정 conditional order를 쿼리한다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="conditionalOrder" signatureOnly />
 
-### `triggerBelowOrders`, `triggerAboveOrders`
-
-trigger price로 정렬된 conditional order 목록을 쿼리한다.
-
-<ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="triggerBelowOrders,triggerAboveOrders" signatureOnly />
-
-### `numConditionalOrders`
-
-margin manager에 대한 conditional order의 총 수를 쿼리한다.
-
-<ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="numConditionalOrders" signatureOnly />
-
 ### `lowestTriggerAbovePrice`, `highestTriggerBelowPrice`
 
-conditional order의 trigger price를 쿼리한다.
+conditional order의 trigger price를 쿼리한다. `lowestTriggerAbovePrice`는 trigger-above orders 중 가장 낮은 trigger price를 반환하며, 없으면 `max_u64`를 반환한다. `highestTriggerBelowPrice`는 trigger-below orders 중 가장 높은 trigger price를 반환하며, 없으면 `0`을 반환한다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="lowestTriggerAbovePrice,highestTriggerBelowPrice" signatureOnly />
 
-## Examples
+## 예시
 
-### Set up a stop loss order
+### stop loss order 설정
 
 ```tsx
 // 예시: 가격이 2.0 아래로 떨어지면 매도하는 stop loss order를 생성한다
@@ -174,7 +162,7 @@ const setStopLoss = (tx: Transaction) => {
 };
 ```
 
-### Set up a take profit order
+### take profit order 설정
 
 ```tsx
 // 예시: 가격이 5.0 위로 오르면 매도하는 take profit order를 생성한다
@@ -196,7 +184,7 @@ const setTakeProfit = (tx: Transaction) => {
 };
 ```
 
-### Execute triggered orders (keeper)
+### trigger된 order 실행(keeper)
 
 ```tsx
 // 예시: keeper로 conditional orders를 실행한다

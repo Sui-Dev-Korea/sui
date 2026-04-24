@@ -1,34 +1,34 @@
 ---
 title: 트랜잭션 서명 및 전송
-description: Sui의 cryptographic key, address, signature를 이해합니다. Sui는 여러 cryptography algorithm과 primitive를 지원하며 이들 사이를 빠르게 전환할 수 있습니다.
+description: Sui의 cryptographic key, address, signature를 이해한다. Sui는 여러 cryptography algorithm과 primitive를 지원하며 이들 사이를 빠르게 전환할 수 있다.
 keywords: [authentication, keys, addresses, signatures, Ed25519, ECDSA, multisig, zkLogin, passkey, BIP-32, BIP-44, BIP-39, key derivation, signature requirements]
 ---
 
-Sui의 transaction authentication은 사용자가 제어하는 cryptographic key, 온체인에서 account를 식별하는 address, 소유권을 증명하는 signature라는 세 가지 핵심 개념을 포함합니다. Sui는 널리 쓰이는 wallet specification과 여러 signature scheme을 사용해 이 개념들을 구현합니다.
+Sui의 transaction authentication은 사용자가 제어하는 cryptographic key, 온체인에서 account를 식별하는 address, 소유권을 증명하는 signature라는 세 가지 핵심 개념을 포함한다. Sui는 널리 쓰이는 wallet specification과 여러 signature scheme을 사용해 이 개념들을 구현한다.
 
-## Keys and addresses
+## key와 address
 
-Sui는 사용자의 key 관리를 돕기 위해 cryptocurrency 업계에서 널리 받아들여진 wallet specification인 [BIP-32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)와 그 변형인 [SLIP-0010](https://github.com/satoshilabs/slips/blob/master/slip-0010), [BIP-44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki), [BIP-39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki)를 따릅니다. Sui는 signed transaction에 대해 pure Ed25519, ECDSA Secp256k1, ECDSA Secp256r1, multisig를 지원합니다.
+Sui는 사용자의 key 관리를 돕기 위해 cryptocurrency 업계에서 널리 받아들여진 wallet specification인 [BIP-32](https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki)와 그 변형인 [SLIP-0010](https://github.com/satoshilabs/slips/blob/master/slip-0010), [BIP-44](https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki), [BIP-39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki)를 따른다. Sui는 signed transaction에 대해 pure Ed25519, ECDSA Secp256k1, ECDSA Secp256r1, multisig를 지원한다.
 
-### Key derivation schemes
+### key derivation scheme
 
-Ed25519(EdDSA) signing scheme을 지원하는 wallet을 관리할 때 Sui는 [SLIP-0010](https://github.com/satoshilabs/slips/blob/master/slip-0010)을 따릅니다. SLIP-0010은 wallet이 hardened key path를 사용해 parent private key에서 child private key를 항상 derive하도록 강제합니다.
+Ed25519(EdDSA) signing scheme을 지원하는 wallet을 관리할 때 Sui는 [SLIP-0010](https://github.com/satoshilabs/slips/blob/master/slip-0010)을 따른다. SLIP-0010은 wallet이 hardened key path를 사용해 parent private key에서 child private key를 항상 derive하도록 강제한다.
 
-Sui는 ECDSA Secp256k1과 ECDSA Secp256r1 signing scheme을 지원하는 wallet을 관리할 때 BIP-32를 따릅니다.
+Sui는 ECDSA Secp256k1과 ECDSA Secp256r1 signing scheme을 지원하는 wallet을 관리할 때 BIP-32를 따른다.
 
-BIP-32는 key 집합을 논리적으로 연결하기 위한 hierarchical deterministic wallet 구조를 정의합니다. 이렇게 key를 그룹화하면 많은 private key를 추적해야 하는 부담을 줄일 수 있습니다. 또한 custodian은 하나의 control source 아래에서 사용자 account마다 별도의 managed address를 발급할 수 있습니다. BIP-32를 사용하면 private key derivation과 public key derivation이 분리되어 watch-only wallet use case가 가능해집니다. 이 경우 public key 체인과 그 address는 derive할 수 있지만, private key는 signing을 위해 offline으로 유지할 수 있습니다.
+BIP-32는 key 집합을 논리적으로 연결하기 위한 hierarchical deterministic wallet 구조를 정의한다. 이렇게 key를 그룹화하면 많은 private key를 추적해야 하는 부담을 줄일 수 있다. 또한 custodian은 하나의 control source 아래에서 사용자 account마다 별도의 managed address를 발급할 수 있다. BIP-32를 사용하면 private key derivation과 public key derivation이 분리되어 watch-only wallet use case가 가능해진다. 이 경우 public key 체인과 그 address는 derive할 수 있지만, private key는 signing을 위해 offline으로 유지할 수 있다.
 
-### Key derivation paths
+### key derivation path
 
-BIP-44는 derivation path의 5개 level과 그 정확한 의미를 추가로 정의합니다:
+BIP-44는 derivation path의 5개 level과 그 정확한 의미를 추가로 정의한다:
 
 $$
 m / purpose' / coin_type' / account' / change / address_index
 $$
 
-이 구조에서 slash는 hierarchy의 level을 나타냅니다.
+이 구조에서 slash는 hierarchy의 level을 나타낸다.
 
-`purpose` level은 서로 다른 signing scheme을 구분합니다:
+`purpose` level은 서로 다른 signing scheme을 구분한다:
 
 - `44`: Ed25519
 
@@ -36,47 +36,47 @@ $$
 
 - `74`: Secp256r1
 
-예를 들어 BIP-49와 BIP-84는 Bitcoin의 script type을 식별하는 데 사용됩니다. Sui는 ECDSA Secp256k1을 나타내기 위해 `54`를 선택했습니다. `54` 아래에는 기존 BIP가 없어서 Bitcoin standard와 혼동될 가능성을 피할 수 있기 때문입니다.
+예를 들어 BIP-49와 BIP-84는 Bitcoin의 script type을 식별하는 데 사용된다. Sui는 ECDSA Secp256k1을 나타내기 위해 `54`를 선택했다. `54` 아래에는 기존 BIP가 없어서 Bitcoin standard와 혼동될 가능성을 피할 수 있기 때문이다.
 
-`coin_type` 값은 다른 cryptocurrency와 함께 repository에서 관리됩니다. 두 signature scheme 모두 Sui의 등록된 `coin_type`인 `784`를 사용합니다.
+`coin_type` 값은 다른 cryptocurrency와 함께 repository에서 관리된다. 두 signature scheme 모두 Sui의 등록된 `coin_type`인 `784`를 사용한다.
 
-`account` level은 user account를 논리적으로 분리하고 특정 account category를 만드는 데 사용됩니다.
+`account` level은 user account를 논리적으로 분리하고 특정 account category를 만드는 데 사용된다.
 
-Account-based currency는 처음 3개 level만 정의하는 반면, UTXO-based currency는 `change`와 `address` level 정의를 추가합니다. Sui의 object-oriented data model은 UTXO 기반도 account 기반도 아니며 두 방식을 결합하므로, 최대한의 호환성을 위해 5개 level을 모두 사용합니다.
+Account-based currency는 처음 3개 level만 정의하는 반면, UTXO-based currency는 `change`와 `address` level 정의를 추가한다. Sui의 object-oriented data model은 UTXO 기반도 account 기반도 아니며 두 방식을 결합하므로, 최대한의 호환성을 위해 5개 level을 모두 사용한다.
 
-| Scheme          | Path                                         | Comments                                       |
+| Scheme          | Path                                         | 설명                                           |
 | --------------- | -------------------------------------------- | ---------------------------------------------- |
-| Ed25519         | `m/44'/784'/{account}'/{change}'/{address}'` | derivation path의 각 level이 hardened입니다. |
-| ECDSA Secp256k1 | `m/54'/784'/{account}'/{change}/{address}`   | 처음 3개 level이 hardened입니다. |
-| ECDSA Secp256r1 | `m/74'/784'/{account}'/{change}/{address}`   | 처음 3개 level이 hardened입니다. |
+| Ed25519         | `m/44'/784'/{account}'/{change}'/{address}'` | derivation path의 각 level이 hardened이다. |
+| ECDSA Secp256k1 | `m/54'/784'/{account}'/{change}/{address}`   | 처음 3개 level이 hardened이다. |
+| ECDSA Secp256r1 | `m/74'/784'/{account}'/{change}/{address}`   | 처음 3개 level이 hardened이다. |
 
-### Mnemonics support
+### mnemonic 지원
 
-Sui가 seed에서 master key를 derive하는 deterministic 방식을 정의한 뒤, BIP-39는 mnemonics를 사용해 seed를 사람이 읽고 기억하기 쉽게 만듭니다. Sui는 BIP-39 word list에서 checksum이 올바른 12, 15, 18, 21, 24개 단어를 허용하며, 이는 각각 128, 160, 192, 224, 256 bit entropy에 대응합니다.
+Sui가 seed에서 master key를 derive하는 deterministic 방식을 정의한 뒤, BIP-39는 mnemonics를 사용해 seed를 사람이 읽고 기억하기 쉽게 만든다. Sui는 BIP-39 word list에서 checksum이 올바른 12, 15, 18, 21, 24개 단어를 허용하며, 이는 각각 128, 160, 192, 224, 256 bit entropy에 대응한다.
 
-### Address format
+### 주소 형식
 
-32-byte Sui address를 derive하기 위해 Sui는 signature scheme flag 1-byte와 public key byte를 연결한 값을 [BLAKE2b](https://www.blake2.net/)(256-bit output) hashing function으로 hash합니다. Sui address는 현재 pure Ed25519, Secp256k1, Secp256r1, [multisig](/develop/transactions/transaction-auth/multisig)를 지원하며, 각각 대응하는 flag byte는 0x00, 0x01, 0x02, 0x03입니다.
+32-byte Sui address를 derive하기 위해 Sui는 signature scheme flag 1-byte와 public key byte를 연결한 값을 [BLAKE2b](https://www.blake2.net/)(256-bit output) hashing function으로 hash한다. Sui address는 현재 pure Ed25519, Secp256k1, Secp256r1, [multisig](/develop/transactions/transaction-auth/multisig)를 지원하며, 각각 대응하는 flag byte는 0x00, 0x01, 0x02, 0x03이다.
 
-## Signatures
+## 서명
 
-사용자가 signed transaction을 제출하면 serialized signature와 serialized transaction data가 제출됩니다. serialized transaction data는 `TransactionData` struct를 [Binary Canonical Serialization](https://crates.io/crates/bcs)으로 serialize한 byte이고, serialized signature는 `flag || sig || pk` byte를 연결한 값으로 정의됩니다.
+사용자가 signed transaction을 제출하면 serialized signature와 serialized transaction data가 제출된다. serialized transaction data는 `TransactionData` struct를 [Binary Canonical Serialization](https://crates.io/crates/bcs)으로 serialize한 byte이고, serialized signature는 `flag || sig || pk` byte를 연결한 값으로 정의된다.
 
-### Signature structure
+### 서명 구조
 
-Sui signature는 세 component를 연결한 값입니다:
+Sui signature는 세 component를 연결한 값이다:
 
-- `flag`: signature scheme에 대응하는 1-byte 표현입니다.
+- `flag`: signature scheme에 대응하는 1-byte 표현이다.
 
-- `sig`: signature의 compressed byte 표현입니다. DER encoding이 아닙니다.
+- `sig`: signature의 compressed byte 표현이다. DER encoding이 아니다.
 
-- `pk`: signature에 대응하는 public key의 byte 표현입니다.
+- `pk`: signature에 대응하는 public key의 byte 표현이다.
 
-### Supported signature schemes
+### 지원되는 signature scheme
 
-다음 표는 각 signing scheme과 대응하는 flag, signature format, public key format을 나열합니다:
+다음 표는 각 signing scheme과 대응하는 flag, signature format, public key format을 나열한다:
 
-| Scheme          | Flag | Signature Format | Public Key Format |
+| Scheme          | Flag | Signature format | Public key format |
 | --------------- | ---- | ---------------- | ----------------- |
 | Pure Ed25519    | 0x00 | Compressed, 64 bytes | Compressed, 32 bytes |
 | ECDSA Secp256k1 | 0x01 | Non-recoverable, compressed, 64 bytes | Compressed, 33 bytes |
@@ -87,69 +87,69 @@ Sui signature는 세 component를 연결한 값입니다:
 
 ### Signature requirements {#signature-requirements}
 
-signature는 transaction data의 intent message hash에 commit해야 합니다. 이 hash는 BCS serialized transaction data 앞에 3-byte intent를 붙여 구성할 수 있습니다. intent가 무엇인지와 intent message를 구성하는 방법을 자세히 알아보려면 [Intent Signing](/develop/transactions/transaction-auth/intent-signing)을 참조하세요.
+signature는 transaction data의 intent message hash에 commit해야 한다. 이 hash는 BCS serialized transaction data 앞에 3-byte intent를 붙여 구성할 수 있다. intent가 무엇인지와 intent message를 구성하는 방법을 자세히 알아보려면 [Intent Signing](/develop/transactions/transaction-auth/intent-signing)을 참조한다.
 
-signing API를 호출할 때는 먼저 transaction data의 intent message를 Blake2b로 hash하여 32 byte로 만들어야 합니다. 이 external hashing은 signing API 내부에서 수행되는 hashing과 별개입니다. 기존 standard와 hardware secure module(HSM)과 호환되도록 signing algorithm은 내부적으로 추가 hashing을 수행합니다. ECDSA Secp256k1과 Secp256r1의 경우 internal hash function으로 SHA-2 SHA256을 사용해야 합니다. Pure Ed25519의 경우 SHA-512를 사용해야 합니다.
+signing API를 호출할 때는 먼저 transaction data의 intent message를 Blake2b로 hash하여 32 byte로 만들어야 한다. 이 external hashing은 signing API 내부에서 수행되는 hashing과 별개이다. 기존 standard와 hardware secure module(HSM)과 호환되도록 signing algorithm은 내부적으로 추가 hashing을 수행한다. ECDSA Secp256k1과 Secp256r1의 경우 internal hash function으로 SHA-2 SHA256을 사용해야 한다. Pure Ed25519의 경우 SHA-512를 사용해야 한다.
 
-### ECDSA signature requirements
+### ECDSA signature requirement
 
-허용되는 ECDSA Secp256k1 및 Secp256r1 signature는 다음 조건을 따라야 합니다:
+허용되는 ECDSA Secp256k1 및 Secp256r1 signature는 다음 조건을 따라야 한다:
 
-1. ECDSA가 사용하는 internal hash는 transaction data의 SHA256 [SHA-2](https://en.wikipedia.org/wiki/SHA-2) hash여야 합니다. Sui가 SHA256을 사용하는 이유는 [Apple](https://developer.apple.com/forums/thread/89619), HSM에서 지원되고 [Bitcoin](https://en.bitcoin.it/wiki/Elliptic_Curve_Digital_Signature_Algorithm)에서도 널리 채택되었기 때문입니다.
+1. ECDSA가 사용하는 internal hash는 transaction data의 SHA256 [SHA-2](https://en.wikipedia.org/wiki/SHA-2) hash여야 한다. Sui가 SHA256을 사용하는 이유는 [Apple](https://developer.apple.com/forums/thread/89619), HSM에서 지원되고 [Bitcoin](https://en.bitcoin.it/wiki/Elliptic_Curve_Digital_Signature_Algorithm)에서도 널리 채택되었기 때문이다.
 
-1. signature는 첫 32 byte가 `r`, 두 번째 32 byte가 `s`인 `[r, s]` 형식의 64 byte 길이여야 합니다.
+1. signature는 첫 32 byte가 `r`, 두 번째 32 byte가 `s`인 `[r, s]` 형식의 64 byte 길이여야 한다.
 
-1. `r` 값은 `0x1`부터 `0xFFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364140`까지의 범위(포함)에 있어야 합니다.
+1. `r` 값은 `0x1`부터 `0xFFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364140`까지의 범위(포함)에 있어야 한다.
 
-1. `s` 값은 curve order의 lower half에 있어야 합니다. signature가 너무 높으면 해당 curve order에 대해 `order - s`를 사용해 [BIP-0062](https://github.com/bitcoin/bips/blob/master/bip-0062.mediawiki#low-s-values-in-signatures)에 따라 더 낮은 `s`로 변환합니다. Secp256k1의 curve order는 `0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141`입니다. Secp256r1의 curve order는 [Standards for Efficient Cryptography](https://secg.org/SEC2-Ver-1.0.pdf)에 정의된 `0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551`입니다.
+1. `s` 값은 curve order의 lower half에 있어야 한다. signature가 너무 높으면 해당 curve order에 대해 `order - s`를 사용해 [BIP-0062](https://github.com/bitcoin/bips/blob/master/bip-0062.mediawiki#low-s-values-in-signatures)에 따라 더 낮은 `s`로 변환한다. Secp256k1의 curve order는 `0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141`이다. Secp256r1의 curve order는 [Standards for Efficient Cryptography](https://secg.org/SEC2-Ver-1.0.pdf)에 정의된 `0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551`이다.
 
-1. 이상적으로 signature는 [RFC6979](https://www.rfc-editor.org/rfc/rfc6979)에 따라 deterministic nonce로 생성되어야 합니다.
+1. 이상적으로 signature는 [RFC6979](https://www.rfc-editor.org/rfc/rfc6979)에 따라 deterministic nonce로 생성되어야 한다.
 
-### Ed25519 signature requirements
+### Ed25519 signature requirement
 
-허용되는 pure Ed25519 signature는 다음 조건을 따라야 합니다:
+허용되는 pure Ed25519 signature는 다음 조건을 따라야 한다:
 
-1. signature는 [RFC 8032](https://www.rfc-editor.org/rfc/rfc8032#section-5.1.6)에 따라 생성되어야 합니다. internal hash로는 SHA-512를 사용합니다.
+1. signature는 [RFC 8032](https://www.rfc-editor.org/rfc/rfc8032#section-5.1.6)에 따라 생성되어야 한다. internal hash로는 SHA-512를 사용한다.
 
-1. signature는 [ZIP215](https://github.com/zcash/zips/blob/main/zips/zip-0215.rst)에 따라 valid해야 합니다.
+1. signature는 [ZIP215](https://github.com/zcash/zips/blob/main/zips/zip-0215.rst)에 따라 valid해야 한다.
 
-### Special signature schemes
+### 특수 signature scheme
 
-advanced signature scheme에 대한 자세한 내용은 다음을 참조하세요:
+advanced signature scheme에 대한 자세한 내용은 다음을 참조한다:
 
-- **zkLogin**: zero-knowledge login signature의 자세한 내용은 [zkLogin](/sui-stack/zklogin-integration)을 참조하세요.
+- **zkLogin**: zero-knowledge login signature의 자세한 내용은 [zkLogin](/sui-stack/zklogin-integration)을 참조한다.
 
-- **Passkey**: passkey implementation의 자세한 내용은 [SIP-8](https://github.com/sui-foundation/sips/blob/main/sips/sip-9.md)을 참조하세요.
+- **Passkey**: passkey implementation의 자세한 내용은 [SIP-8](https://github.com/sui-foundation/sips/blob/main/sips/sip-9.md)을 참조한다.
 
-- **Multisig**: multi-signature transaction의 자세한 내용은 [Multisig](/develop/transactions/transaction-auth/multisig)를 참조하세요.
+- **Multisig**: multi-signature transaction의 자세한 내용은 [Multisig](/develop/transactions/transaction-auth/multisig)를 참조한다.
 
-- **Offline Signing**: offline transaction signing의 구체적인 예시는 [Offline Signing](/develop/transactions/transaction-auth/offline-signing)을 참조하세요.
+- **Offline Signing**: offline transaction signing의 구체적인 예시는 [Offline Signing](/develop/transactions/transaction-auth/offline-signing)을 참조한다.
 
-## Authority signatures
+## Authority 서명
 
-Sui의 [validator collection](/operators/validator)은 서로 다른 목적을 위해 3개의 distinct key pair를 보유합니다.
+Sui의 [validator collection](/operators/validator)은 서로 다른 목적을 위해 3개의 distinct key pair를 보유한다.
 
 ### Protocol key pair {#protocol-pair}
 
-protocol key pair는 user-signed transaction이 검증되면 해당 transaction에 authority signature를 제공합니다. user transaction에 signature를 제공하는 authority의 stake가 필요한 2/3 threshold를 넘으면 Sui는 transaction을 실행합니다. Sui는 주어진 authority 수에 대해 aggregated signature를 빠르게 검증할 수 있도록 BLS12381 scheme을 사용합니다. 특히 Sui는 각 public key가 96 byte이고 signature가 48 byte인 minSig BLS mode를 사용합니다. 후자가 중요한 이유는 일반적으로 validator가 각 epoch 시작 시 key를 한 번 등록한 뒤 transaction에 계속 서명하기 때문에, Sui가 최소 signature size에 맞춰 최적화하기 때문입니다.
+protocol key pair는 user-signed transaction이 검증되면 해당 transaction에 authority signature를 제공한다. user transaction에 signature를 제공하는 authority의 stake가 필요한 2/3 threshold를 넘으면 Sui는 transaction을 실행한다. Sui는 주어진 authority 수에 대해 aggregated signature를 빠르게 검증할 수 있도록 BLS12381 scheme을 사용한다. 특히 Sui는 각 public key가 96 byte이고 signature가 48 byte인 minSig BLS mode를 사용한다. 후자가 중요한 이유는 일반적으로 validator가 각 epoch 시작 시 key를 한 번 등록한 뒤 transaction에 계속 서명하기 때문에, Sui가 최소 signature size에 맞춰 최적화하기 때문이다.
 
-BLS scheme과 마찬가지로 독립 signature를 aggregate해 단일 BLS signature payload로 만들 수 있습니다. Sui는 aggregate signature와 함께 어떤 validator가 서명했는지를 나타내는 bitmap도 제공합니다. 이는 authority signature size를 (2f + 1) × `BLS_sig` size에서 하나의 `BLS_sig` payload로 줄입니다. 이 방식은 validator set size와 독립적으로 transaction certificate를 압축하여 network cost를 크게 줄입니다.
+BLS scheme과 마찬가지로 독립 signature를 aggregate해 단일 BLS signature payload로 만들 수 있다. Sui는 aggregate signature와 함께 어떤 validator가 서명했는지를 나타내는 bitmap도 제공한다. 이는 authority signature size를 (2f + 1) × `BLS_sig` size에서 하나의 `BLS_sig` payload로 줄인다. 이 방식은 validator set size와 독립적으로 transaction certificate를 압축하여 network cost를 크게 줄인다.
 
-BLS12381 aggregated signature에서 발생할 수 있는 rogue key attack에 대응하기 위해 authority registration 중 secret key에 대한 proof of knowledge(KOSK)를 사용합니다. authority가 validator set에 추가되도록 요청하면 proof of possession이 제출되고 검증됩니다. proof of possession을 만드는 방법은 [Intent Signing](/develop/transactions/transaction-auth/intent-signing)을 참조하세요. 대부분의 standard와 달리 Sui proof of knowledge scheme은 address에도 commit하므로, 악의적인 다른 validator의 validator BLS key를 재사용하는 공격에 대한 추가 보호를 제공합니다.
+BLS12381 aggregated signature에서 발생할 수 있는 rogue key attack에 대응하기 위해 authority registration 중 secret key에 대한 proof of knowledge(KOSK)를 사용한다. authority가 validator set에 추가되도록 요청하면 proof of possession이 제출되고 검증된다. proof of possession을 만드는 방법은 [Intent Signing](/develop/transactions/transaction-auth/intent-signing)을 참조한다. 대부분의 standard와 달리 Sui proof of knowledge scheme은 address에도 commit하므로, 악의적인 다른 validator의 validator BLS key를 재사용하는 공격에 대한 추가 보호를 제공한다.
 
 ### Account key pair {#account-pair}
 
-authority가 staking reward payment를 받는 데 사용하는 account는 account key pair로 보호됩니다. Sui는 signing scheme으로 pure Ed25519를 사용합니다.
+authority가 staking reward payment를 받는 데 사용하는 account는 account key pair로 보호된다. Sui는 signing scheme으로 pure Ed25519를 사용한다.
 
 ### Network key pair {#network-pair}
 
-private key는 [consensus](/develop/sui-architecture/consensus) networking에 필요한 TLS handshake를 수행하는 데 사용됩니다. public key는 validator identity에 사용됩니다. scheme으로는 pure Ed25519가 사용됩니다.
+private key는 [consensus](/develop/sui-architecture/consensus) networking에 필요한 TLS handshake를 수행하는 데 사용된다. public key는 validator identity에 사용된다. scheme으로는 pure Ed25519가 사용된다.
 
-더 많은 authority key tooling은 [Validator Tool](https://github.com/MystenLabs/sui/blob/f8b5ad9aaecc3c4b30a060ec5e00bdad9ba75a93/nre/validator_tool.md)을 참조하세요.
+더 많은 authority key tooling은 [Validator Tool](https://github.com/MystenLabs/sui/blob/f8b5ad9aaecc3c4b30a060ec5e00bdad9ba75a93/nre/validator_tool.md)을 참조한다.
 
-### Examples
+### 예시
 
-[Sui CLI tool](/getting-started/onboarding/sui-install)과 [Sui SDKs](https://sdk.mystenlabs.com/typescript)는 여러 signing scheme으로 transaction에 서명할 수 있는 유연한 interface를 제공합니다.
+[Sui CLI tool](/getting-started/onboarding/sui-install)과 [Sui SDKs](https://sdk.mystenlabs.com/typescript)는 여러 signing scheme으로 transaction에 서명할 수 있는 유연한 interface를 제공한다.
 
 <Tabs>
 <TabItem value="cli" label="CLI">
@@ -170,31 +170,31 @@ const address = keypair.getPublicKey().toSuiAddress();
 </TabItem>
 </Tabs>
 
-더 많은 test vector는 [pure Ed25519](https://github.com/MystenLabs/sui/blob/f3b5fdd73da64a0df65fb4323471512b0f57ec4d/sdk/typescript/test/unit/cryptography/ed25519-keypair.test.ts) 또는 [ECDSA Secp256k1](https://github.com/MystenLabs/sui/blob/199f06d25ce85f0270a1a5a0396156bb2b83122c/sdk/typescript/test/unit/cryptography/secp256k1-keypair.test.ts)을 참조하세요.
+더 많은 test vector는 [pure Ed25519](https://github.com/MystenLabs/sui/blob/f3b5fdd73da64a0df65fb4323471512b0f57ec4d/sdk/typescript/test/unit/cryptography/ed25519-keypair.test.ts) 또는 [ECDSA Secp256k1](https://github.com/MystenLabs/sui/blob/199f06d25ce85f0270a1a5a0396156bb2b83122c/sdk/typescript/test/unit/cryptography/secp256k1-keypair.test.ts)을 참조한다.
 
-## Workflow
+## 워크플로
 
-다음 상위 수준 과정은 온체인 transaction을 구성하고 서명하고 실행하는 전체 흐름을 설명합니다:
+다음 상위 수준 과정은 온체인 transaction을 구성하고 서명하고 실행하는 전체 흐름을 설명한다:
 
-1. 여러 command를 연결한 `Transaction`을 만들어 transaction data를 구성합니다. 자세한 내용은 [Programmable Transaction Block 구성하기](/develop/transactions/ptbs/building-ptb)를 참조하세요.
+1. 여러 command를 연결한 `Transaction`을 만들어 transaction data를 구성한다. 자세한 내용은 [Programmable Transaction Block 구성하기](/develop/transactions/ptbs/building-ptb)를 참조한다.
 
-2. SDK의 내장 gas estimation과 coin selection이 gas coin을 선택합니다.
+2. SDK의 내장 gas estimation과 coin selection이 gas coin을 선택한다.
 
-3. [signature](/develop/transactions/transaction-auth/auth-overview)를 생성하도록 transaction에 서명합니다.
+3. [signature](/develop/transactions/transaction-auth/auth-overview)를 생성하도록 transaction에 서명한다.
 
-4. `Transaction`과 그 signature를 제출해 온체인 실행을 요청합니다.
+4. `Transaction`과 그 signature를 제출해 온체인 실행을 요청한다.
 
 :::info
 
-address balances feature를 사용하는 경우, 이 feature가 gas coin을 선택하거나 merge할 필요를 완전히 제거합니다.
+address balances feature를 사용하는 경우, 이 feature가 gas coin을 선택하거나 merge할 필요를 완전히 제거한다.
 
-특정 gas coin을 사용하고 싶다면 먼저 gas 지불에 사용할 gas coin object ID를 찾고 이를 PTB에 명시적으로 사용합니다.
-gas coin object가 없다면 [splitCoin](/develop/transactions/ptbs/building-ptb#available-transactions) transaction을 사용해 gas coin object를 만듭니다.
-split coin transaction은 PTB의 첫 번째 transaction call이어야 합니다.
+특정 gas coin을 사용하고 싶다면 먼저 gas 지불에 사용할 gas coin object ID를 찾고 이를 PTB에 명시적으로 사용한다.
+gas coin object가 없다면 [splitCoin](/develop/transactions/ptbs/building-ptb#gas-coin-사용) transaction을 사용해 gas coin object를 만든다.
+split coin transaction은 PTB의 첫 번째 transaction call이어야 한다.
 
 :::
 
-## Process multiple transactions from the same address
+## 같은 address의 여러 transaction 처리
 
 Sui SDK는 같은 address에서 여러 transaction을 처리하는 데 도움이 되는 transaction executor를 제공한다.
 
@@ -211,7 +211,7 @@ transaction을 하나씩 순차적으로 처리할 때는 `SerialTransactionExec
 이 클래스는 병렬 transaction이 해당 coin에 대해 equivocate하지 않도록 관리하는 gas coin pool을 만든다.
 이 클래스는 transaction 전반에서 사용된 object를 추적하고, object 입력도 equivocate되지 않도록 그 처리 순서를 정렬한다.
 
-## Examples of signing transactions
+## Transaction signing 예시
 
 다음 예시는 Rust, TypeScript, Sui CLI를 사용해 transaction에 서명하고 실행하는 방법을 보여준다.
 

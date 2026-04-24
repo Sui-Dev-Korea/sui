@@ -6,17 +6,17 @@ keywords: [ taker fee, maker fee, stake, staking, governance, unstake, submit pr
 ---
 
 
-다음은 staking 및 governance와 상호작용하는 예시이다. 이러한 함수는 일반적으로 `balanceManagerKey`, `poolKey`, 또는 둘 다를 요구한다. 이러한 key에 대한 자세한 내용은 [DeepBookV3 SDK](/onchain-finance/deepbookv3-sdk#keys)를 참조하라. SDK에는 `constants.ts` 파일에서 볼 수 있는 몇 가지 기본 key가 포함되어 있다.
+다음은 staking 및 governance와 상호작용하는 예시이다. 이러한 함수는 일반적으로 `balanceManagerKey`, `poolKey`, 또는 둘 다를 요구한다. 이러한 key에 대한 자세한 내용은 [DeepBookV3 SDK](/onchain-finance/deepbookv3-sdk/deepbookv3-sdk#keys)를 참조하라. SDK에는 `constants.ts` 파일에서 볼 수 있는 몇 가지 기본 key가 포함되어 있다.
 
 staking 및 governance API에 대한 자세한 내용은 [스테이킹 및 거버넌스](../deepbookv3/contract-information/staking-governance)를 참조하라.
 
-## Staking and governance functions
+## staking 및 governance function
 
-### stake
+### 스테이크
 
 `stake`를 사용하여 사용자가 지정한 amount를 특정 pool에 stake한다. 이 호출은 `Transaction` object를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `balanceManagerKey`: balance manager를 식별하는 String이다.
@@ -30,7 +30,7 @@ stake(poolKey: string, balanceManagerKey: string, stakeAmount: number);
 
 `unstake`를 사용하여 특정 pool에서 unstake한다. 이 호출은 `Transaction` object를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `balanceManagerKey`: balance manager를 식별하는 String이다.
@@ -43,7 +43,7 @@ unstake(poolKey: string, balanceManagerKey: string);
 
 `submitProposal`를 사용하여 governance proposal을 제출한다. 이 호출은 `Transaction` object를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `params`: proposal을 정의하는 `ProposalParams` object이다.
 
@@ -55,7 +55,7 @@ submitProposal({ params: ProposalParams });
 
 `vote`를 사용하여 proposal에 투표한다. 이 호출은 `Transaction` object를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `balanceManagerKey`: balance manager를 식별하는 String이다.
@@ -69,14 +69,14 @@ vote(poolKey: string, balanceManagerKey: string, proposal_id: string)
 
 `claimRebates`를 사용하여 특정 pool의 balance manager에 대한 maker/taker rebate를 클레임한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `balanceManagerKey`: balance manager를 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/deepbook.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="claimRebates" signatureOnly/>
 
-## Examples
+## 예시
 
 다음 예시는 `DeepBookMarketMaker` class에 넣을 수 있는 custom staking 및 governance 함수를 보여준다.
 

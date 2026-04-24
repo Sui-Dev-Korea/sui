@@ -18,7 +18,7 @@ keywords:
 
 이 문서는 Sui 문서의 스타일, 용어 사용 및 콘텐츠 포맷을 정의한다. 항목은 알파벳 순서로 정렬되어 있다. 스타일 가이드는 결코 완성되지 않으며, 추가 스타일, 기존 스타일에 대한 추가 정보, 그리고 드물게 기존 스타일에 대한 변경이 계속해서 반복될 것으로 예상된다.
 
-## Editorial considerations {#editorial-considerations}
+## Editorial 고려 사항 {#editorial-considerations}
 
 - **간단한 단어와 간결한 문장을 사용한다.** 복잡하거나 학술적인 표현보다 명확하고 직접적인 언어를 선호한다. 짧은 문장은 가독성을 높이고 현지화하기 쉽다.
 
@@ -34,19 +34,19 @@ keywords:
 
 ---
 
-## Spelling and grammar
+## Spelling 및 grammar
 
-#### Spelling {#spelling}
+#### Spelling 규칙 {#spelling}
 
 소스 콘텐츠에는 미국식 영어 철자를 사용한다.
 
-#### Avoid Latin abbreviations {#latin-abbreviations}
+#### Latin abbreviation 피하기 {#latin-abbreviations}
 
 많은 언어가 라틴어 기반이 아니므로 라틴어 약어(예: i.e., etc., et. al)를 사용하지 않는다. 대신 ex. 또는 "for example", "and so on"과 같은 완전한 구문을 사용한다.
 
-#### Grammar {#grammar}
+#### Grammar 규칙 {#grammar}
 
-##### Active voice {#active-voice}
+##### Active voice 사용 {#active-voice}
 
 가능한 한 능동태를 사용한다. 능동태는 직접적이고 명확하며 단어 수가 적다. 수동태는 종종 덜 명확하고 어색하며 단어 수가 많다.
 
@@ -54,7 +54,7 @@ keywords:
 
 > ❌ **수동태:** The software was installed by her.
 
-##### Person {#person}
+##### Person 관점 {#person}
 
 - First person → I or we
 
@@ -68,7 +68,7 @@ keywords:
 
 > ❌ We can view the transaction history in the Sui Explorer.
 
-##### Present tense {#present-tense}
+##### Present tense 사용 {#present-tense}
 
 가능한 한 현재 시제를 사용한다. 미래 시제는 예정된 제품 릴리스와 같이 특정 미래 시점에 발생할 이벤트에만 사용한다.
 
@@ -87,7 +87,7 @@ keywords:
 
 기술적으로는 올바르지만 미래 시제는 사용자와 동작 사이에 거리를 만든다. 또한 ESL 독자가 텍스트를 이해하기 어렵게 만들고 현지화하기 더 어렵게 만든다. 실제로 사용자가 **Save**를 클릭하면 동작은 즉시 발생한다.
 
-##### Punctuation
+##### Punctuation 문장 부호
 
 1. 문장
 
@@ -123,17 +123,17 @@ keywords:
 
     - 소수점 뒤에 추가 마침표를 넣지 않는다.
 
-##### Parentheses
+##### Parentheses 괄호
 
 괄호는 주요 문장에 필수적이지 않은 명확화 또는 보충 정보를 추가하는 데 사용한다.
 
 괄호를 남용하지 않는다. 정보가 중요하면 고립시키는 대신 문장에 통합한다.
 
-#### Avoid using (s) for plurals
+#### Plural에 (s) 사용 피하기
 
 단수와 복수를 모두 명시적으로 인정해야 하는 법률, 계약, 규제 문맥처럼 정밀성이 꼭 필요한 경우가 아니라면 “(s)”를 사용하지 않는다. 그 외의 경우에는 괄호 없이 복수형을 사용한다.
 
-##### Oxford (serial) commas {#oxford-serial-commas}
+##### Oxford(serial) comma 사용 {#oxford-serial-commas}
 
 연속 쉼표를 사용한다.
 
@@ -141,27 +141,27 @@ keywords:
 
 > ❌ You must install Cargo, Rust, Docker and the Sui CLI to create a Sui node.
 
-##### Numbers {#numbers}
+##### Number 표기 {#numbers}
 
 숫자를 문자로 쓰지 않고 항상 숫자 값을 사용한다.
 
 > The folder contains 24 files. One folder contains 7 files, and the other contains 24 files. At least 20 pieces of candy fell off the table.
 
-##### Quotation marks
+##### Quotation mark 따옴표
 
 단 하나의 예외인 "Hello, World!"를 제외하고는 따옴표를 사용하지 않는다.
 
-##### Ampersands
+##### Ampersand 사용
 
 콘텐츠에서 `and`를 대신하기 위해 앰퍼샌드(`&`)를 사용하지 않는다. `and`라는 단어가 접근성이 더 높고 일부 프로그래밍 사용 사례에서 오류 가능성이 더 낮기 때문이다.
 
-##### Exclamations
+##### Exclamation mark 사용
 
 느낌표를 사용하지 않는다.
 
 ---
 
-## Terminology and vocabulary
+## Terminology와 vocabulary
 
 일관성을 위해 Sui 문서는 다음 용어와 구문을 표시된 대문자 사용법으로 사용해야 한다(문장 구조가 달리 결정하지 않는 한). 이 목록은 완전하지 않으며 시간이 지남에 따라 업데이트될 것이다.
 
@@ -173,14 +173,14 @@ keywords:
 **항상 하이픈** | depth-first search, peer-to-peer, off-chain, off-device, on-chain, on-device | 명확성과 정확성을 위해 하이픈을 유지한다
 **권장 단어** | Use "might" in place of "may" | may라는 단어에는 가능성보다 허가를 암시하는 부차적 정의가 있다.
 
-### Nodes
+### Node 용어
 
 노드(full, archival, validator 등)를 참조할 때 다음을 사용한다:
 
 - 네트워크에서의 개념적 역할을 언급할 때는 소문자 *full node*를 사용한다. "Every RPC provider must enable gRPC on their full node."
 - Sui가 배포하는 공식 소프트웨어 바이너리/패키지를 언급할 때는 대문자*Sui Full Node*를 사용한다. “Download and run the Sui Full Node from GitHub to connect to Mainnet.”
 
-### Proper nouns {#proper-nouns}
+### Proper noun 고유명사 {#proper-nouns}
 
 전체에 걸쳐 고유 명사를 대문자로 표기한다.
 
@@ -198,7 +198,7 @@ keywords:
 
 - 표준 또는 기술: Local Area Network (LAN)
 
-### Product names {#product-names}
+### Product name 제품명 {#product-names}
 
 제품명은 고유 명사이다. 제품명의 모든 단어를 대문자로 표기한다. 제품을 언급할 때 "the" 없이 제품명만 사용한다. Sui wallet을 구체적으로 언급할 때는 단순히 wallet이 아닌 Sui Wallet 또는 Ethos Wallet을 사용한다. 사용자는 여러 wallet을 가지고 있을 가능성이 높으며, 어떤 wallet을 지칭하는지 명확히 해야 한다. wallet의 개념을 일반적으로 언급할 때는 wallet을 사용한다.
 
@@ -212,20 +212,20 @@ keywords:
 > - Ethos Wallet
 > - Coinbase Wallet
 
-### Acronyms and abbreviations
+### Acronym과 abbreviation
 
-#### Acronyms {#acronyms}
+#### Acronym 약어 {#acronyms}
 
 주제에서 처음 사용할 때 용어나 구문을 풀어쓰고 괄호 안에 약어를 넣는다. 이후 언급에는 약어를 사용한다.
 
 > 예시: You can mint non-fungible tokens (NFTs) using your Sui Wallet. To view an NFT after you mint it, click the NFTs tab of your wallet.
 
-##### Terms that should always be used as acronyms
+##### 항상 acronym으로 사용해야 하는 용어
 
 - CLI
 - SDK
 
-#### Abbreviations
+#### Abbreviation 축약어
 
 단어의 약어는 사용하지 않아야 한다. 명확성을 위해 전체 단어를 쓴다.
 
@@ -235,9 +235,9 @@ keywords:
 
 ---
 
-## Capitalization {#capitalization}
+## Capitalization 대소문자 {#capitalization}
 
-#### Title capitalization {#title-capitalization}
+#### Title capitalization 규칙 {#title-capitalization}
 
 타이틀 대문자 사용에 대해 다음 지침을 따른다:
 
@@ -251,19 +251,19 @@ keywords:
 
 - API 요소와 프로그래밍 언어 키워드의 대소문자를 일치시킨다.
 
-#### Section heading capitalization
+#### Section heading capitalization 규칙
 
 섹션 제목, 테이블 셀 또는 헤더, 목록 항목, 캡션, 대체 텍스트 및 오류 메시지에는 문장 대문자 사용을 적용한다.
 
-#### Body text capitalization
+#### Body text capitalization 규칙
 
-##### Do:
+##### 권장:
 
 새 문장의 첫 단어는 항상 대문자로 쓴다.
 
-고유 명사와 제품명은 항상 대문자로 쓴다. 대문자로 써야 할 용어의 전체 목록은 [words to always capitalize](#word-list)를 참고한다.
+고유 명사와 제품명은 항상 대문자로 쓴다. 대문자로 써야 할 용어의 전체 목록은 [항상 대문자로 쓸 단어](#terminology와-vocabulary)를 참고한다.
 
-##### Do not:
+##### 금지:
 
 강조를 위해 모두 대문자를 사용하지 않는다; 대신 굵게를 사용한다.
 
@@ -279,13 +279,13 @@ keywords:
 
 ---
 
-## Body text styling
+## Body text styling 스타일
 
-#### Em dashes {#em-dashes}
+#### Em dash 사용 {#em-dashes}
 
 문서에서 em dash(—)를 사용하지 않는다. 문장을 다시 써서 이를 피한다. 대신 쉼표, 괄호를 사용하거나 문장을 둘로 나눈다.
 
-#### Bold text
+#### Bold text 굵은 글씨
 
 목록에서 용어와 정의를 구분하려면 굵게를 사용한다. 이 규칙은 용어 뒤에 콜론(:)이 올 때만 적용하며, 용어나 구가 문장 전체의 일부일 때는 적용하지 않는다.
 
@@ -297,15 +297,15 @@ keywords:
 
 강조를 위해 굵게를 드물게 사용하고 명확성을 위해 필요한 경우에만 사용한다. 본문 텍스트에서 일반적인 강조를 위해 굵게를 남용하지 않는다.
 
-##### UI elements
+##### UI element 표기
 
 버튼, 메뉴 항목, 필드 레이블, command처럼 화면에 보이는 UI 요소에는 굵게를 사용한다.
 
-##### Port numbers
+##### Port number 표기
 
 포트 참조는 **port NUMBER** 형식으로 굵게 표시하며, 예를 들어 **port 3000** 또는 **port 8080**과 같이 쓴다.
 
-#### Keyboard button text
+#### Keyboard button text 표기
 
 키보드의 실제 버튼에 해당하는 텍스트에는 `<kbd>` 태그를 사용한다.
 
@@ -325,17 +325,17 @@ Press <kbd>0</kbd>, <kbd>1</kbd>, or <kbd>2</kbd> to select a key scheme and the
 </TabItem>
 </Tabs>
 
-#### Italic text
+#### Italic text 기울임꼴
 
 이탤릭체 사용은 피한다.
 
 페이지에서 처음 정의해야 하는 용어는 대신 Glossary component를 사용해야 한다.
 
-#### Slashes {#slashes}
+#### Slash 사용 {#slashes}
 
 True / False 또는 True/False와 같이 "and" 또는 "or" 대신 슬래시를 사용하지 않는다. True or False를 사용하거나, 코드 문서에서 True | False를 사용한다.
 
-#### Variables
+#### 변수
 
 독자가 교체해야 하는 placeholder variable에는 `NETWORK_NAME` 또는 `YOUR_API_KEY`처럼 밑줄이 있는 대문자를 사용한다.
 
@@ -345,11 +345,11 @@ True / False 또는 True/False와 같이 "and" 또는 "or" 대신 슬래시를 �
 
 ---
 
-## Titles and headings
+## Title과 heading
 
 제목과 타이틀에 검색 결과 페이지에서 어떤 링크를 클릭할지 쉽게 알 수 있도록 충분한 단어를 사용한다. 한 단어 타이틀(예: Installing)은 주제의 내용을 결정하기에 충분한 정보를 제공하지 않는다.
 
-#### Page titles
+#### Page title 표기
 
 독자가 콘텐츠를 빠르게 식별할 수 있도록 관련 키워드가 포함된 **설명적 타이틀**을 사용한다. 탐색 창에서는 짧은 타이틀이 선호된다. 문서 frontmatter에 `sidebar_label`을 추가하여 다른 탐색 타이틀을 설정할 수 있다.
 
@@ -357,7 +357,7 @@ True / False 또는 True/False와 같이 "and" 또는 "or" 대신 슬래시를 �
 
 더 나은 옵션은 **Get Started with Sui**이지만 이것도 여전히 너무 광범위하다. 독자는 특정 작업이나 여정에 대한 안내를 원한다. 대신 **Create a Sui Full Node** 또는 **Install Sui Tooling**과 같은 정확한 타이틀을 사용한다. 이것들은 독자가 정확히 무엇을 배우거나 달성할지 알려준다.
 
-#### Page headings
+#### Page heading 표기
 
 제목 대문자 사용 스타일(문장 대소문자)을 사용한다. 제목을 쌓지 않는다(사이에 본문 텍스트 없이 두 개를 연속으로 배치하지 않는다).
 
@@ -369,7 +369,7 @@ True / False 또는 True/False와 같이 "and" 또는 "or" 대신 슬래시를 �
 
 > ❌ 잘못된 사용법: Page 1: Page title "Sui Gas Profiling" with heading "Environment configuration" Page 2: Page title: "Sui Features" with heading "Sui gas profiling"
 
-#### Heading sizes
+#### Heading size 크기
 
 - Heading 1: (#) 페이지 제목에만 사용된다. frontmatter에 타이틀이 지정되면 해당 타이틀이 Heading 1 요소로 페이지가 자동으로 포맷된다.
 
@@ -408,7 +408,7 @@ True / False 또는 True/False와 같이 "and" 또는 "or" 대신 슬래시를 �
 </TabItem>
 </Tabs>
 
-#### Code elements in section headings
+#### Section heading의 code element
 
 페이지 콘텐츠에서 단어나 구문이 `inline code`로 포맷되어 있다면, 섹션 제목에서도 동일하게 포맷해야 한다.
 
@@ -420,7 +420,7 @@ True / False 또는 True/False와 같이 "and" 또는 "or" 대신 슬래시를 �
 
 ---
 
-## Lists {#lists}
+## List 목록 {#lists}
 
 목록을 사용하여 항목이나 단계를 명확하게 제시한다. 콜론(:)으로 끝나는 짧은 설명으로 목록을 도입한다. 목록은 4개 이상의 항목을 연속 쉼표 목록으로 포함하는 문장 대신 사용해야 한다.
 
@@ -439,7 +439,7 @@ True / False 또는 True/False와 같이 "and" 또는 "or" 대신 슬래시를 �
 > - For objects, the `tx.object(objectId)` function is used to construct an input that contains an object reference.
 > - For pure values, the `tx.pure(type, value)` function is used to construct an input for a non-object input.
 
-#### Numbered lists {#numbered-ordered-lists}
+#### Numbered list 목록 {#numbered-ordered-lists}
 
 항목이 순서대로 수행되어야 하거나, 시퀀스를 설명하거나, 특정 수의 항목을 설명할 때 사용한다.
 
@@ -466,7 +466,7 @@ True / False 또는 True/False와 같이 "and" 또는 "or" 대신 슬래시를 �
 </TabItem>
 </Tabs>
 
-#### Bulleted lists {#bulleted-lists}
+#### Bulleted list 목록 {#bulleted-lists}
 
 순서가 필요하지 않은 관련 항목에 사용한다. 문장 대소문자와 일관된 구두점을 사용한다. 항목이 완전한 문장인 경우에만 마침표를 추가한다.
 
@@ -497,7 +497,7 @@ Sui Explorer supports the following browsers:
 </TabItem>
 </Tabs>
 
-#### Term lists {#term-list}
+#### Term list 목록 {#term-list}
 
 용어나 개념을 정의하는 데 사용한다. 용어는 굵은 텍스트여야 하고, 그 뒤에 콜론(:)과 문장 대소문자를 사용한 용어 정의가 온다:
 
@@ -508,7 +508,7 @@ Sui Explorer supports the following browsers:
 
 - **Term:** 해당 용어에 대한 설명.
 
-- **DAG:** 방향성 비순환 그래프(DAG)는 데이터 아키텍처에서 일반적으로 사용되는 데이터 모델링 또는 구조화 도구입니다.
+- **DAG:** 방향성 비순환 그래프(DAG)는 데이터 아키텍처에서 일반적으로 사용되는 데이터 모델링 또는 구조화 도구이다.
 
 </TabItem>
 <TabItem value="markdown" label="Markdown">
@@ -526,7 +526,7 @@ Sui Explorer supports the following browsers:
 </TabItem>
 </Tabs>
 
-#### Attribute lists
+#### Attribute list 목록
 
 object와 같은 컴포넌트의 속성을 나열하기 위해 인라인 코드 포맷이 있는 목록을 사용한다.
 
@@ -569,9 +569,9 @@ An event object in Sui consists of the following attributes:
 </TabItem>
 </Tabs>
 
-## Tables {#tables}
+## Table 표 {#tables}
 
-#### Table headings {#table-headings}
+#### Table heading 표기 {#table-headings}
 
 제목의 첫 단어를 대문자로 쓴다. 텍스트를 가운데 정렬한다. Header 행의 레이블을 굵게 표시한다.
 
@@ -598,19 +598,19 @@ Metric name | 10 | X | Text string.
 </TabItem>
 </Tabs>
 
-#### Table text {#table-text}
+#### Table text 표기 {#table-text}
 
 일반 본문 텍스트에 대한 스타일 가이드라인을 따른다.
 
 ---
 
-## Code {#code}
+## Code 코드 {#code}
 
 함수, object 이름, CLI 도구 이름 또는 CLI 명령을 참조하는 단어나 구문은 문장에서 사용할 때 인라인 코드로 포맷해야 한다.
 
 더 큰 섹션에는 코드블록을 사용한다. 항상 올바른 구문 강조로 포맷된 실제 코드블록을 사용한다(이미지 아님).
 
-#### Inline code {#inline-code}
+#### Inline code 표기 {#inline-code}
 
 인라인 코드 주위에 백틱(`)을 사용한다.
 
@@ -632,7 +632,7 @@ Metric name | 10 | X | Text string.
 
 - 파일 경로: `~/.cargo/bin`
 
-#### Console commands
+#### Console command 표기
 
 콘솔 명령은 세 개의 백틱(```)으로 포맷하고 `$`로 시작해야 한다.
 
@@ -644,7 +644,7 @@ $ brew install sui
 
 명령과 응답 출력을 다른 코드 블록에 유지한다. 이렇게 하면 명령을 복사하여 올바르게 실행할 수 있다.
 
-#### Codeblocks {#codeblocks}
+#### Codeblock 표기 {#codeblocks}
 
 프로젝트 내에서 코드가 배치되어야 하는 위치를 포함한 설명 텍스트로 코드블록을 도입한다:
 
@@ -663,7 +663,7 @@ $ brew install sui
 <Tabs>
 <TabItem value="example" label="Example" default>
 
-```move
+```move title='house_data.move'
 module satoshi_flip::house_data {
 
   use sui::balance::{Self, Balance};
@@ -705,12 +705,17 @@ module satoshi_flip::house_data {
 </TabItem>
 </Tabs>
 
-#### Sourcing code samples {#sourcing-code-samples}
+#### Code sample sourcing 방법 {#sourcing-code-samples}
 
 가능하면 code를 인라인으로 복사하지 말고 `<ImportContent>` component를 사용해 원래 GitHub repository에서 source code sample을 직접 가져온다.
 
 이렇게 하면 sample이 source와 동기화된 상태를 유지하고 유지보수 부담을 줄일 수 있다.
 
+```mdx
+<ImportContent source="src/lib/walrus.ts" mode="code" org="MystenLabs" repo="walrus-sdk-relay-example-app" />
+```
+
+가능하면 code를 인라인으로 복사하지 말고 `<ImportContent>` component를 사용해 원래 GitHub repository에서 source code sample을 직접 가져온다. 이렇게 하면 sample이 source와 동기화된 상태를 유지하고 유지보수 부담을 줄일 수 있다.
 ```mdx
 <ImportContent source="src/lib/walrus.ts" mode="code" org="MystenLabs" repo="walrus-sdk-relay-example-app" />
 ```
@@ -746,11 +751,11 @@ module satoshi_flip::house_data {
 | `noTitle` | Boolean | 포함되면 code block header의 filename title을 생략한다. |
 | `style` | String | 렌더링된 code block container에 custom inline style을 적용한다. |
 
-## Procedures, tasks, and instructions {#procedures-tasks-instructions}
+## Procedure, task, instruction 작성 {#procedures-tasks-instructions}
 
 절차를 부정사 동사로 도입한다. 번호 매기기 또는 순서가 있는 목록을 사용하여 절차를 포맷한다.
 
-### Single-procedure pages {#single-procedure}
+### Single-procedure page 구성 {#single-procedure}
 
 페이지에 단일한 step-by-step 지침 집합이 들어 있을 때는 `##step` component를 사용해 step을 렌더링한다.
 
@@ -785,7 +790,7 @@ Deploy the contract.
 </TabItem>
 </Tabs>
 
-### Multiple-procedure pages {#multiple-procedures}
+### Multiple-procedure page 구성 {#multiple-procedures}
 
 페이지에 여러 개의 step-by-step 지침 집합이 들어 있을 때, 예를 들어 운영 체제별 설치 절차나 서로 다른 workflow가 여러 개 있을 때는 각 절차의 step을 구분하기 위해 H5 heading(`#####`)을 사용한다.
 
@@ -794,47 +799,47 @@ Deploy the contract.
 <Tabs>
 <TabItem value="example" label="Example" default>
 
-### Install on macOS
+### macOS에 install
 
-##### Step 1: Install dependencies
+##### Step 1: dependency install 실행
 ...
 
-##### Step 2: Run the installer
+##### Step 2: installer 실행
 ...
 
-### Install on Linux
+### Linux에 install
 
-##### Step 1: Update package lists
+##### Step 1: package list update 실행
 ...
 
-##### Step 2: Run the installer
+##### Step 2: installer 실행
 ...
 
 </TabItem>
 <TabItem value="markdown" label="Markdown">
 
 ```
-### Install on macOS
+### macOS에 install
 
-##### Step 1: Install dependencies
+##### Step 1: dependency install 실행
 ...
 
-##### Step 2: Run the installer
+##### Step 2: installer 실행
 ...
 
-### Install on Linux
+### Linux에 install
 
-##### Step 1: Update package lists
+##### Step 1: package list update 실행
 ...
 
-##### Step 2: Run the installer
+##### Step 2: installer 실행
 ...
 ```
 
 </TabItem>
 </Tabs>
 
-#### Keyboard keys in procedures {#keyboard-keys-procedures}
+#### Procedure의 keyboard key {#keyboard-keys-procedures}
 
 **Enter**를 눌러 계속과 같이 키보드 키를 누르는 지침을 제공할 때 키 이름에 대문자를 사용하고 키 이름을 굵은 텍스트로 포맷한다.
 
@@ -867,7 +872,7 @@ To get the latest version of the Sui Wallet extension:
 </TabItem>
 </Tabs>
 
-#### UI elements {#ui-elements}
+#### UI element 표기 {#ui-elements}
 
 필드 레이블, 버튼 이름, 메뉴 명령과 같은 UI 요소를 굵은 텍스트로 포맷한다. 항상 대소문자를 포함하여 UI 요소의 정확한 텍스트 또는 레이블과 일치시킨다. 요소 레이블에 포함된 줄임표와 같은 특수 문자는 포함하지 않는다.
 
@@ -875,11 +880,11 @@ To get the latest version of the Sui Wallet extension:
 
 ---
 
-## Prerequisites {#prerequisites}
+## 필수 조건 {#prerequisites}
 
 절차를 시작하기 전에 독자가 설치, 구성, 또는 완료해야 하는 항목을 나열하려면 prerequisites section을 사용한다.
 
-### Sui docs {#prerequisites-sui}
+### Sui docs 필수 조건 {#prerequisites-sui}
 
 Sui documentation 페이지에서는 prerequisites에 다음 tab component를 사용한다:
 
@@ -894,7 +899,7 @@ Sui documentation 페이지에서는 prerequisites에 다음 tab component를 �
 </Tabs>
 ```
 
-### Walrus docs {#prerequisites-walrus}
+### Walrus docs 필수 조건 {#prerequisites-walrus}
 
 Walrus documentation 페이지에서는 prerequisites에 다음 outlined tab component를 사용한다:
 
@@ -913,7 +918,7 @@ Walrus documentation 페이지에서는 prerequisites에 다음 outlined tab com
 </div>
 ```
 
-## Links and references
+## Link와 reference
 
 [docs.sui.io]의 주제에 링크할 때 항상 전체 상대 링크를 사용한다.
 
@@ -941,15 +946,32 @@ Walrus documentation 페이지에서는 prerequisites에 다음 outlined tab com
 
 인라인 링크를 사용할 때 대상 주제 타이틀의 키워드를 사용한다.
 
-### URLs and web addresses {#urls-web-addresses}
+<Tabs>
+<TabItem value="example" label="Example" default>
+
+> Sui를 설치하기 전에 [prerequisites](/getting-started/onboarding/install-source)를 설치했는지 확인한다.
+
+</TabItem>
+<TabItem value="markdown" label="Markdown">
+
+```
+
+Before you install Sui, make sure to install the [prerequisites](/getting-started/onboarding/sui-install#prerequisites).
+
+```
+
+</TabItem>
+</Tabs>
+
+### URL과 web address {#urls-web-addresses}
 
 설명적인 텍스트로 사이트나 URL에 대한 링크를 만든다. 예제 코드나 구성 파일에서와 같이 독자가 복사해야 하는 경우에만 URL을 제공한다.
 
 ---
 
-## Special components
+## Special component 사용
 
-### Collapsible component
+### Collapsible component 사용
 
 `<details><summary>` 컴포넌트를 사용하여 페이지를 압도하지 않도록 길거나 선택적인 콘텐츠를 숨긴다. 접을 수 있는 섹션은 여전히 지원 정보를 사용할 수 있게 하면서 가독성을 향상시킨다.
 
@@ -957,7 +979,7 @@ Walrus documentation 페이지에서는 prerequisites에 다음 outlined tab com
 
 접을 수 있는 컴포넌트를 서로 중첩하지 않는다. 접을 수 있는 콘텐츠를 표시되는 텍스트를 보완하는(대체하지 않는) 자료로 제한한다.
 
-#### Use collapsible components for:
+#### Collapsible component를 사용할 경우:
 
 - 큰 코드 스니펫 또는 샘플 파일.
 
@@ -965,7 +987,7 @@ Walrus documentation 페이지에서는 prerequisites에 다음 outlined tab com
 
 - 독자가 항상 필요로 하지 않을 수 있는 확장된 참조 콘텐츠.
 
-#### Do not use collapsible components for:
+#### Collapsible component를 사용하지 않을 경우:
 
 - 절차의 필수 단계. 이것들은 항상 보여야 한다.
 
@@ -976,7 +998,11 @@ Walrus documentation 페이지에서는 prerequisites에 다음 outlined tab com
 <Tabs>
 <TabItem value="example" label="Example" default>
 
-<details> <summary>전체 명령 출력 보기</summary> </details>
+<details>
+<summary>
+전체 명령 출력 보기
+</summary>
+
 
 ```
 Compiling dependencies...
@@ -985,6 +1011,8 @@ Running `target/release/sui-node`
 ...
 INFO: Sui node is now running
 ```
+
+</details>
 
 
 
@@ -1013,11 +1041,11 @@ INFO: Sui node is now running
 </TabItem>
 </Tabs>
 
-### Alerts {#alerts}
+### Alert 알림 {#alerts}
 
 알림은 정보에 강조를 추가한다. Docusaurus 기능인 Admonitions를 사용하여 알림이 Note, Tip 또는 Caution임을 나타낸다. 알림의 설명은 완전한 문장이어야 하며 문장 대소문자를 사용해야 한다.
 
-#### Caution {#caution}
+#### Caution 주의 {#caution}
 
 다음 정보가 개발자에게 데이터 손실, 오류 발생 또는 잠재적으로 중대한 변경을 일으킬 수 있는 경우 caution 알림을 사용한다. 항상 위험을 명확하게 설명한다.
 
@@ -1050,7 +1078,7 @@ Backup your configuration files before you delete your network.
 </TabItem>
 </Tabs>
 
-#### Danger {#danger}
+#### Danger 위험 {#danger}
 
 영구적인 데이터 손실, 보안 취약점 또는 되돌릴 수 없는 작업과 같이 실수의 결과가 치명적인 정보에만 danger 알림을 사용한다. 설명을 간결하고 진지한 어조로 유지한다.
 
@@ -1083,7 +1111,7 @@ Deleting this key will permanently remove your access to the account.
 </TabItem>
 </Tabs>
 
-#### Info {#info}
+#### Info 정보 {#info}
 
 독자가 알아야 할 중요하지만 중립적인 맥락을 제공하기 위해 info 알림을 사용한다. 모범 사례라기보다는 독자가 중요한 배경이나 조건을 놓치지 않도록 하는 것이다.
 
@@ -1116,7 +1144,7 @@ You must install Rust before you can build Sui from source.
 </TabItem>
 </Tabs>
 
-#### Note {#note}
+#### Note 참고 {#note}
 
 note 알림은 유효한 admonition이지만 시각적 스타일이 다른 지원되는 admonition보다 덜 영향력이 있다. tip 또는 info를 선호하여 note 사용을 피하는 것이 좋다.
 
@@ -1149,7 +1177,7 @@ This section applies only if you're using the Devnet.
 </TabItem>
 </Tabs>
 
-#### Tip {#tip}
+#### Tip 팁 {#tip}
 
 모범 사례나 지름길과 같이 도움이 될 수 있는 조언을 독자에게 제공하기 위해 tip 알림을 사용한다.
 
@@ -1184,31 +1212,31 @@ Navigate into your home directory after installing the IDE.
 </TabItem>
 </Tabs>
 
-## Images and graphics {#images-graphics}
+## Image와 graphic {#images-graphics}
 
 이미지와 스크린샷은 텍스트를 보완하고 설명하는 데만 사용한다. 이미지는 텍스트를 대체하지 않는다. 독자는 이미지 없이도 문서를 이해할 수 있어야 한다. 그러나 이미지는 독자가 텍스트를 더 명확하게 이해하는 데 도움이 될 수 있다.
 
 스크린샷을 캡처하기 위해 [Snagit](https://www.techsmith.com/screen-capture.html) 또는 다른 도구를 사용한다.
 
-#### Image format {#image-format}
+#### Image format 형식 {#image-format}
 
 가능하면 `.png`를 사용하고, 그렇지 않으면 `.jpg`를 사용한다.
 
-#### Image resolution {#image-resolution}
+#### Image resolution 해상도 {#image-resolution}
 
 이미지는 최소 400픽셀 너비여야 한다. 업로드 시 이미지가 흐리게 보이면 더 높은 해상도로 새 이미지를 만들어 본다.
 
-#### Captions {#captions}
+#### Caption 캡션 {#captions}
 
 대체 텍스트를 사용하여 이미지가 보여주는 것을 설명한다. 캡션을 사용하여 페이지 맥락에서 이미지가 왜 의미 있는지 설명한다. 캡션 관련 내용은 Accessibility considerations를 참고한다.
 
-#### Mermaid for images in Markdown {#mermaid}
+#### Markdown image용 Mermaid {#mermaid}
 
 Markdown에서 직접 플로우차트와 유사한 이미지를 [using Mermaid](https://github.blog/2022-02-14-include-diagrams-markdown-files-mermaid/)로 만들 수 있다.
 
 ---
 
-## Index pages
+## Index page 구성
 
 Index page는 카테고리용 landing page를 제공하고 사용자가 사이드바에만 의존하지 않고 섹션 안쪽으로 더 깊게 탐색할 수 있게 해준다.
 
@@ -1250,7 +1278,7 @@ Index page는 카테고리용 landing page를 제공하고 사용자가 사이�
 }
 ```
 
-### Required format
+### Required format 필수 형식
 
 각 카테고리 index page는 다음 구조를 사용해야 한다:
 
@@ -1273,7 +1301,7 @@ import DocCardList from '@theme/DocCardList';
 
 ---
 
-## Accessibility {#accessibility}
+## 접근성 {#accessibility}
 
 콘텐츠 접근성을 위한 참조 자료:
 
@@ -1284,11 +1312,11 @@ import DocCardList from '@theme/DocCardList';
 - [Microsoft Style Guide Accessibility Terms](https://learn.microsoft.com/en-us/style-guide/a-z-word-list-term-collections/term-collections/accessibility-terms)
 - [Writing for All Abilities](https://learn.microsoft.com/en-us/style-guide/accessibility/writing-all-abilities) (Microsoft Style Guide)
 
-### Formatting {#formatting}
+### Formatting 형식 {#formatting}
 
 텍스트에 강조를 추가하기 위해 색상이나 특수 기호를 사용하지 않는다. 스크린 리더는 웹 페이지에서 굵게(`<strong>`)와 이탤릭(`<em>`)을 해석하도록 설계되어 있다.
 
-### Images {#images}
+### Image 이미지 {#images}
 
 스크린 리더를 사용하는 사람을 위해 이미지를 설명하는 캡션과 대체 텍스트를 추가한다. 스크린 리더를 사용하는 사람이 볼 수 없는 이미지의 중요한 세부 사항은 무엇인가?
 

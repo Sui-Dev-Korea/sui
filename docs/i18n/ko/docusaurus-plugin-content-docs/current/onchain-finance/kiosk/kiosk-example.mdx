@@ -1,117 +1,117 @@
 ---
 title: Sui Kiosk
-description: Kiosk is a decentralized system for commerce applications on Sui. Kiosk is a part of the Sui framework, native to the system, and available to everyone.
+description: Kiosk는 Sui의 commerce application을 위한 decentralized system이다. Kiosk는 Sui framework의 일부이며 system native로 제공되고 누구나 사용할 수 있다.
 keywords: [kiosk, sui kiosk, create a kiosk, create kiosk with sui cli, kiosk SDK, TypeScript, kiosk owners, placing objects in kiosk, kiosk for buyers, kiosk creators, kiosk for creators, kiosk::take, kiosk::borrow, kiosk::borrow_mut, kiosk::borrow_val, lock item in kiosk, lock kiosk item, list item in kiosk, delist item, remove item from kiosk list, withdraw from kiosk ]
 pagination_prev: null
 ---
 
-Kiosk is a decentralized system for commerce applications on Sui. It consists of `Kiosk` objects, which are shared objects owned by individual parties that store assets and allow listing them for sale as well as utilize custom trading functionality, for example, an auction. While being highly decentralized, Sui Kiosk provides a set of strong guarantees:
+Kiosk는 Sui의 commerce application을 위한 decentralized system이다. Kiosk는 individual party가 소유하는 shared object인 `Kiosk` object로 구성되며, asset을 저장하고 판매용으로 listing할 수 있게 하며 auction 같은 custom trading functionality도 활용할 수 있게 한다. Sui Kiosk는 높은 decentralization을 유지하면서도 강력한 guarantee를 제공한다.
 
-- Kiosk owners retain ownership of their assets to the moment of purchase.
-- Creators set custom policies, which are sets of rules applied to every trade (such as paying a royalty fee or performing some arbitrary action X).
-- Marketplaces can index events the `Kiosk` object emits and subscribe to a single feed for onchain asset trading.
+- Kiosk owner는 purchase 시점까지 asset ownership을 유지한다.
+- Creator는 모든 trade에 적용되는 rule set인 custom policy를 설정한다(예: royalty fee 지불 또는 임의 action X 수행).
+- Marketplace는 `Kiosk` object가 emit하는 event를 index하고 onchain asset trading용 single feed를 subscribe할 수 있다.
 
-Practically, Kiosk is a part of the Sui framework, and it is native to the system and available to everyone out of the box.
+실제로 Kiosk는 Sui framework의 일부이며 system native로 제공되고 즉시 누구나 사용할 수 있다.
 
 :::info
 
-See the [Kiosk SDK documentation](https://sdk.mystenlabs.com/kiosk) for examples of working with Kiosk using TypeScript.
+TypeScript로 Kiosk를 사용하는 예시는 [Kiosk SDK documentation](https://sdk.mystenlabs.com/kiosk)을 참조한다.
 
 :::
 
-## Sui Kiosk owners
+## Sui Kiosk owner
 
-Anyone can create a Sui Kiosk. Ownership of a kiosk is determined by the owner of the `KioskOwnerCap`, a special object that grants full access to a single kiosk. As the owner, you can sell any asset with a type (T) that has a shared `TransferPolicy` available, or you can use a kiosk to store assets even without a shared policy. You can’t sell or transfer any assets from your kiosk that do not have an associated transfer policy available.
+누구나 Sui Kiosk를 만들 수 있다. kiosk의 ownership은 단일 kiosk에 대한 full access를 부여하는 special object인 `KioskOwnerCap`의 owner가 결정한다. owner는 shared `TransferPolicy`가 제공되는 type(T)의 asset을 판매할 수 있고, shared policy가 없더라도 kiosk를 asset storage로 사용할 수 있다. 연관된 transfer policy가 없는 asset은 kiosk에서 판매하거나 transfer할 수 없다.
 
-To sell an item, if there is an existing transfer policy for the type (T), you just add your assets to your kiosk and then list them. You specify an offer amount when you list an item. Anyone can then purchase the item for the amount of SUI specified in the listing. The associated transfer policy determines what the buyer can do with the purchased asset.
+item을 판매하려면 type(T)에 대한 existing transfer policy가 있을 때 asset을 kiosk에 추가한 뒤 list하면 된다. item을 list할 때 offer amount를 지정한다. 그러면 누구나 listing에 지정된 SUI amount로 item을 purchase할 수 있다. 연관된 transfer policy는 buyer가 구매한 asset으로 무엇을 할 수 있는지 결정한다.
 
-A kiosk owner can:
+kiosk owner는 다음을 할 수 있다.
 
-- Place and take items
-- List items for sale
-- Add and remove Extensions
-- Withdraw profits from sales
-- Borrow and mutate owned assets
-- Access the full set of trading tools, such as auctions, lotteries, and collection bidding
+- item place 및 take
+- 판매용 item list
+- Extension 추가 및 제거
+- sale profit withdraw
+- owned asset borrow 및 mutate
+- auction, lottery, collection bidding 같은 전체 trading tool set에 접근
 
-## Sui Kiosk for buyers
+## buyer를 위한 Sui Kiosk
 
-A buyer is a party that purchases (or, more generally, receives) items from kiosks. Anyone on the network can be a buyer (and, for example, a kiosk owner at the same time).
+buyer는 kiosk에서 item을 purchase(또는 더 일반적으로 receive)하는 party이다. network의 누구나 buyer가 될 수 있으며, 동시에 kiosk owner일 수도 있다.
 
-**Benefits:**
+**이점:**
 
-- Buyers get access to global liquidity and can get the best offer
-- Buyers can place bids on collections through their kiosks
-- Most buyer actions performed in kiosks clean up seller objects, which results in free (gas-less) actions
+- buyer는 global liquidity에 접근하고 best offer를 얻을 수 있다.
+- buyer는 자신의 kiosk를 통해 collection에 bid할 수 있다.
+- kiosk에서 수행되는 대부분의 buyer action은 seller object를 정리하므로 free(gas-less) action이 된다.
 
-**Responsibilities:**
+**책임:**
 
-- Buyer is the party that pays the fees if they're set in the policy
-- Buyer must follow the rules set by creators or a transaction won't succeed
+- policy에 fee가 설정되어 있으면 buyer가 fee를 지불하는 party이다.
+- buyer는 creator가 설정한 rule을 따라야 하며, 그렇지 않으면 transaction이 성공하지 않는다.
 
 **Guarantees:**
 
-- When using a custom trading logic such as an auction, the items are guaranteed to be unchanged until the trade is complete
+- auction 같은 custom trading logic을 사용할 때 item은 trade가 완료될 때까지 변경되지 않음이 보장된다.
 
-## Sui Kiosk for marketplaces
+## marketplace를 위한 Sui Kiosk
 
-As a marketplace operator, you can implement Sui Kiosk to watch for offers made in a collection of kiosks and display them on a marketplace site. You can also implement a custom system using Kiosk extensions (created by the community or third-parties). For example, marketplaces can use a `TransferPolicyCap` to implement application-specific transfer rules.
+marketplace operator는 Sui Kiosk를 구현해 kiosk collection에서 생성된 offer를 관찰하고 marketplace site에 표시할 수 있다. Kiosk extension(community 또는 third-party가 생성)을 사용하는 custom system도 구현할 수 있다. 예를 들어 marketplace는 `TransferPolicyCap`을 사용해 application-specific transfer rule을 구현할 수 있다.
 
-## Sui Kiosk for creators
+## creator를 위한 Sui Kiosk
 
-As a creator, Sui Kiosk supports strong enforcement for transfer policies and associated rules to protect assets and enforce asset ownership. Sui Kiosk gives creators more control over their creations, and puts creators and owners in control of how their works can be used.
+creator에게 Sui Kiosk는 asset을 보호하고 asset ownership을 enforce하기 위해 transfer policy와 연관 rule을 강력하게 enforce한다. Sui Kiosk는 creator에게 creation에 대한 더 많은 control을 제공하고, creator와 owner가 work 사용 방식을 제어하도록 한다.
 
-Creator is a party that creates and controls the TransferPolicy for a single type. For example, the authors of SuiFrens are the Creators of the `SuiFren<Capy>` type and act as creators in the Kiosk ecosystem. Creators set the policy, but they might also be the first sellers of their assets through a kiosk.
+Creator는 단일 type에 대한 TransferPolicy를 만들고 제어하는 party이다. 예를 들어 SuiFrens의 author는 `SuiFren<Capy>` type의 Creator이며 Kiosk ecosystem에서 creator로 동작한다. Creator는 policy를 설정하지만 kiosk를 통해 자신의 asset을 처음 판매하는 seller일 수도 있다.
 
-**Creators can:**
+**Creator가 할 수 있는 일:**
 
-- Set any rules for trades
-- Set multiple ways ("tracks") of rules
-- Enable or disable trades at any moment with a policy
-- Enforce policies (like royalties) on all trades
-- Perform a primary sale of their assets through a kiosk
+- trade에 대한 임의 rule 설정
+- 여러 rule 방식("tracks") 설정
+- policy를 통해 언제든 trade 활성화 또는 비활성화
+- 모든 trade에 policy(예: royalty) enforce
+- kiosk를 통해 asset의 primary sale 수행
 
-All of the above is effective immediately and globally.
+위 항목은 모두 즉시 전역적으로 적용된다.
 
-**Creators cannot:**
+**Creator가 할 수 없는 일:**
 
-- Take or modify items stored in someone else's kiosk
-- Restrict taking items from kiosks if the `locking` rule was not set in the policy
+- 다른 사람의 kiosk에 저장된 item을 take하거나 modify
+- policy에 `locking` rule이 설정되지 않았다면 kiosk에서 item을 take하는 것을 제한
 
 ## Sui Kiosk guarantees
 
-Sui Kiosk provides a set of guarantees that Sui enforces through smart contracts.
-These guarantees include:
+Sui Kiosk는 Sui가 smart contract를 통해 enforce하는 guarantee set을 제공한다.
+이 guarantee에는 다음이 포함된다.
 
-- Every trade in Sui Kiosk requires a `TransferPolicy` resolution. This gives creators control over how their assets can be traded.
-- True ownership, which means that only a kiosk owner can take, list, borrow, or modify the assets added to their kiosk. This is similar to how single-owner objects work on Sui.
-- Strong policy enforcement, for example Royalty policies, that lets creators enable or disable policies at any time that applies to all trades on the platform for objects with that policy attached.
-- Changes to a `TransferPolicy` apply instantly and globally.
+- Sui Kiosk의 모든 trade에는 `TransferPolicy` resolution이 필요하다. 이를 통해 creator는 자신의 asset이 어떻게 trade될 수 있는지 제어한다.
+- true ownership. 즉 kiosk owner만 자신의 kiosk에 추가된 asset을 take, list, borrow 또는 modify할 수 있다. 이는 Sui의 single-owner object 작동 방식과 유사하다.
+- Royalty policy 같은 강력한 policy enforcement. creator는 언제든 policy를 활성화하거나 비활성화할 수 있으며, 해당 policy가 attached된 object에 대해 platform의 모든 trade에 적용된다.
+- `TransferPolicy` 변경 사항은 즉시 전역적으로 적용된다.
 
-In practice, these guarantees mean that:
+실제로 이 guarantee는 다음을 의미한다.
 
-- When you list an item for sale, no one can modify it or take it from the kiosk.
-- When you define a `PurchaseCap`, an item remains locked and you can’t modify or take the item from the kiosk unless the trade uses or returns the `PurchaseCap`.
-- You can remove any rule at any time (as the owner).
-- You can disable any extension at any time (as the owner).
-- The state of an extension state is always accessible to the extension.
+- item을 판매용으로 list하면 누구도 이를 modify하거나 kiosk에서 take할 수 없다.
+- `PurchaseCap`을 정의하면 trade가 `PurchaseCap`을 사용하거나 반환하지 않는 한 item은 locked 상태로 유지되고 kiosk에서 modify하거나 take할 수 없다.
+- owner는 언제든 rule을 제거할 수 있다.
+- owner는 언제든 extension을 비활성화할 수 있다.
+- extension state의 state는 extension에서 항상 접근할 수 있다.
 
-### Asset states in Sui Kiosk {#asset-states}
+### Sui Kiosk의 asset state {#asset-states}
 
-Sui Kiosk is a shared object that can store heterogeneous values, such as different sets of asset collectibles. When you add an asset to your kiosk, it has one of the following states:
+Sui Kiosk는 서로 다른 asset collectible set 같은 heterogeneous value를 저장할 수 있는 shared object이다. kiosk에 asset을 추가하면 다음 state 중 하나를 가진다.
 
-- PLACED: An item placed in the kiosk using the `kiosk::place` function. The kiosk owner can withdraw it and use it directly, borrow it (mutably or immutably), or list an item for sale.
-- LOCKED: An item placed in the kiosk using the `kiosk::lock` function. You can’t withdraw a Locked item from a kiosk, but you can borrow it mutably and list it for sale. Any item placed in a kiosk that has an associated kiosk lock policy have a LOCKED state.
-- LISTED: An item in the kiosk that is listed for sale using the `kiosk::list` or `kiosk::place_and_list` functions. You can’t modify an item while listed, but you can borrow it immutably or delist it, which returns it to its previous state.
-- LISTED EXCLUSIVELY: An item placed or locked in the kiosk by an extension that calls the `kiosk::list_with_purchase_cap` function. Only the kiosk owner can approve calling the function. The owner can only borrow it immutably. The extension must provide the functionality to delist or unlock the asset, or it might stay locked forever. Because this action is explicitly performed by the owner, it is the responsibility of the owner to choose verified and audited extensions to use.
+- PLACED: `kiosk::place` function을 사용해 kiosk에 place된 item. kiosk owner는 이를 withdraw해 직접 사용하거나, mutably 또는 immutably borrow하거나, 판매용으로 list할 수 있다.
+- LOCKED: `kiosk::lock` function을 사용해 kiosk에 place된 item. Locked item은 kiosk에서 withdraw할 수 없지만, mutably borrow하고 판매용으로 list할 수 있다. 연관된 kiosk lock policy가 있는 kiosk에 place된 모든 item은 LOCKED state를 가진다.
+- LISTED: `kiosk::list` 또는 `kiosk::place_and_list` function을 사용해 판매용으로 list된 kiosk 내 item. listed 상태에서는 item을 modify할 수 없지만 immutably borrow하거나 delist하여 이전 state로 되돌릴 수 있다.
+- LISTED EXCLUSIVELY: `kiosk::list_with_purchase_cap` function을 호출하는 extension이 kiosk에 place하거나 lock한 item. kiosk owner만 function 호출을 approve할 수 있다. owner는 이를 immutably borrow만 할 수 있다. extension은 asset을 delist하거나 unlock하는 기능을 제공해야 하며, 그렇지 않으면 영원히 locked 상태로 남을 수 있다. 이 action은 owner가 명시적으로 수행하므로, 검증되고 audited된 extension을 선택해 사용하는 책임은 owner에게 있다.
 
-When someone purchases an asset from a kiosk, the asset leaves the kiosk and ownership transfers to the buyer’s address.
+누군가 kiosk에서 asset을 purchase하면 asset은 kiosk를 떠나 buyer address로 ownership이 transfer된다.
 
-## Open a Sui Kiosk
+## Sui Kiosk 열기
 
-To use a Sui Kiosk, you must create one and have the `KioskOwnerCap` that matches the `Kiosk` object. You can create a new kiosk using a single transaction by calling the `kiosk::default` function. The function creates and shares a `Kiosk`, and transfers the `KioskOwnerCap` to your address.
+Sui Kiosk를 사용하려면 kiosk를 만들고 `Kiosk` object와 matching되는 `KioskOwnerCap`을 가져야 한다. `kiosk::default` function을 호출해 single transaction으로 새 kiosk를 만들 수 있다. 이 function은 `Kiosk`를 만들고 share한 뒤 `KioskOwnerCap`을 사용자의 address로 transfer한다.
 
-### Create a Sui Kiosk using programmable transaction blocks
+### programmable transaction block으로 Sui Kiosk 생성
 
 ```javascript
 let tx = new Transaction();
@@ -120,7 +120,7 @@ tx.moveCall({
 });
 ```
 
-### Create a Sui Kiosk using the Sui CLI
+### Sui CLI로 Sui Kiosk 생성
 
 <ImportContent source="info-gas-budget" mode="snippet" />
 
@@ -132,12 +132,12 @@ $ sui client call \
     --gas-budget 1000000000
 ```
 
-### Create a Sui Kiosk with advanced options
+### advanced option으로 Sui Kiosk 생성
 
-For more advanced use cases, when you want to choose the storage model or perform an action right away, you can use the programmable transaction block (PTB) friendly function `kiosk::new`.
-Kiosk is designed to be shared. If you choose a different storage model, such as owned, your kiosk might not function as intended or not be accessible to other users. You can make sure your kiosk works by testing it on Sui Testnet.
+더 advanced한 use case에서 storage model을 선택하거나 즉시 action을 수행하려면 programmable transaction block (PTB) 친화적인 `kiosk::new` function을 사용할 수 있다.
+Kiosk는 shared object로 설계되었다. owned 같은 다른 storage model을 선택하면 kiosk가 의도대로 동작하지 않거나 다른 사용자가 접근하지 못할 수 있다. Sui Testnet에서 테스트해 kiosk가 작동하는지 확인할 수 있다.
 
-### Create a Sui Kiosk with advanced options using programmable transaction blocks
+### programmable transaction block으로 advanced option을 사용해 Sui Kiosk 생성
 
 ```javascript
 let tx = new Transaction();
@@ -153,23 +153,23 @@ tx.moveCall({
 });
 ```
 
-### Create a Sui Kiosk with advanced options using the Sui CLI
+### Sui CLI로 advanced option을 사용해 Sui Kiosk 생성
 
-Sui CLI does not support PTBs and transaction chaining yet. You can use the `kiosk::default` function instead.
+Sui CLI는 아직 PTB와 transaction chaining을 지원하지 않는다. 대신 `kiosk::default` function을 사용할 수 있다.
 
-## Place items in and take items from your kiosk
+## kiosk에 item place 및 take
 
-As a kiosk owner, you can place any assets into your Sui Kiosk. You can take any item from your kiosk that is not currently listed for sale.
+kiosk owner는 어떤 asset이든 Sui Kiosk에 place할 수 있다. 현재 판매용으로 listed 상태가 아닌 item은 kiosk에서 take할 수 있다.
 
-There's no limitations on which assets you can place in your kiosk. However, you can’t necessarily list and trade all of the items you place in your kiosk. The `TransferPolicy` associated with the type for the item determines whether you can trade it. To learn more, see the [Purchase items from a kiosk](#purchase) section.
+kiosk에 place할 수 있는 asset에는 제한이 없다. 다만 kiosk에 place한 모든 item을 반드시 list하고 trade할 수 있는 것은 아니다. item type과 연관된 `TransferPolicy`가 trade 가능 여부를 결정한다. 자세한 내용은 [kiosk에서 item purchase](#purchase) 섹션을 참조한다.
 
-### Place an item in your kiosk
+### kiosk에 item place
 
-To place an item to the kiosk, the owner needs to call the `sui::kiosk::place` function on the `Kiosk` object and pass the `KioskOwnerCap` and the `Item` as arguments.
+kiosk에 item을 place하려면 owner가 `Kiosk` object에서 `sui::kiosk::place` function을 호출하고 `KioskOwnerCap`과 `Item`을 argument로 전달해야 한다.
 
-`ITEM_TYPE` in the following examples represents the full type of the item.
+다음 예시의 `ITEM_TYPE`은 item의 full type을 나타낸다.
 
-### Place an item using programmable transaction blocks
+### programmable transaction block으로 item place
 
 ```javascript
 let tx = new Transaction();
@@ -185,7 +185,7 @@ tx.moveCall({
 });
 ```
 
-### Place an item using the Sui CLI
+### Sui CLI로 item place
 
 ```sh
 $ sui client call \
@@ -197,13 +197,13 @@ $ sui client call \
     --gas-budget 1000000000
 ```
 
-## Take items from a kiosk
+## kiosk에서 item take
 
-To take an item from a kiosk you must be the kiosk owner. As the owner, call the `sui::kiosk::take` function on the `Kiosk` object, and pass the `KioskOwnerCap` and `ID` of the item as arguments.
+kiosk에서 item을 take하려면 kiosk owner여야 한다. owner로서 `Kiosk` object에서 `sui::kiosk::take` function을 호출하고 `KioskOwnerCap`과 item의 `ID`를 argument로 전달한다.
 
-`ITEM_TYPE` in the following examples represents the full type of the item.
+다음 예시의 `ITEM_TYPE`은 item의 full type을 나타낸다.
 
-### Take an item from a kiosk using programmable transaction blocks
+### programmable transaction block으로 kiosk에서 item take
 
 ```javascript
 let tx = new Transaction();
@@ -219,29 +219,29 @@ let item = tx.moveCall({
 });
 ```
 
-### Take an item from a kiosk using the Sui CLI
+### Sui CLI로 kiosk에서 item take
 
-The `kiosk::take` function is built to be PTB friendly and returns the asset. The Sui CLI does not yet support transaction chaining.
+`kiosk::take` function은 PTB friendly하게 설계되어 asset을 반환한다. Sui CLI는 아직 transaction chaining을 지원하지 않는다.
 
-## Lock items in a kiosk
+## kiosk에서 item lock
 
-Some policies require that assets never get removed from a kiosk, such as for strong royalty enforcement. To support this, Sui Kiosk provides a locking mechanism. Locking is similar to placing except that you can't take a locked asset out of the kiosk.
+일부 policy는 strong royalty enforcement처럼 asset이 kiosk에서 절대 제거되지 않도록 요구한다. 이를 지원하기 위해 Sui Kiosk는 locking mechanism을 제공한다. locking은 placing과 유사하지만 locked asset을 kiosk 밖으로 take할 수 없다는 점이 다르다.
 
-To lock an asset in a kiosk, call the `sui::kiosk::lock` function. To ensure that you can later unlock the asset you must associate a `TransferPolicy` with the asset.
+kiosk에서 asset을 lock하려면 `sui::kiosk::lock` function을 호출한다. 나중에 asset을 unlock할 수 있도록 하려면 asset과 `TransferPolicy`를 associate해야 한다.
 
 :::info
 
-After you lock an asset, you must use `list` or `list_with_purchase_cap` functions to list it.
+asset을 lock한 후에는 `list` 또는 `list_with_purchase_cap` function을 사용해 list해야 한다.
 
 :::
 
-### Lock an item in a kiosk
+### kiosk에서 item lock
 
-When you use the `lock` function, similar to using the `place` function, you specify the `KioskOwnerCap` and the `Item` as arguments. But to lock the item, you must also show the `TransferPolicy`.
+`lock` function을 사용할 때는 `place` function과 유사하게 `KioskOwnerCap`과 `Item`을 argument로 지정한다. 하지만 item을 lock하려면 `TransferPolicy`도 보여줘야 한다.
 
-`<ITEM_TYPE>` in the following examples represents the full type of the asset.
+다음 예시의 `<ITEM_TYPE>`은 asset의 full type을 나타낸다.
 
-### Lock an item using programmable transaction blocks
+### programmable transaction block으로 item lock
 
 ```javascript
 const tx = new Transaction();
@@ -258,7 +258,7 @@ tx.moveCall({
 });
 ```
 
-### Lock an item using the Sui CLI
+### Sui CLI로 item lock
 
 ```sh
 $ sui client call \
@@ -270,22 +270,22 @@ $ sui client call \
     --gas-budget 1000000000
 ```
 
-## List and delist items from a kiosk
+## kiosk에서 item list 및 delist
 
-Sui Kiosk provides basic trading functionality. As a kiosk owner, you can list assets for sale, and buyers can discover and purchase them. Sui Kiosk supports listing items by default with three primary functions:
+Sui Kiosk는 기본 trading functionality를 제공한다. kiosk owner는 asset을 판매용으로 list할 수 있고 buyer는 이를 discover하고 purchase할 수 있다. Sui Kiosk는 기본적으로 세 가지 primary function으로 item listing을 지원한다.
 
-- `kiosk::list` - list an asset for sale for a fixed price
-- `kiosk::delist` - remove an existing listing
-- `kiosk::purchase` - purchase an asset listed for sale
+- `kiosk::list` - fixed price로 asset을 판매용 list
+- `kiosk::delist` - existing listing 제거
+- `kiosk::purchase` - 판매용 listed asset purchase
 
-Anyone on the network can purchase an item listed from a Sui Kiosk. To learn more about the purchase flow, see the [Purchase section](#purchase). To learn more about asset states and what can be done with a listed item, see the [Asset States](#asset-states) section.
+network의 누구나 Sui Kiosk에 listed된 item을 purchase할 수 있다. purchase flow에 대해 더 알아보려면 [Purchase section](#purchase)을 참조한다. asset state와 listed item에 수행할 수 있는 작업은 [Asset States](#asset-states) 섹션을 참조한다.
 
-### List an item from a kiosk
+### kiosk에서 item list
 
-As a kiosk owner, you can use the `kiosk::list` function to list any asset you added to your kiosk. Include the item to sell and the list price as arguments. All listings on Sui are in SUI tokens.
-When you list an item, Sui emits a `kiosk::ItemListed` event that contains the kiosk ID, item ID, type of the item, and the list price.
+kiosk owner는 `kiosk::list` function을 사용해 kiosk에 추가한 어떤 asset이든 list할 수 있다. 판매할 item과 list price를 argument로 포함한다. Sui의 모든 listing은 SUI token으로 표시된다.
+item을 list하면 Sui는 kiosk ID, item ID, item type, list price를 포함하는 `kiosk::ItemListed` event를 emit한다.
 
-### List an item using programmable transaction blocks
+### programmable transaction block으로 item list
 
 ```javascript
 let tx = new Transaction();
@@ -303,7 +303,7 @@ tx.moveCall({
 });
 ```
 
-### List an item using the Sui CLI
+### Sui CLI로 item list
 
 ```sh
 $ sui client call \
@@ -315,15 +315,15 @@ $ sui client call \
     --gas-budget 1000000000
 ```
 
-### Delist an item
+### item delist
 
-As a kiosk owner you can use the `kiosk::delist` to delist any currently listed asset. Specify the item to delist as an argument.
+kiosk owner는 `kiosk::delist`를 사용해 현재 listed된 asset을 delist할 수 있다. delist할 item을 argument로 지정한다.
 
-When you delist an item, Sui returns to the kiosk owner the gas fees charged to list the item.
+item을 delist하면 Sui는 item을 list할 때 charged된 gas fee를 kiosk owner에게 반환한다.
 
-When you delist an item, Sui emits a `kiosk::ItemDelisted` event that contains the kiosk ID, item ID, and the type of the item.
+item을 delist하면 Sui는 kiosk ID, item ID, item type을 포함하는 `kiosk::ItemDelisted` event를 emit한다.
 
-### Delist an item using the programmable transaction blocks
+### programmable transaction block으로 item delist
 
 ```javascript
 let tx = new Transaction();
@@ -339,7 +339,7 @@ tx.moveCall({
 });
 ```
 
-### Delist an item using the Sui CLI
+### Sui CLI로 item delist
 
 ```sh
 $ sui client call \
@@ -351,27 +351,27 @@ $ sui client call \
     --gas-budget 1000000000
 ```
 
-## Purchase an item from a kiosk {#purchase}
+## kiosk에서 item purchase {#purchase}
 
-Anyone that has an address on the Sui network can purchase an item listed from a Sui Kiosk. To purchase an item, you can use the `kiosk::purchase` function. Specify the item to purchase and pay the list price set by the kiosk owner.
+Sui network에 address가 있는 누구나 Sui Kiosk에서 listed된 item을 purchase할 수 있다. item을 purchase하려면 `kiosk::purchase` function을 사용한다. purchase할 item을 지정하고 kiosk owner가 설정한 list price를 지불한다.
 
-You can discover the items listed on the network with the `kiosk::ItemListed` event.
+network에 listed된 item은 `kiosk::ItemListed` event로 discover할 수 있다.
 
-When you use the `kiosk::purchase` function, it returns the purchased asset and the `TransferRequest` for the type associated with the asset. To complete the purchase, you must meet the terms defined in the `TransferPolicy` applied to the asset.
+`kiosk::purchase` function을 사용하면 purchased asset과 asset type에 연관된 `TransferRequest`가 반환된다. purchase를 완료하려면 asset에 적용된 `TransferPolicy`에 정의된 조건을 충족해야 한다.
 
-## Borrow an item from a kiosk
+## kiosk에서 item borrow
 
-As a kiosk owner, you can access an asset placed or locked in a kiosk without taking the asset from the kiosk. You can always borrow the asset immutably. Whether you can mutably borrow an asset depends on the state of the asset. For example, you can’t borrow a listed asset because you can’t modify it while listed. The functions available include:
+kiosk owner는 asset을 kiosk에서 take하지 않고도 kiosk에 placed 또는 locked된 asset에 접근할 수 있다. asset은 항상 immutably borrow할 수 있다. asset을 mutably borrow할 수 있는지는 asset state에 따라 달라진다. 예를 들어 listed asset은 listed 상태에서 modify할 수 없으므로 borrow할 수 없다. 사용 가능한 function은 다음과 같다.
 
-- `kiosk::borrow`: Returns an immutable reference to the asset
-- `kiosk::borrow_mut`: Returns a mutable reference to the asset
-- `kiosk::borrow_val`: A PTB-friendly version of `borrow_mut`, which allows you to take an asset and place it back in the same transaction.
+- `kiosk::borrow`: asset에 대한 immutable reference 반환
+- `kiosk::borrow_mut`: asset에 대한 mutable reference 반환
+- `kiosk::borrow_val`: `borrow_mut`의 PTB-friendly version으로, 같은 transaction 안에서 asset을 take하고 다시 place할 수 있다.
 
 ### Immutable borrow
 
-You can always borrow an asset from a kiosk immutably. You can use the `kiosk::borrow` function to borrow an asset, however, it is not possible to use references within a programmable transaction block. To access the asset you must use a published module (function).
+kiosk에서 asset은 언제나 immutably borrow할 수 있다. `kiosk::borrow` function을 사용해 asset을 borrow할 수 있지만 programmable transaction block 안에서는 reference를 사용할 수 없다. asset에 접근하려면 published module(function)을 사용해야 한다.
 
-### Immutably borrow an asset using Sui Move
+### Sui Move로 asset을 immutably borrow
 
 ```move
 module examples::immutable_borrow;
@@ -383,11 +383,11 @@ public fun immutable_borrow_example<T>(self: &Kiosk, cap: &KioskOwnerCap, item_i
 }
 ```
 
-### Mutable borrow with borrow_mut
+### `borrow_mut`을 사용한 mutable borrow
 
-You can mutably borrow an asset from a kiosk if it is not listed. You can use the `kiosk::borrow_mut` function to mutably borrow an asset. However, it is not possible to use references within a PTB, so to access the mutably borrowed asset you must use a published module (function).
+asset이 listed 상태가 아니면 kiosk에서 mutably borrow할 수 있다. `kiosk::borrow_mut` function을 사용해 asset을 mutably borrow할 수 있다. 하지만 PTB 안에서는 reference를 사용할 수 없으므로, mutably borrowed asset에 접근하려면 published module(function)을 사용해야 한다.
 
-### Mutably borrow an asset using Sui Move
+### Sui Move로 asset을 mutably borrow
 
 ```move
 module examples::mutable_borrow;
@@ -401,11 +401,11 @@ public fun mutable_borrow_example<T>(
 }
 ```
 
-### Mutable borrow with borrow_val
+### `borrow_val`을 사용한 mutable borrow
 
-Use the PTB-friendly `kiosk::borrow_val` function to take an asset and place it back in the same transaction. To make sure the asset is placed back into the kiosk, the function obliges the caller with a Hot Potato. See The Move Book for more information on the [Hot Potato pattern](https://move-book.com/programmability/hot-potato-pattern).
+PTB-friendly `kiosk::borrow_val` function을 사용해 asset을 take하고 같은 transaction 안에서 다시 place한다. asset이 kiosk에 다시 place되도록 하기 위해 이 function은 caller에게 Hot Potato를 obligate한다. [Hot Potato pattern](https://move-book.com/programmability/hot-potato-pattern)에 대한 자세한 내용은 The Move Book을 참조한다.
 
-### Mutable borrow with `borrow_val` using programmable transaction blocks
+### programmable transaction block으로 `borrow_val`을 사용한 mutable borrow
 
 ```javascript
 let tx = new Transaction();
@@ -432,11 +432,11 @@ tx.moveCall({
 });
 ```
 
-## Withdraw proceeds from a completed sale
+## completed sale의 proceed withdraw
 
-When someone purchases an item, Sui stores the proceeds from the sale in the kiosk. As the kiosk owner, you can withdraw the proceeds at any time by calling the `kiosk::withdraw` function. The function is straightforward, but because it is PTB friendly it is not currently supported in the Sui CLI.
+누군가 item을 purchase하면 Sui는 sale proceed를 kiosk에 저장한다. kiosk owner는 `kiosk::withdraw` function을 호출해 언제든 proceed를 withdraw할 수 있다. function은 단순하지만 PTB friendly하므로 현재 Sui CLI에서는 지원되지 않는다.
 
-### Withdraw proceeds using programmable transaction blocks
+### programmable transaction block으로 proceed withdraw
 
 ```javascript
 let tx = new Transaction();
@@ -464,6 +464,6 @@ let coin = tx.moveCall({
 });
 ```
 
-### Withdraw proceeds using the Sui CLI
+### Sui CLI로 proceed withdraw
 
-This action is not currently supported in the CLI environment.
+이 action은 현재 CLI environment에서 지원되지 않는다.

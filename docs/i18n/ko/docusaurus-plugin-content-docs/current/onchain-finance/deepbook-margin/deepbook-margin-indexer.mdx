@@ -8,7 +8,7 @@ keywords: [DeepBook Margin Indexer, margin manager, margin pool, liquidation, lo
 
 DeepBook Margin 인덱서는 margin trading 데이터용 엔드포인트를 통해 DeepBookV3 인덱서를 확장한다. 이러한 엔드포인트는 margin manager 이벤트, margin pool operation, 그리고 liquidation monitoring에 대한 액세스를 제공한다.
 
-## Public endpoints
+## 공개 엔드포인트
 
 margin 엔드포인트는 DeepBookV3와 동일한 public 인덱서를 통해 사용할 수 있다.
 
@@ -16,7 +16,7 @@ margin 엔드포인트는 DeepBookV3와 동일한 public 인덱서를 통해 사
 
 - **Testnet**: `https://deepbook-indexer.testnet.mystenlabs.com/`
 
-## Common query parameters
+## 공통 쿼리 매개변수
 
 모든 margin 엔드포인트는 다음 공통 쿼리 파라미터를 지원한다:
 
@@ -24,7 +24,7 @@ margin 엔드포인트는 DeepBookV3와 동일한 public 인덱서를 통해 사
 - `end_time`: Unix timestamp seconds로 표현된 시간 범위의 끝(기본값: 현재 시간)
 - `limit`: 반환할 결과의 최대 개수(기본값: 1)
 
-## Margin manager endpoints
+## 마진 관리자 엔드포인트
 
 <details>
 <summary>Get margin manager creation events</summary>
@@ -35,7 +35,7 @@ margin 엔드포인트는 DeepBookV3와 동일한 public 인덱서를 통해 사
 
 margin manager가 생성될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -66,7 +66,7 @@ margin manager가 생성될 때의 이벤트를 반환한다.
 
 asset이 margin pool에서 borrow될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -97,7 +97,7 @@ asset이 margin pool에서 borrow될 때의 이벤트를 반환한다.
 
 borrow된 asset이 repay될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -128,7 +128,7 @@ borrow된 asset이 repay될 때의 이벤트를 반환한다.
 
 margin manager가 liquidation될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -169,7 +169,7 @@ margin manager가 liquidation될 때의 이벤트를 반환한다.
 
 연관된 pool 및 asset 정보와 함께 모든 margin manager에 대한 집계 뷰를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -200,7 +200,7 @@ margin manager의 현재 상태를 반환한다. 이 엔드포인트는 liquidat
 - `max_risk_ratio`: 이 임계값보다 낮은 risk ratio를 가진 margin manager만 반환하도록 필터링한다; liquidation 기회를 찾는 데 유용하다
 - `deepbook_pool_id`: 특정 DeepBook pool로 필터링한다
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -245,7 +245,7 @@ margin manager의 현재 상태를 반환한다. 이 엔드포인트는 liquidat
 
 asset이 margin pool에 supply될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -277,7 +277,7 @@ asset이 margin pool에 supply될 때의 이벤트를 반환한다.
 
 asset이 margin pool에서 withdraw될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -309,7 +309,7 @@ asset이 margin pool에서 withdraw될 때의 이벤트를 반환한다.
 
 margin pool이 생성될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -353,7 +353,7 @@ margin pool이 생성될 때의 이벤트를 반환한다.
 
 DeepBook pool이 margin pool에 대해 활성화되거나 비활성화될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -384,7 +384,7 @@ DeepBook pool이 margin pool에 대해 활성화되거나 비활성화될 때의
 
 interest rate parameter가 업데이트될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -419,7 +419,7 @@ interest rate parameter가 업데이트될 때의 이벤트를 반환한다.
 
 margin pool configuration이 업데이트될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -454,7 +454,7 @@ margin pool configuration이 업데이트될 때의 이벤트를 반환한다.
 
 supplier capability가 mint될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -482,7 +482,7 @@ supplier capability가 mint될 때의 이벤트를 반환한다.
 
 supply referral이 mint될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -512,7 +512,7 @@ supply referral이 mint될 때의 이벤트를 반환한다.
 
 protocol fee가 증가할 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -544,7 +544,7 @@ protocol fee가 증가할 때의 이벤트를 반환한다.
 
 referral fee가 claim될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -578,7 +578,7 @@ collateral이 margin manager에 deposit되거나 withdraw될 때의 이벤트를
 - `type`: 이벤트 타입(`Deposit` 또는 `Withdraw`)으로 필터링한다
 - `is_base`: collateral이 base asset(`true`)인지 quote asset(`false`)인지로 필터링한다
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -622,7 +622,7 @@ collateral이 margin manager에 deposit되거나 withdraw될 때의 이벤트를
 
 maintainer capability가 업데이트될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -651,7 +651,7 @@ maintainer capability가 업데이트될 때의 이벤트를 반환한다.
 
 maintainer fee가 withdraw될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -681,7 +681,7 @@ maintainer fee가 withdraw될 때의 이벤트를 반환한다.
 
 protocol fee가 withdraw될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -710,7 +710,7 @@ protocol fee가 withdraw될 때의 이벤트를 반환한다.
 
 pause capability가 업데이트될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -739,7 +739,7 @@ pause capability가 업데이트될 때의 이벤트를 반환한다.
 
 DeepBook pool이 margin registry에 등록될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -780,7 +780,7 @@ DeepBook pool이 margin registry에 등록될 때의 이벤트를 반환한다.
 
 DeepBook pool registry entry가 업데이트될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [
@@ -809,7 +809,7 @@ DeepBook pool registry entry가 업데이트될 때의 이벤트를 반환한다
 
 DeepBook pool configuration이 업데이트될 때의 이벤트를 반환한다.
 
-#### Response
+#### 응답
 
 ```json
 [

@@ -12,7 +12,7 @@ passkey signature scheme을 지원함으로써 Sui는 보안성과 접근성을 
 
 애플리케이션에 passkey 지원을 추가하는 방법을 알아보려면 [TypeScript SDK documentation](https://sdk.mystenlabs.com/typescript/cryptography/passkey)을 참조하라. 제품 사양은 [SIP-9](https://github.com/sui-foundation/sips/blob/main/sips/sip-9.md)를 참조하라.
 
-## Benefits of using passkey
+## passkey 사용의 이점
 
 - private key가 authenticator 안에 안전하게 저장된 상태로 transactions에 안전하게 서명할 수 있다. 이는 key extraction attacks의 위험을 줄인다.
 
@@ -26,7 +26,7 @@ passkey signature scheme을 지원함으로써 Sui는 보안성과 접근성을 
 
 - passkey를 다른 authentication types와 결합하여 2-of-2 또는 m-of-n [다중 서명](/develop/transactions/transaction-auth/multisig) 지갑을 구축해 multisig wallets와 함께 동작한다. 이는 안전한 복구 옵션과 shared access patterns를 가능하게 한다.
 
-## Limitations of passkey
+## passkey 제한 사항
 
 - authenticator에 따라 기능이 다르다. 일부 security keys는 biometric authentication을 지원하지 않아 대신 PIN 입력을 요구한다. WebAuthn은 private keys에 대한 접근을 제공하지 않기 때문에 passkey를 안전하게 저장하거나 복구를 위해 cloud synchronization을 활성화해야 한다.
 

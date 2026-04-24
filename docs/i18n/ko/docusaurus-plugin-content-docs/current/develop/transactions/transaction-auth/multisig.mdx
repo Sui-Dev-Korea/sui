@@ -16,7 +16,7 @@ multisig에 참여할 수 있는 유효한 key는 다음과 같다:
 
 각 participating key에는 [u8](https://doc.rust-lang.org/std/primitive.u8) weight가 설정되며 threshold는 [u16](https://doc.rust-lang.org/std/primitive.u16)으로 설정할 수 있다. serialized multisig에 충분한 valid signature가 포함되어 있고 그 weight 합이 threshold를 넘으면 Sui는 multisig를 valid로 간주하고 transaction을 실행한다.
 
-## Applications of multisig
+## multisig application
 
 Sui에서는 하나의 multisig account 안에서 key scheme을 섞어 사용할 수 있다. 예를 들어 Ed25519 mnemonic 기반 key 하나와 ECDSA Secp256r1 key 두 개를 선택해, 항상 Ed25519 key가 필요하면서도 ECDSA Secp256r1 key 중 하나도 서명해야 하는 multisig account를 만들 수 있다. 이 구조를 mobile secure enclave stored key를 사용하는 two-factor authentication에 활용할 수 있다.
 
@@ -48,11 +48,11 @@ object를 받으려면 작업 중인 network에 이미 존재하는 address가 �
 이 문서는 또한 active environment가 Testnet(`sui client active-env`)이라고 가정한다.
 이 단계는 Devnet 또는 local network에서도 수행할 수 있지만, command를 그에 맞게 조정해야 한다.
 
-## Executing multisig transactions
+## multisig transaction 실행
 
 다중 서명을 보여주기 위해 이 문서는 Sui CLI를 사용해 다중 서명 transaction을 설정하고 실행하는 과정을 안내한다.
 
-### Create addresses with different schemes
+### 다른 scheme으로 address 생성
 
 먼저 나중에 instruction에서 수행할 transaction의 signer 역할을 할 address 세 개를 만든다.
 `sui client new-address` command를 사용해 지원되는 세 가지 key scheme에 대한 Sui address와 public key를 생성한다.
@@ -106,7 +106,7 @@ $ ACTIVE=<ACTIVE-ADDRESS>
 
 :::
 
-### Verify addresses
+### address verify
 
 `sui keytool`을 사용해 이전 section에서 만든 address를 나열한다.
 
@@ -158,7 +158,7 @@ $ PKEY_2=<PUBLIC-KEY-SECP256K1>
 $ PKEY_3=<PUBLIC-KEY-SECP256R1>
 ```
 
-### Create a multisig address
+### multisig address 생성
 
 다중 서명을 사용해 transaction에 서명하려면 `sui keytool multi-sig-address`를 사용해 다중 서명 주소를 만들어야 한다.
 다중 서명 주소는 각 개별 참여 address의 public key를 사용해 생성된다.
@@ -196,7 +196,7 @@ response는 다음과 비슷하다:
 ╰─────────────────┴─────────────────────────────────────────────────────────╯
 ```
 
-### Add SUI to the multisig address
+### multisig address에 SUI 추가
 
 SUI를 받기 전에 이전 response의 맨 위에 있는 다중 서명 주소를 `MULTISIG` shell variable에 설정한다(`<MULTISIG-ADDRESS>`를 실제 address로 대체한다).
 
@@ -220,7 +220,7 @@ $ sui client faucet --address $MULTISIG
 $ sui client gas $MULTISIG
 ```
 
-### Transfer SUI to your active address
+### active address로 SUI transfer
 
 이제 다중 서명 주소에서 object를 transfer할 차례이다.
 단순화를 위해 이 예시는 다중 서명 주소가 소유한 coin 중 하나를 transfer object로 사용한다.
@@ -245,7 +245,7 @@ console은 결과값(`<TX-BYTES-RESULT>`)을 표시하며, 이를 다른 shell v
 $ TXBYTES=<TX-BYTES-RESULT>
 ```
 
-### Sign the transaction with two public keys
+### 두 public key로 transaction sign
 
 `sui keytool sign` command를 사용해 앞서 만든 address 중 두 개로 transaction에 서명한다.
 
@@ -288,7 +288,7 @@ $ SIG_1=<SIGNATURE-HASH-ED25519>
 $ SIG_2=<SIGNATURE-HASH-SECP256K1>
 ```
 
-### Combine individual signatures into a multisig
+### 개별 signature를 multisig로 결합
 
 앞서 언급했듯 다중 서명은 참여 signer의 weight 합이 `threshold` 값 이상이 되도록 충분한 개별 signature로 구성되어야 한다.
 `sui keytool multi-sig-combine-partial-sig` command를 사용해 ed25519 signature(`weight: 1`)와 secp256k1(`weight: 2`)를 결합한다.
@@ -308,7 +308,7 @@ $ sui keytool multi-sig-combine-partial-sig --pks $PKEY_1 $PKEY_2 $PKEY_3 --weig
 ╰────────────────────┴──────────────────────────────╯
 ```
 
-### Execute the transaction
+### transaction 실행
 
 `sui client execute-signed-tx`를 사용해 다중 서명 transaction을 실행한다.
 이전 response에서 받은 `multisigSerialized` 값을 shell variable로 설정한 다음, 이를 사용해 `execute-signed-tx` command를 구성한다.

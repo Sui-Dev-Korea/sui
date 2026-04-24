@@ -7,7 +7,7 @@ keywords: [ automatic market makers, amms, swap_exact_amount, balancemanager, ba
 
 DeepBookV3는 automatic market maker (AMM)에서 흔히 볼 수 있는 swap-like interface를 제공한다. DeepBookV3 SDK는 이 interface의 기능을 활용하는 함수를 제공한다. 자세한 내용은 API 섹션의 [스왑](../deepbookv3/contract-information/swaps)를 참조하라.
 
-## Swap functions
+## 스왑 함수
 
 SDK는 base asset과 quote asset 사이의 swap을 수행하기 위한 다음 함수를 제공한다.
 
@@ -15,7 +15,7 @@ SDK는 base asset과 quote asset 사이의 swap을 수행하기 위한 다음 �
 
 `swapExactBaseForQuote`를 사용하여 정확한 base amount를 quote amount로 swap한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `params`: swap parameter를 나타내는 `SwapParams` object이다.
 
@@ -27,7 +27,7 @@ swapExactBaseForQuote({ params: SwapParams });
 
 `swapExactQuoteForBase`를 사용하여 정확한 quote amount를 base amount로 swap한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `params`: swap parameter를 나타내는 `SwapParams` object이다.
 
@@ -39,7 +39,7 @@ swapExactQuoteForBase({ params: SwapParams });
 
 `swapExactQuantity`를 사용하여 balance manager를 사용하지 않고 어느 방향으로든(base to quote 또는 quote to base) 정확한 quantity를 swap한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `params`: 다음을 포함하는 `SwapParams & { isBaseToCoin: boolean }` object이다:
   - `poolKey`: pool을 식별하는 String이다.
@@ -57,7 +57,7 @@ swapExactQuoteForBase({ params: SwapParams });
 
 `swapExactQuantityWithManager`를 사용하여 balance manager로 정확한 quantity를 swap한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `params`: 다음을 포함하는 `SwapWithManagerParams & { isBaseToCoin: boolean }` object이다:
   - `poolKey`: pool을 식별하는 String이다.
@@ -73,7 +73,7 @@ swapExactQuoteForBase({ params: SwapParams });
 
 <ImportContent source="packages/deepbook-v3/src/transactions/deepbook.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="swapExactQuantityWithManager" signatureOnly/>
 
-### Examples
+### 예시
 
 다음 예시는 `DeepBookMarketMaker` class에 넣을 수 있는 custom swap 함수를 보여준다. Base coin, quote coin, deep coin은 인자로 명시적으로 전달하지 않는 한 사용자 address에서 사용 가능한 coin을 기준으로 자동 결정된다. 사용자는 출력 coin을 자신의 address로 전송하거나 그 출력을 사용해 다른 작업을 실행할 수 있다.
 

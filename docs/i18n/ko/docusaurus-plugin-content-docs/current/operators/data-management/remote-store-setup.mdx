@@ -7,7 +7,7 @@ keywords: [remote store, checkpoint, blob, indexer, object store, S3, GCS, opera
 
 remote store는 protobuf로 인코딩된 checkpoint blob을 담는 object store(S3 또는 GCS)이다. 풀 노드는 여기서 state sync를 위해 읽고, indexer는 백필을 위해 읽는다. `sui-checkpoint-blob-indexer`는 source에서 checkpoint를 읽고 destination에 압축된 protobuf blob을 기록하여 이 store를 채운다.
 
-## Architecture overview
+## 아키텍처 개요
 
 ```mermaid
 graph LR
@@ -27,7 +27,7 @@ graph LR
 </TabItem>
 </Tabs>
 
-## Pipelines
+## Pipeline
 
 indexer는 세 개의 pipeline을 실행한다. 활성화해야 하는 것은 앞의 두 개뿐이다:
 
@@ -37,11 +37,11 @@ indexer는 세 개의 pipeline을 실행한다. 활성화해야 하는 것은 �
 | `epochs` | `epochs.json` | epoch 경계 checkpoint sequence number의 정렬된 목록. 필수 metadata이다. |
 | `checkpoint_bcs` | `{seq}.chk` | BCS로 인코딩된 checkpoint. **더 이상 사용되지 않으며 제거 중이다. 이 pipeline은 활성화하지 말라.** |
 
-## Backfill from an existing bucket
+## 기존 bucket에서 backfill
 
 자체 remote store를 채우는 가장 쉬운 방법은 Mysten의 공개 GCS bucket에서 백필하는 것이다. source로 `--remote-store-gcs`를 사용하고, destination flag(`--s3` 또는 `--gcs`)로 자신의 store에 기록한다.
 
-#### Example: Backfill an S3 bucket from Mysten's GCS bucket (Mainnet)
+#### 예시: Mysten의 GCS bucket에서 S3 bucket으로 backfill(Mainnet)
 
 ```sh
 sui-checkpoint-blob-indexer \
@@ -61,7 +61,7 @@ Mysten Labs는 향후 공개 checkpoint bucket에 requester-pays를 활성화할
 
 :::
 
-## Alternative: Backfill from a full node
+## 대안: full node에서 backfill
 
 pruning되지 않은 풀 노드가 있다면 bucket 대신 이를 checkpoint source로 사용할 수 있다:
 
@@ -73,7 +73,7 @@ sui-checkpoint-blob-indexer \
     --compression-level 3
 ```
 
-## Steady-state operation
+## Steady-state operation 구성
 
 백필이 network tip을 따라잡으면 가장 낮은 지연 시간을 위해 풀 노드 gRPC 스트리밍으로 전환한다. checkpoint를 가져올 때는 `--rpc-api-url`을, 실시간 스트리밍에는 `--streaming-url`을 사용한다:
 
@@ -88,13 +88,13 @@ sui-checkpoint-blob-indexer \
 
 풀 노드에는 gRPC만 활성화되어 있으면 된다. JSON-RPC는 필요하지 않다.
 
-### Running multiple instances
+### 여러 instance 실행
 
 쓰기 작업은 멱등적이므로 여러 indexer instance가 같은 bucket에 안전하게 기록할 수 있다. 정상 상태에서는 체인의 업데이트를 지연시키지 않고 롤링 배포를 가능하게 하려면 **2-3개의 instance**를 실행한다. 백필 중에는 instance 하나면 충분하다.
 
-## CLI reference
+## CLI reference 요약
 
-### Destination flags (mutually exclusive, one required)
+### Destination flag(mutually exclusive, 하나 필요)
 
 | Flag | 설명 |
 |------|------|
@@ -145,7 +145,7 @@ watermark-interval-jitter-ms = 120000
 - **`watermark-interval-ms`**: object store의 watermark file에서 hot-key 문제가 발생하지 않도록 framework 기본값보다 watermark update 빈도를 낮춘다.
 - **`watermark-interval-jitter-ms`**: watermark interval에 무작위 jitter를 더해 여러 indexer instance를 실행할 때 동시에 같은 key에 기록하지 않도록 한다.
 
-구성 옵션(`[ingestion]`, `[committer]`, `[pipeline.<name>]`)은 indexer framework의 표준 설정과 동일하다. 전체 참조는 [Pipeline architecture: Performance tuning](/develop/accessing-data/custom-indexer/pipeline-architecture#performance-tuning)을 참고한다.
+구성 옵션(`[ingestion]`, `[committer]`, `[pipeline.<name>]`)은 indexer framework의 표준 설정과 동일하다. 전체 참조는 [pipeline architecture performance tuning](/develop/accessing-data/custom-indexer/pipeline-architecture#performance-tuning-조정)을 참고한다.
 
 ## Output format
 

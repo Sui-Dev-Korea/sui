@@ -15,13 +15,13 @@ Sui Bridge는 Sui 네트워크의 native bridge이며 코어 아키텍처에 내
 
 [bridge.sui.io](https://bridge.sui.io/)에서 토큰을 브리지한다.
 
-### Operation and governance
+### 운영 및 거버넌스
 
 Sui Bridge는 Sui 네트워크를 보호하는 동일한 집합인 Sui validators에 의해 운영되고 거버넌스된다. Bridge transfers 및 기타 actions에는 투표권 임계값을 충족하는 validator signatures가 필요하다. Governance는 validator voting으로 처리된다.
 
 Sui Bridge full node를 설정하는 방법은 [Sui Bridge validator 노드 구성](../../operators/bridge-node-configuration)을 참조한다.
 
-### Supported assets
+### 지원 자산
 
 Sui Bridge는 다음 자산으로 Sui와 다른 네트워크 사이의 브리징을 지원한다:
 
@@ -33,7 +33,7 @@ Sui Bridge는 다음 자산으로 Sui와 다른 네트워크 사이의 브리징
 | Wrapped Ethereum (WETH) | native ETH의 토큰화된 표현이다. |
 | Tether (USDT) | 미국 달러에 페그된 stablecoin이다. |
 
-### Package IDs and contract addresses
+### 패키지 ID 및 컨트랙트 주소
 
 다음 package IDs와 addresses는 Sui Bridge에 예약되어 있다:
 
@@ -46,7 +46,7 @@ Sui Bridge는 다음 자산으로 Sui와 다른 네트워크 사이의 브리징
 | ETH on Ethereum | Native Ether |
 | WETH on Ethereum | [`0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2`](https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2) |
 
-### Source code
+### 소스 코드
 
 Sui Bridge는 오픈 소스이다:
 
@@ -60,7 +60,7 @@ Sui Bridge는 오픈 소스이다:
 
 - [브리지 인덱서](https://github.com/MystenLabs/sui/tree/main/crates/sui-bridge-indexer)
 
-### Audits
+### audit
 
 감사 보고서:
 
@@ -68,17 +68,17 @@ Sui Bridge는 오픈 소스이다:
 
 - [Zellic](https://github.com/sui-foundation/security-audits/blob/main/docs/Sui_Bridge_v1_Zellic.pdf)
 
-### Global limiter {#global-limiter}
+### global limiter {#global-limiter}
 
 Limiter는 24시간 창에서 Sui Bridge를 떠나는 assets의 총 가치를 제한하여 funds를 보호한다. 이는 가치를 시간별로 추적하고 지난 24시간을 집계하며, 매시간 갱신된다. 제한은 전역적으로 적용되며 방향(Ethereum → Sui 대 Sui → Ethereum)에 따라 달라진다. 또한 단일 transfer의 최대값도 상한한다.
 
 한도는 validator 위원회 투표로 설정되며 Discord의 [mn-validator-announcements channel](https://discord.com/channels/916379725201563759/1093852827627040768)에서 공지된다. 현재 전역 한도는 24시간당 Ethereum에서 Sui로 \$16 million, Sui에서 Ethereum으로 \$7 million이다.
 
-### Asset pricing
+### asset pricing
 
 Sui Bridge v1은 한도를 계산하기 위해 정적 pricing을 사용한다. ETH는 \$2,600으로 가격이 책정된다. ETH 1개는 한도에서 \$2,600을 소모한다. Pricing은 validator 위원회가 투표를 통해 거버넌스한다.
 
-### Minimum and maximum transfers
+### minimum 및 maximum transfer
 
 최소 transfer는 없지만 아주 작은 소수 단위는 내림 처리될 수 있다. ETH와 WETH의 경우 소수점 여덟 자리의 reduced precision 때문에 10.0000000000000001은 10으로 내림된다.
 
@@ -99,11 +99,11 @@ Wormhole Connect를 사용하면 지원되는 모든 Wormhole chain에서 Sui로
 
 :::
 
-### Supported assets
+### 지원 자산
 
 Wormhole Connect는 Ethereum, Polygon, BSC, Avalanche, Celo, Moonbeam, Solana, Sui 전반에서 ETH, WETH, USDC, MATIC, WMATIC, BNB, WBNB, AVAX, WAVAX, FTM, WFTM, CELO, GLMR, WGLRM, SOL에 대한 lock-and-mint 브리징을 지원한다. 브리지된 토큰은 대상 chain에서 Wormhole이 mint한 토큰으로 수령된다. [Wormhole token list](https://github.com/wormhole-foundation/wormhole-token-list)를 참조한다. 일부 토큰은 대상 DEXs에서 swapping을 지원한다.
 
-### Features
+### 기능
 
 **Automatic relay**: EVM chains와 Sui에서 Wormhole Connect는 destination-chain gas를 자동으로 지불할 수 있다. Users는 source chain에서만 gas를 지불한다.
 
@@ -119,7 +119,7 @@ Wormhole이 제공하는 [Portal Bridge](https://www.portalbridge.com/sui)는 [2
 
 [ZetaChain](https://www.zetachain.com/)은 Sui와 다른 블록체인 사이의 omnichain smart contracts와 cross-chain messaging을 가능하게 한다. ZetaChain 프로토콜은 Bitcoin, Ethereum, Polygon, BSC, Avalanche 및 기타 주요 chains 전반에서 디지털 assets 브리징과 임의의 메시지 전송을 지원한다.
 
-### Supported assets
+### 지원 자산
 
 ZetaChain은 다음과 같은 토큰의 native cross-chain transfers를 지원한다:
 
@@ -149,7 +149,7 @@ Asset transfers를 넘어, ZetaChain의 Universal App framework는 smart contrac
 
 - 단일 transaction에서 복잡한 multi-chain workflows를 실행한다.
 
-### How it works
+### 작동 방식
 
 ZetaChain은 proof-of-stake validator network를 사용해 외부 chains의 transactions를 관찰하고 그들 사이에 messages를 relay한다. Cross-chain transaction을 시작하면 다음과 같이 동작한다:
 
@@ -163,7 +163,7 @@ ZetaChain은 proof-of-stake validator network를 사용해 외부 chains의 tran
 
 모든 cross-chain operations는 수동 개입 없이 자동으로 처리된다.
 
-### Gas handling
+### gas handling
 
 ZetaChain은 유연한 gas payment options를 제공한다:
 
@@ -173,7 +173,7 @@ ZetaChain은 유연한 gas payment options를 제공한다:
 
 - **Custom gas logic**: application-specific gas payment models를 구현한다.
 
-### Gateway contracts
+### gateway contract
 
 지원되는 각 chain에 배포된 gateway contracts를 통해 ZetaChain과 상호작용한다:
 
@@ -189,7 +189,7 @@ ZetaChain은 유연한 gas payment options를 제공한다:
 
 통합 전에 [공식 ZetaChain 문서](https://www.zetachain.com/docs/reference/network/contracts)에서 gateway addresses를 항상 검증해야 한다.
 
-### Getting started
+### 시작하기
 
 ZetaChain CLI를 설치한다:
 
@@ -211,7 +211,7 @@ ZetaChain explorers에서 transactions를 확인한다:
 
 - [Mainnet Explorer](https://zetascan.com/)
 
-## Token address list {#token-address-list}
+## token address list {#token-address-list}
 
 다음 표는 각 토큰 type의 address를 나열한다. Address가 일치하는지 검증하여 토큰의 적법성을 확인한다.
 

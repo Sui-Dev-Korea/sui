@@ -8,7 +8,7 @@ keywords: [ uncollaterized, flash loans, loans, uncollaterized loans, programmab
 
 Flash loan은 pool에서의 대출과 상환이 하나의 programmable transaction block 안에서 수행되는 대출이다. SDK는 이 기능을 구현할 수 있는 함수를 제공한다. API에 대한 자세한 내용은 [플래시 론](../deepbookv3/contract-information/flash-loans)를 참조하라.
 
-## Flash loan functions
+## 플래시 론 함수
 
 DeepBookV3 SDK는 다음 flash loan 관련 함수를 제공한다.
 
@@ -16,7 +16,7 @@ DeepBookV3 SDK는 다음 flash loan 관련 함수를 제공한다.
 
 `borrowBaseAsset`를 사용하여 제공한 `poolKey` 값으로 식별되는 pool에서 base asset을 빌린다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 빌릴 pool을 식별하는 String이다.
 - `borrowAmount`: pool에서 빌릴 양을 나타내는 Number이다.
@@ -29,7 +29,7 @@ borrowBaseAsset(poolKey: string, borrowAmount: number);
 
 `returnBaseAsset`를 사용하여 제공한 `poolKey` 값으로 식별되는 pool에 base asset을 반환한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 빌릴 pool을 식별하는 String이다.
 - `borrowAmount`: pool에서 빌릴 양을 나타내는 Number이다.
@@ -51,7 +51,7 @@ returnBaseAsset(
 
 `borrowQuoteAsset`를 사용하여 제공한 `poolKey` 값으로 식별되는 pool에서 quote asset을 빌린다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 빌릴 pool을 식별하는 String이다.
 - `borrowAmount`: pool에서 빌릴 양을 나타내는 Number이다.
@@ -64,7 +64,7 @@ borrowQuoteAsset(poolKey: string, borrowAmount: number);
 
 `returnQuoteAsset`를 사용하여 제공한 `poolKey`로 식별되는 pool에 quote asset을 반환한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 빌릴 pool을 식별하는 String이다.
 - `borrowAmount`: pool에서 빌릴 양을 나타내는 Number이다.

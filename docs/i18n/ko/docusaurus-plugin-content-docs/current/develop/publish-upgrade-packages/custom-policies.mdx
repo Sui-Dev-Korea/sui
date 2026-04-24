@@ -1,6 +1,6 @@
 ---
 title: 사용자 정의 업그레이드 정책
-description: 사용자 지정 업그레이드 정책은 단일 키 소유권 업그레이드의 보안 위험을 해결하면서 운영 중인 패키지를 업그레이드하는 데 사용됩니다.
+description: 사용자 지정 업그레이드 정책은 단일 키 소유권 업그레이드의 보안 위험을 해결하면서 운영 중인 패키지를 업그레이드하는 데 사용된다.
 keywords:
   - upgrade policies
   - custom upgrade policies
@@ -19,7 +19,7 @@ keywords:
 
 이러한 단일 키 업그레이드의 보안 위험을 해결하면서도 [패키지 업그레이드](./upgrade)를 가능하게 하기 위해, Sui는 *커스텀 업그레이드 정책*을 제공한다. 이러한 정책은 `UpgradeCap` 액세스를 보호하고 케이스별로 업그레이드를 승인하는 `UpgradeTicket` object를 발행한다.
 
-## Compatibility {#compatibility}
+## compatibility {#compatibility}
 
 Sui는 내장된 패키지 호환성 정책 세트를 제공하며, 가장 엄격한 것부터 가장 느슨한 것까지 다음과 같이 나열된다:
 
@@ -75,7 +75,7 @@ Sui는 내장된 패키지 호환성 정책 세트를 제공하며, 가장 엄�
 
 패키지의 `UpgradeCap`에 대해 `sui::package`의 함수 중 하나(`only_additive_upgrades`,`only_dep_upgrades`, `make_immutable`)를 호출하여 현재 정책을 변경할 수 있으며, 정책은 더 제한적으로만 변경될 수 있다. 예를 들어, `sui::package::only_dep_upgrades` 를 호출하여 정책을 additive로 제한한 후, 동일한 패키지의 `UpgradeCap`에 대해 `sui::package::only_additive_upgrades`를 호출하면 오류가 발생한다.
 
-## Upgrade overview {#upgrade-overview}
+## upgrade 개요 {#upgrade-overview}
 
 패키지 업그레이드는 단일 transaction 내에서 종단 간으로 발생해야 하며 세 가지 명령으로 구성된다:
 
@@ -85,17 +85,17 @@ Sui는 내장된 패키지 호환성 정책 세트를 제공하며, 가장 엄�
 
 2단계는 내장 명령이지만, 1단계와 3단계는 Move 함수로 구현된다. the Sui framework는 가장 기본적인 구현을 제공한다:
 
-<ImportContent source="crates/sui-framework/packages/sui-framework/sources/package.move" mode="" fun="authorize_upgrade,commit_upgrade" nocomments />
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/package.move" mode="" fun="authorize_upgrade,commit_upgrade" noComments />
 
 이들은 `sui client upgrade` 가 권한 부여 및 커밋을 위해 호출하는 함수들이다. 커스텀 업그레이드 정책은 패키지 `UpgradeCap`(따라서 이러한 함수 호출)에 대한 액세스를 해당 정책에 특정한 추가 조건(예: 투표, 거버넌스, 권한 목록, timelock 등) 뒤에 보호함으로써 작동한다.
 
 `UpgradeCap`으로부터 `UpgradeTicket`을 생성하고 `UpgradeReceipt`를 소비하여 `UpgradeCap`을 업데이트하는 모든 함수 쌍은 커스텀 업그레이드 정책을 구성한다.
 
-## UpgradeCap {#upgradecap}
+## `UpgradeCap` {#upgradecap}
 
 `UpgradeCap`은 패키지 업그레이드를 조정하는 중심 타입이다.
 
-<ImportContent source="crates/sui-framework/packages/sui-framework/sources/package.move" mode="code" struct="UpgradeCap" nocomments />
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/package.move" mode="code" struct="UpgradeCap" noComments />
 
 패키지를 게시하면 `UpgradeCap` object가 생성되고 패키지를 업그레이드하면 해당 object가 업데이트된다. 이 object의 소유자는 다음을 수행할 권한이 있다:
 
@@ -110,9 +110,9 @@ Sui는 내장된 패키지 호환성 정책 세트를 제공하며, 가장 엄�
 - 업그레이드는 단일 transaction의 범위 내에서만 승인될 수 있다; 승인을 증명하는 `UpgradeTicket` 을 `store`할 수 없다.
 - 패키지에 대한 호환성 요구사항은 시간이 지남에 따라 더 제한적으로만 만들어질 수 있다.
 
-## UpgradeTicket {#upgradeticket}
+## `UpgradeTicket` {#upgradeticket}
 
-<ImportContent source="crates/sui-framework/packages/sui-framework/sources/package.move" mode="code" struct="UpgradeTicket" nocomments />
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/package.move" mode="code" struct="UpgradeTicket" noComments />
 
 `UpgradeTicket` 은 업그레이드가 승인되었다는 증거이다. 이 승인은 다음에 특정적이다:
 
@@ -124,7 +124,7 @@ Sui는 내장된 패키지 호환성 정책 세트를 제공하며, 가장 엄�
 
 `UpgradeTicket`을 생성한 후에는 해당 transaction 내에서 사용해야 하며(나중을 위해 저장하거나, 삭제하거나, 소각할 수 없음), 그렇지 않으면 transaction이 실패한다.
 
-### Package digest {#package-digest}
+### package digest {#package-digest}
 
 `UpgradeTicket` `digest` 필드는 호출자가 제공해야 하는 `authorize_upgrade`의 `digest` 파라미터에서 가져온다. `authorize_upgrade`는 `digest`를 처리하지 않지만, 커스텀 정책은 이를 사용하여 미리 바이트코드 또는 소스 코드를 본 업그레이드만 승인할 수 있다. Sui는 다음과 같이 digest를 계산한다:
 
@@ -148,15 +148,15 @@ BUILDING test
 {"modules":[<MODULE-BYTES-BASE64>],"dependencies":[<DEPENDENCY-IDS>],"digest":[59,43,173,195,216,88,176,182,18,8,24,200,200,192,196,197,248,35,118,184,207,205,33,59,228,109,184,230,50,31,235,201]}
 ```
 
-## UpgradeReceipt {#upgradereceipt}
+## `UpgradeReceipt` {#upgradereceipt}
 
-<ImportContent source="crates/sui-framework/packages/sui-framework/sources/package.move" mode="code" struct="UpgradeReceipt" nocomments />
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/package.move" mode="code" struct="UpgradeReceipt" noComments />
 
 `UpgradeReceipt`는 `Upgrade` 명령이 성공적으로 실행되었다는 증거이며, Sui가 transaction에 대해 생성된 object 집합에 새 패키지를 추가했다는 증거이다. 이것은 패밀리의 최신 패키지 ID(`package: ID`)로 `UpgradeCap` (`cap: ID`로 식별됨)을 업데이트하는 데 사용된다.
 
 Sui가 `UpgradeReceipt`를 생성한 후에는 동일한 transaction 내에서 `UpgradeCap`을 업데이트하는 데 사용해야 하며(나중을 위해 저장하거나, 삭제하거나, 소각할 수 없음), 그렇지 않으면 transaction이 실패한다.
 
-## Isolating policies {#isolating-policies}
+## policy 격리 {#isolating-policies}
 
 커스텀 업그레이드 정책을 작성할 때 다음을 선호한다:
 
@@ -169,8 +169,6 @@ Sui가 `UpgradeReceipt`를 생성한 후에는 동일한 transaction 내에서 `
 ## Example: Day of the week upgrade policy {#example-upgrade}
 
 이제 (패키지 생성자가 선택한) 특정 요일에만 업그레이드를 승인하는 토이 업그레이드 정책을 작성하여 모든 것을 실습할 시간이다.
-
-### Creating an upgrade policy {#creating-upgrade-policy}
 
 업그레이드 정책을 위한 새로운 Move 패키지를 생성하는 것으로 시작한다:
 
@@ -320,7 +318,7 @@ public fun make_immutable(cap: UpgradeCap) {
 }
 ```
 
-### Publishing an upgrade policy {#publishing-an-upgrade-policy}
+### upgrade policy publish {#publishing-an-upgrade-policy}
 
 `sui client publish`  명령을 사용하여 정책을 게시한다.
 
@@ -330,7 +328,11 @@ public fun make_immutable(cap: UpgradeCap) {
 $ sui client publish
 ```
 
-<details>   <summary>   Console output   </summary> </details>
+<details>
+<summary>
+콘솔 출력
+</summary>
+
 
 성공적인 게시는 다음을 반환한다:
 
@@ -471,6 +473,8 @@ Transaction Digest: 5BzYX5iV6GP2RaSkZ7JPBRmListD5cEVC7REoKsNoCYc
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
+</details>
+
 
 
 모범 사례에 따라, Sui Client CLI를 사용하여 `UpgradeCap`에 대해 `sui::package::make_immutable`을 호출하여 정책을 불변으로 만든다. 쉘에서 변수 `upgradecap`을 생성하고 그 값을 게시 응답의 *Object Changes* 섹션에 나열된 `UpgradeCap` object ID로 설정한다. 물론, 업그레이드 capability에 대한 object ID는 다음 예시와 다르다.
@@ -485,7 +489,11 @@ $ sui client call \
     --args $upgradecap
 ```
 
-<details>   <summary>   Console output   </summary> </details>
+<details>
+<summary>
+콘솔 출력
+</summary>
+
 
 성공적인 호출은 다음과 유사한 응답을 반환한다:
 
@@ -592,9 +600,11 @@ Transaction Digest: EuQYMunxnMUFedvXXPck9HrehQnNY4GJ27eFBD7ptk2H
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
+</details>
 
 
-### Creating a package for testing {#creating-testing-package}
+
+### testing용 package 생성 {#creating-testing-package}
 
 이제 체인에서 정책을 사용할 수 있으므로 업그레이드할 패키지가 필요하다. 이 주제는 기본 패키지를 생성하고 다음 시나리오에서 참조하지만, 새로 만드는 대신 사용 가능한 다른 패키지를 사용할 수 있다.
 
@@ -617,7 +627,7 @@ module example::example {
 
 다음 지침은 이 예제 패키지를 게시한 다음 업그레이드하여 내보내는 `Event`의 값을 변경한다. 커스텀 업그레이드 정책을 사용하고 있으므로 TypeScript SDK를 사용하여 패키지의 게시 및 업그레이드 명령을 구축해야 한다.
 
-### Using TypeScript SDK {#using-typeccript-sdk}
+### TypeScript SDK 사용 {#using-typescript-sdk}
 
 Node.js 프로젝트를 저장할 새 디렉토리를 생성한다. `npm init` 함수를 사용하여 `package.json`을 생성하거나 수동으로 파일을 생성할 수 있다. `package.json` 생성 방법에 따라, 다음 JSON을 채우거나 추가한다:
 
@@ -631,7 +641,7 @@ Node.js 프로젝트의 루트에 터미널 또는 콘솔을 연다. 다음 명�
 $ npm install @mysten/sui
 ```
 
-### Publishing a package with custom policy {#publishing-custom-policy}
+### custom policy로 package publish {#publishing-custom-policy}
 
 Node.js 프로젝트의 루트에서 `publish.js`라는 스크립트 파일을 생성한다. 파일을 편집용으로 열고 몇 가지 상수를 정의한다:
 
@@ -706,37 +716,34 @@ const tuesdayUpgradeCap = tx.moveCall({
 	target: `${POLICY_PACKAGE_ID}::day_of_week::new_policy`,
 	arguments: [
 		packageUpgradeCap,
-		tx.pure(1), // 화요일
+		tx.pure.u8(1), // 화요일
 	],
 });
 
-tx.transferObjects([tuesdayUpgradeCap], tx.pure(sender));
+tx.transferObjects([tuesdayUpgradeCap], tx.pure.address(sender));
 ```
 
-마지막으로, 해당 transaction을 실행하고 그 효과를 콘솔에 표시한다. 다음 스니펫은 로컬 네트워크에 대해 예제를 실행한다고 가정한다. Devnet, Testnet 또는 Mainnet에서 실행하려면 `getFullnodeUrl()` 함수에 각각 `devnet`, `testnet`, 또는 `mainnet`을 전달한다:
+마지막으로, 해당 transaction을 실행하고 그 효과를 콘솔에 표시한다. 다음 스니펫은 로컬 네트워크에 대해 예제를 실행한다고 가정한다. Devnet, Testnet 또는 Mainnet에서 실행하려면 `baseUrl` 및 `network` 파라미터를 변경한다:
 
 ```js
-import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import { SuiGrpcClient } from '@mysten/sui/grpc';
 
-const client = new SuiClient({ url: getFullnodeUrl('localnet') });
+const client = new SuiGrpcClient({ baseUrl: 'http://localhost:9000', network: 'localnet' });
 const result = await client.signAndExecuteTransaction({
 	signer,
 	transaction: tx,
-	options: {
-		showEffects: true,
-		showObjectChanges: true,
-	},
 });
 
 console.log(result);
 ```
 
-<details></details>
+<details>
 
-<summary></summary>
+<summary>
 
 `publish.js`
 
+</summary>
 
 
 ```js
@@ -745,7 +752,7 @@ import { readFileSync } from 'fs';
 import { homedir } from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import { SuiGrpcClient } from '@mysten/sui/grpc';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { Transaction } from '@mysten/sui/transactions';
 import { fromBase64 } from '@mysten/sui/utils';
@@ -788,25 +795,22 @@ const tuesdayUpgradeCap = tx.moveCall({
 	target: `${POLICY_PACKAGE_ID}::day_of_week::new_policy`,
 	arguments: [
 		packageUpgradeCap,
-		tx.pure(1), // 화요일
+		tx.pure.u8(1), // 화요일
 	],
 });
 
-tx.transferObjects([tuesdayUpgradeCap], tx.pure(sender));
+tx.transferObjects([tuesdayUpgradeCap], tx.pure.address(sender));
 
-const client = new SuiClient({ url: getFullnodeUrl('localnet') });
+const client = new SuiGrpcClient({ baseUrl: 'http://localhost:9000', network: 'localnet' });
 const result = await client.signAndExecuteTransaction({
 	signer,
 	transaction: tx,
-	options: {
-		showEffects: true,
-		showObjectChanges: true,
-	},
 });
 
 console.log(result);
 ```
 
+</details>
 
 
 `publish.js` 파일을 저장한 다음 Node.js를 사용하여 스크립트를 실행한다:
@@ -815,7 +819,11 @@ console.log(result);
 $ node publish.js
 ```
 
-<details>   <summary>   Console output   </summary> </details>
+<details>
+<summary>
+콘솔 출력
+</summary>
+
 
 스크립트가 성공하면 콘솔은 다음 응답을 출력한다:
 
@@ -878,6 +886,8 @@ BUILDING example
 }
 ```
 
+</details>
+
 
 
 :::tip
@@ -895,7 +905,11 @@ $ sui client call --gas-budget 10000000 \
     --function 'nudge' \
 ```
 
-<details>   <summary>   Console output   </summary> </details>
+<details>
+<summary>
+콘솔 출력
+</summary>
+
 
 성공적인 호출은 다음으로 응답한다:
 
@@ -965,11 +979,13 @@ Array [
 ]
 ```
 
+</details>
+
 
 
 제공된 예제 패키지를 사용한 경우, 값이 `41`인 필드 `x`가 포함된 `Events` 섹션이 있음을 알 수 있다.
 
-### Upgrading a package with custom policy {#upgrading-custom-policy}
+### custom policy로 package upgrade {#upgrading-custom-policy}
 
 패키지가 게시되었으므로 새 정책을 사용하여 업그레이드를 수행하는 `upgrade.js` 스크립트를 준비할 수 있다. 이것은 패키지를 빌드하기 전까지 `publish.js` 와 동일하게 동작한다. 패키지를 빌드할 때 스크립트는 `digest`도 캡처하고, transaction은 이제 세 가지 업그레이드 명령(authorize, execute, commit)을 수행한다. `upgrade.js`의 전체 스크립트는 다음과 같다:
 
@@ -979,7 +995,7 @@ import { readFileSync } from 'fs';
 import { homedir } from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
+import { SuiGrpcClient } from '@mysten/sui/grpc';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { Transaction, UpgradePolicy } from '@mysten/sui/transactions';
 import { fromBase64 } from '@mysten/sui/utils';
@@ -1022,7 +1038,7 @@ const tx = new Transaction();
 const cap = tx.object(CAP_ID);
 const ticket = tx.moveCall({
 	target: `${POLICY_PACKAGE_ID}::day_of_week::authorize_upgrade`,
-	arguments: [cap, tx.pure(UpgradePolicy.COMPATIBLE), tx.pure(digest)],
+	arguments: [cap, tx.pure.u8(UpgradePolicy.COMPATIBLE), tx.pure(Uint8Array.from(digest))],
 });
 
 const receipt = tx.upgrade({
@@ -1037,14 +1053,10 @@ tx.moveCall({
 	arguments: [cap, receipt],
 });
 
-const client = new SuiClient({ url: getFullnodeUrl('localnet') });
+const client = new SuiGrpcClient({ baseUrl: 'http://localhost:9000', network: 'localnet' });
 const result = await client.signAndExecuteTransaction({
 	signer,
 	transaction: tx,
-	options: {
-		showEffects: true,
-		showObjectChanges: true,
-	},
 });
 
 console.log(result);
@@ -1056,7 +1068,11 @@ console.log(result);
 $ node upgrade.js
 ```
 
-<details>   <summary>   Console output   </summary> </details>
+<details>
+<summary>
+콘솔 출력
+</summary>
+
 
 스크립트가 성공하면(그리고 오늘이 화요일이면), 콘솔은 다음 응답을 표시한다:
 
@@ -1121,6 +1137,8 @@ BUILDING example
 }
 ```
 
+</details>
+
 
 
 Sui Client CLI를 사용하여 업그레이드된 패키지를 테스트한다(패키지 ID는 원래 예제 패키지 버전과 **&nbsp;다르다** ):
@@ -1132,7 +1150,11 @@ $ sui client call --gas-budget 10000000 \
     --function 'nudge'
 ```
 
-<details>   <summary>   Console output   </summary> </details>
+<details>
+<summary>
+콘솔 출력
+</summary>
+
 
 성공하면 콘솔은 다음 응답을 출력한다:
 
@@ -1201,6 +1223,8 @@ Array [
     },
 ]
 ```
+
+</details>
 
 
 

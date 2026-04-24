@@ -10,7 +10,7 @@ Object Display는 타입의 오프체인 표현을 온체인에서 관리할 수
 
 Object Display를 어떻게 사용할 수 있는지 보려면 [interactive preview application](/develop/objects/display/display-preview)을 확인한다.
 
-## V1 end of life
+## V1 지원 종료
 
 :::caution
 
@@ -22,7 +22,7 @@ Object Display V1은 이를 이미 지원하는 RPC(JSON-RPC, GraphQL)에서 **2
 
 Move 코드에서 display를 생성할 때는 `sui::display_registry` API를 사용하는 것이 권장된다. 중간 단계에서는 `migrate_v1_to_v2` 함수를 사용하여 legacy display를 마이그레이션하고 V2 `Display<T>`와 `DisplayCap<T>`를 받을 수 있다.
 
-## What's new in V2
+## V2의 새로운 사항
 
 Display V2는 더 풍부한 templating model, 개선된 rendering pipeline, 더 나은 tooling을 제공하며, 여기에는 다음이 포함된다:
 

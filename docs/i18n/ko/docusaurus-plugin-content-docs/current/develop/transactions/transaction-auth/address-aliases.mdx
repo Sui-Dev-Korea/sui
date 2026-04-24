@@ -21,7 +21,7 @@ alias를 변경할 때는 매우 주의해야 한다.
 
 :::
 
-## How aliases work
+## alias 작동 방식
 
 Sui의 각 address에는 alias 집합이 있다.
 새 address는 자기 자신을 alias로 가지는 상태로 시작한다.
@@ -35,7 +35,7 @@ alias를 수정할 때의 몇 가지 제약 사항은 다음과 같다:
 - address는 자기 자신의 alias 집합에서 제거될 수 있다. 예를 들어 address `A`가 있고 이 address가 `{B, C}`의 서명만 허용하도록 만들 수 있다.
 - address에 허용되는 alias의 최대 개수는 8개이다.
 
-### Authenticating transactions with aliased addresses
+### aliased address로 transaction authenticate
 
 Sui의 transaction은 두 address인 `sender`와 `gas_owner`로 구성된다(둘은 같을 수도 있고 다를 수도 있다).
 구성된 각 address에 대해서는 그 alias 집합 안의 signer 중 하나로부터 signature가 필요하다.
@@ -55,3 +55,65 @@ aliases[X] = {Y}
 유효하려면 transaction `T`는 `A` 또는 `B` 중 하나의 signature가 필요하고, *또한* `Y`의 signature가 필요하다.
 
 이 예시에서 transaction이 `A`가 아닌 `[B, Y]`의 signature를 가지고 있더라도 실행 중에는 여전히 `A`가 소유한 모든 것에 접근할 수 있으며, Move call 실행 중 `TxContext::sender` 역시 `A`가 된다.
+
+## Sui CLI로 alias 관리
+
+`sui client ptb`를 사용해 `sui::address_alias` module의 entry function을 호출하여 address alias를 관리할 수 있다. `AddressAliasState` singleton object는 address `0xa`에 있다.
+
+### address에 alias enable
+
+Alias를 수정하기 전에 address에 대해 alias configuration을 활성화해야 한다. 이렇게 하면 자신의 address를 sole alias로 초기화한 `AddressAliases` object가 생성된다:
+
+```sh
+$ sui client ptb \
+    --move-call sui::address_alias::enable @0xa \
+    --gas-budget 50000000
+```
+
+Transaction output의 created objects section에서 `AddressAliases` object ID를 기록한다. 이후 모든 alias operation에 이 ID가 필요하다.
+
+### alias 추가
+
+다른 address를 alias set에 추가하여, 해당 address가 사용자를 대신해 transaction에 서명할 수 있게 한다:
+
+```sh
+$ sui client ptb \
+    --move-call sui::address_alias::add \
+        @<ADDRESS_ALIASES_OBJECT_ID> \
+        @<NEW_ALIAS_ADDRESS> \
+    --gas-budget 50000000
+```
+
+### 모든 alias 교체
+
+`replace_all`을 사용하여 전체 alias set을 새 address set으로 덮어쓴다. 예를 들어 단일 address를 유일한 alias로 설정하려면 다음을 실행한다:
+
+```sh
+$ sui client ptb \
+    --move-call sui::address_alias::replace_all \
+        @<ADDRESS_ALIASES_OBJECT_ID> \
+        vector[@<ALIAS_ADDRESS>] \
+    --gas-budget 50000000
+```
+
+:::warning
+
+자신의 address를 포함하지 않는 set으로 alias를 replace하면 더 이상 해당 address에 대해 transaction에 서명할 수 없다. 새 alias set에 있는 address만 그 권한을 가진다.
+
+:::
+
+### alias 제거
+
+Alias set에서 특정 address를 제거한다:
+
+```sh
+$ sui client ptb \
+    --move-call sui::address_alias::remove \
+        @<ADDRESS_ALIASES_OBJECT_ID> \
+        @<ALIAS_TO_REMOVE> \
+    --gas-budget 50000000
+```
+
+### offline signing
+
+Hardware wallet 또는 다른 external signer를 사용하는 경우 위 command에 `--serialize-unsigned-transaction`을 추가하면 실행 대신 raw transaction bytes를 출력할 수 있다. 그런 다음 transaction에 offline으로 서명하고 별도로 submit할 수 있다. 자세한 내용은 [Sui Client PTB CLI](/references/cli/ptb)를 참조한다.

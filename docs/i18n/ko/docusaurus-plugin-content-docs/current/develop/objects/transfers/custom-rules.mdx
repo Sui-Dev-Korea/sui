@@ -1,6 +1,8 @@
 ---
 title: 사용자 정의 객체 전송 규칙
+sidebar_label: 사용자 정의 객체 전송 규칙
 description: 사용자 정의 전송 규칙(Custom transfer rules)은 Sui가 transfer 연산을 유효하다고 판단하기 전에 충족되어야 하는 일련의 규칙을 정의할 수 있게 한다.
+keywords: [ custom transfer rules, transfer rules, store ability, key ability, transfer restrictions, public transfer, custom transfer function, object transfer, transfer conditions, locked objects, unlocked objects, transfer policy, object abilities ]
 ---
 
 
@@ -11,11 +13,17 @@ description: 사용자 정의 전송 규칙(Custom transfer rules)은 Sui가 tra
 
 custom transfer rules의 관점에서 중요한 점은, Sui object `Object`가 `store` ability를 가지지 않는 경우 `sui::transfer::public_transfer` 함수를 호출하여 해당 object를 전송할 수 없다는 것이다.`Object`를 정의한 Move module만이 `sui::transfer::transfer` 함수를 사용하여 그 타입의 object를 전송할 수 있는 유일한 entity이다.결과적으로 `Object`를 정의하는 module은 `Object`에 대해 원하는 수의 argument를 받을 수 있는 custom transfer function을 정의할 수 있으며, transfer 연산 수행에 필요한 모든 제약사항을 강제할 수 있다 (예: object를 전송하기 위해서는 fee를 지불해야 한다).
 
-## The store ability and transfer rules
+## `store` ability
 
-object에 대한 Custom transfer rules는 유효한 transfer 연산을 위해 반드시 충족되어야 하는 transfer 조건을 정의할 수 있게 한다.`store` ability를 object에 추가할 때는 신중해야 하며, 이는 해당 object를 정의한 module을 거치지 않고도 그 object에 제한 없이 접근할 수 있게 되기 때문이다. object에 대해 public transfer를 활성화한 이후에는 해당 object의 transfer에 대해 custom transfer rules나 그 어떤 형태의 제한도 다시 적용할 수 없다.
+object에 대한 Custom transfer rules는 유효한 transfer 연산을 위해 반드시 충족되어야 하는 transfer 조건을 정의할 수 있게 한다.`store` ability를 object에 추가할 때는 신중해야 하며, 이는 해당 object를 정의한 module을 거치지 않고도 그 object에 제한 없이 접근할 수 있게 되기 때문이다.
 
-## Example
+:::caution
+
+object에 대해 public transfer를 활성화한 이후에는 해당 object의 transfer에 대해 custom transfer rules나 그 어떤 형태의 제한도 다시 적용할 수 없다.
+
+:::
+
+## 예시
 
 이 예시는 내부의 `unlocked` 플래그가 `true`로 설정된 경우에만 전송 가능한 object 타입 `Object`를 생성한다:
 

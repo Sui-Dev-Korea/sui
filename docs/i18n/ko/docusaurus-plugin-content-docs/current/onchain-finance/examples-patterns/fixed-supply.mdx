@@ -1,13 +1,13 @@
 ---
-title: Fixed Supply
-description: Initialize a coin with a fixed total supply, then lock the supply to prevent further minting using dynamic fields and freezing.
+title: 고정 공급량
+description: 고정 total supply로 coin을 initialize한 다음 dynamic field와 freezing을 사용해 supply를 lock하여 추가 minting을 방지한다.
 keywords: [ fixed supply, fixed total supply, coin supply, total supply ]
 ---
 
-This fixed supply example mints the total supply of 10,000,000,000,000,000,000 coins and transfers the coins to the sender. Then, the treasury cap is locked as a dynamic object field to prevent further modifications.
+이 fixed supply 예시는 total supply 10,000,000,000,000,000,000개 coin을 mint하고 해당 coin을 sender에게 transfer한다. 그런 다음 추가 modification을 방지하기 위해 treasury cap을 dynamic object field로 lock한다.
 
-To further ensure that the package cannot be modified in the future, burn the upgrade cap rather than transferring it.
+Package를 나중에 수정할 수 없도록 더 확실히 보장하려면 upgrade cap을 transfer하지 말고 burn한다.
 
 <ImportContent source="I2/fixed_supply/sources/silver.move" mode="code" org="MystenLabs" repo="sui-move-bootcamp" branch="solution" noComments />
 
-[View the full example on GitHub](https://github.com/MystenLabs/sui-move-bootcamp/tree/solution/I2).
+[GitHub에서 전체 예시 보기](https://github.com/MystenLabs/sui-move-bootcamp/tree/solution/I2).

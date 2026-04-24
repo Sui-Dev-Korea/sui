@@ -1,63 +1,63 @@
 ---
-title: Self-Custodial Wallets
-description: Learn about self-custodial wallets on Sui, how Phantom and Ledger work, and how to integrate any Wallet Standard wallet into your app using Sui dApp Kit.
+title: 셀프 커스터디 지갑
+description: Sui의 셀프 커스터디 지갑, Phantom과 Ledger의 동작 방식, Wallet Standard wallet을 Sui dApp Kit으로 앱에 통합하는 방법을 알아본다.
 keywords: [ wallet, self-custodial, phantom, ledger, hardware wallet, wallet standard, dapp kit, dapp-kit-react, dapp-kit-core ]
 ---
 
-A self-custodial wallet stores your private key on a device you control. No third party holds the key, and no third party can authorize transactions on your behalf. If you lose the device and your recovery passphrase, access to your assets is permanently lost. Every self-custodial wallet compatible with Sui implements the [Wallet Standard](/onchain-finance/asset-custody/wallets/wallet-standard), which means [Sui dApp Kit](https://sdk.mystenlabs.com/dapp-kit) and other apps can discover and connect to them automatically, without any wallet-specific code.
+셀프 커스터디 지갑은 사용자가 제어하는 device에 private key를 저장한다. 제3자는 key를 보유하지 않으며 사용자를 대신해 transaction을 authorize할 수 없다. device와 recovery passphrase를 잃으면 asset 접근 권한은 영구적으로 사라진다. Sui와 호환되는 모든 셀프 커스터디 지갑은 [Wallet Standard](/onchain-finance/asset-custody/wallets/wallet-standard)를 구현하므로, [Sui dApp Kit](https://sdk.mystenlabs.com/dapp-kit) 및 다른 앱은 wallet별 code 없이도 wallet을 자동으로 탐색하고 연결할 수 있다.
 
 ## Phantom
 
-[Phantom](https://phantom.com/) is a self-custodial, multi-chain browser extension wallet available for Chrome, Firefox, Edge, and Brave, as well as a mobile app for iOS and Android. It stores your private key on your device and encrypts it with a password.
+[Phantom](https://phantom.com/)은 Chrome, Firefox, Edge, Brave에서 사용할 수 있는 셀프 커스터디 multi-chain browser extension wallet이며, iOS와 Android용 mobile app도 제공한다. private key를 device에 저장하고 password로 암호화한다.
 
-On Sui, Phantom supports the following:
+Sui에서 Phantom은 다음을 지원한다:
 
-- Sending and receiving SUI and Sui-native tokens
-- In-app token swaps
-- NFT management
-- Staking
-- Connecting to Sui apps through the Wallet Standard
+- SUI 및 Sui-native token 송수신
+- app 안에서 token swap
+- NFT 관리
+- staking
+- Wallet Standard를 통한 Sui app 연결
 
-To get started, install Phantom from [phantom.com](https://phantom.com) and create or import a Sui account. Phantom detects the Sui network automatically. If you already have a Sui account elsewhere, you can import it using your existing recovery passphrase or private key.
+시작하려면 [phantom.com](https://phantom.com)에서 Phantom을 설치하고 Sui account를 만들거나 import한다. Phantom은 Sui network를 자동으로 감지한다. 다른 곳에 이미 Sui account가 있다면 기존 recovery passphrase 또는 private key를 사용해 import할 수 있다.
 
 ## Ledger
 
-[Ledger](https://www.ledger.com/) is a hardware wallet that stores private keys on a dedicated secure element chip physically isolated from your computer or phone. Transactions are signed on the device itself, so the private key never leaves the hardware.
+[Ledger](https://www.ledger.com/)는 컴퓨터나 phone과 물리적으로 분리된 dedicated secure element chip에 private key를 저장하는 hardware wallet이다. transaction은 device 자체에서 signing되므로 private key는 hardware를 떠나지 않는다.
 
-On Sui, Ledger supports the following:
+Sui에서 Ledger는 다음을 지원한다:
 
-- Sending and receiving SUI and Sui tokens natively through Ledger Live
-- Clear Signing, which displays human-readable transaction details on the device screen before you confirm anything
-- Connecting to third-party Sui wallets and apps that support hardware signers
+- Ledger Live를 통한 SUI 및 Sui token native 송수신
+- 확인 전에 사람이 읽을 수 있는 transaction 세부 정보를 device 화면에 표시하는 Clear Signing
+- hardware signer를 지원하는 third-party Sui wallet 및 app 연결
 
-To use Ledger with Sui, install the Sui app on your Ledger device through [Ledger Wallet](https://shop.ledger.com/pages/ledger-wallet). Connect your Ledger device to a wallet such as Ledger Wallet or a compatible Sui wallet such as [Slush](/onchain-finance/asset-custody/wallets/slush).
+Sui에서 Ledger를 사용하려면 [Ledger Wallet](https://shop.ledger.com/pages/ledger-wallet)을 통해 Ledger device에 Sui app을 설치한다. Ledger device를 Ledger Wallet 같은 wallet 또는 [Slush](/onchain-finance/asset-custody/wallets/slush) 같은 호환 Sui wallet에 연결한다.
 
-## App integration
+## app 통합
 
-The [Sui dApp Kit](https://sdk.mystenlabs.com/dapp-kit) is the official SDK for building Sui apps. Any wallet that implements the Wallet Standard, including Phantom and Ledger, is detected automatically and appears in the connection UI without any wallet-specific configuration.
+[Sui dApp Kit](https://sdk.mystenlabs.com/dapp-kit)은 Sui app을 build하기 위한 공식 SDK이다. Phantom과 Ledger를 포함하여 Wallet Standard를 구현하는 모든 wallet은 wallet별 configuration 없이 자동으로 감지되어 connection UI에 표시된다.
 
-Sui dApp Kit 2.0 consists of two packages:
+Sui dApp Kit 2.0은 두 package로 구성된다:
 
-- `@mysten/dapp-kit-core`: Framework-agnostic core that works with vanilla JavaScript, React, Vue, or any other framework.
-- `@mysten/dapp-kit-react`: React bindings built on top of the core package, including hooks and pre-built components.
+- `@mysten/dapp-kit-core`: vanilla JavaScript, React, Vue 또는 다른 framework와 함께 동작하는 framework-agnostic core.
+- `@mysten/dapp-kit-react`: hook과 미리 build된 component를 포함하며 core package 위에 build된 React binding.
 
-### Install
+### 설치
 
-For React applications:
+React application의 경우:
 
 ```bash
 npm i @mysten/dapp-kit-react @mysten/sui
 ```
 
-For vanilla JavaScript or other frameworks:
+vanilla JavaScript 또는 다른 framework의 경우:
 
 ```bash
 npm i @mysten/dapp-kit-core @mysten/sui
 ```
 
-### Set up a dApp Kit instance
+### dApp Kit instance 설정
 
-Create a configuration file to initialize your dApp Kit instance. The `createDAppKit` function manages wallet connections, network configuration, and Sui client access.
+dApp Kit instance를 초기화할 configuration file을 만든다. `createDAppKit` 함수는 wallet connection, network configuration, Sui client access를 관리한다.
 
 `<ImportContent
   source="/packages/dapp-kit-next/packages/dapp-kit-core/src/core/index.ts"
@@ -69,19 +69,19 @@ Create a configuration file to initialize your dApp Kit instance. The `createDAp
   noComments
 />
 
-| Parameter | Required | Description |
+| Parameter | 필수 | 설명 |
 |---|---|---|
-| `networks` | Yes | List of networks the app supports |
-| `defaultNetwork` | No | Initial network. Defaults to first in the `networks` array |
-| `createClient` | Yes | Factory function that returns a `SuiClient` for a given network |
-| `autoConnect` | No | Reconnects to the last used wallet on load. Defaults to `true` |
-| `enableBurnerWallet` | No | Enables a development-only burner wallet. Defaults to `false` |
-| `walletInitializers` | No | Custom wallet registrations for wallets outside the Wallet Standard |
-| `slushWalletConfig` | No | Enables and configures Slush Wallet. Set to `null` to disable |
+| `networks` | Yes | app이 지원하는 network 목록 |
+| `defaultNetwork` | No | initial network. 기본값은 `networks` 배열의 첫 번째 항목 |
+| `createClient` | Yes | 지정된 network에 대한 `SuiClient`를 반환하는 factory function |
+| `autoConnect` | No | load 시 마지막으로 사용한 wallet에 다시 연결한다. 기본값은 `true` |
+| `enableBurnerWallet` | No | development-only burner wallet을 활성화한다. 기본값은 `false` |
+| `walletInitializers` | No | Wallet Standard 밖의 wallet에 대한 custom wallet registration |
+| `slushWalletConfig` | No | Slush Wallet을 활성화하고 구성한다. 비활성화하려면 `null`로 설정 |
 
-### Add the provider
+### provider 추가
 
-Wrap your application with `DAppKitProvider` to make all hooks available throughout the component tree:
+component tree 전체에서 모든 hook을 사용할 수 있도록 application을 `DAppKitProvider`로 감싼다:
 
 <ImportContent
   source="/packages/dapp-kit-next/packages/dapp-kit-react/src/components/DAppKitProvider.tsx"
@@ -92,19 +92,19 @@ Wrap your application with `DAppKitProvider` to make all hooks available through
   noComments
 />
 
-`ConnectButton` renders a complete wallet connection UI. It automatically lists any browser extension wallets the user has installed that implement the Wallet Standard with no additional configuration required.
+`ConnectButton`은 완전한 wallet connection UI를 렌더링한다. 사용자가 설치한 browser extension wallet 중 Wallet Standard를 구현하는 wallet을 추가 configuration 없이 자동으로 나열한다.
 
-### Read wallet state
+### wallet state 읽기
 
-Use hooks to access information about the connected wallet and account:
+hook을 사용해 연결된 wallet 및 account 정보를 가져온다:
 
-| Hook | Description |
+| Hook | 설명 |
 |---|---|
-| `useWallets` | Returns all detected Wallet Standard wallets |
-| `useWalletConnection` | Returns connection status, connected wallet, and current account |
-| `useCurrentWallet` | Returns the currently connected wallet |
-| `useCurrentAccount` | Returns the currently selected account |
-| `useDAppKit` | Returns the dApp Kit instance and its actions |
+| `useWallets` | 감지된 모든 Wallet Standard wallet을 반환 |
+| `useWalletConnection` | connection status, connected wallet, current account를 반환 |
+| `useCurrentWallet` | 현재 연결된 wallet을 반환 |
+| `useCurrentAccount` | 현재 선택된 account를 반환 |
+| `useDAppKit` | dApp Kit instance와 해당 action을 반환 |
 
 <ImportContent
   source="/packages/dapp-kit-next/packages/dapp-kit-react/src/hooks/useWalletConnection.ts"
@@ -133,7 +133,7 @@ Use hooks to access information about the connected wallet and account:
   noComments
 />
 
-### List available wallets
+### 사용 가능한 wallet 나열
 
 <ImportContent
   source="/packages/dapp-kit-next/packages/dapp-kit-react/src/hooks/useWallets.ts"
@@ -144,7 +144,7 @@ Use hooks to access information about the connected wallet and account:
   noComments
 />
 
-### Sign and execute a transaction
+### transaction signing 및 실행
 
 <ImportContent
   source="/packages/dapp-kit-next/packages/dapp-kit-react/src/hooks/useDAppKit.ts"
@@ -155,11 +155,11 @@ Use hooks to access information about the connected wallet and account:
   noComments
 />
 
-When the user is connected through a hardware wallet such as Ledger, `signAndExecuteTransaction` routes the signing request to the device. Once the user approves on the hardware device, the host wallet submits the signed transaction to the Sui network and returns the digest and effects to your app.
+사용자가 Ledger 같은 hardware wallet을 통해 연결되어 있으면 `signAndExecuteTransaction`은 signing request를 device로 routing한다. 사용자가 hardware device에서 승인하면 host wallet은 signed transaction을 Sui network에 제출하고 digest와 effect를 app에 반환한다.
 
-### Preferred wallets
+### 선호 wallet
 
-Use `preferredWallets` in `createDAppKit` to sort specific wallets to the top of the connection UI. Wallets are matched by name:
+특정 wallet을 connection UI의 맨 위에 정렬하려면 `createDAppKit`에서 `preferredWallets`를 사용한다. wallet은 이름으로 match된다:
 
 ```typescript
 export const dAppKit = createDAppKit({
@@ -170,4 +170,4 @@ export const dAppKit = createDAppKit({
 });
 ```
 
-Wallet ordering and filtering can also be controlled through the [`ConnectModal` component](https://sdk.mystenlabs.com/dapp-kit/web-components/connect-modal).
+wallet ordering 및 filtering은 [`ConnectModal` component](https://sdk.mystenlabs.com/dapp-kit/web-components/connect-modal)를 통해서도 제어할 수 있다.

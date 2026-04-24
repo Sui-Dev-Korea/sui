@@ -1,91 +1,91 @@
 ---
-title: Security Best Practices
-sidebar_label: Best Practices
-description: Overview of security best practices on Sui.
-keywords: [ security, security best practices ]
+title: 보안 모범 사례
+sidebar_label: 모범 사례
+description: Sui의 보안 모범 사례 개요이다.
+keywords: [ 보안, 보안 모범 사례 ]
 draft: true
 ---
 
-This page describes a few recommended security best practices when developing applications on Sui. These recommendations are not comprehensive for all application types, use cases, or architectures. It is recommended that you do your own research and have production applications audited throughoughly. 
+이 페이지는 Sui에서 application을 개발할 때 권장되는 몇 가지 보안 모범 사례를 설명한다. 이 권장 사항은 모든 application type, use case, architecture를 포괄하지 않는다. 직접 조사하고 production application은 철저히 audit받는 것을 권장한다.
 
-## Smart contract security
+## 스마트 컨트랙트 보안
 
-#### Audit your contracts
+#### 컨트랙트 감사
 
-Ensure transactions operate on smart contracts you trust and have audited. Sui smart contracts are defined as immutable objects to prevent modification. 
+transaction이 신뢰하고 audit한 smart contract에서 동작하는지 확인한다. Sui smart contract는 수정을 방지하기 위해 immutable object로 정의된다.
 
-#### Random calls must be last in a PTB
+#### random call은 PTB에서 마지막이어야 한다
 
-This prevents `test-and-abort` attacks where an attacker inspects the result and aborts if unfavorable.
+이는 attacker가 결과를 inspect하고 불리하면 abort하는 `test-and-abort` attack을 방지한다.
 
-#### Mark functions as entry
+#### 함수를 entry로 표시
 
-This prevents other Move modules from calling randomness-consuming functions unexpectedly.
+다른 Move module이 randomness-consuming function을 예기치 않게 호출하지 못하도록 한다.
 
-#### Never accept `RandomGenerator` as a parameter
+#### `RandomGenerator`를 parameter로 받지 않기
 
-Always create the generator internally to prevent manipulation.
+manipulation을 방지하기 위해 generator는 항상 내부에서 생성한다.
 
-#### Balance gas across outcome paths
+#### outcome path 간 가스 균형 맞추기
 
-Design functions so all outcomes consume similar gas, preventing attackers from setting a gas budget that only succeeds on favorable outcomes.
+모든 outcome이 비슷한 gas를 소비하도록 function을 설계해, attacker가 유리한 outcome에서만 성공하는 gas budget을 설정하지 못하도록 한다.
 
-#### Consider a two-transaction commit-reveal pattern for high-stakes applications.
+#### high-stakes application에는 two-transaction commit-reveal pattern을 고려한다.
 
-## Seal (Encryption and Access Control)
+## Seal (암호화 및 접근 제어)
 
-Choose trusted key server operators and diversify across organizations, jurisdictions, and infrastructure providers.
+신뢰할 수 있는 key server operator를 선택하고 organization, jurisdiction, infrastructure provider 전반에 분산한다.
 
-Use threshold encryption (for example, 2-of-3) to tolerate compromised servers while maintaining availability.
+availability를 유지하면서 compromised server를 tolerate하려면 threshold encryption(예: 2-of-3)을 사용한다.
 
-Use envelope encryption for sensitive or large data: encrypt data with your own symmetric key, then use Seal to manage access to that key only.
+sensitive 또는 large data에는 envelope encryption을 사용한다. 자체 symmetric key로 data를 encrypt한 뒤, Seal은 해당 key에 대한 access만 관리하는 데 사용한다.
 
-#### Ensure correct access policy
+#### 올바른 access policy 보장
 
-The Move code in `seal_approve*` functions must accurately express your intended access rules. Upgradeable packages allow policy changes at any time. 
+`seal_approve*` function의 Move code는 의도한 access rule을 정확히 표현해야 한다. upgradeable package는 언제든 policy change를 허용한다.
 
 ## Nautilus
 
-#### Minimize enclave code
+#### enclave code 최소화
 
-Less code means a smaller attack surface.
+code가 적을수록 attack surface가 작아진다.
 
-#### Audit dependencies
+#### dependency audit
 
-Review all libraries used in the enclave.
+enclave에서 사용하는 모든 library를 review한다.
 
-#### Use short timestamps
+#### 짧은 timestamp 사용
 
-Reduces the replay attack window.
+replay attack window를 줄인다.
 
-#### Monitor PCRs
+#### PCR monitoring
 
-Alert on unexpected PCR values.
+예기치 않은 PCR value에 대해 alert한다.
 
-#### Don't rely solely on TEE guarantees.
+#### TEE guarantee에만 의존하지 않는다.
 
-## Coin and capability security
+## Coin 및 capability 보안
 
-#### Protect TreasuryCap
+#### TreasuryCap 보호
 
-It controls minting and burning permissions.
+이는 minting 및 burning permission을 제어한다.
 
-#### Protect MetadataCap
+#### MetadataCap 보호
 
-It controls coin branding.
+이는 coin branding을 제어한다.
 
-#### Protect DenyCapV2
+#### DenyCapV2 보호
 
-It can restrict coin usage.
+이는 coin usage를 제한할 수 있다.
 
-#### Set supply model early and understand the implications of fixed, burn-only, or flexible supply.
+#### supply model을 일찍 설정하고 fixed, burn-only, flexible supply의 의미를 이해한다.
 
-## Key kanagement
+## key management
 
-#### Keep your private signature key private. 
+#### private signature key를 비공개로 유지한다.
 
-No other party can operate on your owned assets without it. 
+이 key 없이는 다른 party가 사용자의 owned asset에 대해 operation을 수행할 수 없다.
 
-#### Verify recipient addresses carefully.
+#### recipient address를 주의 깊게 verify한다.
 
-Sending objects to an incorrect address might have irrevocable effects.
+object를 잘못된 address로 보내면 되돌릴 수 없는 영향을 줄 수 있다.

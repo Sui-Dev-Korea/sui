@@ -1,5 +1,6 @@
 ---
 title: 인덱서 런타임 및 성능
+sidebar_label: 인덱서 런타임 및 성능
 description: 런타임 구성, 리소스 모니터링, 디버깅 도구를 통해 Sui custom indexer 성능을 최적화하는 방법을 알아본다. 수집 설정, 데이터베이스 튜닝, Tokio console 디버깅, Prometheus metrics, 데이터 pruning 전략을 다룬다.
 keywords: [ sui indexer performance, indexer optimization, tokio console debugging, prometheus metrics, database tuning, checkpoint ingestion, data pruning, indexer configuration, performance monitoring, sui blockchain indexing ]
 ---
@@ -15,11 +16,11 @@ keywords: [ sui indexer performance, indexer optimization, tokio console debuggi
 
 이 기법들을 함께 사용하면 개발과 프로덕션 모두에서 빠르고, 리소스 효율적이며, 모니터링하기 쉬운 indexers를 운영할 수 있다.
 
-## Fine-tuning configurations
+## 구성 fine-tuning
 
 인덱싱 프레임워크는 서로 다른 사용 사례의 성능을 최적화하기 위한 여러 수준의 구성을 제공한다. 이 섹션은 기본 구성 옵션을 다루며, 더 복잡한 pipeline별 튜닝은 [인덱서 파이프라인 아키텍처](/develop/accessing-data/custom-indexer/pipeline-architecture)에서 다룬다.
 
-### Ingestion layer configuration
+### ingestion layer 구성
 
 checkpoint 데이터가 어떻게 가져와지고 분배되는지 제어한다:
 
@@ -69,7 +70,7 @@ let ingestion_config = IngestionConfig {
 - `streaming_connection_timeout_ms`: 스트리밍 연결 수립을 기다리는 시간이다. 네트워크가 느릴수록 값을 늘린다.
 - `streaming_statement_timeout_ms`: 스트리밍 데이터 작업(peek/next)을 기다리는 시간이다. checkpoints가 크거나 네트워크가 느리면 값을 늘린다.
 
-### Database connection configuration
+### database connection 구성
 
 ```rust
 let db_args = DbArgs {
@@ -90,7 +91,7 @@ let db_args = DbArgs {
 - `db_connection_timeout_ms`: 고부하 시나리오에서 더 빠르게 실패를 감지하려면 줄인다.
 - `db_statement_timeout_ms`: 예상 쿼리 복잡도와 데이터베이스 성능을 기준으로 설정한다.
 
-### Command-line arguments
+### command-line 인자
 
 처리를 집중하는 데 도움이 되도록 다음 명령줄 인수를 포함한다. 이 값들은 예시를 위한 것이다. 환경과 목표에 맞는 값을 사용하라. 
 
@@ -104,13 +105,13 @@ let db_args = DbArgs {
 --pipeline "events"             # Can specify multiple pipelines
 ```
 
-**Use cases:**
+**사용 사례:**
 
 - **Checkpoint range:** 백필과 과거 데이터 처리에 필수적이다.
 - **Pipeline selection:** 선택적 재처리 또는 테스트에 유용하다.
 - **Skip watermark:** 워터마크 일관성이 필요하지 않을 때 더 빠른 백필을 가능하게 한다.
 
-### Pipeline-specific advanced tuning
+### pipeline별 고급 tuning
 
 pipeline 내부 동작에 대한 깊은 이해가 필요한 복잡한 구성 시나리오는 다음을 참조하라:
 
@@ -123,7 +124,7 @@ pipeline 내부 동작에 대한 깊은 이해가 필요한 복잡한 구성 시
 
 [`tokio-console` GitHub repo](https://github.com/tokio-rs/console)
 
-### When to use Tokio console
+### Tokio console 사용 시점
 
 Tokio console은 특히 다음에 유용하다:
 
@@ -132,7 +133,7 @@ Tokio console은 특히 다음에 유용하다:
 - **Concurrency issues:** 절대 양보하지 않거나 스스로를 과도하게 깨우는 tasks 탐지.
 - **Runtime behavior:** task 스케줄링 및 실행 패턴 이해.
 
-### Setup instructions
+### 설정 지침
 
 추가 정보는 Tokio GitHub repo의 [README](https://github.com/tokio-rs/console/blob/main/README.md)를 참조하라.
 
@@ -188,19 +189,19 @@ Tokio console은 특히 다음에 유용하다:
 
     ![Tokio console](../images/tokio.png)
 
-### Console features
+### console 기능
 
 console dashboard, 사용 가능한 views, warnings, diagnostic capabilities에 대한 자세한 내용은 공식 [`tokio-console` documentation](https://github.com/tokio-rs/console)을 참조하라.
 
-### Production considerations
+### production 고려 사항
 
 `tokio-console`은 런타임 오버헤드를 도입하므로 프로덕션에서는 신중하게 사용해야 한다. 개발 및 staging에서 정기적으로 사용하는 것은 안전하지만 프로덕션 사용은 신중한 평가가 필요하다. 프로덕션에서 활성화하기 전에는 특정 워크로드에 미치는 영향을 측정하기 위해 Tokio console을 활성화한 경우와 비활성화한 경우 모두에서 성능 벤치마크를 실행해야 한다. 시스템 리소스를 모니터링하면서 maintenance windows 또는 목표가 명확한 문제 해결 세션 동안에만 활성화하는 것을 고려하라.
 
-## Metrics
+## 메트릭
 
 `sui-indexer-alt-framework`는 indexer 성능과 상태를 모니터링하기 위한 내장 Prometheus metrics를 제공한다. 모든 metrics는 HTTP를 통해 자동 노출되며 custom metrics로 확장할 수 있다.
 
-### Built-in metrics
+### 내장 metrics
 
 프레임워크는 수집, pipeline 처리, 데이터베이스 작업, 워터마크 관리 전반에 걸친 광범위한 metrics를 추적한다. 사용 가능한 metrics의 전체 목록과 설명은 [`sui-indexer-alt-framework/src/metrics.rs`](https://github.com/MystenLabs/sui/blob/main/crates/sui-indexer-alt-framework/src/metrics.rs)의 `IndexerMetrics` struct를 참조하라.
 
@@ -211,7 +212,7 @@ console dashboard, 사용 가능한 views, warnings, diagnostic capabilities에 
 - **Database metrics:** batch 처리, commit 지연 시간, 실패율.
 - **Watermark metrics:** 진행 상황 추적과 지연 측정.
 
-### Accessing metrics
+### metrics 접근
 
 기본적으로 metrics는 [Prometheus format](https://prometheus.io/docs/concepts/data_model/)의 `0.0.0.0:9184/metrics`에서 제공된다. 다음 주소로 재정의할 수 있다:
 
@@ -230,7 +231,7 @@ console dashboard, 사용 가능한 views, warnings, diagnostic capabilities에 
         })
     ```
 
-### Adding metric labels
+### metric label 추가
 
 서로 다른 indexer 인스턴스를 구분하려면 metric label prefix를 추가하는 것이 강력히 권장된다:
 
@@ -241,7 +242,7 @@ let cluster = IndexerCluster::builder()
 
 이렇게 하면 모든 기본 metrics 앞에 접두어가 붙는다(예: `my_custom_indexer_indexer_total_ingested_checkpoints`).
 
-### Adding custom metrics
+### custom metric 추가
 
 공유 `Registry`를 사용해 custom metrics를 등록할 수 있다:
 
@@ -263,13 +264,13 @@ let custom_counter = register_int_counter_with_registry!(
 )?;
 ```
 
-### Metrics collection and visualization
+### metrics 수집 및 시각화
 
 프레임워크는 metrics를 HTTP를 통해서만 노출하며 수집과 저장은 사용자의 책임이다. 예를 들어 일부 indexers는 Alloy agent를 사용해 `/metrics` 엔드포인트를 스크랩하고 시각화와 알림을 위해 metrics database에 기록한다.
 
 Grafana Labs 웹사이트의 [Collect Prometheus metrics](https://grafana.com/docs/alloy/latest/collect/prometheus-metrics/)를 참조하라.
 
-## Pruning best practices
+## pruning 모범 사례
 
 테이블이 checkpoint 순서대로 데이터를 pruning한다면 테이블을 partitioning하여 전체 partitions를 드롭하는 것만으로 pruning할 수 있으므로 효율성을 높일 수 있다. 이렇게 하면 보통 하나의 pruner task만 필요하므로 동시 batched `DELETE` queries가 필요하지 않다.
 
@@ -277,7 +278,7 @@ Partition 크기는 핵심적인 절충점이다. 읽기 윈도우 밖으로 벗
 
 더 복잡한 pruning 규칙을 가진 pipelines도 여전히 이점을 얻을 수 있다. 예를 들어 consistent pipelines에서는 같은 key에 대한 더 새로운 record가 있거나 sentinel row인 경우에만 record를 pruning할 수 있다. 별도의 더 가벼운 테이블로 삭제 가능한 records를 추적하고 checkpoint 기준으로 partitioning하면 pruning을 효율적으로 수행할 수 있다.
 
-### Implementation
+### 구현
 
 Partition 관리를 단순화하기 위해 `pg_partman`을 사용할 수 있다. `create_parent`로 partitioned table을 구성한 다음 주기적으로 `run_maintenance`를 실행하는 cron job을 둔다. `run_maintenance`의 올바른 주기를 결정하려면 반복 조정이 필요할 수 있다. 
 

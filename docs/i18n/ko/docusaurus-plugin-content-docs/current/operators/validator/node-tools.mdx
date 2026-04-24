@@ -81,17 +81,17 @@ $ sui validator display-metadata
 </TabItem>
 </Tabs>
 
-## Using Sui CLI
+## Sui CLI 사용
 
 validator 작업을 수행하려면 Sui CLI를 사용한다.
 
-### Print help information
+### help information 출력
 
 ```sh
 $ sui validator --help
 ```
 
-### Become a validator or join committee
+### validator가 되거나 committee join
 
 validator 후보가 되려면 먼저 다음을 실행한다:
 
@@ -100,7 +100,7 @@ $ sui validator make-validator-info <name> <description> <image-url> <project-ur
 ```
 
 이 명령은 `validator.info` file과 key pair files를 생성한다. 이 명령의 출력에는 다음이 포함된다:
-  1. 네 개의 [key pair files](./validator-tasks#key-management). **permissions를 최소 공개 범위로 설정하고(예: `chmod 600`) 안전하게 저장해야 한다**. 이 files는 validator 노드를 실행할 때 필요하다.
+  1. 네 개의 [key pair files](./validator-tasks#키-관리). **permissions를 최소 공개 범위로 설정하고(예: `chmod 600`) 안전하게 저장해야 한다**. 이 files는 validator 노드를 실행할 때 필요하다.
     a. 이 가이드를 충실히 따르면 이 key pair는 실제로 `sui.keystore` file에서 복사된다.
   2. validator 정보를 담은 `validator.info` file. 모든 정보가 올바른지 다시 확인한다.
 
@@ -142,7 +142,7 @@ $ sui validator join-committee
 
 committee에 합류하면 pending validator가 된다. pending validator는 다음 epoch부터 active가 되어 committee에 합류한다.
 
-### Leave committee
+### committee leave
 
 committee에서 나가려면 다음을 실행한다:
 
@@ -152,7 +152,7 @@ $ sui validator leave-committee
 
 다음 epoch부터 committee에서 제거된다.
 
-### Proof of possession: Generate the payload
+### proof of possession: payload 생성
 
 proof of possession 생성에 사용되는 payload를 직렬화한다. 이렇게 하면 signer가 authority protocol BLS key pair로 서명하기 위해 payload를 offline으로 가져갈 수 있다.
 
@@ -164,7 +164,7 @@ $ sui validator serialize-payload-pop --account-address $ACCOUNT_ADDRESS --proto
 Serialized payload: $PAYLOAD_TO_SIGN
 ```
 
-### Display validator metadata
+### validator metadata 표시
 
 로컬 validator의 metadata를 표시한다:
 
@@ -178,7 +178,7 @@ validator address를 통해 다른 validator의 metadata를 표시한다:
 $ sui validator display-metadata <validator-address>
 ```
 
-### Update validator metadata
+### validator metadata update
 
 validator metadata를 업데이트하는 방법을 보려면 다음을 실행한다. 변경이 언제 적용되는지에 대한 설명을 주의 깊게 읽는다.
 
@@ -218,7 +218,7 @@ Operation Cap은 validator가 다른 account에 특정 작업을 이 validator �
 
 Operation Cap 보유자(validator 자신 또는 delegatee)는 Operation Cap으로 gas price를 업데이트하고 validator peers를 보고한다.
 
-### Update gas price
+### gas price update
 
 account 자체가 validator이고 Operation Cap을 보유한 경우 다음으로 gas price를 업데이트한다:
 
@@ -232,7 +232,7 @@ account가 delegatee인 경우 다음을 사용한다:
 $ sui validator update-gas-price --operation-cap-id <operation-cap-id> <gas-price>
 ```
 
-### Report validators
+### validator report
 
 account 자체가 validator이고 Operation Cap을 보유한 경우 다음으로 validator peers를 보고한다:
 

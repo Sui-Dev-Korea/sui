@@ -1,6 +1,6 @@
 ---
-title: Asset Tokenization Reference
-description: Represent real-world assets as onchain fractional tokens using the tokenized_asset module on Sui.
+title: 자산 토큰화 reference
+description: Sui의 tokenized_asset module을 사용해 real-world asset을 onchain fractional token으로 표현한다.
 keywords: [asset tokenization, fractionalization, NFT, fungible token, tokenized asset, Move, kiosk, burnability]
 ---
 
@@ -8,15 +8,15 @@ keywords: [asset tokenization, fractionalization, NFT, fungible token, tokenized
 
 <TabItem label="tokenized_asset" value="tokenized_asset">
 
-The `tokenized_asset` module operates in a manner similar to the `coin` library.
+`tokenized_asset` module은 `coin` library와 유사한 방식으로 동작한다.
 
-When it receives a new One-Time Witness type, it creates a unique representation of a fractional asset. This module uses implementations similar to some methods found in the `Coin` module. It encompasses functionalities pertinent to asset tokenization, including new asset creation, minting, splitting, joining, and burning. See [One-Time Witness](https://move-book.com/programmability/one-time-witness) in The Move Book for more information.
+새 One-Time Witness type을 받으면 fractional asset의 unique representation을 만든다. 이 module은 `Coin` module의 일부 method와 유사한 implementation을 사용한다. 새 asset 생성, minting, splitting, joining, burning 등 asset tokenization에 관련된 functionality를 포함한다. 자세한 내용은 The Move Book의 [One-Time Witness](https://move-book.com/programmability/one-time-witness)를 참조한다.
 
-#### Structs
+#### struct
 
 - `AssetCap`
 
-  Generates an `AssetCap` for each new asset represented as a fractional NFT. In most scenarios, create it as an owned object, which you can then transfer to the platform administrator for access-restricted method invocation.
+  fractional NFT로 표현되는 각 새 asset마다 `AssetCap`을 생성한다. 대부분의 scenario에서는 owned object로 만들고, access-restricted method invocation을 위해 platform administrator에게 transfer할 수 있다.
 
   ```rust
   struct AssetCap<phantom T> {
@@ -32,7 +32,7 @@ When it receives a new One-Time Witness type, it creates a unique representation
 
 - `AssetMetadata`
 
-  The `AssetMetadata` struct defines the metadata representing the entire asset to fractionalize. This should be a shared object.
+  `AssetMetadata` struct는 fractionalize할 전체 asset을 나타내는 metadata를 정의한다. 이는 shared object여야 한다.
 
   ```rust
   struct AssetMetadata<phantom T> has key, store {
@@ -52,7 +52,7 @@ When it receives a new One-Time Witness type, it creates a unique representation
 
 - `TokenizedAsset`
 
-  The `TokenizedAsset` is minted with a specified balance that is less than or equal to the remaining supply. If the `VecMap` of an asset is populated with values (indicating multiple unique entries), it is considered an NFT. If the `VecMap` of an asset is not populated (indicating an absence of individual entries), it is considered an FT.
+  `TokenizedAsset`은 remaining supply 이하의 지정된 balance로 mint된다. asset의 `VecMap`이 value로 채워져 있으면(multiple unique entry를 의미) NFT로 간주된다. asset의 `VecMap`이 채워져 있지 않으면(individual entry가 없음을 의미) FT로 간주된다.
 
   ```rust
   struct TokenizedAsset<phantom T> has key, store {
@@ -68,18 +68,18 @@ When it receives a new One-Time Witness type, it creates a unique representation
 
 - `PlatformCap`
 
-  The `PlatformCap` is the capability issued to the address that deploys the contract. This capability grants specific permissions related to the platform functionalities, allowing the deployer certain controlled actions or access rights within the deployed contract.
+  `PlatformCap`은 contract를 deploy한 address에 발급되는 capability이다. 이 capability는 platform functionality와 관련된 specific permission을 부여하여 deployer가 deployed contract 안에서 특정 controlled action 또는 access right를 갖도록 한다.
 
   ```rust
   /// Capability that is issued to the one deploying the contract
   struct PlatformCap has key, store { id: UID }
   ```
 
-#### Functions
+#### 함수
 
 - `init`
 
-  Creates a `PlatformCap` and transfers it to the transaction sender.
+  `PlatformCap`을 만들고 transaction sender에게 transfer한다.
 
   ```rust
   fun init(ctx: &mut TxContext) {}
@@ -87,7 +87,7 @@ When it receives a new One-Time Witness type, it creates a unique representation
 
 - `new_asset`
 
-  Creates a fresh representation of an asset with its crucial attributes. Returns 2 distinct objects: the `AssetCap` and `AssetMetadata`. These objects encapsulate the necessary information and characteristics that define the asset within the system.
+  중요한 attribute를 포함하는 새 asset representation을 만든다. `AssetCap`과 `AssetMetadata`라는 2개의 distinct object를 반환한다. 이 object들은 system 안에서 asset을 정의하는 데 필요한 정보와 characteristic을 encapsulate한다.
 
   ```rust
   public fun new_asset<T: drop>(
@@ -104,7 +104,7 @@ When it receives a new One-Time Witness type, it creates a unique representation
 
 - `mint`
 
-  Mints a tokenized asset. If new metadata is introduced during this process, the tokenized asset becomes unique, resulting in the creation of an NFT with a balance set to 1. If no new metadata is added, the system classifies the tokenized asset as an FT, permitting its balance to exceed 1 as specified by a provided argument. Returns the tokenized asset object.
+  tokenized asset을 mint한다. 이 process 중 새 metadata가 도입되면 tokenized asset은 unique해지고 balance가 1로 설정된 NFT가 생성된다. 새 metadata가 추가되지 않으면 system은 tokenized asset을 FT로 classify하여 제공된 argument에 지정된 대로 balance가 1을 초과할 수 있게 한다. tokenized asset object를 반환한다.
 
   ```rust
   public fun mint<T>(
@@ -118,7 +118,7 @@ When it receives a new One-Time Witness type, it creates a unique representation
 
 - `split`
 
-  Receives a tokenized asset of the FT type with a balance greater than 1 and a value less than the object balance, then performs a split operation. The operation divides the existing tokenized asset into 2 separate tokenized assets. The newly created tokenized asset has a balance equal to the given value, while the balance of the provided object decreases by the specified value. Returns the newly created tokenized asset. This function does not accept tokenized assets of the NFT type.
+  balance가 1보다 큰 FT type의 tokenized asset과 object balance보다 작은 value를 받아 split operation을 수행한다. 이 operation은 existing tokenized asset을 2개의 separate tokenized asset으로 나눈다. 새로 생성된 tokenized asset은 지정된 value와 같은 balance를 가지며, 제공된 object의 balance는 지정된 value만큼 감소한다. 새로 생성된 tokenized asset을 반환한다. 이 function은 NFT type의 tokenized asset을 받지 않는다.
 
   ```rust
   public fun split<T>(
@@ -130,7 +130,7 @@ When it receives a new One-Time Witness type, it creates a unique representation
 
 - `join`
 
-  Receives 2 tokenized assets of the FT type and merges them. The operation increases the balance of the first tokenized asset by the balance of the second one. The system then burns the second tokenized asset. Returns the ID of the burned tokenized asset. This function does not accept tokenized assets of the NFT type.
+  FT type의 tokenized asset 2개를 받아 merge한다. 이 operation은 첫 번째 tokenized asset의 balance를 두 번째 tokenized asset의 balance만큼 늘린다. 그런 다음 system은 두 번째 tokenized asset을 burn한다. burned tokenized asset의 ID를 반환한다. 이 function은 NFT type의 tokenized asset을 받지 않는다.
 
   ```rust
   public fun join<T>(
@@ -141,7 +141,7 @@ When it receives a new One-Time Witness type, it creates a unique representation
 
 - `burn`
 
-  Requires the `AssetCap` as a parameter, restricting invocation to the platform admin. Accepts a tokenized asset and burns it. The circulating supply decreases by the balance of the burned item. Requires a tokenized asset that is burnable.
+  `AssetCap`을 parameter로 요구하여 invocation을 platform admin으로 제한한다. tokenized asset을 받아 burn한다. circulating supply는 burned item의 balance만큼 감소한다. burnable tokenized asset이 필요하다.
 
   ```rust
   public fun burn<T>(
@@ -152,7 +152,7 @@ When it receives a new One-Time Witness type, it creates a unique representation
 
 - `total_supply`
 
-  Returns the maximum supply of the asset.
+  asset의 maximum supply를 반환한다.
 
   ```rust
   public fun total_supply<T>(cap: &AssetCap<T>): u64 {}
@@ -160,7 +160,7 @@ When it receives a new One-Time Witness type, it creates a unique representation
 
 - `supply`
 
-  Returns the current circulating supply of the asset.
+  asset의 current circulating supply를 반환한다.
 
   ```rust
   public fun supply<T>(cap: &AssetCap<T>): u64 {}
@@ -168,7 +168,7 @@ When it receives a new One-Time Witness type, it creates a unique representation
 
 - `value`
 
-  Returns the balance of a tokenized asset.
+  tokenized asset의 balance를 반환한다.
 
   ```rust
   public fun value<T>(tokenized_asset: &TokenizedAsset<T>): u64 {}
@@ -176,7 +176,7 @@ When it receives a new One-Time Witness type, it creates a unique representation
 
 - `create_vec_map_from_arrays`
 
-  An internal helper function that populates a `VecMap<String, String>`. It assists in the process of filling key-value pairs within the `VecMap` data structure.
+  `VecMap<String, String>`을 채우는 internal helper function이다. `VecMap` data structure 안에 key-value pair를 채우는 process를 지원한다.
 
   ```rust
   fun create_vec_map_from_arrays(
@@ -189,13 +189,13 @@ When it receives a new One-Time Witness type, it creates a unique representation
 
 <TabItem label="proxy" value="proxy">
 
-The `proxy` module contains methods that the type owner uses to execute publisher-related operations.
+`proxy` module은 type owner가 publisher-related operation을 실행하는 데 사용하는 method를 포함한다.
 
-#### Structs
+#### struct
 
 - `Proxy`
 
-  The `PROXY` struct represents the One-Time Witness to claim the publisher.
+  `PROXY` struct는 publisher를 claim하기 위한 One-Time Witness를 나타낸다.
 
   ```rust
   struct PROXY has drop {}
@@ -203,7 +203,7 @@ The `proxy` module contains methods that the type owner uses to execute publishe
 
 - `Registry`
 
-  A shared object that serves as a repository for the `Publisher` object, specifically intended to control and restrict access to the creation and management of transfer policies for tokenized assets. Mutable access to this object is exclusively granted to the actual publisher.
+  `Publisher` object의 repository 역할을 하는 shared object이다. 특히 tokenized asset의 transfer policy 생성 및 관리를 위한 access를 control하고 restrict하기 위한 것이다. 이 object에 대한 mutable access는 actual publisher에게만 부여된다.
 
   ```rust
   struct Registry has key {
@@ -214,7 +214,7 @@ The `proxy` module contains methods that the type owner uses to execute publishe
 
 - `ProtectedTP`
 
-  A shared object that stores an empty transfer policy. You must create one per type `<T>` generated by a user. The unlock module uses this object.
+  빈 transfer policy를 저장하는 shared object이다. 사용자가 생성한 type `<T>`마다 하나씩 만들어야 한다. unlock module은 이 object를 사용한다.
 
   ```rust
   struct ProtectedTP<phantom T> has key, store {
@@ -224,11 +224,11 @@ The `proxy` module contains methods that the type owner uses to execute publishe
       }
   ```
 
-#### Functions
+#### 함수
 
 - `init`
 
-  Creates the `Publisher` object, encapsulates it within the registry, and shares the `Registry` object.
+  `Publisher` object를 만들고 registry 안에 encapsulate한 뒤 `Registry` object를 share한다.
 
   ```rust
   fun init(otw: PROXY, ctx: &mut TxContext) {}
@@ -236,9 +236,9 @@ The `proxy` module contains methods that the type owner uses to execute publishe
 
 - `setup_tp`
 
-  Uses the publisher nested within the registry and the sender publisher. Generates and returns a transfer policy and the associated transfer policy cap specific to `TokenizedAsset<T>`. The type `T` is derived from the `Publisher` object.
+  registry 안에 nested된 publisher와 sender publisher를 사용한다. `TokenizedAsset<T>`에 특정된 transfer policy와 관련 transfer policy cap을 생성해 반환한다. type `T`는 `Publisher` object에서 derive된다.
 
-  Also generates an empty transfer policy wrapped in a `ProtectedTP<T>` object, which is shared. You can use this functionality under specific conditions to override the Kiosk lock rule.
+  또한 `ProtectedTP<T>` object로 감싼 빈 transfer policy를 생성하며, 이는 shared된다. 특정 condition에서 이 functionality를 사용해 Kiosk lock rule을 override할 수 있다.
 
   ```rust
   public fun setup_tp<T: drop>(
@@ -251,7 +251,7 @@ The `proxy` module contains methods that the type owner uses to execute publishe
 
 - `new_display`
 
-  Uses the publisher nested within the registry and the sender publisher to generate and return an empty `Display` for the type `TokenizedAsset<T>`, where `T` is encapsulated within the `Publisher` object.
+  registry 안에 nested된 publisher와 sender publisher를 사용해 `TokenizedAsset<T>` type에 대한 빈 `Display`를 생성하고 반환한다. 여기서 `T`는 `Publisher` object 안에 encapsulate되어 있다.
 
   ```rust
   public fun new_display<T: drop>(
@@ -263,7 +263,7 @@ The `proxy` module contains methods that the type owner uses to execute publishe
 
 - `transfer_policy`
 
-  Given the `ProtectedTP`, returns the transfer policy for the type `TokenizedAsset<T>`.
+`ProtectedTP`가 주어지면 `TokenizedAsset<T>` type에 대한 transfer policy를 반환한다.
 
   ```rust
   public(friend) fun transfer_policy<T>(
@@ -273,7 +273,7 @@ The `proxy` module contains methods that the type owner uses to execute publishe
 
 - `publisher_mut`
 
-  Only accessible by the owner of the platform cap. Requires the registry as an argument to obtain a mutable reference to the publisher.
+platform cap의 owner만 접근할 수 있다. publisher에 대한 mutable reference를 얻기 위해 registry를 argument로 요구한다.
 
   ```rust
   public fun publisher_mut(
@@ -286,15 +286,15 @@ The `proxy` module contains methods that the type owner uses to execute publishe
 
 <TabItem label="unlock" value="unlock">
 
-The `unlock` module facilitates the unlocking of a tokenized asset for authorized burning and joining.
+`unlock` module은 authorized burning 및 joining을 위해 tokenized asset을 unlock하는 과정을 지원한다.
 
-It allows tokenized asset type creators to enable these operations for kiosk assets without requiring adherence to the default set of requirements, such as rules or policies.
+tokenized asset type creator가 rule 또는 policy 같은 default requirement set을 따르지 않고도 kiosk asset에 대해 이러한 operation을 활성화할 수 있게 한다.
 
-#### Structs
+#### struct
 
 - `JoinPromise`
 
-  A promise object established to prevent attempts of permanently unlocking an object beyond the intended scope of joining.
+  joining의 intended scope를 넘어 object를 permanent unlock하려는 시도를 방지하기 위해 설정되는 promise object이다.
 
   ```rust
   struct JoinPromise {
@@ -309,7 +309,7 @@ It allows tokenized asset type creators to enable these operations for kiosk ass
 
 - `BurnPromise`
 
-  A promise object created to ensure the permanent burning of a specified object.
+  지정된 object의 permanent burning을 보장하기 위해 생성되는 promise object이다.
 
   ```rust
   struct BurnPromise {
@@ -317,11 +317,11 @@ It allows tokenized asset type creators to enable these operations for kiosk ass
   }
   ```
 
-#### Functions
+#### 함수
 
 - `asset_from_kiosk_to_join`
 
-  A helper function that facilitates the joining of tokenized assets locked in a kiosk. It unlocks the tokenized asset set for burning and ensures that another tokenized asset of the same type eventually contains its balance by returning a `JoinPromise`.
+  kiosk에 locked된 tokenized asset의 joining을 지원하는 helper function이다. burning을 위해 tokenized asset set을 unlock하고, `JoinPromise`를 반환하여 같은 type의 다른 tokenized asset이 결국 해당 balance를 포함하도록 보장한다.
 
   ```rust
   public fun asset_from_kiosk_to_join<T>(
@@ -334,7 +334,7 @@ It allows tokenized asset type creators to enable these operations for kiosk ass
 
 - `prove_join`
 
-  Demonstrates that the unlocked tokenized asset is successfully burned and its balance is incorporated into an existing tokenized asset.
+  unlocked tokenized asset이 성공적으로 burn되고 해당 balance가 existing tokenized asset에 포함되었음을 증명한다.
 
   ```rust
   public fun prove_join<T>(
@@ -346,7 +346,7 @@ It allows tokenized asset type creators to enable these operations for kiosk ass
 
 - `asset_from_kiosk_to_burn`
 
-  A helper function that facilitates the burning of tokenized assets locked in a kiosk. It assists in unlocking them while ensuring a promise that the circulating supply is reduced, achieved by returning a `BurnPromise`.
+  kiosk에 locked된 tokenized asset의 burning을 지원하는 helper function이다. `BurnPromise`를 반환하여 circulating supply가 감소한다는 promise를 보장하면서 unlock을 지원한다.
 
   ```rust
   public fun asset_from_kiosk_to_burn<T>(
@@ -360,7 +360,7 @@ It allows tokenized asset type creators to enable these operations for kiosk ass
 
 - `prove_burn`
 
-  Ensures that the circulating supply of the asset cap is reduced by the balance of the burned tokenized asset.
+  asset cap의 circulating supply가 burned tokenized asset의 balance만큼 감소했음을 보장한다.
 
   ```rust
   public fun prove_burn<T>(
@@ -373,22 +373,21 @@ It allows tokenized asset type creators to enable these operations for kiosk ass
 
 </Tabs>
 
-### `template` package
+### `template` 패키지
 
-An example use case package that enables Rust WASM functionality to support seamless asset creation in the browser.
+browser에서 seamless asset creation을 지원하도록 Rust WASM functionality를 활성화하는 example use case package이다.
 
-This is similar to the launchpad approach and serves as the template package whenever a new asset requires representation as a tokenized asset. It effectively allows you to edit fields of this template contract on the fly and publish it with the edits included. This package implements two essential modules, each catering to distinct functionalities required for asset tokenization. More details on how Rust WASM was implemented can be found in the [WebAssembly and template package](#webassembly-wasm-and-template-package) section.
+이는 launchpad approach와 유사하며, 새 asset이 tokenized asset으로 표현되어야 할 때마다 template package 역할을 한다. 이 package는 template contract의 field를 즉석에서 edit하고 edit이 포함된 상태로 publish할 수 있게 한다. 이 package는 asset tokenization에 필요한 distinct functionality를 담당하는 두 essential module을 구현한다. Rust WASM이 구현된 방식에 대한 자세한 내용은 [WebAssembly 및 template package](/onchain-finance/tokenized-assets/deploy-tokenized-asset#webassembly-wasm-and-template-package) section에서 확인할 수 있다.
 
-The package contains the following modules:
+package는 다음 module을 포함한다:
 
-- `template`: This module supports defining a new asset. When you need to represent a new asset as a fractional asset, modify this module to `<template>::<TEMPLATE>`, with the `<template>` (in capitals) being the One-Time Witness of this new asset. This module calls the `asset_tokenization::tokenized_asset::new_asset(...)` method, which facilitates the declaration of new fields for the asset:
-  - `witness`: The One-Time Witness `NEW_ASSET`
-  - `total_supply`: The total supply allowed to exist at any time
-  - `symbol`: The symbol for the asset
-  - `name`: The name of the asset
-  - `description`: The description of the asset
-  - `icon_url`: The URL for the asset logo (optional)
-  - `burnable`: Boolean that defines if the asset can be burned by an admin
+- `template`: 이 module은 새 asset 정의를 지원한다. 새 asset을 fractional asset으로 표현해야 하는 경우 이 module을 `<template>::<TEMPLATE>`로 수정한다. 여기서 대문자 `<template>`은 이 새 asset의 One-Time Witness이다. 이 module은 `asset_tokenization::tokenized_asset::new_asset(...)` method를 호출하며, 이 method는 asset에 대한 새 field declaration을 지원한다:
+  - `witness`: One-Time Witness `NEW_ASSET`
+  - `total_supply`: 언제든 존재할 수 있는 total supply
+  - `symbol`: asset의 symbol
+  - `name`: asset의 name
+  - `description`: asset의 description
+  - `icon_url`: asset logo의 URL(optional)
+  - `burnable`: admin이 asset을 burn할 수 있는지 정의하는 boolean
 
-- `genesis`: A genesis type of module that includes a One-Time Witness so that the sender can claim the publisher.
-
+- `genesis`: sender가 publisher를 claim할 수 있도록 One-Time Witness를 포함하는 genesis type module이다.

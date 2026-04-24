@@ -33,7 +33,7 @@ margin pool에서 supply 및 withdraw에 사용할 수 있는 새 supplier capab
 
 asset을 margin pool에 공급하고 interest를 얻으려면 `supplyToMarginPool`을 사용한다. fee를 referrer와 공유하기 위해 optional로 referral ID를 제공할 수 있다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `coinKey`: asset 타입을 식별하는 String이다.
 - `supplierCap`: supplier cap을 나타내는 `TransactionObjectArgument`이다.
@@ -46,7 +46,7 @@ asset을 margin pool에 공급하고 interest를 얻으려면 `supplyToMarginPoo
 
 margin pool에서 공급된 asset을 인출하려면 `withdrawFromMarginPool`을 사용한다. amount를 지정하지 않으면, 사용 가능한 모든 share를 인출한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `coinKey`: asset 타입을 식별하는 String이다.
 - `supplierCap`: supplier cap을 나타내는 `TransactionObjectArgument`이다.
@@ -58,7 +58,7 @@ margin pool에서 공급된 asset을 인출하려면 `withdrawFromMarginPool`을
 
 fee를 얻기 위한 supply referral을 생성하려면 `mintSupplyReferral`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `coinKey`: asset 타입을 식별하는 String이다.
 
@@ -68,46 +68,46 @@ fee를 얻기 위한 supply referral을 생성하려면 `mintSupplyReferral`을 
 
 누적된 referral fee를 인출하려면 `withdrawReferralFees`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `coinKey`: asset 타입을 식별하는 String이다.
 - `referralId`: referral ID를 나타내는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginPool.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="withdrawReferralFees" signatureOnly />
 
-## Read-only functions
+## read-only function
 
 다음 함수는 margin pool state를 수정하지 않고 쿼리한다.
 
-### Pool information
+### pool information
 
 기본적인 pool 정보와 configuration을 쿼리한다.
 
-<ImportContent source="packages/deepbook-v3/src/transactions/marginPool.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="getId,deepbookPoolAllowed,supplyCap,maxUtilizationRate,protocolSpread,protocolFees,minBorrow" signatureOnly />
+<ImportContent source="packages/deepbook-v3/src/transactions/marginPool.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="getId,deepbookPoolAllowed,supplyCap,maxUtilizationRate,protocolSpread,minBorrow" signatureOnly />
 
-### Supply and borrow metrics
+### supply 및 borrow metric
 
 현재 supply 및 borrow amount와 share를 쿼리한다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginPool.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="totalSupply,supplyShares,totalBorrow,borrowShares,lastUpdateTimestamp" signatureOnly />
 
-### Interest rate
+### interest rate
 
 utilization에 기반한 현재 interest rate를 쿼리한다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginPool.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="interestRate" signatureOnly />
 
-### User positions
+### user position
 
 pool에서 supplier의 position을 쿼리한다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginPool.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="userSupplyShares,userSupplyAmount" signatureOnly />
 
-## Examples
+## 예시
 
 다음 예시는 일반적인 margin pool operation을 시연한다.
 
-### Create a supplier cap
+### supplier cap 생성
 
 ```tsx
 /**
@@ -124,7 +124,7 @@ createSupplierCap = (tx: Transaction) => {
 };
 ```
 
-### Supply liquidity
+### liquidity supply
 
 ```tsx
 // 예시: margin pool에 USDC 1000을 예치한다
@@ -145,7 +145,7 @@ supplyLiquidity = (tx: Transaction) => {
 };
 ```
 
-### Supply with referral
+### referral로 supply
 
 ```tsx
 // 예시: referral과 함께 USDC 1000을 예치한다
@@ -166,7 +166,7 @@ supplyWithReferral = (tx: Transaction) => {
 };
 ```
 
-### Withdraw liquidity
+### liquidity withdraw
 
 ```tsx
 // 예시: margin pool에서 USDC 500을 출금한다
@@ -189,7 +189,7 @@ withdrawAll = (tx: Transaction) => {
 };
 ```
 
-### Create and manage referrals
+### referral 생성 및 관리
 
 ```tsx
 // 예시: supply referral을 생성한다
@@ -206,7 +206,7 @@ claimReferralFees = (tx: Transaction) => {
 };
 ```
 
-### Query pool state
+### pool state query
 
 ```tsx
 // 예시: 금리와 이용률을 확인한다

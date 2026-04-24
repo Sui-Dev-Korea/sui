@@ -21,7 +21,7 @@ gRPC는 빠르고 컴팩트한 데이터 직렬화를 위해 [Protocol Buffers](
 
 - 과거 데이터에 대해 [Sui Foundation-managed Archival Store for historical data](/develop/accessing-data/archival-store/what-is-archival-store)가 없다. 풀 노드 운영자, RPC provider, data indexer operator는 과거 데이터를 가져오기 위한 명시적 의존성이 될 수 있는 유사한 Archival Store 인스턴스를 자체적으로 실행하는 것이 권장된다.
 
-## High-level release timeline
+## 상위 수준 release timeline
 
 아래 표시된 목표 시점은 잠정적이며 프로젝트 진행 상황과 사용자 피드백에 따라 업데이트될 수 있다.
 
@@ -37,13 +37,13 @@ gRPC 및 GraphQL RPC APIs가 JSON-RPC를 대체했다. 마이그레이션 타임
 <iframe width="560" height="315" src="https://www.youtube.com/embed/_Ke9y8svtW8?si=ADqYvGiKMhKp1ap4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 :::
 
-## When to use
+## 사용 시점
 
 내장된 코드 생성 지원을 통해 TypeScript, Go, Rust 등의 클라이언트를 스캐폴드할 수 있다. 이로 인해 인덱서, blockchain explorer, 데이터 집약적인 탈중앙화 앱과 같은 확장 가능한 백엔드 시스템에 적합하다.
 
 요청-응답 호출 외에도 gRPC는 서버 측 스트리밍을 지원하여 지속적인 폴링 없이 실시간 데이터 전달을 가능하게 한다. 이는 events와 transactions를 실시간으로 추적해야 하는 환경에서 특히 유용하다. gRPC의 바이너리 형식은 JSON보다 훨씬 빠르고 가벼워 대역폭을 절약하고 지연 시간을 개선한다.
 
-## How gRPC fits into the application stack
+## gRPC가 application stack에 맞물리는 방식
 
 Sui에서는 다음 gRPC 서비스를 사용할 수 있다. Protocol buffers가 gRPC 인터페이스를 정의한다. [`sui-apis` on GitHub](https://github.com/MystenLabs/sui-apis/tree/main/proto)에서 관련 `.proto` 파일을 찾을 수 있으며, 여기에는 gRPC 메시지(요청 및 응답 페이로드) 외에도 다음 서비스가 포함된다:
 
@@ -65,7 +65,7 @@ Sui에서는 다음 gRPC 서비스를 사용할 수 있다. Protocol buffers가 
 
 :::
 
-## Subscriptions for streaming data
+## streaming data 구독
 
 `SubscriptionService`는 gRPC 서버 측 스트리밍 APIs를 통해 온체인 활동에 대한 실시간 스트리밍 업데이트를 제공한다. 예를 들어 `SubscribeCheckpoint` RPC를 사용하면 실행된 checkpoints의 전역 스트림을 구독할 수 있다. 구독이 초기화되면 스트림은 서버가 알고 있는 최신 checkpoint에서 시작된다. Checkpoints는 순서대로 누락 없이 도착하는 것이 보장된다. 이를 통해 클라이언트는 마지막으로 처리한 checkpoint를 정확히 추적할 수 있다.
 
@@ -73,13 +73,13 @@ Sui에서는 다음 gRPC 서비스를 사용할 수 있다. Protocol buffers가 
 
 스트리밍 APIs는 최소 지연 시간으로 실시간 Sui 활동에 반응해야 하는 인덱서, dashboards, bots를 구축하는 데 유용하다.
 
-## Handling pruned data
+## pruned data 처리
 
 full node가 특정 object, transaction, 또는 event를 반환하지 않는다면 해당 데이터는 node의 리텐션 구성에 따라 pruning되었을 가능성이 높다. 그런 경우 애플리케이션에서 [아카이브 서비스 사용하기](/develop/accessing-data/archival-store/using-archival-store)로부터 동일한 데이터를 조회하는 폴백 메커니즘을 사용하라. Archival Store는 네트워크의 과거 데이터를 보존한다.
 
 이 조회에는 동일한 gRPC `LedgerService` methods를 재사용할 수 있다. 클라이언트의 엔드포인트를 full node address에서 Archival Service 엔드포인트로 간단히 변경하라. 이렇게 하면 full node의 pruning 설정과 관계없이 애플리케이션이 최신 데이터와 과거 데이터 모두에 안정적으로 접근할 수 있다.
 
-## Best practices
+## 모범 사례
 
 1. 특히 큰 리소스의 경우 응답 크기와 지연 시간을 줄이기 위해 적용 가능한 곳에서는 항상 필드 마스크를 사용한다.
 
@@ -89,17 +89,17 @@ full node가 특정 object, transaction, 또는 event를 반환하지 않는다�
 
 1. 호환성과 타입 안전성을 보장하기 위해 [`sui-apis`](https://github.com/MystenLabs/sui-apis/tree/main/proto)의 공식 `.proto` 정의에서 클라이언트 코드를 생성한다.
 
-1. [Paginate](#pagination)를 신중하게 수행한다. 항상 `next_page_token`을 확인하고 모든 데이터가 한 번에 반환된다고 가정하지 않는다.
+1. [페이지네이션](/develop/accessing-data/grpc/using-grpc#페이지네이션)를 신중하게 수행한다. 항상 `next_page_token`을 확인하고 모든 데이터가 한 번에 반환된다고 가정하지 않는다.
 
 1. 특히 스트리밍 APIs나 혼잡한 public nodes에 대해서는 [exponential backoff](https://en.wikipedia.org/wiki/Exponential_backoff)를 사용해 일시적 실패를 재시도한다.
 
 1. 디버깅이 어려운 API 거부를 방지하기 위해 encodings와 메시지 형식을 포함한 모든 입력 데이터를 검증한다.
 
-## Frequently asked questions
+## 자주 묻는 질문
 
-#### Can I use field masks in batch requests?
+#### batch request에서 FieldMask를 사용할 수 있는가?
 
-`BatchGetObjects`와 같은 batch 요청에서는 최상위 `read_mask` 필드만 적용된다. 개별 `GetObjectRequest` 항목 내의 [field masks](/develop/accessing-data/grpc/using-grpc#field-masks)는 무시된다.
+`BatchGetObjects`와 같은 batch 요청에서는 최상위 `read_mask` 필드만 적용된다. 개별 `GetObjectRequest` 항목 내의 [field masks](/develop/accessing-data/grpc/using-grpc#필드-마스크)는 무시된다.
 
 #### Why does the API return fewer results than the requested `page_size`?
 
@@ -107,8 +107,8 @@ full node가 특정 object, transaction, 또는 event를 반환하지 않는다�
 
 #### Why do some fields say `optional` if they're required?
 
-`proto3`에서 필드를 `optional`로 표시하면 API가 [field presence](/develop/accessing-data/grpc/using-grpc#field-presence), 즉 필드 값이 명시적으로 설정되었는지 아니면 단순히 기본값으로 처리되었는지를 감지할 수 있게 된다. 이것이 실제로 해당 필드가 선택 사항이라는 뜻은 아니다. 요청이 유효하도록 하려면 여전히 API 계약을 따라야 한다.
+`proto3`에서 필드를 `optional`로 표시하면 API가 [field presence](/develop/accessing-data/grpc/using-grpc#필드-존재-여부), 즉 필드 값이 명시적으로 설정되었는지 아니면 단순히 기본값으로 처리되었는지를 감지할 수 있게 된다. 이것이 실제로 해당 필드가 선택 사항이라는 뜻은 아니다. 요청이 유효하도록 하려면 여전히 API 계약을 따라야 한다.
 
-#### Are all services and related data guaranteed to be available on all full nodes?
+#### 모든 full node에서 모든 service와 관련 data를 사용할 수 있음이 보장되는가?
 
 full nodes는 지원하는 services와 리텐션이 다를 수 있다. 일부 services는 아직 지원되지 않을 수 있으며 일부 APIs는 node 구성 및 데이터 가용성에 따라 `NOT_FOUND`를 반환할 수 있다.

@@ -8,7 +8,7 @@ keywords: [ Object Display, object, display, display properties, object properti
 
 Object Display V2는 Sui v1.68에서 사용할 수 있게 된다. v1.68을 Devnet, Testnet, Mainnet에서 사용할 수 있는 시점을 확인하려면 [release schedule](https://www.sui.io/networkinfo)을 확인한다.
 
-기존 V1 display는 모두 **system snapshot migration**으로 V2에 마이그레이션된다. 사전에 해야 할 일은 없다. 스냅샷 이후 준비가 되면 capability를 claim할 수 있다([V2로 마이그레이션](#migrating-to-v2) 참조).
+기존 V1 display는 모두 **system snapshot migration**으로 V2에 마이그레이션된다. 사전에 해야 할 일은 없다. 스냅샷 이후 준비가 되면 capability를 claim할 수 있다([V2로 마이그레이션](#v2로-migration) 참조).
 
 :::
 
@@ -30,7 +30,7 @@ V1에서는 type의 display를 찾기 위해 `DisplayCreated<T>` 같은 event에
 
 V2에서는 type `T`의 display가 global registry와 type에서 파생된 단일 deterministic ID를 가진다. 이 ID는 event나 history를 사용하지 않고 오프라인에서 계산할 수 있다. RPC는 derivation만으로 type `T`의 display를 resolve할 수 있으므로 full node에 지속 가능하다. 이것이 JSON-RPC와 gRPC에서 얻는 주요 이점이다. GraphQL은 자체 indexed state를 유지하므로 영향이 덜하다.
 
-### Structural change: N to 1, and derived
+### 구조 변경: N 대 1 및 derived
 
 Object Display V1에서는 type별로 N개의 display를 가질 수 있었고, 이를 query하려면 event를 사용해야 했다. Object Display V2에서는 type별로 display가 하나만 있으며, derivation으로 이를 얻는다.
 
@@ -40,7 +40,7 @@ Object Display V1에서는 type별로 N개의 display를 가질 수 있었고, �
 | **How you find `Display<T>`**  | type별 event를 query한다. historical event가 필요하다.   | Offline derivation. `Display<T>`는 `(DisplayRegistry UID, DisplayKey<T>)`에서 파생된 derived object이다. ID는 registry와 type에서 계산할 수 있으며 event나 scan이 필요 없다. |
 | **Identity**                   | 예측할 수 없다(creation transaction마다 다름).           | Deterministic하다. 같은 registry와 같은 `T`는 어디서나 같은 display ID를 만든다.                                                                       |
 
-## Example
+## 예시
 
 `display::new<T>` call은 custom function 또는 module initializer 안에서, 또는 programmable transaction의 일부로 `Display`를 만든다. 다음 code sample은 `Display`를 만드는 방법을 보여준다:
 
@@ -83,11 +83,11 @@ module sui::display;
 public fun update_version(self: &mut Display) { /* ... */ }
 ```
 
-## Object Display patterns
+## Object Display pattern
 
 다음은 Object Display pattern 예시이다. [Object Display template preview](/develop/objects/display/display-overview)를 사용해 추가 pattern을 탐색하고 상호작용할 수 있다.
 
-### Objects with unique static content
+### 고유한 static content가 있는 object
 
 이 예시는 object의 mint event 중 한 번 설정되는 static metadata를 가진 object를 보여준다. metadata standard가 발전하고 일부 ecosystem project가 몇 가지 property에 새 feature를 추가하더라도, 이 object는 항상 원래 form을 유지하며 backward-compatible change가 필요할 수 있다.
 
@@ -106,7 +106,7 @@ public struct DevNetNFT has key, store {
 }
 ```
 
-### Objects with data duplication
+### data duplication이 있는 object
 
 in-game item에서 흔한 경우는 많은 수의 유사한 object가 특정 기준으로 그룹화되는 것이다. 이들의 크기와 mint 및 update cost를 최적화하는 것이 중요하다. 일반적으로 game은 group 또는 item criterion마다 단일 source image 또는 URL을 사용한다. 모든 object 안에 source image를 저장하는 것은 최적이 아니다.
 
@@ -127,7 +127,7 @@ public struct CapyItem has key, store {
 }
 ```
 
-### Sui utility objects
+### Sui utility object
 
 Sui에서 utility object는 capability에 대한 authorization을 가능하게 한다. 거의 모든 module에는 필요한 capability가 있어야만 접근할 수 있는 feature가 있다. Generic module은 marketplace 같은 application마다 하나의 capability를 허용한다. 일부 capability는 shared object의 ownership을 온체인에 표시하거나, 다른 account에서 shared data에 접근할 수 있게 한다.
 
@@ -143,7 +143,7 @@ module capy::utility;
 public struct CapyManagerCap has key, store { id: UID }
 ```
 
-## Migrating to V2
+## V2로 migration
 
 :::caution
 

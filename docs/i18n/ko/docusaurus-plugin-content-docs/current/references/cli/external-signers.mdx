@@ -12,7 +12,7 @@ External signer support requires Sui CLI version 1.66.2 or newer.
 
 :::
 
-## Architecture
+## 아키텍처
 ```mermaid
 graph TD
     %% Node Styling
@@ -43,7 +43,7 @@ graph TD
     linkStyle 1,2,3 stroke:#94a3b8,stroke-width:2px
 ```
 
-## Supported devices
+## 지원되는 device
 
 - **[Ledger hardware wallets](https://github.com/MystenLabs/rust-signers/tree/main/ledger)**
 - **[Yubikey devices](https://github.com/MystenLabs/rust-signers/tree/main/yubikey)**
@@ -52,7 +52,7 @@ graph TD
 
 You can install the external signer binaries with [`suiup`](https://github.com/MystenLabs/suiup), from the [Releases page](https://github.com/mystenlabs/rust-signers/releases), or build them from source.
 
-### Install with `suiup`
+### `suiup`으로 설치
 
 If you already use `suiup`, install the signer binary you need:
 
@@ -61,7 +61,7 @@ suiup install ledger-signer
 suiup install yubikey-signer
 ```
 
-### From Source
+### source에서 build
 Make sure you have Rust installed on your system, which you can do using [rustup](https://rustup.rs/).
 
 ```bash
@@ -71,7 +71,7 @@ cargo install --locked --git https://github.com/MystenLabs/rust-signers yubikey-
 
 Ensure the installed binaries (`ledger-signer`, `yubikey-signer`) are in your system's `PATH`.
 
-## Usage
+## 사용법
 
 External signers are managed through the `sui external-keys` command.
 
@@ -81,7 +81,7 @@ $ sui external-keys --help
 
 The following examples demonstrate how to manage keys and sign transactions using an external signer. Replace `<SIGNER_BINARY>` with `ledger-signer` or `yubikey-signer` depending on your device.
 
-### List available keys
+### 사용 가능한 key 나열
 
 View the keys available on your connected device.
 
@@ -89,7 +89,7 @@ View the keys available on your connected device.
 $ sui external-keys list-keys <SIGNER_BINARY>
 ```
 
-### Add a key
+### key 추가
 
 Add a specific key to your Sui keystore. You can specify the key by its ID found in the `list-keys` output. The format of the ID depends on the signer implementation:
 

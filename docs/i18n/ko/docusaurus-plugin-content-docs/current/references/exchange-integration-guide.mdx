@@ -31,11 +31,11 @@ SUI 통합을 구성하기 위한 요구 사항은 다음을 포함한다:
 
 최상의 결과를 위해 Linux에서 Sui 풀 노드를 실행한다. Sui는 Ubuntu 및 Debian 배포판을 지원한다. macOS에서도 풀 노드를 실행할 수 있다.
 
-## Configure a Sui full node {#configure-full-node}
+## Sui full node 구성 {#configure-full-node}
 
 Docker를 사용하거나 Sui GitHub 리포지토리의 소스 코드에서 직접 Sui 풀 노드를 설정하고 구성할 수 있다.
 
-### Install a Sui full node using Docker {#full-node-docker}
+### Docker로 Sui full node 설치 {#full-node-docker}
 
 이 섹션의 각 명령은 리포지토리의 동일한 branch를 사용하여 실행한다. `branch-name`을 사용하는 branch로 바꾼다. 예를 들어 Sui Devnet 네트워크를 사용하려면 `devnet`을 사용하고, Sui Testnet 네트워크를 사용하려면 `testnet`을 사용한다. 모든 파일을 동일한 폴더 위치로 다운로드해야 하며, 모든 명령을 동일한 폴더 위치에서 실행해야 한다.
 
@@ -83,7 +83,7 @@ Docker를 사용하거나 Sui GitHub 리포지토리의 소스 코드에서 직�
     $ docker-compose up -d
     ```
 
-## Install a Sui full node from source {#install-full-node-source}
+## source에서 Sui full node 설치 {#install-full-node-source}
 
 이 섹션의 단계는 Sui GitHub 리포지토리에서 직접 Sui 풀 노드를 설치하고 구성한다. 이 단계는 Rust 패키지 매니저인 [Cargo](https://doc.rust-lang.org/cargo/)를 사용한다.
 
@@ -112,7 +112,7 @@ Docker를 사용하거나 Sui GitHub 리포지토리의 소스 코드에서 직�
     $ cargo run --release --bin sui-node -- --config-path fullnode.yaml
     ```
 
-## Set up Sui addresses {#setup-sui-addresses}
+## Sui address 설정 {#setup-sui-addresses}
 
 Sui address는 온체인 초기화가 필요하지 않으며, address가 자신의 private key에 대응하면 해당 address에서 지출할 수 있다. 서명 체계 플래그 바이트와 공개 키 바이트를 연결한 값 `flag || pubkey`를 [BLAKE2b](https://www.blake2.net/) (256 bits 출력) 해시 함수로 해시하여 32바이트 Sui address를 파생할 수 있다.
 
@@ -130,11 +130,11 @@ let arr = hasher.finalize();
 let sui_address_string = hex::encode(arr);
 ```
 
-## Displaying addresses {#displaying-addresses}
+## address 표시 {#displaying-addresses}
 
 Sui는 0x prefix가 있는 address와 없는 address를 모두 지원한다. Sui는 API 호출과 사용자 address 표시 시 항상 0x prefix를 포함할 것을 권장한다.
 
-## Track balance changes for an address {#track-balance-changes}
+## address의 balance change 추적 {#track-balance-changes}
 
 미리 정의한 간격으로 `sui_getBalance`를 호출하여 balance 변화를 추적할 수 있다. 이 호출은 address의 총 balance를 반환한다. 총합에는 모든 coin 또는 token 타입이 포함되지만, 이 문서는 SUI에 초점을 맞춘다. 연속된 `sui_getBalance` 요청 사이에서 address의 총 balance 변화를 추적할 수 있다.
 
@@ -182,7 +182,7 @@ async fn main() -> Result<(), anyhow::Error> {
 }
 ```
 
-## Use events to track balance changes for an address {#events-balance-changes}
+## event로 address의 balance change 추적 {#events-balance-changes}
 
 address에서 발생한 모든 event를 구독하여 address의 balance를 추적할 수도 있다. address가 coin을 획득하거나 가스 수수료를 지불하는 경우처럼 SUI 코인과 관련된 event만 포함하도록 filter를 사용한다. 다음 예시는 bash와 cURL을 사용해 address에 대한 event를 filter하는 방법을 보여준다:
 
@@ -212,7 +212,7 @@ curl -X POST -H 'Content-type: application/json' --data-raw "$data" $rpc
 nextCursor : {"txDigest": "GZQN9pE3Zr9ZfLzBK1BfVCXtbjx5xKMxPSEKaHDvL3E2","eventSeq": 6019}
 ```
 
-## Blocks vs Checkpoints {#blocks-vs-checkpoints}
+## block vs checkpoint {#blocks-vs-checkpoints}
 
 Sui는 DAG 기반 블록체인이며 노드 동기화와 전역 transaction ordering을 위해 체크포인트를 사용한다. 체크포인트는 다음 방식에서 블록과 다르다:
 
@@ -220,7 +220,7 @@ Sui는 DAG 기반 블록체인이며 노드 동기화와 전역 transaction orde
 - 체크포인트는 fork, roll back, reorg를 하지 않는다.
 - Sui는 초당 약 4개의 체크포인트를 생성한다. 가장 최신 통계는 [Sui public dashboard](https://metrics.sui.io/public-dashboards/4ceb11cc210d4025b122294586961169)에서 확인한다.
 
-### Checkpoint API operations {#checkpoint-api-operations}
+### checkpoint API operation {#checkpoint-api-operations}
 
 Sui 체크포인트 API operations는 다음을 포함한다:
 
@@ -228,7 +228,7 @@ Sui 체크포인트 API operations는 다음을 포함한다:
 - [sui_getLatestCheckpointSequenceNumber](/sui-api-ref#sui_getLatestCheckpointSequenceNumber) - 가장 최근에 실행된 체크포인트의 sequence number를 가져온다.
 - sui_getCheckpoints - 지정된 interval 동안 발생한 체크포인트의 paginated 목록을 가져온다. 향후 릴리스에서 제공될 예정이다.
 
-## SUI Balance transfer {#sui-balance-transfer}
+## SUI balance transfer {#sui-balance-transfer}
 
 address 간에 특정 amount의 SUI를 전송하려면 해당 값의 SUI token object가 필요하다. Sui에서는 SUI token을 포함해 모든 것이 object이다. 각 SUI token object에 들어 있는 SUI amount는 서로 다르다. 예를 들어 어떤 address는 값이 서로 다른 3개의 SUI token을 소유할 수 있는데, 하나는 0.1 SUI, 두 번째는 1.0 SUI, 세 번째는 0.005 SUI이다. 이 경우 address의 총 balance는 개별 SUI token object 값의 합이며, 이 경우 1.105 SUI이다.
 
@@ -236,7 +236,7 @@ SUI token object를 merge하거나 split하여 특정 값의 token object를 만
 
 특정 amount의 SUI를 전송하려면 해당 amount의 SUI token이 필요하다. 해당 값의 SUI token을 얻기 위해 기존 SUI token을 split하거나 merge해야 할 수 있다. Sui는 이를 수행하는 여러 method를 지원하며, 수동으로 코인을 split하거나 merge할 필요가 없는 method도 포함한다.
 
-## Sui API operations for transfers {#api-operations-transfers}
+## transfer용 Sui API operation {#api-operations-transfers}
 
 Sui는 address 간 SUI 전송과 관련하여 다음 API operations를 지원한다:
 
@@ -258,11 +258,11 @@ Sui는 address 간 SUI 전송과 관련하여 다음 API operations를 지원한
 
 - [sui_transferSui](/sui-api-ref#sui_transferSui) 이 method는 단 하나의 SUI token object와 수신자에게 보낼 amount만 받는다. 이 method는 가스 수수료에 동일한 token을 사용하므로, 전송 amount는 사용되는 SUI token의 값보다 엄격히 작아야 한다.
 
-## Signing Transactions {#signing-transactions}
+## transaction signing {#signing-transactions}
 
 서명 유효성 요구 사항에 대한 자세한 내용은 Sui Signatures를 참조한다.
 
-## SUI Staking {#sui-staking}
+## SUI staking {#sui-staking}
 
 Sui 블록체인은 위임 지분 증명 (DPoS) 메커니즘을 사용한다. 이는 SUI token holder가 자신이 선택한 어떤 validator에도 SUI token을 stake/staking할 수 있게 한다. 누군가 SUI token을 stake/staking하면, 해당 token은 전체 epoch 동안 잠긴다는 의미이다. 사용자는 언제든지 자신의 stake를 인출할 수 있지만, 새로운 stake/staking 요청은 다음 epoch의 시작에서만 활성화된다.
 
@@ -270,7 +270,7 @@ token을 validators에 stake/staking한 SUI holder는 Sui 네트워크의 보안
 
 Sui Network의 총 투표권은 항상 10,000이다. 각 개별 validator의 투표권은 basis points와 유사하다. 예를 들어, 투표권 101 = 1.01%이다. Sui의 정족수 임계값(transaction을 확인하는 데 필요한 투표 수)은 6,667(2/3 초과)이다. 단일 validator의 투표권은 validator가 보유한 stake의 양과 관계없이 1,000(10%)으로 제한된다.
 
-## Staking functions {#staking-functions}
+## 스테이킹 함수 {#staking-functions}
 
 Sui는 stake/staking과 관련된 다음 API operations를 지원한다. 소스 코드는 [sui_system](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-system/sources/sui_system.move) 모듈에서 확인할 수 있다.
 
