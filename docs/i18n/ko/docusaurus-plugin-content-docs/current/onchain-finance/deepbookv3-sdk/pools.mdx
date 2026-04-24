@@ -28,7 +28,7 @@ Pools는 market을 나타내는 shared object이다. pools에 대한 자세한 �
 
 ## 풀 함수
 
-DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를 노출한다. 이러한 함수는 일반적으로 `managerKey`, `coinKey`, `poolKey`, 또는 이들의 조합을 요구한다. 이러한 keys에 대한 자세한 내용은 [DeepBookV3 SDK](/onchain-finance/deepbookv3-sdk/deepbookv3-sdk#keys)를 참조한다. SDK에는 `constants.ts` file에서 볼 수 있는 몇 가지 기본 keys가 포함되어 있다.
+DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를 노출한다. 이러한 함수는 일반적으로 `managerKey`, `coinKey`, `poolKey`, 또는 이들의 조합을 요구한다. 이러한 keys에 대한 자세한 내용은 [DeepBookV3 SDK](/onchain-finance/deepbookv3-sdk#keys)를 참조한다. SDK에는 `constants.ts` file에서 볼 수 있는 몇 가지 기본 keys가 포함되어 있다.
 
 :::tip SDK Unit Handling
 입력 amount, 수량, price는 표준 소수 형식(예: `10.5` SUI, `0.00001` nBTC)으로 제공해야 한다. SDK는 내부적으로 base units로의 변환을 처리한다. 반환되는 amounts도 표준 소수 형식이다.
