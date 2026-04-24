@@ -17,7 +17,7 @@ GraphQL은 Sui 네트워크를 유연하게 쿼리하는 방법을 제공한다.
 
 GraphQL RPC Service는 General-purpose Indexer의 Postgres-compatible database, Archival Store and Service, full node에서 데이터를 읽는다. GraphQL RPC는 gRPC API의 대안이다. General-purpose Indexer는 [custom indexing framework](/develop/accessing-data/custom-indexer/custom-indexers)의 확장 가능한 구현이다. 이 프레임워크는 remote checkpoint store와 full node RPCs를 사용해 데이터를 수집한다. 이를 통해 서로 다른 타입의 Sui 네트워크 데이터를 Postgres 테이블에 병렬로 적재하도록 구성할 수 있어 데이터 수집 성능이 향상된다. 또한 서로 다른 테이블에 대해 pruning을 구성해 성능과 비용의 균형을 맞출 수 있다.
 
-#### High-level release timeline
+#### High-level release timeline 개요
 
 표시된 목표 시점은 잠정적이며 프로젝트 진행 상황과 사용자 피드백에 따라 업데이트될 수 있다.
 
@@ -35,7 +35,7 @@ GraphQL RPC Service는 General-purpose Indexer의 Postgres-compatible database, 
 
 :::
 
-## Components
+## 구성 요소
 
 GraphQL과 General-purpose Indexer 스택의 핵심 구성 요소는 다음을 포함한다:
 
@@ -51,7 +51,7 @@ GraphQL과 General-purpose Indexer 스택의 핵심 구성 요소는 다음을 �
 
 - **Full node:** transaction 실행과 simulation을 가능하게 한다.
 
-## When to use
+## 사용 시점
 
 풍부한 dashboards, explorers, 데이터 중심 앱을 구축하는 유연하고 인체공학적인 데이터 API로 GraphQL RPC with General-purpose Indexer를 사용하라. 이 API는 custom indexing framework로 생성된 indexer로 구동된다.
 
@@ -65,17 +65,17 @@ GraphQL과 General-purpose Indexer 스택의 핵심 구성 요소는 다음을 �
 
 - transactions, objects, events와 같은 여러 데이터 엔티티에 단일 요청에서 의존하거나, 일부 checkpoint의 스냅샷에서 온 응답처럼 여러 요청에 걸쳐 일관된 방식으로 의존한다.
 
-## How GraphQL RPC and General-purpose Indexer fit into the application stack
+## GraphQL RPC와 General-purpose Indexer가 application stack에 맞는 방식
 
 애플리케이션에서 **deprecated**된 JSON-RPC를 사용하고 있다면, General-purpose Indexer, Postgres-compatible database, GraphQL RPC server의 결합 스택을 직접 운영하거나 RPC provider 또는 indexer operator의 서비스로 활용하여 GraphQL RPC로 마이그레이션할 수 있다.
 
 GraphQL 및 Indexer 데이터 스택은 다음 구성으로 실행하거나 사용할 수 있다.
 
-### Fully managed service
+### Fully managed service 방식
 
 개발자는 전체 스택을 백그라운드에서 실행하고 운영하는 indexer operator 또는 data provider가 제공하는 서비스로 GraphQL에 접근할 수 있다. 이미 이 서비스를 제공하는지 또는 제공할 계획이 있는지 data provider에 문의하라.
 
-### Partial self-managed
+### Partial self-managed 방식
 
 개발자는 다음을 할 수 있다:
 
@@ -85,7 +85,7 @@ GraphQL 및 Indexer 데이터 스택은 다음 구성으로 실행하거나 사�
 
 - self-managed 구성 요소를 cloud infrastructure 또는 baremetal에 배포한다.
 
-### Fully self-managed
+### Fully self-managed 방식
 
 개발자, indexer operator, 또는 RPC provider는 다음을 할 수 있다:
 
@@ -93,7 +93,7 @@ GraphQL 및 Indexer 데이터 스택은 다음 구성으로 실행하거나 사�
 
 - 자신의 애플리케이션 또는 다른 빌더와 third-party services에 GraphQL을 제공한다.
 
-## Working with the GraphQL service
+## GraphQL service 작업
 
 GraphQL service는 GraphQL 개념에 부합하는 query surface를 노출한다. 이 서비스는 pagination, filtering, consistent snapshot queries를 허용한다. 또한 schema, query cost limits, logging에 대한 런타임 구성도 지원한다. GraphQL schema는 [Sui RPC용 GraphQL (베타)](/references/sui-graphql)에 정의되어 있다. 여기에서 지원되는 타입과 fields를 살펴보고, GraphiQL IDE를 사용해 queries를 테스트하고, 최신 schema에 대한 문서를 읽을 수 있다.
 
@@ -113,7 +113,7 @@ GraphQL에 대한 요청은 여러 제한을 받으며, 이는 리소스가 클�
 
 - **(TBD) Rich queries:** 요청은 데이터베이스에 대한 전용 접근이 필요한 queries를 제한된 수(기본값: 5)만 포함할 수 있다(다른 요청과 그룹화할 수 없다).
 
-## Working with General-purpose Indexer
+## General-purpose Indexer 작업
 
 General-purpose Indexer는 remote object store, local files, full node RPC 중 하나에서 checkpoints 데이터를 가져오고, 특화된 pipelines 집합을 통해 여러 데이터베이스 테이블에 데이터를 인덱싱한다. 각 pipeline은 특정 데이터를 추출하여 대상 테이블에 기록하는 역할을 한다.
 
@@ -126,7 +126,7 @@ Full list of tables and their schemas
 
 아래는 처리하는 데이터 타입에 따라 다양한 pipeline 범주를 간략히 설명한 것이다:
 
-### Blockchain raw content pipelines
+### Blockchain raw content pipeline
 
 이 pipelines는 핵심 blockchain 데이터를 원시 형태로 캡처하여 complete checkpoint 정보, full transaction 및 objects contents, Move package bytecode와 metadata를 보존한다. 이를 통해 object ID와 version, transaction digest, checkpoint sequence number 같은 key로 직접 조회할 수 있도록 complete blockchain state를 사용할 수 있게 한다. 일부 프로덕션 배포는 해당 `kv_` 테이블 대신 Archival Store를 사용해 checkpoints, transactions, objects contents를 조회한다.
 
@@ -134,13 +134,13 @@ Full list of tables and their schemas
 
 **Tables:** `kv_checkpoints`, `kv_transactions`, `kv_objects`, `kv_packages`
 
-### Transaction pipelines
+### Transaction pipeline
 
 이 pipelines는 효율적인 filtering과 querying를 지원하기 위해 핵심 transaction 속성을 추출하고 인덱싱한다. `tx_kinds`, `tx_calls`, `tx_affected_addresses`, `tx_affected_objects`는 types, function calls, sender 및 receiver addresses, 변경된 objects를 기준으로 transactions를 빠르게 조회할 수 있게 한다. `tx_digests`는 `kv_` 테이블에서 digests로 transactions를 조회하는 데 필요한 transaction sequence numbers와 transaction digests 간의 변환을 가능하게 하고, `tx_balance_changes`는 각 transaction의 balance changes 정보를 저장한다.
 
 **Tables** : `tx_digests`, `tx_kinds`, `tx_calls`, `tx_affected_addresses`, `tx_affected_objects`, `tx_balance_changes`
 
-### Object pipelines
+### Object pipeline
 
 이 pipelines는 현재 및 과거 object 정보를 관리한다. active object metadata를 저장하고, 각 object의 version history를 유지하며, balances로 정렬된 효율적인 coin queries를 위해 coin balances를 buckets로 분류한다. `obj_versions` 테이블은 GraphQL service에 특히 중요하다. 이 테이블은 모든 blockchain objects의 version history를 추적하며 object ID, version number, digest, checkpoint sequence number를 저장한다. GraphQL service는 전체 object 데이터를 불러오지 않고도 version bounds, checkpoint bounds, exact versions 기준으로 object queries를 해결하는 효율적인 index로 이 테이블을 사용하여 version pagination과 temporal consistency 같은 기능을 가능하게 한다.
 
@@ -148,29 +148,29 @@ Pruning policies는 `obj_info`와 `coin_balance_buckets`에 대해 구성할 수
 
 **Tables**: `obj_info`, `obj_versions`, `coin_balance_buckets`
 
-### Epoch information pipelines
+### Epoch information pipeline
 
 이 pipelines는 protocol upgrades와 epoch transition points를 캡처한다. 각 epoch의 system state, reward distribution, validator 위원회, protocol configurations를 추적하여 네트워크 진화의 과거 기록을 제공한다.
 
 **Tables**: `kv_epoch_starts`, `kv_epoch_ends`, `kv_feature_flags`, `kv_protocol_configs`
 
-### Event processing pipelines
+### Event processing pipeline
 
 이 pipelines는 sender, emitting module, event type 기준의 효율적인 querying를 위해 blockchain events를 인덱싱한다.
 
 **Tables**: `ev_emit_mod`, `ev_struct_inst`
 
-### Utility and support pipelines
+### Utility 및 support pipeline
 
 이 pipelines는 pruning을 위한 checkpoint sequence number tracking과 GraphQL query에서 서로 다른 테이블 간의 일관된 읽기를 보장하는 watermark tracking과 같은 지원 인프라를 제공한다.
 
 **Tables**: `cp_sequence_numbers`, `watermarks`
 
-### Other pipelines
+### 기타 pipeline
 
 `sum_displays` 테이블은 각 object type에 대한 최신 버전의 `Display` object를 저장하며, 이는 [the off-chain representation (display) for a type](/develop/objects/display/using-display)를 렌더링하는 데 사용된다.
 
-## Working with Consistent Store
+## Consistent Store 작업
 
 Consistent Store는 온체인의 실시간 데이터를 인덱싱하고 최근 checkpoints에 대한 queries를 제공하는 combined indexer 및 RPC service이다. Retention은 구성 가능하며 일반적으로 분 또는 시간 단위로 측정된다. 이 service의 indexer는 General-purpose Indexer와 동일한 소스에서 checkpoints를 가져오고, 요청은 gRPC를 통해 제공되면서 데이터를 embedded RocksDB store에 기록하며, 다음 queries에 응답한다:
 
@@ -182,11 +182,11 @@ Consistent Store는 온체인의 실시간 데이터를 인덱싱하고 최근 c
 
 이 service는 자체 데이터베이스를 유지하므로 stateless하지 않다. 새로운 인스턴스는 genesis부터 동기화하거나, 형식 스냅샷에서 복원하는 방식으로 indexer와 유사하게 띄울 수 있다.
 
-## For RPC providers and data operators
+## RPC provider와 data operator 대상
 
 GraphQL RPC와 General-purpose Indexer 스택을 서비스로 운영하는 경우, 빌더에게 성능이 좋고 비용 효율적인 경험을 제공하도록 구성을 맞추기 위한 몇 가지 핵심 고려 사항은 다음과 같다. 단계별 설정 및 운영 지침은 [GraphQL 및 General-purpose Indexer](/operators/data-management/indexer-stack-setup)를 참조하라.
 
-### How much data to index and retain
+### Index 및 retain할 data 양 결정
 
 Postgres-compatible database에는 최근 checkpoint 데이터를 30일에서 90일 정도 유지하는 것이 좋다. 이는 전체 과거 인덱싱의 높은 storage 비용을 들이지 않으면서 대부분의 앱에 강력한 기본값을 제공한다.
 
@@ -202,7 +202,7 @@ events, objects, transactions와 같이 포함할 데이터를 인덱싱 pipelin
 
 :::
 
-### Use the Archival Service and Store for historical lookups
+### Historical lookup에 Archival Service와 Store 사용
 
 모든 프로덕션 배포에서는 Postgres와 [Archival Service](/develop/accessing-data/archival-store/using-archival-store)를 함께 사용하여 관련 데이터가 Postgres에 존재하지 않을 때 transactions, objects, checkpoints의 point lookup을 지원하라. Archival Service는 과거 버전과 checkpoint 데이터의 백엔드 역할을 하여 Postgres 인스턴스에 가해지는 부담을 줄인다. 엄밀히 필수는 아니지만, 높은 retention의 GraphQL 또는 gRPC 워크로드를 지원하려는 모든 프로덕션 구성에서는 Archival Service를 사용하는 것이 좋다.
 
@@ -222,7 +222,7 @@ events, objects, transactions와 같이 포함할 데이터를 인덱싱 pipelin
 <ImportContent source="crates/sui-kv-rpc/src/main.rs" mode="code" />
 </details>
 
-### Deployment strategies and trade-offs
+### Deployment strategy와 trade-off
 
 신뢰할 수 있고 성능 좋은 GraphQL RPC service를 제공하기 위해 모든 것을 인덱싱할 필요는 없다. 실제로 많은 개발자는 최신 object 및 transaction 데이터와 몇 주에서 몇 개월의 이력만 필요할 수 있다. 다음과 같은 방식으로 운영 오버헤드를 줄이고 query 성능을 개선할 수 있다:
 
@@ -238,7 +238,7 @@ events, objects, transactions와 같이 포함할 데이터를 인덱싱 pipelin
 
 - 짧은 retention의 Postgres와 Archival Service 조합은 비용과 완전성을 모두 최적화하여 프로덕션 배포에 적합하다.
 
-### Best practices
+### Best practice 권장 사항
 
 성능과 신뢰성을 개선하려면 다음 운영 best practices도 고려하라:
 

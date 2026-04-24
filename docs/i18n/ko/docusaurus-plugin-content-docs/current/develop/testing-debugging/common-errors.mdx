@@ -7,16 +7,14 @@ keywords: [ address errors, package errors, system errors, transaction errors, t
 
 이 페이지는 일반적인 error에 대한 troubleshooting 해결책을 제공한다.
 
-## Address errors 
-
+## Address 오류
 이 섹션의 error는 Sui address와 관련이 있다.
 
 #### `Failed to build Move modules: Unresolved addresses found.`
 
 이 error는 `std` 같은 named address를 코드나 dependency 안에서 사용하려고 하지만 `Move.toml` file에서 그 address에 값을 할당하지 않았음을 나타낸다.
 
-##### Solution
-
+##### 해결 방법
 해결되지 않은 각 address에 대한 entry를 `Move.toml` file의 `[addresses]` section에 추가한다.
 
 ```toml
@@ -24,7 +22,7 @@ keywords: [ address errors, package errors, system errors, transaction errors, t
 std = "0x1"
 ```
 
-**Resources**
+**리소스**
 
 - [The Move Book: Manifests](https://move-book.com/concepts/manifest)
 
@@ -39,18 +37,16 @@ Sui address는 다음 조건을 충족해야 한다:
 
 - `0x`로 시작하고 hexadecimal 문자(0-9, a-f, A-F)만 포함해야 한다.
 
-##### Solution 
-
+##### 해결 방법
 제공하는 address가 `0x`로 시작하고, 64개의 hex digit 길이를 가지며, 유효하지 않은 문자를 포함하지 않는지 확인한다.
 
-**Resources**
+**리소스**
 
 - [Sui 주소 만들기](/getting-started/onboarding/get-address)
 
 ---
 
-## Move package errors 
-
+## Move package 오류
 이 섹션의 error는 Move package와 관련이 있다.
 
 #### `Invalid URL: Invalid URL: relative URL without a base`
@@ -59,13 +55,10 @@ Sui address는 다음 조건을 충족해야 한다:
 이 error는 URL과 상호작용하기 위한 `Url` struct와 function을 제공하는 `sui::url` module에서 발생한다.
 Move는 URL 자체의 format을 검증하지 않는다.
 
-##### Solution 
-
+##### 해결 방법
 `http://` 또는 `https://`를 포함한 전체 URL path를 지정한다.
 
-**Resources**
-
-- [`sui::url`](/references/framework/sui_sui/url.md)
+**리소스**
 
 - [`sui::url` source code](https://github.com/MystenLabs/sui/blob/c5f8b33b8090d75b1922f1497916b4010d9140d7/crates/sui-framework/sources/url.move).
 
@@ -82,12 +75,11 @@ system이 dependency를 찾을 수 없는 경우는 다음과 같다:
 
 - 제대로 initialize하지 않았다.
 
-##### Solution
-
+##### 해결 방법
 `Move.toml`을 확인하여 나열한 각 dependency가 올바른 path를 가지는지, 그리고 각 path 안에 유효한 `Move.toml` file이 있는지 검증한다.
 typo가 없는지 확인하고 모든 dependency를 initialize했는지 확인한다.
 
-**Resources**
+**리소스**
 
 - [The Move Book: Manifests](https://move-book.com/concepts/manifest)
 
@@ -98,13 +90,12 @@ typo가 없는지 확인하고 모든 dependency를 initialize했는지 확인�
 이 error는 프로젝트 또는 그 dependency에 같은 이름이나 address를 가진 module이 둘 이상 정의되어 있음을 나타낸다.
 각 module에는 고유한 이름과 address 조합을 부여해야 한다.
 
-##### Solution 
-
+##### 해결 방법
 source file에서 같은 module 이름이나 address를 두 번 사용하지 않는지 확인한다.
 package의 dependency에 duplicate name이 정의되어 있는지 확인한다.
 `Move.toml` file에 충돌하는 address assignment가 있는지 확인한다.
 
-**Resources**
+**리소스**
 
 - [The Move Book: Modules](https://move-book.com/move-basics/module)
 
@@ -119,8 +110,7 @@ package의 dependency에 duplicate name이 정의되어 있는지 확인한다.
 
 - address가 잘못되었다.
 
-##### Solution 
-
+##### 해결 방법
 지정된 address에 package가 network에 존재하는지 확인한다.
 
 ---
@@ -129,8 +119,7 @@ package의 dependency에 duplicate name이 정의되어 있는지 확인한다.
 
 이 error는 Move code 어딘가가 compiler의 규칙을 위반하여 compiler가 package를 bytecode로 compile할 수 없음을 나타내는 generic error이다.
 
-##### Solution 
-
+##### 해결 방법
 이 error의 일반적인 원인으로는 다음이 있다:
 
 - Unbound variable or module: package에서 참조하는 모든 module과 variable을 선언했고 scope 안에 있는지 확인한다.
@@ -143,7 +132,7 @@ package의 dependency에 duplicate name이 정의되어 있는지 확인한다.
 
 - Edition not specified: 모든 `Move.toml` file에 `edition = "2024"` field를 정의해야 한다.
 
-**Resources**
+**리소스**
 
 - [Move 개념](/develop/write-move/sui-move-concepts)
 
@@ -158,12 +147,11 @@ Move에서는 source code에서 모든 module의 self-address를 `0x0`으로 설
 package를 publish할 때 Sui가 올바른 address를 자동으로 할당한다.
 
 
-##### Solution 
-
+##### 해결 방법
 Move source file에서 명시적인 address block을 제거한다.
 module을 `address ... { ... }` block으로 감싸지 않는다.
 
-**Resources**
+**리소스**
 
 - [Error definition](https://github.com/MystenLabs/sui/blob/63cbf0dc26d0f2329d3e0a03639e31ded9f93561/crates/sui-adapter-transactional-tests/tests/sui/publish_module_non_zero_address.snap)
 
@@ -174,13 +162,12 @@ module을 `address ... { ... }` block으로 감싸지 않는다.
 이 error는 Move module에서 호출하는 function이 signer argument 1개를 기대하는데 2개를 제공했음을 나타낸다.
 Sui에서는 function signature의 signer argument 수가 제공하는 signer 수와 일치해야 한다.
 
-##### Solution 
-
+##### 해결 방법
 function을 `fun main(s: signer)`로 정의했다면 signer도 1개만 제공해야 하는지 확인한다.
 
 signer 2개를 사용하려면 `fun main(s1: signer, s2: signer) { ... }`로 function을 정의한다.
 
-**Resources**
+**리소스**
 
 - [Error definition](https://github.com/MystenLabs/sui/blob/63cbf0dc26d0f2329d3e0a03639e31ded9f93561/external-crates/move/crates/bytecode-verifier-transactional-tests/tests/script_signature/signer_double_signer.snap)
 
@@ -191,20 +178,18 @@ signer 2개를 사용하려면 `fun main(s1: signer, s2: signer) { ... }`로 fun
 
 이 error는 0이 아닌 값을 가진 resource를 destroy하려고 함을 나타낸다.
 
-##### Solution 
-
+##### 해결 방법
 resource의 값이 0인지 확인한다.
 coin이나 token의 경우 값이 0이 될 때까지 split하거나 burn한다.
 
-**Resources**
+**리소스**
 
 - [resource safety](/getting-started/onboarding/hello-world#resource-safety)에 대해 더 알아본다.
 
 ---
 
 
-## System errors
-
+## System 오류
 이 섹션의 error는 system과 관련이 있다.
 
 ##### `"Segmentation fault (core dumped)"`
@@ -212,8 +197,7 @@ coin이나 token의 경우 값이 0이 될 때까지 split하거나 burn한다.
 이 error는 low-level memory crash를 나타낸다.
 이는 Move error가 아니라 Move compiler 또는 dependency 같은 toolchain 일부의 error이다.
 
-##### Solution 
-
+##### 해결 방법
 일부 상황에서는 오래되었거나 손상된 build file이 이 crash의 원인이 될 수 있다.
 build를 정리한다:
 
@@ -224,7 +208,7 @@ $ sui move clean
 다른 시나리오에서는 오래되었거나 맞지 않는 tooling version이 이 error의 원인이 될 수 있다.
 tooling을 업그레이드하고 version이 일치하는지 확인한다.
 
-**Resources**
+**리소스**
 
 - [Sui 설치](/getting-started/onboarding/sui-install)
 
@@ -234,8 +218,7 @@ tooling을 업그레이드하고 version이 일치하는지 확인한다.
 
 이 error는 permission이 충분하지 않아 Move가 file 또는 directory에 접근할 수 없음을 의미한다.
 
-##### Solution 
-
+##### 해결 방법
 대상 file 또는 directory에 대해 사용자 계정에 필요한 read, write, execute permission이 있는지 확인한다.
 
 Unix와 macOS system에서는 `chmod` command로 permission을 편집할 수 있다:
@@ -245,21 +228,20 @@ $ chmod -R u+rw /path/to/project/files
 
 이 명령은 지정한 file path의 모든 file과 subdirectory에 read와 write permission을 부여한다.
 
-**Resources**
+**리소스**
 
 - [chmod](https://linux.die.net/man/1/chmod)
 
 ---
 
-#### `sui move build` command hangs 
+#### `sui move build` command hang 문제
 
 이 동작은 Windows 11 machine에서 command를 실행할 때 자주 발생한다.
 
-##### Solution 
-
+##### 해결 방법
 Windows-native terminal에서 command를 실행하는 대신 Windows machine에서 [Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/install)를 사용해 본다.
 
-**Resources**
+**리소스**
 
 - [Sui 설치](/getting-started/onboarding/sui-install)
 
@@ -273,22 +255,19 @@ Windows-native terminal에서 command를 실행하는 대신 Windows machine에�
 이 error는 network가 일정 시간 안에 response를 받지 못함을 나타낸다.
 이 error는 Sui에만 특화된 것은 아니다.
 
-##### Solution 
-
+##### 해결 방법
 request를 다시 시도하거나 client를 제어할 수 있다면 timeout 시간을 늘린다.
 
 ---
 
-## Transaction errors 
-
+## Transaction 오류
 이 섹션의 error는 transaction과 관련이 있다.
 
 #### `Requires a connection to the network. Current active network is [testnet/mainnet/devnet] but failed to connect to it.`
 
 이 error는 network가 다운되었거나, 불안정한 인터넷 연결 때문에 도달할 수 없거나, Sui client configuration에 잘못된 설정이 있을 때 발생한다.
 
-##### Solution
-
+##### 해결 방법
 먼저 client에 구성된 environment를 확인한다:
 
 ```
@@ -311,7 +290,7 @@ $ sui client switch --env testnet
 
 그래도 error가 해결되지 않으면 인터넷 연결을 확인하거나 CLI client를 다시 시작한다.
 
-**Resources**
+**리소스**
 
 - [Sui 클라이언트 설정](/getting-started/onboarding/configure-sui-client)
 
@@ -322,11 +301,10 @@ $ sui client switch --env testnet
 이 error는 Move transaction에 `drop` ability가 없거나 이를 명시적으로 drop하지 않았을 때 발생한다.
 Sui runtime system은 transaction 끝에 값을 사용하지 않은 채 남겨두면 이 error를 발생시키는 resource safety를 강제한다.
 
-##### Solution 
-
+##### 해결 방법
 Sui Move package에서는 `drop` ability가 없는 모든 값을 다른 address로 transfer하거나, 명시적으로 destroy하거나, 다른 function의 input으로 사용해 소비해야 한다.
 
-**Resources**
+**리소스**
 
 - [resource safety](/getting-started/onboarding/hello-world#resource-safety)에 대해 더 알아본다.
 
@@ -336,8 +314,7 @@ Sui Move package에서는 `drop` ability가 없는 모든 값을 다른 address�
 
 이 error는 Move code가 bytecode verification 중 또는 deserialization 중에 실패함을 나타내는 generic error이다.
 
-##### Solution 
-
+##### 해결 방법
 이 error의 일반적인 원인으로는 다음이 있다:
 
 - `ZERO_SIZED_STRUCT`: field가 하나도 없는 struct를 정의했다. struct에 field를 하나 이상 추가한다.
@@ -350,7 +327,7 @@ Sui Move package에서는 `drop` ability가 없는 모든 값을 다른 address�
 
 - `WRITEREF_WITHOUT_DROP_ABILITY`: code가 drop ability가 없는 type에 대한 reference를 쓰려고 한다. type에 drop ability를 추가한다.
 
-**Resources**
+**리소스**
 
 - [Error: `ZERO_SIZED_STRUCT`](https://github.com/MystenLabs/sui/blob/63cbf0dc26d0f2329d3e0a03639e31ded9f93561/crates/sui-verifier-transactional-tests/tests/one_time_witness/no_field.snap)
 
@@ -366,14 +343,13 @@ Sui Move package에서는 `drop` ability가 없는 모든 값을 다른 address�
 transaction에서 object를 사용하면 system은 object를 lock하여 object에 대한 여러 개의 충돌 가능한 수정이 발생하지 않도록 한다.
 DeFi object의 경우 이는 이중 지출을 방지한다.
 
-##### Solution 
-
+##### 해결 방법
 다른 transaction이 완료될 때까지 기다린 다음 transaction을 다시 시도한다.
 transaction이 멈췄거나 실패했다면 transaction을 다시 시도하기 전에 다음 epoch까지 기다려야 할 수 있다.
 
 code가 여러 object를 동시에 사용하지 않도록 확인한다.
 
-**Resources**
+**리소스**
 
 - [Equivocation 방지](/develop/sui-architecture/epochs)
 
@@ -384,11 +360,10 @@ code가 여러 object를 동시에 사용하지 않도록 확인한다.
 이 error는 사용하려는 object가 equivocated state에 있음을 나타내며, 이는 충돌하는 transaction 때문에 network가 그 state에 대해 consensus에 도달할 수 없다는 뜻이다.
 그 결과 system은 그 object를 freeze하고, 다음 epoch까지 그 object를 사용할 수 없다.
 
-##### Solution 
-
+##### 해결 방법
 다음 epoch까지 기다린다.
 
-**Resources**
+**리소스**
 
 - [equivocation 피하기](/develop/sui-architecture/epochs)
 
@@ -405,8 +380,7 @@ code가 여러 object를 동시에 사용하지 않도록 확인한다.
 
 - 일정 시간 동안 너무 많은 request를 보내 rate limit를 적용했다.
 
-##### Solution 
-
+##### 해결 방법
 필요한 API authentication이 있는지 확인하고 유효한 authentication method를 사용하고 있는지 검증한다.
 문서를 검토하여 모든 요구 사항을 따르고 있는지 확인한다.
 
@@ -419,8 +393,7 @@ rate limit 여부를 확인하고 더 긴 시간 간격으로 request를 보내 
 
 이 error는 Sui network가 잘못된 transaction input 때문에 transaction을 거부함을 나타낸다.
 
-##### Solution 
-
+##### 해결 방법
 transaction에서 참조하는 모든 object가 다음 조건을 충족하는지 확인한다:
 
 - 존재한다
@@ -439,10 +412,9 @@ gas balance가 충분한지, 그리고 transaction signature가 유효한지 확
 
 이 error는 transaction gas fee를 지불할 만큼 충분한 token이 없음을 나타낸다.
 
-##### Solution 
-
+##### 해결 방법
 token을 확보한다.
 
-**Resources**
+**리소스**
 
 - [Faucet에서 SUI 받기](/getting-started/onboarding/get-coins)

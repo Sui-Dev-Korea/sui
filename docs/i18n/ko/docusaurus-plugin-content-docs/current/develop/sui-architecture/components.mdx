@@ -7,7 +7,7 @@ keywords: [ sui blockchain, sui components, sui validators, sui transactions, co
 
 Sui는 레이어 1 블록체인이다. 레이어 1 네트워크는 다음과 같은 주요 구성 요소로 이루어진다:
 
-1. 네트워크 바이너리를 실행하고 합의와 같은 네트워크 활동에 참여하는 [**Nodes**](/operators/index)이다. Nodes는 네트워크에 컴퓨팅 및 [storage](/develop/sui-architecture/sui-storage) 리소스를 제공한다.
+1. 네트워크 바이너리를 실행하고 합의와 같은 네트워크 활동에 참여하는 [**Nodes**](/operators/)이다. Nodes는 네트워크에 컴퓨팅 및 [storage](/develop/sui-architecture/sui-storage) 리소스를 제공한다.
 
 1. transactions를 검증하는 데 사용되는 [**consensus mechanism**](/develop/sui-architecture/consensus)이다.
 
@@ -21,7 +21,7 @@ Sui에는 특히 다음과 같은 다른 핵심 구성 요소도 있다:
 
 1. Sui에서 스마트 계약을 만드는 데 사용되는 프로그래밍 언어인 [**Move**](/develop/write-move/sui-move-concepts)이다.
 
-## Networks
+## 네트워크
 
 Sui는 이러한 필수 구성 요소로 이루어진 여러 네트워크를 운영한다. 각 네트워크는 서로 다른 목적을 제공한다:
 
@@ -45,7 +45,7 @@ Sui에는 두 가지 유형의 node가 있다:
 
 2. **Validator node:** staking, gas price references, tallying rules와 같이 풀 노드보다 더 많은 작업을 수행한다.
 
-자세한 내용은 [운영자 가이드](/operators/index)를 참조한다.
+자세한 내용은 [운영자 가이드](/operators/)를 참조한다.
 
 ## Delegated proof-of-stake consensus
 
@@ -56,7 +56,7 @@ Sui의 합의에 대해 자세히 알아보려면 다음을 참조한다:
 - [합의](/develop/sui-architecture/consensus)
 - [validator 위원회](/develop/sui-architecture/consensus)
 
-## Transactions
+## 트랜잭션 개요
 
 Sui의 transactions는 inputs에 대해 실행되는 여러 commands로 구성된다. 이러한 inputs가 transaction의 결과를 정의한다. Sui 네트워크의 모든 업데이트는 transactions를 통해 발생한다. Sui에는 두 가지 유형의 transaction만 있다:
 
@@ -79,7 +79,7 @@ Sui의 tokenomics에 대해 자세히 알아보려면 다음 주제를 참조한
 - [스테이킹 및 언스테이킹](/develop/sui-architecture/tokenomics-overview)
 - [토큰 브리징](/onchain-finance/fungible-tokens/sui-bridging)
 
-## Objects
+## 객체
 
 Sui의 기본 storage 단위는 object이다. chain의 blocks는 실제로 addresses를 정의하는 단순한 key-value store가 아니라 자산을 정의하는 objects이다. Sui의 storage는 고유한 ID로 온체인에서 주소로 식별 가능한 objects를 중심으로 한다. 스마트 계약은 object 하나이며(Sui Move package라고 부른다), 이러한 스마트 계약은 Sui 네트워크의 objects를 조작한다.
 

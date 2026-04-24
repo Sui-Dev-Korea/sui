@@ -9,17 +9,17 @@ crash와 기타 일반적인 문제에 대한 alert 외에도, 다음 예시 규
 
 다음 섹션은 alert query를 다루지만, 세부 사항은 인프라에 맞게 custom해야 한다.
 
-## High-priority health alerts
+## 높은 우선순위의 health alert
 
 이 alert들은 사용자 또는 팀이 가장 즉시 주의를 기울여야 한다.
 
 ### Crash loop
 
-| Key          | Value                                       |
+| Key          | 값                                          |
 | ------------ | ------------------------------------------- |
-| **Name**     | `Crash loop`                                |
-| **Summary**  | Node is crash looping                       |
-| **Duration** | Recommended to trigger after `15m`          |
+| **이름**     | `Crash loop`                                |
+| **요약**     | Node가 crash loop 상태이다                  |
+| **기간**     | `15m` 후 trigger 권장                       |
 
 ```promql
 max without(version) (uptime) < 60 or absent(uptime)
@@ -32,13 +32,13 @@ Node가 60초보다 오래 실행 상태를 유지하지 못한다. 가능한 �
 
 스스로 해결할 수 없다면 Discord에서 Sui community에 알린다.
 
-### Consensus proposals failure
+### Consensus proposal failure
 
-| Key          | Value                                       |
+| Key          | 값                                          |
 | ------------ | ------------------------------------------- |
-| **Name**     | `Consensus proposals failure`               |
-| **Summary**  | Consensus block proposal rate is low        |
-| **Duration** | Recommended to trigger after `1h`           |
+| **이름**     | `Consensus proposals failure`               |
+| **요약**     | Consensus block proposal rate가 낮다        |
+| **기간**     | `1h` 후 trigger 권장                        |
 
 ```promql
 sum without(force) (rate(consensus_proposed_blocks[5m])) < 1.0
@@ -47,13 +47,13 @@ sum without(force) (rate(consensus_proposed_blocks[5m])) < 1.0
 consensus proposal rate가 느린 validator는 network latency와 throughput에 악영향을 줄 수 있다.
 보통 network, disk 또는 CPU performance issue로 인해 발생한다.
 
-### Checkpoint execution rate is low
+### Checkpoint execution rate가 낮음
 
-| Key          | Value                                                 |
+| Key          | 값                                                    |
 | ------------ | ----------------------------------------------------- |
-| **Name**     | `Checkpoint execution rate is low`                    |
-| **Summary**  | Validator is not executing checkpoints quickly enough |
-| **Duration** | Recommended to trigger after `1h`                     |
+| **이름**     | `Checkpoint execution rate is low`                    |
+| **요약**     | Validator가 checkpoints를 충분히 빠르게 실행하지 않는다 |
+| **기간**     | `1h` 후 trigger 권장                                  |
 
 ```promql
 rate(last_executed_checkpoint[5m]) < 1.0
@@ -62,13 +62,13 @@ rate(last_executed_checkpoint[5m]) < 1.0
 checkpoint execution이 느린 validator와 full node는 network의 최신 정보를 보유하지 못한다.
 보통 network, disk 또는 CPU performance issue로 인해 발생한다.
 
-### Safe mode during reconfiguration
+### Reconfiguration 중 safe mode
 
-| Key          | Value                                                                    |
+| Key          | 값                                                                       |
 | ------------ | ------------------------------------------------------------------------ |
-| **Name**     | `Safe mode during reconfiguration`                                       |
-| **Summary**  | Validator or full node failed to advance the epoch and entered safe mode |
-| **Duration** | Recommended to trigger after `15m`                                       |
+| **이름**     | `Safe mode during reconfiguration`                                       |
+| **요약**     | Validator 또는 full node가 epoch advance에 실패하고 safe mode에 진입했다 |
+| **기간**     | `15m` 후 trigger 권장                                                    |
 
 ```promql
 is_safe_mode > 0.5
@@ -77,17 +77,17 @@ is_safe_mode > 0.5
 보통 이 문제는 validator 또는 full node operator가 제어할 수 있는 범위를 벗어난다.
 이 상황이 관찰되면 Discord에서 Sui community에 알린다.
 
-## Non-urgent and warning alerts
+## 긴급하지 않은 alert와 warning
 
 모든 alert는 중요하지만, 다음 alert와 warning은 일반적인 node maintenance workflow 안에서 처리할 수 있다.
 
-### System invariant violations
+### System invariant violation
 
-| Key          | Value                                     |
+| Key          | 값                                        |
 | ------------ | ----------------------------------------- |
-| **Name**     | `System invariant violations`             |
-| **Summary**  | The node reports an invariant violation   |
-| **Duration** | Recommended to trigger after `15m`        |
+| **이름**     | `System invariant violations`             |
+| **요약**     | Node가 invariant violation을 보고한다     |
+| **기간**     | `15m` 후 trigger 권장                     |
 
 ```promql
 system_invariant_violations > 0

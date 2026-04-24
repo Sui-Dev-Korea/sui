@@ -1,5 +1,6 @@
 ---
 title: 패키지 업그레이드
+sidebar_label: 패키지 업그레이드
 description: Sui는 변경 불가능한 속성을 유지하면서 패키지를 업그레이드하는 방법을 제공한다.
 keywords:
   - upgrading packages
@@ -12,17 +13,53 @@ keywords:
 ---
 
 
-Sui smart contracts는 Move 모듈의 컬렉션으로 구성된 변경 불가능한 패키지 object이다. 패키지가 변경 불가능하기 때문에 transaction은 전체 합의 없이도 smart contract에 안전하게 접근할 수 있다(fastpath transactions). 만약 누군가 이러한 패키지를 변경할 수 있다면, 이는 [shared objects](/develop/objects/object-ownership/shared#shared)가 되어 transaction을 완료하기 전에 전체 합의가 필요하다.
+Sui smart contracts는 Move 모듈의 컬렉션으로 구성된 변경 불가능한 패키지 object이다. 패키지가 변경 불가능하기 때문에 transaction은 전체 합의 없이도 smart contract에 안전하게 접근할 수 있다(fastpath transactions). 만약 누군가 이러한 패키지를 변경할 수 있다면, 이는 [shared objects](/develop/objects/object-ownership/shared)가 되어 transaction을 완료하기 전에 전체 합의가 필요하다.
 
 그러나 패키지 object를 변경할 수 없다는 점은 코드 개발의 반복적인 특성을 고려할 때 문제가 된다. 빌더는 fastpath transactions의 이점을 계속 누리면서도 자신의 코드를 업데이트하고 다른 개발자의 변경 사항을 가져올 수 있는 능력이 필요하다. 다행히도 Sui 네트워크는 변경 불가능한 속성을 유지하면서 패키지를 업그레이드할 수 있는 메커니즘을 제공한다.
 
-## Upgrade considerations
+## upgrade 고려 사항
 
 패키지를 업그레이드하기 전에 고려해야 할 프로세스의 몇 가지 세부 사항이 있다.
 
 예를 들어, 모듈 초기화 함수는 패키지 업그레이드 시 다시 실행되지 않는다. 초기 패키지를 게시할 때 Move는 게시 이벤트 시점에 패키지에 대해 정의한 `init` 함수를 한 번(그리고 오직 한 번만) 실행한다. 패키지의 이후 버전에 포함할 수 있는 모든 `init` 함수는 무시된다. 자세한 내용은 The Move Book의 [Module Initializer](https://move-book.com/programmability/module-initializer.html)를 참조한다.
 
-앞서 언급했듯이 Sui 네트워크의 모든 패키지는 변경 불가능하다. 이것으로 인해 체인에서 오래된 패키지를 삭제할 수 없다. 그 결과, 다른 패키지가 업그레이드된 패키지의 이전 버전에 정의된 메서드와 타입에 접근하는 것을 막을 수 있는 것은 없다. 기본적으로 사용자는 패키지의 이전 버전을 계속 사용하는 것을 선택할 수도 있다. 패키지 개발자로서 이러한 가능성을 인지하고 이를 고려해야 한다.
+앞서 언급했듯이 Sui 네트워크의 모든 패키지는 변경 불가능하다. 이것으로 인해 체인에서 오래된 패키지를 삭제할 수 없다. 그 결과, 다른 패키지가 업그레이드된 패키지의 이전 버전에 정의된 메서드와 타입에 접근하는 것을 막을 수 있는 것은 없다.
+
+## 업그레이드 요구 사항
+
+패키지를 업그레이드하려면 패키지가 다음 요구 사항을 충족해야 한다:
+
+- 업그레이드하려는 패키지에 대한 `UpgradeTicket`을 보유해야 한다. Sui 네트워크는 패키지를 게시할 때 `UpgradeCap`을 발급하며, 해당 `UpgradeCap`의 소유자는 `UpgradeTicket`을 발급할 수 있다. Sui Client CLI는 이 요구 사항을 자동으로 처리한다.
+- 변경 사항은 이전 버전과 레이아웃 호환성이 있어야 한다.
+    - 기존 `public` 함수 시그니처는 동일하게 유지되어야 한다.
+    - 기존 struct 레이아웃(struct ability 포함)은 동일하게 유지되어야 한다.
+    - 새로운 struct와 함수를 추가할 수 있다.
+    - 기존 함수(public 여부와 무관)의 제네릭 타입 제약을 제거할 수 있다.
+    - 함수 구현을 변경할 수 있다.
+    - `public`이 아닌 함수의 시그니처(`friend` 및 `entry` 함수 시그니처 포함)를 변경할 수 있다.
+
+:::info
+
+의존성이 있는 패키지를 보유하고 있고 해당 의존성이 업그레이드되더라도, 패키지는 자동으로 새로운 버전에 의존하지 않는다. 새로운 의존성을 가리키도록 하려면 자신의 패키지를 명시적으로 업그레이드해야 한다.
+
+:::
+
+## 업그레이드
+
+이전 요구 사항을 충족하는 패키지를 업그레이드하려면 다음 플래그에 대한 값을 제공하여 `sui client upgrade` 명령을 사용한다:
+
+<ImportContent source="info-gas-budget" mode="snippet" />
+
+- `--gas-budget`: 네트워크가 transaction을 취소하기 전에 소모될 수 있는 gas 단위의 최대 수이다.
+- `--cap`: `UpgradeCap`의 ID이다. 이 ID는 publish 명령의 반환값으로 제공된다.
+
+Move 코드를 사용하여 패키지를 업그레이드하는 개발자는 사용자 정의 업그레이드 정책을 정의하기 위한 타입과 함수에 접근할 수 있다. 예를 들어 Move 개발자는 현재 패키지 소유자와 관계없이 패키지 업그레이드를 허용하지 않기를 원할 수 있다. 이러한 동작을 생성하기 위해 [`make_immutable` function](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/package.md#0x2_package_make_immutable)를 사용할 수 있다. `UpgradeTicket` 및 `Upgrade Receipt`와 같은 사용 가능한 타입을 활용하는 더 고급 정책도 가능하며, 예시는 GitHub의 [custom upgrade policy](https://github.com/MystenLabs/sui/issues/2045#:~:text=Implement%20a%20custom%20upgrade%20policy)를 참조한다.
+
+Sui Client CLI를 사용할 때 `upgrade` 명령은 업그레이드 다이제스트 생성, `UpgradeCap`을 사용한 업그레이드 승인으로 `UpgradeTicket` 획득, 그리고 업그레이드 성공 후 `UpgradeReceipt`로 `UpgradeCap`을 업데이트하는 작업을 처리한다. 이러한 프로세스에 대해 더 알아보려면 [package module](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/package.md)에 대한 Move 문서를 참조한다.
+
+## Migrating users to the latest version
+
+기본적으로 사용자는 패키지의 이전 버전을 계속 사용하는 것을 선택할 수도 있다. 패키지 개발자로서 이러한 가능성을 인지하고 이를 고려해야 한다.
 
 예를 들어, 원래 패키지에 `increment` 함수를 정의할 수 있다:
 
@@ -227,39 +264,7 @@ entry fun migrate(c: &mut Counter, a: &AdminCap) {
     - 여러 transaction에 걸쳐 마이그레이션을 실행한다(예: 많은 양의 object를 이동해야 하는 경우 transaction 한도에 도달하는 것을 피하기 위해 배치로 수행하는 것이 가장 좋다).
     - shared object의 버전을 다시 사용 가능한 값으로 설정한다.
 
-## Upgrade requirements
-
-패키지를 업그레이드하려면 패키지가 다음 요구 사항을 충족해야 한다:
-
-- 업그레이드하려는 패키지에 대한 `UpgradeTicket`을 보유해야 한다. Sui 네트워크는 패키지를 게시할 때 `UpgradeCap`을 발급하며, 해당 `UpgradeCap`의 소유자는 `UpgradeTicket`을 발급할 수 있다. Sui Client CLI는 이 요구 사항을 자동으로 처리한다.
-- 변경 사항은 이전 버전과 레이아웃 호환성이 있어야 한다.
-    - 기존 `public` 함수 시그니처는 동일하게 유지되어야 한다.
-    - 기존 struct 레이아웃(struct ability 포함)은 동일하게 유지되어야 한다.
-    - 새로운 struct와 함수를 추가할 수 있다.
-    - 기존 함수(public 여부와 무관)의 제네릭 타입 제약을 제거할 수 있다.
-    - 함수 구현을 변경할 수 있다.
-    - `public`이 아닌 함수의 시그니처(`friend` 및 `entry` 함수 시그니처 포함)를 변경할 수 있다.
-
-:::info
-
-의존성이 있는 패키지를 보유하고 있고 해당 의존성이 업그레이드되더라도, 패키지는 자동으로 새로운 버전에 의존하지 않는다. 새로운 의존성을 가리키도록 하려면 자신의 패키지를 명시적으로 업그레이드해야 한다.
-
-:::
-
-## Upgrading
-
-이전 요구 사항을 충족하는 패키지를 업그레이드하려면 다음 플래그에 대한 값을 제공하여 `sui client upgrade` 명령을 사용한다:
-
-<ImportContent source="info-gas-budget" mode="snippet" />
-
-- `--gas-budget`: 네트워크가 transaction을 취소하기 전에 소모될 수 있는 gas 단위의 최대 수이다.
-- `--cap`: `UpgradeCap`의 ID이다. 이 ID는 publish 명령의 반환값으로 제공된다.
-
-Move 코드를 사용하여 패키지를 업그레이드하는 개발자는 사용자 정의 업그레이드 정책을 정의하기 위한 타입과 함수에 접근할 수 있다. 예를 들어 Move 개발자는 현재 패키지 소유자와 관계없이 패키지 업그레이드를 허용하지 않기를 원할 수 있다. 이러한 동작을 생성하기 위해 [`make_immutable` function](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/package.md#0x2_package_make_immutable)를 사용할 수 있다. `UpgradeTicket` 및 `Upgrade Receipt`와 같은 사용 가능한 타입을 활용하는 더 고급 정책도 가능하며, 예시는 GitHub의 [custom upgrade policy](https://github.com/MystenLabs/sui/issues/2045#:~:text=Implement%20a%20custom%20upgrade%20policy)를 참조한다.
-
-Sui Client CLI를 사용할 때 `upgrade` 명령은 업그레이드 다이제스트 생성, `UpgradeCap`을 사용한 업그레이드 승인으로 `UpgradeTicket` 획득, 그리고 업그레이드 성공 후 `UpgradeReceipt`로 `UpgradeCap`을 업데이트하는 작업을 처리한다. 이러한 프로세스에 대해 더 알아보려면 [package module](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/package.md)에 대한 Move 문서를 참조한다.
-
-## Example
+## 예시
 
 `sui_package`라는 이름의 패키지를 개발한다고 가정한다. 해당 매니페스트는 다음과 같다:
 
@@ -278,7 +283,11 @@ sui_package = "0x0"
 $ sui client publish
 ```
 
-<details> <summary>출력</summary> </details>
+<details>
+<summary>
+출력
+</summary>
+
 
 ```sh
 INCLUDING DEPENDENCY Sui
@@ -430,6 +439,8 @@ Transaction Digest: GPSpH264CjQPaXQPpMHpkzyGidZnQFvd1yUH5s9ncesi
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
+</details>
+
 
 
 결과에는 업그레이드에 필요한 두 가지 정보인 `UpgradeCap` ID와 패키지 ID를 포함한 **Object changes** 섹션이 포함된다.
@@ -495,7 +506,7 @@ sui_package = "0x0"
 $ sui client upgrade --upgrade-capability <UPGRADE-CAP-ID>
 ```
 
-새 패키지가 [요구 사항](#requirements)을 충족하지 않으면 콘솔이 이를 알리며, 그렇지 않으면 컴파일러가 업그레이드된 패키지를 네트워크에 게시하고 그 결과를 반환한다.
+새 패키지가 [업그레이드 요구 사항](#업그레이드-요구-사항)을 충족하지 않으면 콘솔이 이를 알리며, 그렇지 않으면 컴파일러가 업그레이드된 패키지를 네트워크에 게시하고 그 결과를 반환한다.
 
 <details>
 <summary>출력</summary>

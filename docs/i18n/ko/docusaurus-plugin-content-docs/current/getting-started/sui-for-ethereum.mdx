@@ -16,17 +16,17 @@ pagination_prev: null
 | Dynamic dispatch | 허용된다 | 허용되지 않는다 |
 | Asset/Token accessibility | 스마트 계약에 묶인다. | 누구나 shared objects에 접근할 수 있다. Owned objects는 object owner만 접근할 수 있다. |
 | Access control | `Ownable` 및 `AccessControl` contract를 통한 identity/role 기반 access control이다. | 주로 owned objects를 통한 [capability based access control](https://move-book.com/programmability/capability.html)이다. Identity/role 기반 access control도 가능하다. |
-| Contract upgrades | Proxy contract가 사용자 transactions를 전달한다. | 새 contracts는 이전 것과 [layout-compatible](/develop/publish-upgrade-packages/upgrade#upgrade-requirements)해야 한다. Shared objects의 버전 관리도 고려해야 한다. |
+| Contract upgrades | Proxy contract가 사용자 transactions를 전달한다. | 새 contracts는 이전 것과 [layout-compatible](/develop/publish-upgrade-packages/upgrade#업그레이드-요구-사항)해야 한다. Shared objects의 버전 관리도 고려해야 한다. |
 | Development environment | Hardhat, Foundry | [Move VSCode extension](https://marketplace.visualstudio.com/items?itemName=mysten.move). |
 | Mutate contract state | 컴파일 시 ABI 인터페이스를 통해 transactions를 전송한다. | 런타임 [프로그래머블 트랜잭션 블록 (PTB)](/develop/transactions/ptbs/prog-txn-blocks) 구성을 통해 transaction을 전송한다. |
 
-## Object model
+## object model
 
 Objects는 Move에서 데이터를 저장하며 Move의 모든 것은 object이다. 여기에는 스마트 계약(Move packages), 온체인 addresses, coins, NFTs가 포함된다.
 
 단순하게 생각하면 objects를 _assets_ 또는 NFTs로 볼 수 있다. Objects는 ownerships를 가진다.
 
-## Ownership
+## ownership
 
 Object ownership에는 몇 가지 뉘앙스가 있지만 핵심 유형은 다음을 포함한다:
 
@@ -35,7 +35,7 @@ Object ownership에는 몇 가지 뉘앙스가 있지만 핵심 유형은 다음
 
 Sui의 모든 ownership 유형은 [객체 소유권 유형](/develop/objects/object-ownership)을 참조하라.
 
-## Access control
+## access control
 
 Identity 또는 role 기반 access control은 Solidity의 OpenZeppelin `Ownable` 및 `AccessControl` contracts를 통해 널리 사용된다.
 
@@ -60,7 +60,7 @@ public fun new(_: &AdminCap, ctx: &mut TxContext): User {
 }
 ```
 
-## Mutating objects
+## object mutation
 
 Solidity에서는 `Mapping`과 같은 데이터 구조를 contract에 정의하고 저장한다. 데이터 변경은 서명자가 데이터를 소유하는지 여부와 관계없이 transaction 서명을 포함한다.
 
@@ -68,7 +68,7 @@ Move에서는 데이터를 변경하는 로직이 contract에 정의되지만 �
 
 데이터를 변경하려면 objects의 소유자가 PTB를 사용해 contract functions를 호출해야 한다. 소유권 검사는 프로토콜 수준에서 수행되므로 서명자가 참조된 objects에 접근할 수 없으면 transactions는 실패한다.
 
-## Programmable transaction blocks
+## programmable transaction block
 
 Solidity에서 여러 contract 호출의 결과를 함께 연결하거나 서로 다른 contracts를 가로질러 연결하는 작업을 하려면 다른 함수 호출을 조합하는 함수를 스마트 계약에 두어야 한다. 원자성 보장을 갖는 함수 호출 체이닝은 클라이언트 측에서 사용할 수 없다.
 
@@ -78,7 +78,7 @@ Sui의 빌더는 PTB를 활용해 그렇지 않으면 다루기 어려운 경험
 
 PTB에 대한 자세한 내용은 [프로그래머블 트랜잭션 블록 (PTB)](/develop/transactions/ptbs/prog-txn-blocks)를 참조하라.
 
-## More comparison
+## 추가 비교
 
 | Topic | Sui | Ethereum |
 |-------|-----|----------|

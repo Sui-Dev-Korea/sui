@@ -6,7 +6,7 @@ description: Sui docs 렌더링 엔진에 대한 확장이다.
 
 Sui 개발자 문서는 모든 페이지에 MarkdownX(`.mdx`) 형식을 사용한다.
 
-MDX는 Markdown 콘텐츠 내에서 [JSX within Markdown content](https://mdxjs.com/)를 허용한다.
+MDX는 Markdown 콘텐츠 안에서 [JSX](https://mdxjs.com/)를 사용할 수 있게 한다.
 
 이 사이트는 admonitions 및 Mermaid 다이어그램과 같은 기본 제공 기능을 제공하는 오픈 소스 프레임워크인 Docusaurus를 사용한다.
 
@@ -14,7 +14,7 @@ MDX는 Markdown 콘텐츠 내에서 [JSX within Markdown content](https://mdxjs.
 
 이러한 기능은 기여에 필수는 아니지만, 독자의 경험을 향상한다면 포함할 수 있다.
 
-## Custom frontmatter
+## custom frontmatter
 
 모든 문서 페이지 상단의 frontmatter는 페이지 링크 미리보기에 표시되는 설명, 최적화된 검색 결과를 위한 키워드, 그리고 기타 선택적 형식 관련 component를 포함하여 페이지에 대한 추가 컨텍스트를 제공한다.
 
@@ -28,17 +28,17 @@ keywords: [ words, for, search, results ]
 ---
 ```
 
-### Optional frontmatter
+### 선택적 frontmatter
 
 #### `beta`
 
 기능 또는 주제의 beta 상태를 독자에게 알리기 위해 페이지 상단에 admonition box를 추가한다.
 
-**Options:**
+**옵션:**
 - `true` → 표준 beta box
 - `devnet`, `testnet`, `mainnet` → 기능을 사용할 수 있는 environment를 표시함
 
-**Example:**
+**예시:**
 
 ```yaml
 ---
@@ -54,13 +54,13 @@ end-to-end tutorial에 사용한다.
 
 tutorial을 완료하는 데 필요한 effort를 나타내는 admonition box를 상단에 추가한다.
 
-**Options:**
+**옵션:**
 
 - `small`
 - `medium`
 - `large`
 
-**Example:**
+**예시:**
 
 ```yaml
 ---
@@ -80,19 +80,19 @@ URL에 대한 Docusaurus link checker를 건너뛰려면 `UnsafeLink`를 사용�
 로컬 개발에서는 `onBrokenMarkdownLinks: "warn"` 설정이 `"warn"`으로 유지되지만, 프로덕션에서는 build 프로세스가 여전히 build error를 발생시킨다.
 :::
 
-**Example:**
+**예시:**
 
 ```jsx
 <UnsafeLink href="link/to/path">Link title</UnsafeLink>
 ```
 
-## Custom admonition boxes
+## Custom admonition box
 
 Docusaurus 기본값(`info`, `note`, `warning`, `danger`) 외에도 checkpoint를 위한 custom admonition box가 하나 더 있다.
 
 사용자 진행 상황을 검증하려면 end-to-end guide에서 checkpoint를 사용한다.
 
-**Example:**
+**예시:**
 
 ```
 :::checkpoint
@@ -114,7 +114,7 @@ Docusaurus는 모든 문서 페이지에 `<Tabs>`와 `<TabItem>` component를 �
 
 문서는 `<Tabs>` component를 올바르게 렌더링하고 스타일링하기 위해 몇 가지 custom script를 사용한다.
 
-이 script를 사용하면 페이지 형식을 깨뜨리지 않고 `<Tabs>`를 [`{@include:}` snippets](#snippets-include)와 함께 사용할 수 있다.
+이 script를 사용하면 페이지 형식을 깨뜨리지 않고 `<Tabs>`를 [`{@include:}` snippets](#snippet-mode)와 함께 사용할 수 있다.
 
 페이지 안에서 `<Tabs>` 인스턴스를 여러 개 사용할 때는 `groupId`를 사용하여 섹션 간 선택을 유지한다.
 
@@ -122,16 +122,13 @@ Docusaurus는 모든 문서 페이지에 `<Tabs>`와 `<TabItem>` component를 �
 
 탭 섹션을 만들려면:
 
-1. 탭 콘텐츠가 들어갈 위치에 `<Tabs>` element를 추가한다.
-1. 동일한 선택을 가진 다른 `Tabs`가 있다면 선택적 `groupId` 속성을 포함한다.
-1. 콘텐츠의 각 섹션마다 `Tabs` element의 자식으로 `<TabItem>` element를 추가한다.
-1. 각 `TabItem`에는 `value`와 `label` 속성값이 모두 필요하다.
-1. 부모 `Tabs`에서 `groupId`를 사용하는 경우, 다른 `Tabs`에서 같은 `groupId` 값을 쓰는 `TabItem` 전반에서 `value`가 일관되게 유지되도록 한다.
-1. 이렇게 하면 동일한 유형의 정보를 표시하도록 의도된 `TabItem`이 관련된 모든 `Tabs`에서 활성화된다.
-1. 이 동작은 페이지와 세션 전반에 걸쳐 유지된다.
+1. 탭 콘텐츠가 들어갈 위치에 `<Tabs>` element를 추가한다. 같은 선택 항목을 가진 다른 `Tabs`가 있다면 선택적 `groupId` property를 포함한다.
+
+1. 콘텐츠의 각 섹션마다 `Tabs` element의 자식으로 `<TabItem>` element를 추가한다. 각 `TabItem`에는 `value`와 `label` property 값이 모두 필요하다. 부모 `Tabs`에서 `groupId`를 사용하는 경우, 같은 `groupId` 값을 쓰는 다른 `Tabs`의 `TabItem` 전반에서 `value`가 일관되게 유지되도록 한다. 이렇게 하면 동일한 유형의 정보를 표시하도록 의도된 `TabItem`이 관련된 모든 `Tabs`에서 활성화된다. 이 동작은 페이지와 세션 전반에 걸쳐 유지된다.
+
 1. 각 `</TabItem>`과 부모 `</Tabs>`를 닫는다.
 
-**Example:**
+**예시:**
 
 ```md
 <Tabs groupId="operating-systems">
@@ -158,18 +155,14 @@ Docusaurus는 모든 문서 페이지에 `<Tabs>`와 `<TabItem>` component를 �
 ```
 
 :::info
-콘텐츠, 여는 태그, 닫는 태그 사이에는 반드시 빈 줄을 추가해야 한다.
-:::
-
-:::info
-그렇지 않으면 component가 올바르게 렌더링되지 않는다.
+콘텐츠, 여는 태그, 닫는 태그 사이에는 반드시 빈 줄을 추가해야 한다. 그렇지 않으면 component가 올바르게 렌더링되지 않는다.
 :::
 
 ## `<ImportContent>`
 
 페이지에 code 또는 markdown을 주입하려면 `<ImportContent>` component를 사용한다.
 
-### Snippet mode
+### snippet mode
 
 `docs/content/snippets`에 저장된 재사용 가능한 Markdown 콘텐츠이다.
 
@@ -181,7 +174,7 @@ Snippet은 재사용 가능한 문장, 단락, admonition box, `<Tabs>`, 또는 
 
 Snippet은 유지보수를 줄이고, 중요한 정보를 위해 독자를 페이지 밖으로 이동하게 만들지 않도록 도와준다.
 
-#### How to use snippets
+#### snippet 사용 방법
 
 1. `source` 인자를 `snippets` 폴더 안의 파일 경로로 설정한다.
 1. `snippet` 디렉터리는 포함하지 않는다.
@@ -189,7 +182,7 @@ Snippet은 유지보수를 줄이고, 중요한 정보를 위해 독자를 페�
 
 `<ImportContent source="file" mode="snippet" />`
 
-#### Prerequisite snippets
+#### prerequisite snippet
 
 prerequisite 요구 사항이 있는 guide 및 tutorial에는 prerequisite tab 형식을 사용해야 한다.
 
@@ -221,7 +214,7 @@ guide 또는 tutorial이 다음 prerequisite를 사용한다면:
 </Tabs>
 ```
 
-### Code mode
+### code mode
 
 필터링과 syntax highlighting을 지원하는 custom plugin을 사용하여 documentation 파일에 code를 직접 주입한다.
 
@@ -235,7 +228,7 @@ guide 또는 tutorial이 다음 prerequisite를 사용한다면:
 
 이는 문서와 repo code 사이의 divergence를 막기 때문이다.
 
-#### Considerations
+#### 고려 사항
 
 `<ImportContent />`를 효과적으로 사용하려면 source 파일에 code comment가 필요한 경우가 많다.
 
@@ -247,11 +240,11 @@ code 섹션을 포함할 때는, 그 code가 문서를 만들 때 참고한 상�
 
 다만 그 code가 항상 유효하다는 점에서는 안심할 수 있다.
 
-#### Referencing files within the Sui monorepo
+#### Sui monorepo 안의 파일 참조
 
 파일은 상대 경로로 참조한다:
 
-#### Referencing files from other repos
+#### 다른 repo의 파일 참조
 
 다른 repo에 있는 여러 code 파일을 여러 문서 페이지에서 참조해야 한다면, Sui 문서 팀이 이를 Sui repo의 **submodule**로 추가했을 수 있다.
 
@@ -267,7 +260,7 @@ Sui 문서 팀이 submodule 추가 여부를 결정한다.
 
 커뮤니티 기여에서는 submodule을 추가하려고 시도하지 않아야 한다.
 
-#### How to use
+#### 사용 방법
 
 1. `source` 인자를 파일의 상대 경로로 설정한다.
 1. `sui` root는 포함하지 않는다.
@@ -292,18 +285,16 @@ Sui 문서 팀이 submodule 추가 여부를 결정한다.
 - Type declaration: `type="TypeName"`
 - Enum declaration: `enumeration="EnumName"`
 
-**Example:**
+**예시:**
 ```
 <ImportContent source="examples/move/example.source" mode="code" fun="buy_sword" />
 ```
 
-#### Include nonlinear parts of code
+#### code의 비선형 부분 포함
 
 :::info
 
-이 접근 방식을 사용하기 전에 문서를 재구성하는 것을 고려한다.
-
-이 기능은 일부 상황에서 유용하지만, source 파일의 comment chatter를 증가시킨다.
+이 접근 방식을 사용하기 전에 문서 구조를 다시 검토한다. 이 기능은 일부 상황에서 유용하지만, source 파일의 comment 노이즈를 늘린다.
 
 :::
 
@@ -312,14 +303,9 @@ code의 한 섹션을 포함하는 대신, 단일 문서 인스턴스에서 그 
 `// docs::#ID-resume` 형식의 두 번째 comment는 주입을 다시 시작한다.
 
 1. 문서에서 `tag` 값을 이름으로 설정한다.
+    build 프로세스가 이 줄을 참조된 code로 대체하므로, code가 나타나야 할 위치에 둔다.
     ```ts
     <ImportContent source="examples/foo/bar.move" mode="code" tag="tagName" />
-    ```
-1. build 프로세스가 이 줄을 참조된 code로 대체하므로, code가 나타나야 할 위치에 둔다.
-    ```ts
-    // docs::#tagString
-    import lib from "library";
-    ...
     ```
 1. source 파일에서 섹션이 시작되어야 하는 위치에 `// docs::#Tag` 형식의 comment를 추가한다.
     ```ts
@@ -336,33 +322,6 @@ code의 한 섹션을 포함하는 대신, 단일 문서 인스턴스에서 그 
     // docs::#tagString-pause:TODO
     const Advanced = () => {};
     // docs::#tagString-resume
-    ```
-1. 선택적으로 pause directive에 콜론과 대체 텍스트를 덧붙인다.
-    ```ts
-    // docs::#tagString
-    import lib from "library";
-    ...
-
-    // docs::#tagString-pause:TODO
-    const Advanced = () => {};
-    // docs::#tagString-resume
-    ```
-1. 대체 텍스트는 code 대신 문서에 표시된다.
-    ```ts
-    // docs::#tagString
-    import lib from "library";
-    ...
-
-    // docs::#tagString-pause:
-    // TODO
-    const Advanced = () => {};
-    ...
-
-    // docs::#tagString-resume
-    return book;
-
-    // docs::/#tagString
-    ...
     ```
 1. source 파일에서 주입이 끝나야 하는 위치에 comment를 추가한다.
     ```ts
@@ -392,7 +351,7 @@ import lib from "library";
 return book;
 ```
 
-### Additional options
+### 추가 옵션
 
 highlighting line 지정, title 제거 등을 위해 inject statement 끝에 추가 문자열을 덧붙일 수도 있다:
 
@@ -402,13 +361,13 @@ highlighting line 지정, title 제거 등을 위해 inject statement 끝에 추
 - `singleSpace` → 간격 정규화
 - `highlight` → 강조할 줄에 있는 고유 단어를 사용해 특정 줄 강조
 
-**Example:**
+**예시:**
 
 ```
 <ImportContent source="examples/move/example.source" mode="code" module="example::example" noComments noTests />
 ```
 
-## Collapsible components: Details and summary
+## 접을 수 있는 component: details 및 summary
 
 접을 수 있는 콘텐츠를 만들려면 `<details>`와 `<summary>`를 사용한다.
 
@@ -416,7 +375,7 @@ highlighting line 지정, title 제거 등을 위해 inject statement 끝에 추
 
 콘텐츠, 여는 태그, 닫는 태그의 위와 아래에 빈 줄을 추가한다.
 
-**Example:**
+**예시:**
 
 ```html
 <details>
@@ -428,7 +387,7 @@ highlighting line 지정, title 제거 등을 위해 inject statement 끝에 추
 </details>
 ```
 
-## Using step headings
+## step heading 사용하기
 
 프로세스에는 순서 있는 목록을 우선 사용하며, 각 step은 하나의 지시만 담도록 유지한다.
 
@@ -438,7 +397,7 @@ Step 1이 여러 페이지에 걸치는 목록은 피하고 대신 step heading�
 
 Step heading은 긴 guide를 다시 시작하고 ToC를 통해 탐색하기 더 쉽게 만든다.
 
-### How to use step headings
+### step heading 사용 방법
 
 step heading을 만들려면 일반적인 heading level에 `step` 또는 `substep` 접미사를 추가한다.
 
@@ -462,7 +421,7 @@ And Cracker Jacks.
 
 I don't care if I ever come back.
 
-## Mermaid graphs
+## Mermaid graph
 
 Mermaid graph는 텍스트 기반 [Mermaid.js](https://mermaid.js.org) 다이어그램이다.
 
@@ -470,7 +429,7 @@ Mermaid는 Docusaurus에서 기본적으로 지원된다.
 
 Docusaurus 구현은 더 새로운 graph type에 대한 지원 여부를 결정하며, 이들은 올바르게 렌더링되지 않을 수 있다.
 
-### How to use
+### 사용 방법
 
 mermaid graph를 만들려면 code를 tick fencing 안에 넣고 언어로 `mermaid`를 지정한다.
 
@@ -493,13 +452,13 @@ flowchart LR
     AC2 <==>|Network TCP| Authority2
 ```
 
-<!----- not currently used
+<!----- 현재 사용하지 않음
 
-## YouTube player with thumbnail carousel
+## thumbnail carousel이 있는 YouTube player
 
-Use `YTCarousel` to display multiple videos.
+여러 video를 표시하려면 `YTCarousel`을 사용한다.
 
-**Example:**
+**예시:**
 ```jsx
 import YTCarousel from "@site/src/components/YTCarousel";
 

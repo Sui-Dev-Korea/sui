@@ -23,7 +23,7 @@ sidebar_label: validator 노드 관리
 
 Sui의 validator로서, 노드가 항상 최적화된 상태를 유지하도록 수행해야 하는 몇 가지 프로세스가 있다.
 
-## Storage management
+## 스토리지 관리
 
 모든 `sui-node` 관련 데이터는 기본적으로 `/opt/sui/db/` 아래 저장된다. 이는  `sui-node` 구성 파일에 지정되어 있다.
 
@@ -53,7 +53,7 @@ $ sudo systemctl stop sui-node
 $ sudo rm -rf /opt/sui/db/authorities_db /opt/sui/db/consensus_db
 ```
 
-## Key management
+## 키 관리
 
 `sui-node`에서는 다음 키들이 사용된다:
 
@@ -66,7 +66,7 @@ $ sudo rm -rf /opt/sui/db/authorities_db /opt/sui/db/consensus_db
 
 이들은 `sui-node` configuration file에서 설정된다.
 
-## Metrics
+## 메트릭
 
 `sui-node`는 로컬 HTTP 인터페이스를 통해 metrics를 노출한다. 이들은 중앙 모니터링 시스템에서 사용하기 위해 수집될 수 있으며, 노드에서 직접 확인할 수도 있다.
 
@@ -84,7 +84,7 @@ $ curl http://localhost:9184/metrics | grep <METRIC>
 
 `sui-node`는 또한 중앙 Sui metrics 프록시로 metrics를 푸시한다.
 
-## Logs
+## 로그
 
 로그는 `RUST_LOG` 환경 변수를 사용하여 제어된다.
 
@@ -124,20 +124,20 @@ $ curl localhost:1337/logging
 $ curl localhost:1337/logging -d "info"
 ```
 
-## Dashboards
+## dashboard
 
 네트워크 전체의 가시성을 위한 퍼블릭 대시보드:
 
 - [Sui Testnet Validators](https://metrics.sui.io/public-dashboards/9b841d63c9bf43fe8acec4f0fa991f5e)
 
-## Software updates
+## software update
 
 `sui-node` 소프트웨어의 업데이트가 필요한 경우, 다음 프로세스를 사용할 수 있다. 배포 유형에 따라 관련 Systemd 또는 Docker Compose 런북을 따른다. 깨끗한 데이터베이스로 재시작하는 것을 원하는 경우는 매우 드물다.
 
 - [Systemd](https://github.com/MystenLabs/sui/blob/main/nre/systemd/README.md#updates)
 - [Docker Compose](https://github.com/MystenLabs/sui/blob/main/nre/docker/README.md#updates)
 
-## State sync
+## state sync
 
 Sui의 체크포인트는 네트워크의 영구적인 이력을 포함한다. 이들은 다른 블록체인의 블록과 유사하지만, 이끄는(leading)대신 래깅(lagging)한다는 큰 차이점이 있다. 모든 transaction은 확정된 후 체크포인트에 포함되기 전에 실행된다.
 
@@ -158,7 +158,7 @@ p2p-config:
       peer-id: ...
 ```
 
-## Chain operations
+## chain operation
 
 다음 체인 운영은 `sui` CLI를 사용하여 실행된다. 이 바이너리는 `sui-node`와 유사하게 릴리스로 빌드 및 제공되며, 예시는 다음과 같다:
 
@@ -225,7 +225,7 @@ $ sui client call --package 0x3 --module sui_system --function rotate_operation_
 
  validator의 현재 유효한 `Cap` object ID를 얻으려면, 보유자를 활성 address로 설정한 후 `sui client objects` 명령을 사용한다.
 
-### Updating the gas price survey quote
+### gas price survey quote update
 
 validator의 참조 가스 가격을 epoch 종료 시 계산하는 데 사용되는 가스 가격 조사 견적을 업데이트하려면, 발신자가 유효한 [`UnverifiedValidatorOperationCap`](#operation-cap)을 보유해야 한다. 발신자는 validator 자신 또는 신뢰할 수 있는 수임자일 수 있다.
 
@@ -235,7 +235,7 @@ validator의 참조 가스 가격을 epoch 종료 시 계산하는 데 사용되
 $ sui client call --package 0x3 --module sui_system --function request_set_gas_price --args 0x5 {cap_object_id} {new_gas_price} --gas-budget 10000
 ```
 
-### Reporting/un-reporting validators
+### validator report/un-report
 
 validator를 보고하거나 기존 보고를 취소하려면, 발신자가 유효한 [`UnverifiedValidatorOperationCap`](#operation-cap)을 보유해야 한다. 발신자는 validator 자신 또는 신뢰할 수 있는 수임자일 수도  있다.
 
@@ -247,7 +247,7 @@ $ sui client call --package 0x3 --module sui_system --function report_validator/
 
 투표권 기준 `2f + 1`개의 다른 validator에 의해 validator가 보고되면, 해당 validator의 stake 보상이 삭감된다.
 
-### Joining the validator set
+### validator set join
 
 Sui address가 validator 세트에 참여하려면, 먼저 메타데이터 및 초기 구성과 함께 `sui_system::request_add_validator_candidate`를 호출하여 validator 후보로 등록해야 한다:
 
@@ -261,7 +261,7 @@ address가 validator 후보가 되면, 모든 address(후보 address 포함)는 
 $ sui client call --package 0x3 --module sui_system --function request_add_validator --args 0x5 --gas-budget 10000000
 ```
 
-### Leaving the validator set
+### validator set leave
 
 다음 epoch부터 validator 세트를 떠나려면, 발신자는 현재 epoch의 활성 validator여야 하며 `sui_system::request_remove_validator`를 호출해야 한다:
 
@@ -271,7 +271,7 @@ $ sui client call --package 0x3 --module sui_system --function request_remove_va
 
 다음 epoch에서 validator가 제거된 후에는,  staking pool은 비활성화되며 비활성 풀에서만 stake를 인출할 수 있다.
 
-## Private security fixes
+## private security fix
 
 공개적으로 발표하기 전에 긴급 보안 수정을 배포해야 하는 경우가 있을 수 있다(liveliness, SUI 공급량, 거버넌스 등과 관련된 문제). 능동적인 악용을 방지하기 위해, Mysten Labs는 이러한 수정 사항이 포함된 서명된 보안 바이너리를 출시하며, 대다수의 validator가 취약점 패치를 완료할 때까지 소스 코드 공개를 지연한다.
 

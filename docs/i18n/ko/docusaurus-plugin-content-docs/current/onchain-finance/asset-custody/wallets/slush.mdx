@@ -1,40 +1,40 @@
 ---
 title: Slush
-description: Learn about Slush Wallet, its features, and how to integrate it into your wallet or app using the Slush Wallet SDK and Sui dApp Kit.
+description: Slush Wallet, 기능, Slush Wallet SDK와 Sui dApp Kit을 사용해 wallet 또는 app에 통합하는 방법을 알아본다.
 keywords: [ slush, slush wallet, wallet, zkLogin, wallet integration, dapp kit, deep linking, registerSlushWallet ]
 ---
 
-Slush is the official Sui wallet built by Mysten Labs, available as a Chrome browser extension, an iOS app, an Android app, and a web app at [slush.app](https://slush.app).
+Slush는 Mysten Labs가 build한 공식 Sui wallet이며 Chrome browser extension, iOS app, Android app, 그리고 [slush.app](https://slush.app)의 web app으로 사용할 수 있다.
 
-## Slush basics
+## Slush 기본 사항
 
-Slush Wallet gives users two ways to create and access an account:
+Slush Wallet은 사용자에게 account를 만들고 접근하는 두 가지 방법을 제공한다:
 
-- **Social login** uses [zero-knowledge login (zkLogin)](/sui-stack/zklogin-integration/zklogin) to derive a Sui address from an OAuth credential (Google, Apple, Facebook, or Twitch). No recovery passphrase is required. This is the recommended login method for users who are new to wallets, because key management is fully abstracted.
+- **social login**은 [zero-knowledge login (zkLogin)](/sui-stack/zklogin-integration/zklogin)을 사용해 OAuth credential(Google, Apple, Facebook, Twitch)에서 Sui address를 derive한다. recovery passphrase는 필요하지 않다. key management가 완전히 추상화되므로 wallet을 처음 사용하는 사용자에게 권장되는 login 방법이다.
 
-- **Recovery passphrase** creates a standard self-custodial account. The user holds the private key locally and is responsible for backing up the recovery passphrase. This is the recommended path for users who want full, independent control of their keys.
+- **recovery passphrase**는 표준 셀프 커스터디 account를 만든다. 사용자는 private key를 locally 보관하고 recovery passphrase backup을 책임진다. key를 완전하고 독립적으로 제어하려는 사용자에게 권장되는 경로이다.
 
-Both account types are supported simultaneously. A single Slush Wallet can hold both social-login and passphrase-based accounts.
+두 account type은 동시에 지원된다. 하나의 Slush Wallet은 social-login account와 passphrase 기반 account를 모두 보유할 수 있다.
 
-Additional features available in Slush Wallet include:
+Slush Wallet에서 사용할 수 있는 추가 기능은 다음과 같다:
 
-- [**Slush Links**](https://slush.app/guides/use-slush-links): Send tokens or NFTs to anyone through a shareable link or QR code, with no recipient address required.
-- [**Staking**](/develop/sui-architecture/tokenomics-overview): Delegate SUI to a validator and earn staking rewards directly from the wallet.
-- **Swaps**: Exchange tokens in-app without leaving the wallet.
-- **App browser**: Browse and connect to Sui apps from inside the mobile app.
+- [**Slush Links**](https://slush.app/guides/use-slush-links): recipient address 없이 공유 가능한 link 또는 QR code를 통해 누구에게나 token 또는 NFT를 보낸다.
+- [**staking**](/develop/sui-architecture/tokenomics-overview): SUI를 validator에 delegate하고 wallet에서 직접 staking reward를 얻는다.
+- **swap**: wallet을 벗어나지 않고 app 안에서 token을 exchange한다.
+- **app browser**: mobile app 안에서 Sui app을 browse하고 연결한다.
 
 ## Slush Wallet SDK
 
-The [`@mysten/slush-wallet` SDK](https://sdk.mystenlabs.com/slush-wallet) lets you add Slush Wallet support to your own wallet interface or app. The Slush browser extension and native mobile app work automatically through the [Wallet Standard](/onchain-finance/asset-custody/wallets/wallet-standard) and do not require this SDK. The SDK is only required if you want to support the Slush web app as a connection option.
+[`@mysten/slush-wallet` SDK](https://sdk.mystenlabs.com/slush-wallet)를 사용하면 자체 wallet interface 또는 app에 Slush Wallet 지원을 추가할 수 있다. Slush browser extension과 native mobile app은 [Wallet Standard](/onchain-finance/asset-custody/wallets/wallet-standard)를 통해 자동으로 동작하므로 이 SDK가 필요하지 않다. SDK는 Slush web app을 connection option으로 지원하려는 경우에만 필요하다.
 
-### Install
+### 설치
 ```bash
 pnpm install @mysten/slush-wallet
 ```
 
-### Register the Slush web wallet
+### Slush web wallet 등록
 
-Call `registerSlushWallet` once, as early as possible in your application's lifecycle. This registers the Slush web wallet with the Wallet Standard so it appears in your existing wallet connection UI.
+application lifecycle에서 가능한 한 일찍 `registerSlushWallet`을 한 번 호출한다. 이렇게 하면 Slush web wallet이 Wallet Standard에 등록되어 기존 wallet connection UI에 표시된다.
 
 <ImportContent
   source="/packages/slush-wallet/src/wallet/index.ts"
@@ -45,17 +45,17 @@ Call `registerSlushWallet` once, as early as possible in your application's life
   noComments
 />
 
-### Supported features
+### 지원 기능
 
-The Slush wallet supports the following Wallet Standard features:
+Slush wallet은 다음 Wallet Standard 기능을 지원한다:
 
 - `signTransaction`
 - `signAndExecuteTransaction`
 - `signPersonalMessage`
 
-### Detect the Slush wallet
+### Slush wallet 감지
 
-To check whether the connected wallet is Slush Wallet, compare the wallet name against the `SLUSH_WALLET_NAME` constant.
+연결된 wallet이 Slush Wallet인지 확인하려면 wallet name을 `SLUSH_WALLET_NAME` constant와 비교한다.
 
 <ImportContent
   source="/packages/slush-wallet/src/wallet/index.ts"
@@ -65,9 +65,9 @@ To check whether the connected wallet is Slush Wallet, compare the wallet name a
   variable="SLUSH_WALLET_NAME"
 />
 
-## Sui dApp Kit integration
+## Sui dApp Kit 통합
 
-The [Sui dApp Kit](https://sdk.mystenlabs.com/dapp-kit) provides built-in opt-in support for Slush Wallet. Pass `slushWalletConfig` to `createDAppKit` to enable it. The `name` field is required and is shown to the user during the connection flow.
+[Sui dApp Kit](https://sdk.mystenlabs.com/dapp-kit)은 Slush Wallet에 대한 built-in opt-in support를 제공한다. 이를 활성화하려면 `createDAppKit`에 `slushWalletConfig`를 전달한다. `name` field는 필수이며 connection flow 중 사용자에게 표시된다.
 
 <ImportContent
   source="/packages/dapp-kit-next/packages/dapp-kit-react/src/components/DAppKitProvider.tsx"
@@ -78,10 +78,10 @@ The [Sui dApp Kit](https://sdk.mystenlabs.com/dapp-kit) provides built-in opt-in
   noComments
 />
 
-Users who have the Slush browser extension installed see only the extension in the connection modal. Users without the extension connect through the Slush web app instead.
+Slush browser extension을 설치한 사용자는 connection modal에서 extension만 보게 된다. extension이 없는 사용자는 대신 Slush web app을 통해 연결한다.
 
-## Deep linking
+## deep linking
 
-Deep linking lets external apps, websites, and services open Slush Wallet directly to a specific screen or trigger a specific action, such as a token swap, a payment, or an app browser session. Slush supports universal links through the `my.slush.app` domain and custom URL scheme links through `slush://`. Deep linking is not supported for the Slush browser extension.
+deep linking을 사용하면 external app, website, service가 Slush Wallet을 특정 screen으로 직접 열거나 token swap, payment, app browser session 같은 특정 action을 trigger할 수 있다. Slush는 `my.slush.app` domain을 통한 universal link와 `slush://`를 통한 custom URL scheme link를 지원한다. Slush browser extension에서는 deep linking이 지원되지 않는다.
 
-For the full route reference, parameter tables, platform-specific implementation examples, and troubleshooting guidance, refer to the [Slush Wallet SDK docs on deep linking](https://sdk.mystenlabs.com/slush-wallet/deep-linking).
+전체 route reference, parameter table, platform별 implementation example, troubleshooting guidance는 [deep linking에 대한 Slush Wallet SDK docs](https://sdk.mystenlabs.com/slush-wallet/deep-linking)를 참조한다.

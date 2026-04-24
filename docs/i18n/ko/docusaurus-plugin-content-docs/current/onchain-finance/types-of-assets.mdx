@@ -1,121 +1,121 @@
 ---
-title: Types of Assets
-description: Sui provides a variety of asset standards with different features for multiple usage patterns.
+title: asset type
+description: Sui는 여러 usage pattern을 위한 다양한 feature를 갖춘 asset standard를 제공한다.
 keywords: [ coin, currency, address balances, permissioned assets, pas, balances, closed-loop, currency standard, coin standard, closed-loop token standard, non-fungible token, fungible token, nft ]
 ---
 
-On Sui, there are a variety of fungible, non-fungible, and other types of asset standards, each with their own defined usage patterns and capabilities. Choosing the correct standard for your use case is important to enable the correct set of features in your application.
+Sui에는 대체 가능, 대체 불가능, 기타 여러 asset standard가 있으며 각각 정의된 usage pattern과 capability가 있다. use case에 맞는 standard를 선택하는 것은 application에서 필요한 feature set을 활성화하는 데 중요하다.
 
-## Fungible tokens: Coin standard
+## Fungible token: Coin standard
 
-The Coin standard defines fungible tokens that have `key` and `store` abilities. Coin supports wrapping and public transfers. It uses the [`sui::coin`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/coin.md) module. Coin refers to a **single object wrapper for a fungible asset**.
+Coin standard는 `key`와 `store` ability가 있는 fungible token을 정의한다. Coin은 wrapping과 public transfer를 지원한다. [`sui::coin`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/coin.md) module을 사용한다. Coin은 **fungible asset을 위한 single object wrapper**를 의미한다.
 
-The `Coin<T>` type represents open-loop fungible tokens. Coins are denominated by their type parameter, `T`, which is also associated with metadata (like name, symbol, and decimal precision) that applies to all instances of `Coin<T>`.
+`Coin<T>` type은 open-loop fungible token을 나타낸다. Coin은 type parameter `T`로 denomination되며, `T`는 모든 `Coin<T>` instance에 적용되는 metadata(name, symbol, decimal precision 등)와도 연관된다.
 
-Fungible tokens created using the Coin standard are referred to as **coins**.
+Coin standard로 생성된 fungible token은 **coin**이라고 부른다.
 
-When you create a coin using the `coin::create_currency` function, the publisher of the smart contract that creates the coin receives a `TreasuryCap` object. The Coin standard uses `CoinMetadata` to define the coin's metadata.
+`coin::create_currency` function으로 coin을 만들면 coin을 생성하는 smart contract의 publisher가 `TreasuryCap` object를 받는다. Coin standard는 `CoinMetadata`를 사용해 coin metadata를 정의한다.
 
-### When to use Coin
+### Coin을 사용할 때
 
-Use the Coin standard if you are:
+다음에 해당하면 Coin standard를 사용한다.
 
-- Working with legacy code or maintaining an existing coin that was created with the `sui::coin` module
+- legacy code로 작업하거나 `sui::coin` module로 만든 existing coin을 유지한다.
 
-- Creating a coin that does not require advanced supply tracking or regulatory features
+- advanced supply tracking 또는 regulatory feature가 필요 없는 coin을 만든다.
 
-- Familiar with the `CoinMetadata<T>` object for metadata storage
+- metadata storage를 위해 `CoinMetadata<T>` object에 익숙하다.
 
-[Learn more about using Coin](/onchain-finance/fungible-tokens/coin).
+[Coin 사용에 대해 자세히 알아보기](/onchain-finance/fungible-tokens/coin).
 
-### Address balances
+### 주소 잔액
 
-Address balances tie fungible assets to a Sui address directly. They replace the UTXO-style `Coin<T>` model, where balances are calculated by summing all `Coin<T>` objects owned by an address. With the address balance functionality, each Sui address can have one address-owned balance for each currency they own, with the total balance being the sum of all `Coin<T>` objects plus the address balance. `Coin<T>` and address balances can exist together, however address balances provide several advantages over using `Coin<T>` alone.
+주소 잔액은 fungible asset을 Sui address에 직접 연결한다. 이는 address가 소유한 모든 `Coin<T>` object를 합산해 balance를 계산하던 UTXO-style `Coin<T>` model을 대체한다. 주소 잔액 기능을 사용하면 각 Sui address는 자신이 보유한 currency마다 하나의 address-owned balance를 가질 수 있으며, total balance는 모든 `Coin<T>` object와 주소 잔액의 합계이다. `Coin<T>`와 주소 잔액은 함께 존재할 수 있지만, 주소 잔액은 `Coin<T>`만 사용할 때보다 여러 이점을 제공한다.
 
-For the full specification, see [SIP-58: Sui Address Balances](https://github.com/sui-foundation/sips/blob/main/sips/sip-58.md).
+전체 specification은 [SIP-58: Sui Address Balances](https://github.com/sui-foundation/sips/blob/main/sips/sip-58.md)를 참조한다.
 
-## Fungible tokens: Currency standard
+## Fungible token: Currency standard
 
-The Currency standard is an example of an open-loop system. It supports free-flowing, [wrappable](/develop/objects/object-ownership/wrapped), [freely transferable](/develop/objects/transfers/custom-rules) fungible assets that you can store in any application. It uses the [`sui::coin_registry`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/coin_registry.md) module and the `Currency` object for metadata. **Currency** refers to the object that is created in Coin Registry, which describes the currency properties and setup.
+Currency standard는 open-loop system의 예시이다. 이는 어느 application에나 저장할 수 있는 free-flowing, [wrappable](/develop/objects/object-ownership/wrapped), [freely transferable](/develop/objects/transfers/custom-rules) fungible asset을 지원한다. [`sui::coin_registry`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/coin_registry.md) module과 metadata용 `Currency` object를 사용한다. **Currency**는 Coin Registry에서 생성되는 object를 의미하며, currency property와 setup을 설명한다.
 
-The `Currency<T>` type represents open-loop fungible tokens. Currencies are denominated by their type parameter, `T`, which is also associated with metadata like name, symbol, and decimal precision that applies to all instances of `Currency<T>`.
+`Currency<T>` type은 open-loop fungible token을 나타낸다. Currency는 type parameter `T`로 denomination되며, `T`는 모든 `Currency<T>` instance에 적용되는 name, symbol, decimal precision 같은 metadata와도 연관된다.
 
-Fungible tokens created using the Currency standard are referred to as **coins**.
+Currency standard로 생성된 fungible token은 **coin**이라고 부른다.
 
-You can create coins with the Currency standard using `coin_registry::new_currency` and `coin_registry::new_currency_with_otw`:
+`coin_registry::new_currency`와 `coin_registry::new_currency_with_otw`를 사용해 Currency standard로 coin을 만들 수 있다.
 
-- **Standard creation** (`coin_registry::new_currency`): Recommended for most cases. You can call this method any time after the coin type is published.
+- **Standard creation**(`coin_registry::new_currency`): 대부분의 경우 권장된다. coin type이 publish된 뒤 언제든 이 method를 호출할 수 있다.
 
-- **One-Time Witness creation** (`coin_registry::new_currency_with_otw`): Uses a One-Time Witness for uniqueness proof. Requires a two-step publish and finalize process.
+- **One-Time Witness creation**(`coin_registry::new_currency_with_otw`): uniqueness proof에 One-Time Witness를 사용한다. two-step publish 및 finalize process가 필요하다.
 
 :::tip
 
-The Coin and Currency standards are both used to create fungible tokens. However, they use different creation methods and store metadata in a different type of object.
+Coin과 Currency standard는 모두 fungible token을 만드는 데 사용된다. 하지만 creation method와 metadata를 저장하는 object type이 다르다.
 
-Coin creates tokens using `coin::create_currency` while Currency uses `sui::coin_registry`.
+Coin은 `coin::create_currency`로 token을 만들고 Currency는 `sui::coin_registry`를 사용한다.
 
-Coin uses `CoinMetadata` while Currency uses `Currency`.
+Coin은 `CoinMetadata`를 사용하고 Currency는 `Currency`를 사용한다.
 
-Fungible tokens created on Sui using the Coin or Currency standard are referred to as **coins**.
+Sui에서 Coin 또는 Currency standard로 생성된 fungible token은 **coin**이라고 부른다.
 
-For fungible tokens created on Sui using the [Closed-Loop Token standard](/onchain-finance/closed-loop-token), the documentation uses the term **tokens**. In practice, the terms for both these objects are often interchangeable.
+[Closed-Loop Token standard](/onchain-finance/closed-loop-token)로 생성된 fungible token에 대해 documentation은 **token**이라는 용어를 사용한다. 실제로 두 object에 대한 용어는 자주 서로 바꿔 쓰인다.
 
 :::
 
 ### Coin Registry
 
-The Coin Registry system provides a centralized approach to currency management through the `sui::coin_registry` module. The registry is a shared object located at address `0xc` that stores metadata, supply information, and regulatory status for all registered coin types.
+Coin Registry system은 `sui::coin_registry` module을 통해 currency management에 대한 centralized approach를 제공한다. registry는 address `0xc`에 위치한 shared object이며, 등록된 모든 coin type의 metadata, supply information, regulatory status를 저장한다.
 
-### When to use Currency
+### Currency를 사용할 때
 
-Assets can offer specialized abilities while following the Currency Standard. For example, you can create regulated coins that allow their creator to add specific addresses to a deny list, so that the identified addresses cannot use the coin as inputs to transactions.
+asset은 Currency Standard를 따르면서 specialized ability를 제공할 수 있다. 예를 들어 creator가 특정 address를 deny list에 추가하여 해당 address가 coin을 transaction input으로 사용하지 못하게 하는 regulated coin을 만들 수 있다.
 
-Use the Currency standard if you are:
+다음에 해당하면 Currency standard를 사용한다.
 
-- Creating a new coin and want to use Coin Registry
-- Requiring advanced supply chain management, such as fixed supply, burn-only supply, or uncontrolled supply
-- Requiring regulatory tracking such as deny lists
-- Requiring enhanced integration options with wallets, exchanges, and apps
-- Requiring future-proofing options and access to ongoing registry improvements
+- 새 coin을 만들고 Coin Registry를 사용하려 한다.
+- fixed supply, burn-only supply, uncontrolled supply 같은 advanced supply chain management가 필요하다.
+- deny list 같은 regulatory tracking이 필요하다.
+- wallet, exchange, app과의 enhanced integration option이 필요하다.
+- future-proofing option과 ongoing registry improvement에 접근해야 한다.
 
-[Learn more about using Currency](/onchain-finance/fungible-tokens/currency).
+[Currency 사용에 대해 자세히 알아보기](/onchain-finance/fungible-tokens/currency).
 
-## Permissioned assets
-
-:::caution
-
-Permissioned Asset Standard is currently available on Testnet. It is not yet live on Mainnet.
-
-:::
-
-The Permissioned Asset Standard (PAS) enables asset ownership through Account objects. Account objects can hold assets and enforce transfer controls and compliance checks. Accounts can only hold one asset, independent of its types, and the asset can only move between Accounts through hot potato requests that must be approved and resolved in the same programmable transaction block (PTB).
-
-PAS uses Sui [Address Balances](/onchain-finance/asset-custody/address-balance-migration). PAS balances are managed by PAS on behalf of the wallet address. They are held in a derived Account object, however, transfers always target the wallet address, not the Account address.
-
-PAS assets are stored in Sui objects and can be queried using the same data access methods as any other address-owned data.
-
-[Learn more about Permissioned Asset Standard](/onchain-finance/pas/pas-architecture).
-
-## Fungible tokens: Closed-Loop Token standard
+## Permissioned asset
 
 :::caution
 
-The Permissioned Asset Standard (PAS) provides a new and improved alternative to the Closed-Loop Token (CLT) standard. Use PAS in place of CLT.
+Permissioned Asset Standard는 현재 Testnet에서 사용할 수 있다. 아직 Mainnet에는 live 상태가 아니다.
 
 :::
 
-The Closed-Loop Token standard creates a fungible token that only has the `key` ability. Closed-loop tokens cannot be wrapped, stored as a dynamic field, or freely transferred (unless a custom policy allows it). Due to this restriction, tokens created with this standard **can only be owned by an account** and cannot be stored in an application. However, [they can be spent](/onchain-finance/closed-loop-token/spending). The standard uses the [`sui::token` module](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/token.md).
+Permissioned Asset Standard (PAS)는 Account object를 통한 asset ownership을 가능하게 한다. Account object는 asset을 보유하고 transfer control과 compliance check를 enforce할 수 있다. Account는 type과 독립적으로 하나의 asset만 보유할 수 있으며, asset은 동일한 programmable transaction block (PTB) 안에서 approve되고 resolve되어야 하는 hot potato request를 통해서만 Account 사이를 이동할 수 있다.
 
-Fungible tokens created using the Closed-Loop Token standard are referred to as **tokens**.
+PAS는 Sui [주소 잔액](/onchain-finance/asset-custody/address-balance-migration)을 사용한다. PAS balance는 wallet address를 대신해 PAS가 관리한다. 이는 derived Account object에 보관되지만 transfer는 항상 Account address가 아니라 wallet address를 대상으로 한다.
 
-Using the Closed-Loop Token standard, you can limit the applications that use the token and set up custom policies for transfers, spends, and conversions. Some applications might need a token that you can only use for a specific service, or that an authorized account can only use, or a token that you can block certain accounts from using. A real-world analogy would be a bank account that is regulated, bank-controlled, and compliant with certain rules and policies.
+PAS asset은 Sui object에 저장되며 다른 address-owned data와 동일한 data access method로 query할 수 있다.
 
-Refer to [Closed-Loop Token](/onchain-finance/closed-loop-token) for more information.
+[Permissioned Asset Standard 자세히 알아보기](/onchain-finance/pas/pas-architecture).
 
-## Non-fungible tokens: Sui objects
+## Fungible token: Closed-Loop Token standard
 
-Sui uses an object model, meaning every entity on Sui has a unique ID. Whether your application interacts with a pool of fungible tokens or a collection of non-fungible tokens, the application's smart contract interacts with individual objects. Therefore, Sui does not require an NFT standard that pairs globally unique IDs with relevant smart contract addresses to create unique token instances, such as how the ERC-721 standard works.
+:::caution
 
-Consider the following example Move smart contract, where the NFT's name attribute is a field on the object that defines the NFT itself. The `TestnetNFT` struct defines the NFT with `id`, `name`, `description`, and `url` fields.
+Permissioned Asset Standard (PAS)는 Closed-Loop Token (CLT) standard를 대체하는 새롭고 개선된 alternative를 제공한다. CLT 대신 PAS를 사용한다.
+
+:::
+
+Closed-Loop Token standard는 `key` ability만 가진 fungible token을 만든다. Closed-loop token은 custom policy가 허용하지 않는 한 wrap, dynamic field 저장 또는 자유 transfer가 불가능하다. 이 restriction 때문에 이 standard로 생성된 token은 **account만 소유할 수 있으며** application에 저장할 수 없다. 하지만 [spend할 수는 있다](/onchain-finance/closed-loop-token/spending). 이 standard는 [`sui::token` module](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/token.md)을 사용한다.
+
+Closed-Loop Token standard로 생성된 fungible token은 **token**이라고 부른다.
+
+Closed-Loop Token standard를 사용하면 token을 사용하는 application을 제한하고 transfer, spend, conversion에 대한 custom policy를 설정할 수 있다. 일부 application은 특정 service에만 사용할 수 있거나 authorized account만 사용할 수 있거나 특정 account의 사용을 차단할 수 있는 token이 필요할 수 있다. 현실 세계의 analog로는 regulated, bank-controlled, compliant한 bank account를 들 수 있다.
+
+자세한 내용은 [Closed-Loop Token](/onchain-finance/closed-loop-token)을 참조한다.
+
+## Non-fungible token: Sui object
+
+Sui는 object model을 사용하므로 Sui의 모든 entity는 unique ID를 가진다. application이 fungible token pool과 상호작용하든 non-fungible token collection과 상호작용하든, application의 smart contract는 individual object와 상호작용한다. 따라서 Sui는 ERC-721 standard가 작동하는 방식처럼 unique token instance를 만들기 위해 globally unique ID와 관련 smart contract address를 pair하는 NFT standard를 필요로 하지 않는다.
+
+다음 예시 Move smart contract를 고려한다. NFT의 name attribute는 NFT 자체를 정의하는 object의 field이다. `TestnetNFT` struct는 `id`, `name`, `description`, `url` field로 NFT를 정의한다.
 
 <ImportContent source="examples/move/nft/sources/testnet_nft.move" mode="code" struct="TestnetNFT" noComments />

@@ -16,17 +16,17 @@ Sui와 Solana 개발의 가장 큰 차이점은 프로그래밍 언어에 있다
 | Dynamic dispatch | trait objects를 통해 허용되지만 성능 오버헤드 때문에 Solana programs에서는 일반적으로 사용되지 않는다. | 허용되지 않는다 |
 | Asset and token accessibility | 토큰은 Program Derived Addresses(PDAs)에 저장된다. 접근은 program logic과 signer verification으로 제어된다. | 누구나 shared objects에 접근할 수 있다. Owned objects는 object owner만 접근할 수 있다. |
 | Access control | Signer 기반 access control이다. Programs는 transaction signers와 account ownership을 검증한다. PDAs는 program이 제어하는 accounts를 가능하게 한다. | 주로 owned objects를 통한 [capability based access control](https://move-book.com/programmability/capability.html)이다. Identity 및 role 기반 access control도 가능하다. |
-| Contract upgrades | Programs는 배포 시 upgradeable 또는 immutable로 표시할 수 있다. Upgrades는 program binary를 교체하지만 동일한 program ID를 유지한다. | 새 contracts는 이전 것과 [layout-compatible](/develop/publish-upgrade-packages/upgrade#upgrade-requirements)해야 한다. Shared objects의 버전 관리를 고려해야 한다. |
+| Contract upgrades | Programs는 배포 시 upgradeable 또는 immutable로 표시할 수 있다. Upgrades는 program binary를 교체하지만 동일한 program ID를 유지한다. | 새 contracts는 이전 것과 [layout-compatible](/develop/publish-upgrade-packages/upgrade#업그레이드-요구-사항)해야 한다. Shared objects의 버전 관리를 고려해야 한다. |
 | Mutate contract state | instruction data를 포함한 transactions를 전송한다. Programs는 instructions를 처리하고 account 데이터를 수정한다. Type-safe 클라이언트 상호작용을 위해 Anchor의 IDL(Interface Definition Language)을 사용할 수 있다. | 런타임 [프로그래머블 트랜잭션 블록 (PTB)](/develop/transactions/ptbs/prog-txn-blocks) 구성을 통해 transaction을 전송한다. |
 | Type safety | Rust의 타입 시스템으로 컴파일 시 강한 타입을 제공한다. 메모리 안전성은 borrow checker가 강제한다. | 리소스 지향이며 linear types를 사용한다. Assets는 명시적으로 허용되지 않는 한 복사되거나 삭제될 수 없다. Move Prover를 통한 형식 검증으로 강한 타입 안전성을 제공한다. |
 
-## Object model
+## object model
 
 Move에서는 모든 것이 object이다. Objects는 Move packages(스마트 계약), addresses, coins, NFTs, 그리고 다른 모든 온체인 데이터를 담는 Sui의 기본 데이터 저장 단위 역할을 한다.
 
 Objects를 NFTs와 같이 고유한 ownership 속성을 가진 assets로 생각할 수 있지만 이는 모든 blockchain 데이터 전반으로 일반화된다. 모든 object는 ownership을 가진다.
 
-## Ownership
+## ownership
 
 Object ownership에는 몇 가지 뉘앙스가 있지만 핵심 유형은 다음을 포함한다:
 
@@ -35,7 +35,7 @@ Object ownership에는 몇 가지 뉘앙스가 있지만 핵심 유형은 다음
 
 Sui의 모든 ownership 유형은 [객체 소유권 유형](/develop/objects/object-ownership)을 참조하라.
 
-## Access control
+## access control
 
 Identity 또는 role 기반 access control은 Solidity의 OpenZeppelin `Ownable` 및 `AccessControl` contracts를 통해 널리 사용된다.
 
@@ -60,7 +60,7 @@ public fun new(_: &AdminCap, ctx: &mut TxContext): User {
 }
 ```
 
-## Mutating objects
+## object mutation
 
 Rust에서는 데이터 구조가 programs가 읽고 쓰는 별도의 account structures에 저장된다. Programs는 stateless이며 접근할 accounts를 미리 선언한다. 데이터를 변경하려면 적절한 account references가 포함된 transaction에 서명해야 하며 program은 명시적 검사를 통해 signer permissions를 검증한다.
 
@@ -68,7 +68,7 @@ Move에서는 데이터를 변경하는 로직이 contract에 정의되지만 �
 
 데이터를 변경하려면 objects의 소유자가 PTB를 사용해 contract functions를 호출해야 한다. 소유권 검사는 프로토콜 수준에서 수행되므로 서명자가 참조된 objects에 접근할 수 없으면 transactions는 실패한다.
 
-## Programmable transaction blocks
+## programmable transaction block
 
 Rust에서 여러 program 호출의 결과를 함께 연결하려면 일반적으로 여러 개의 순차 transaction을 만들거나 program 내부에서 Cross-Program Invocations(CPIs)를 사용해야 한다. CPIs는 programs가 단일 transaction 안에서 다른 programs를 원자적으로 호출할 수 있게 하지만 깊이가 4단계로 제한되며 account 관리를 신중히 해야 한다. 클라이언트 측 transaction chaining은 각 transaction이 다음 것이 제출되기 전에 완료되어야 하므로 원자성 보장이 없다.
 
@@ -78,7 +78,7 @@ Sui의 빌더는 PTB를 활용해 그렇지 않으면 다루기 어려운 경험
 
 PTB에 대한 자세한 내용은 [프로그래머블 트랜잭션 블록 (PTB)](/develop/transactions/ptbs/prog-txn-blocks)를 참조하라.
 
-## More comparison
+## 추가 비교
 
 | Topic | Solana | Sui |
 |-------|--------|-----|

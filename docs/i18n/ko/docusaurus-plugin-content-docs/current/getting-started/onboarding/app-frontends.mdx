@@ -32,7 +32,7 @@ pagination_next: null
 </TabItem>
 </Tabs>
 
-## Call the Move package
+## Move package 호출
 
 먼저 [followed the "Hello, World!"](https://github.com/MystenLabs/sui-stack-hello-world.git) example guide를 완료했고 CLI에서 `sui-stack-hello-world/move/hello-world` 디렉터리 안에 있는지 확인한다.
 
@@ -50,7 +50,7 @@ Package가 더 이상 존재하지 않거나 package ID를 다시 얻어야 한�
 
 :::
 
-## View the frontend source code
+## frontend source code 보기
 
 "Hello, World!" example project에서 `sui-stack-hello-world/ui` 하위 디렉터리에는 프론트엔드 인터페이스 source code 파일이 들어 있다:
 
@@ -101,7 +101,7 @@ Package가 더 이상 존재하지 않거나 package ID를 다시 얻어야 한�
 
 <ImportContent source="/ui/src/Greeting.tsx" mode="code" org="MystenLabs" repo="sui-stack-hello-world" />
 
-## Connect the React interface to your Move package
+## React interface를 Move package에 연결
 
 `constants.ts` 파일은 React app을 Move package에 연결하는 위치이다.
 
@@ -117,7 +117,7 @@ Package가 더 이상 존재하지 않거나 package ID를 다시 얻어야 한�
 
 <ImportContent source="/ui/src/networkConfig.ts" mode="code" org="MystenLabs" repo="sui-stack-hello-world" />
 
-## Install frontend dependencies
+## frontend dependency 설치
 
 이제 아직 해당 위치에 있지 않다면 `sui-stack-hello-world/ui` 디렉터리로 이동하고 필요한 프론트엔드 dependency를 설치한다:
 
@@ -125,7 +125,7 @@ Package가 더 이상 존재하지 않거나 package ID를 다시 얻어야 한�
 $ pnpm install
 ```
 
-## Run the React application
+## React application 실행
 
 로컬 개발 환경에서 React 애플리케이션을 시작한다:
 
@@ -139,7 +139,7 @@ App이 Slush wallet 연결을 요청한다.
 
 **Connect Wallet**을 클릭하고 프롬프트가 표시되면 인증한 다음 연결을 승인한다.
 
-## Send SUI tokens to your Slush wallet
+## Slush wallet으로 SUI token 전송
 
 이전 가이드에서 CLI에서 사용한 address로 SUI token을 보낸 뒤 브라우저에서 새 Slush wallet을 만들었다면, Slush wallet으로 SUI token을 보내야 할 가능성이 크다.
 
@@ -147,7 +147,7 @@ Slush wallet address는 CLI에서 생성하고 사용한 address와 다르고 �
 
 [Testnet SUI](/getting-started/onboarding/get-coins) instructions를 따라 Testnet token을 Slush address로 전송한다.
 
-## Use the frontend interface
+## frontend interface 사용
 
 다음으로 **Create Greeting** 버튼을 클릭한다.
 

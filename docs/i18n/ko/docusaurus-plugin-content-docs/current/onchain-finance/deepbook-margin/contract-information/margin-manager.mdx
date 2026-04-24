@@ -25,7 +25,7 @@ keywords:
 다음은 `MarginManager`가 노출하는 서로 다른 public 함수이다.
 
 <details>
-<summary>Create a `MarginManager`</summary>
+<summary>`MarginManager` 생성</summary>
 
 `new()` 함수는 하나의 transaction에서 `MarginManager`를 생성하고 공유한다. 지정된 pool에 대해 margin trading이 활성화되어 있는지 검증한다.
 
@@ -41,7 +41,7 @@ keywords:
 </details>
 
 <details>
-<summary>Create a `MarginManager` with initializer</summary>
+<summary>initializer로 `MarginManager` 생성</summary>
 
 `new_with_initializer()` 함수는 `MarginManager`를 생성하고 initializer hot potato와 함께 반환한다. initializer는 `share()` 함수를 사용해 생성 후 margin manager가 올바르게 공유되도록 보장한다.
 
@@ -174,7 +174,7 @@ margin manager의 risk ratio를 반환하며, 이는 asset 대비 debt의 비율
 
 </details>
 
-## Events
+## 이벤트
 
 <details>
 <summary>`MarginManagerCreatedEvent`</summary>

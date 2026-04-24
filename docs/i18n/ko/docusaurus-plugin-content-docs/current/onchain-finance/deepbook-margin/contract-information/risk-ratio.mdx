@@ -17,7 +17,7 @@ keywords:
 
 Risk ratio는 DeepBook Margin에서 leverage limit과 position 안전성을 제어하는 핵심 메커니즘이다. 이러한 ratio를 이해하는 것은 margin position을 효과적으로 관리하는 데 필수적이다.
 
-## What is a risk ratio?
+## risk ratio란?
 
 **risk ratio**는 다음과 같이 정의된다:
 
@@ -31,11 +31,11 @@ risk_ratio = total_assets / total_debts
 - **Risk ratio = 1.25**: debt 1 단위당 asset 1.25 단위를 보유한다(80% LTV)
 - **Risk ratio = 1.0**: asset이 debt와 정확히 같다(100% LTV, insolvent)
 
-## Risk ratio thresholds
+## risk ratio threshold
 
 각 trading pair에는 서로 다른 작업을 제어하는 네 가지 risk ratio threshold가 있다:
 
-### Min Withdraw Risk Ratio
+### minimum withdraw risk ratio
 
 담보를 인출한 **이후**에 필요한 최소 risk ratio이다.
 
@@ -43,7 +43,7 @@ risk_ratio = total_assets / total_debts
 - 이는 사용자가 담보를 과도하게 인출해 위험한 position을 남겨 두는 것을 방지한다
 - 일반적으로 2.0(50% LTV)으로 설정되며, 이는 인출하려면 debt 1 단위당 asset을 최소 2 단위 유지해야 함을 의미한다
 
-### Min Borrow Risk Ratio
+### minimum borrow risk ratio
 
 추가 자금을 차입한 **이후**에 필요한 최소 risk ratio이다.
 
@@ -52,7 +52,7 @@ risk_ratio = total_assets / total_debts
 - min borrow ratio가 1.25이면 약 5x leverage를 허용한다
 - min borrow ratio가 1.5이면 약 3x leverage를 허용한다
 
-### Liquidation Risk Ratio
+### liquidation risk ratio
 
 position이 **liquidation eligible** 상태가 되는 risk ratio 임계값이다.
 
@@ -60,7 +60,7 @@ position이 **liquidation eligible** 상태가 되는 risk ratio 임계값이다
 - 이는 "danger zone"이다 - 가격이 불리하게 움직여 ratio가 이 수준에 도달하면 liquidation될 수 있다
 - 일반적으로 asset 변동성에 따라 1.1과 1.2 사이로 설정된다
 
-### Target Liquidation Risk Ratio
+### target liquidation risk ratio
 
 liquidation이 position을 복원하려는 목표 risk ratio이다.
 

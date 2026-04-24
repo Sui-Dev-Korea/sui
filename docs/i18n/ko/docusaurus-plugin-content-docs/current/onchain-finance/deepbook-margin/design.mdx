@@ -28,10 +28,10 @@ keywords:
 
 - [`State`](#state)
 - [`ProtocolConfig`](#protocol-config)
-- [`ProtocolFees`](#protocol-fees)
+- [`ProtocolFees`](#protocol-fee)
 - [`PositionManager`](#position-manager)
 
-### State
+### state
 
 `State` 구성 요소는 총 supply 및 borrow amount와, 이에 해당하는 share를 추적한다. 이는 다음과 같은 shares 기반 accounting 시스템을 사용한다:
 
@@ -42,7 +42,7 @@ interest는 utilization rate(borrowed asset 대비 supplied asset의 비율)에 
 
 interest rate는 `InterestConfig`에 정의된 piecewise linear model을 따라 pool의 utilization rate에 기반해 동적으로 계산된다. utilization이 높을수록 interest rate가 높아져 더 많은 supply와 더 적은 borrowing을 유도한다.
 
-### Protocol config
+### protocol config
 
 `ProtocolConfig`는 margin pool의 동작을 제어하는 핵심 parameter를 저장한다:
 
@@ -54,7 +54,7 @@ interest rate는 `InterestConfig`에 정의된 piecewise linear model을 따라 
 
 이 parameter는 pool operator가 `MarginPoolCap`을 사용하여 업데이트할 수 있다.
 
-### Protocol fees
+### protocol fee
 
 `ProtocolFees` 구성 요소는 획득한 interest의 분배를 관리한다. borrower가 interest를 지급하면, protocol spread(ex., 10%)가 fee로 취해지고, 남은 부분(ex., 90%)은 supplier에게 share에 비례해 분배된다.
 
@@ -84,7 +84,7 @@ protocol은 각 referral이 소유한 share를 추적하고, referral이 유치�
 - **Margin pool ID:** 현재 loan이 어느 margin pool에서 왔는지(있는 경우).
 - **DeepBook pool:** 이 manager가 trading하도록 권한이 부여된 trading pool.
 
-### Borrowing and risk management
+### borrowing 및 risk management
 
 `MarginManager`는 한 번에 하나의 margin pool에서만 차입할 수 있다(base asset 또는 quote asset 중 하나). 이는 risk 계산을 단순화하고 복잡한 cross-collateral 시나리오를 방지한다.
 
@@ -99,7 +99,7 @@ $$\text{Risk Ratio} = \frac{\text{Total Assets}}{\text{Total Debt}}$$
 - **Target liquidation ratio** (ex., 1.25): 부분 liquidation 후 목표 ratio이다.
 - **Liquidation threshold** (ex., 1.15): 이 값 아래로 떨어지면 position이 liquidation될 수 있다.
 
-### Liquidation process
+### liquidation process
 
 `MarginManager` risk ratio가 liquidation threshold 아래로 떨어지면, 누구나 position을 liquidation할 수 있다:
 
@@ -121,7 +121,7 @@ liquidation은 position 상태와 liquidator의 입력에 따라 partial 또는 
 
 registry는 asset 타입당 하나의 margin pool만 존재할 수 있음을 강제하고, margin manager가 활성화된 DeepBook pool에서만 trading할 수 있도록 보장한다.
 
-## Liquidation flow
+## liquidation flow
 
 다음은 전형적인 liquidation 시나리오를 설명한다:
 
@@ -133,7 +133,7 @@ registry는 asset 타입당 하나의 margin pool만 존재할 수 있음을 강
 6. **Pool update:** margin pool은 상환과 잠재적 bad debt를 처리한다.
 7. **Position update:** manager의 borrowed share는 감소하거나 정리된다.
 
-## Interest accrual
+## interest accrual
 
 DeepBook Margin에서 interest는 utilization rate에 기반해 연속적으로 누적된다:
 

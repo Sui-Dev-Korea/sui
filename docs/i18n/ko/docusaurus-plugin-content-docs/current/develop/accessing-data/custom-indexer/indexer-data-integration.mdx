@@ -1,5 +1,6 @@
 ---
 title: 인덱서 데이터 및 통합
+sidebar_label: 인덱서 데이터 및 통합
 description: Sui indexers와 custom data sources 및 storage systems를 통합하는 방법을 알아본다. 유연한 indexing solutions를 구축하기 위한 checkpoint data sources, custom store implementations, Move event deserialization을 다룬다.
 keywords: [sui custom indexer, checkpoint data sources, custom storage backend, move event deserialization, BCS serialization, indexer integration, bring your own store, postgresql indexer, blockchain data ingestion, sui indexing framework]
 ---
@@ -7,21 +8,21 @@ keywords: [sui custom indexer, checkpoint data sources, custom storage backend, 
 
 Sui에서 custom indexer를 구축하면 데이터 수집, 저장, 처리에 대한 완전한 제어권을 가질 수 있다. Mainnet 데이터를 인덱싱하는지, 알려진 checkpoints를 대상으로 테스트하는지, 또는 로컬 네트워크에서 작업하는지에 따라 remote store, local files, 또는 직접 RPC API 접근과 같은 여러 [checkpoint data sources](#checkpoint-data-sources) 중에서 선택할 수 있다.
 
-스토리지에는 PostgreSQL과 함께 내장된 `IndexerCluster`를 사용하거나 다른 데이터베이스 또는 storage backend를 통합하기 위해 자체 [`Store` 및 `Connection` traits](#byos)를 구현할 수 있다. 연결한 후에는 manual indexer를 연결하고, custom pipelines를 추가하고, 데이터를 동기화 상태로 유지하기 위한 워터마크 조정을 처리할 수 있다.
+스토리지에는 PostgreSQL과 함께 내장된 `IndexerCluster`를 사용하거나 다른 데이터베이스 또는 storage backend를 통합하기 위해 자체 `Store` 및 `Connection` traits를 구현할 수 있다. 연결한 후에는 manual indexer를 연결하고, custom pipelines를 추가하고, 데이터를 동기화 상태로 유지하기 위한 워터마크 조정을 처리할 수 있다.
 
-마지막으로 pipelines가 강하게 타입화된 데이터로 작업할 수 있도록 `bcs`와 `serde`를 사용해 원시 BCS bytes의 [Move events를 역직렬화](#deserialize)하여 Rust structs로 변환해야 한다. 이를 통해 성능, 신뢰성, custom analytics에 맞게 조정할 수 있는 재현 가능한 end-to-end 구성을 얻을 수 있다.
+마지막으로 pipelines가 강하게 타입화된 데이터로 작업할 수 있도록 `bcs`와 `serde`를 사용해 원시 BCS bytes의 Move events를 역직렬화하여 Rust structs로 변환해야 한다. 이를 통해 성능, 신뢰성, custom analytics에 맞게 조정할 수 있는 재현 가능한 end-to-end 구성을 얻을 수 있다.
 
-## Checkpoint data sources {#checkpoint-data-sources}
+## checkpoint 데이터 source {#checkpoint-data-sources}
 
 `sui-indexer-alt-framework`는 Sui blockchain 데이터에 접근하기 위한 여러 데이터 소스를 지원한다. 이러한 소스는 명령줄 인수를 통해 구성한다. 이들은 **push-based**와 **polling-based**라는 두 범주로 나뉜다.
 
-### Push-based data sources
+### push 기반 데이터 source
 
 Push-based 소스는 checkpoint 데이터가 사용 가능해지는 즉시 실시간으로 전달하므로 polling보다 더 낮은 지연 시간을 제공한다.
 
-#### Recommended: gRPC streaming
+#### 권장: gRPC streaming
 
-gRPC streaming은 최신 checkpoints에 대해 full nodes에서 push된 실시간 checkpoint 데이터를 전달한다. 최신 데이터만 스트리밍하므로 과거 checkpoints를 검색하고 안정성을 보장하려면 polling-based 폴백 소스(remote store, local path, 또는 full node RPC)를 구성해야 한다:
+gRPC streaming은 production indexers의 기본 선택지여야 한다. 최신 checkpoints에 대해 full nodes에서 push된 실시간 checkpoint 데이터를 전달한다. 최신 데이터만 스트리밍하므로 과거 checkpoints를 검색하고 안정성을 보장하려면 polling-based 폴백 소스(remote store, local path, 또는 full node RPC)를 구성해야 한다:
 
 ```sh
 $ cargo run -- --remote-store-url https://checkpoints.testnet.sui.io --streaming-url https://fullnode.testnet.sui.io:443
@@ -41,18 +42,21 @@ $ cargo run -- --remote-store-url https://checkpoints.testnet.sui.io --streaming
 
 :::info
 
+- 기본적으로 full node gRPC를 primary source로 사용하라.
 - 안정성과 과거 데이터 접근을 보장하려면 항상 polling-based 폴백 소스(예: `--remote-store-url`)를 구성하라.
+- `https://checkpoints.<network>.sui.io`는 기본 steady-state source가 아니라 폴백으로만 사용하라.
+- `https://checkpoints.mainnet.sui.io`는 가장 최근 30일의 checkpoints만 보존한다. Testnet은 여전히 전체 이력을 제공한다.
 - 스트리밍 연결은 스트리밍을 사용할 수 없거나 과거 checkpoints가 필요할 때 polling source로 자동 폴백한다.
 
 :::
 
-### Polling-based data sources
+### polling 기반 데이터 source
 
 Polling-based 소스는 [indexing framework](/develop/accessing-data/custom-indexer/custom-indexers)가 제공하는 polling 메커니즘을 사용해 새로운 checkpoints를 주기적으로 확인한다.
 
-#### Remote store
+#### remote store
 
-가장 직접적인 스트림 source는 원격 checkpoint store에 대한 구독이다. Sui는 다음 엔드포인트를 제공한다:
+Remote checkpoint stores는 fallback과 backfill을 위한 것이다. Sui는 다음 엔드포인트를 제공한다:
 
 - **Testnet**: `https://checkpoints.testnet.sui.io`
 - **Mainnet**: `https://checkpoints.mainnet.sui.io`
@@ -61,7 +65,9 @@ Polling-based 소스는 [indexing framework](/develop/accessing-data/custom-inde
 $ cargo run -- --remote-store-url https://checkpoints.testnet.sui.io
 ```
 
-#### Local path
+full node gRPC endpoint에 접근할 수 있다면 `https://checkpoints.<network>.sui.io`를 기본 steady-state source로 사용하지 않는다. Mainnet에서는 `https://checkpoints.mainnet.sui.io`가 최신 30일의 checkpoints만 보존한다. 더 오래된 Mainnet 이력을 backfill해야 한다면 `--remote-store-gcs mysten-mainnet-checkpoints-use4`를 통해 `gs://mysten-mainnet-checkpoints-use4`를 사용한다. 이 bucket은 Requester Pays가 활성화되어 있으며, `--remote-store-url` 대신 indexing framework의 `--remote-store-gcs` option으로 접근하도록 의도되어 있다. Testnet은 여전히 `https://checkpoints.testnet.sui.io`를 통해 전체 이력을 제공한다. [Remote Store 실행하기](/operators/data-management/remote-store-setup)와 Google Cloud의 [Requester Pays 사용](https://cloud.google.com/storage/docs/using-requester-pays)을 참조한다.
+
+#### local path
 
 로컬 checkpoint files는 개발 및 테스트 시나리오에 유용하다:
 
@@ -74,7 +80,7 @@ $ cargo run -- --local-ingestion-path /path/to/checkpoints
 - 알려진 checkpoint 데이터를 사용한 unit 및 integration 테스트
 - 재현 가능한 datasets를 사용하는 개발 워크플로
 
-#### Full node RPC
+#### full node RPC
 
 Full node RPC 쿼리는 gRPC를 사용한다:
 
@@ -90,5 +96,6 @@ $ cargo run -- --rpc-api-url https://fullnode.testnet.sui.io:443
 
 **When to use RPC API:**
 
+- steady-state indexing의 기본 polling source
 - 공식 remote store가 없는 네트워크(devnet, localnet, custom networks)
 - 로컬 Sui 네트워크를 대상으로 한 개발

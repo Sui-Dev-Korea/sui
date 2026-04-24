@@ -15,11 +15,11 @@ Sui의 observability stack은 [Tokio tracing](https://tokio.rs/blog/2019-08-trac
 
 :::
 
-## Contexts, scopes, and tracing transaction flow {#context-scope-trace}
+## context, scope, tracing transaction flow {#context-scope-trace}
 
 Sui와 같은 분산적이고 비동기적인 시스템에서는 단일 스레드에서 시간 순으로 개별 로그만 보는 방식에 의존할 수 없다. 이 문제를 해결하려면 structured logging 접근 방식을 사용한다. Structured logging은 스레드와 프로세스 경계를 넘어 로그, event, 기능 블록을 서로 연결할 수 있는 방법을 제공한다.
 
-### Spans and events {#spans-and-events}
+### span과 event {#spans-and-events}
 
 [Tokio tracing](https://tokio.rs/blog/2019-08-tracing) 라이브러리에서 structured logging은 [spans and events](https://docs.rs/tracing/0.1.31/tracing/index.html#core-concepts)를 사용해 구현된다.
 span은 함수 호출 하나, future, 비동기 task 등 기능의 전체 블록을 포괄한다. span은 중첩될 수 있고, span 안의 key-value pair는 함수 내부의 event나 로그에 context를 제공한다.
@@ -42,17 +42,17 @@ span은 함수 호출 하나, future, 비동기 task 등 기능의 전체 블록
 
 span 안에서 발생하는 모든 로그 메시지는 span에 정의된 key-value 속성, 즉 `tx_digest`와 추가된 다른 모든 필드를 상속한다. 로그 메시지는 자체 key와 value를 설정할 수도 있다. 로그가 span 속성을 상속한다는 점 덕분에 예를 들어 스레드와 프로세스 경계를 넘어 transaction의 흐름을 추적할 수 있다.
 
-## Key-value pairs schema {#key-value-pairs-schema}
+## key-value pair schema {#key-value-pairs-schema}
 
 span은 단일 event가 아니라 전체 시간 블록을 포착하므로 start, end, duration 등을 캡처하고 분석하여 tracing, 성능 분석 등에 활용할 수 있다.
 
-### Tags - keys {#tags-keys}
+### tag - key {#tags-keys}
 
 핵심 아이디어는 모든 event와 span에 key-value pair 태그를 붙이는 것이다. 어떤 context나 중첩된 context 안에서 기록되는 event도 context 수준의 태그를 상속한다.
 
 이 태그들은 분석과 필터링의 기준이 되는 _field_ 를 나타낸다. 예를 들어 broadcasts를 걸러내고, bad stake가 특정 양을 넘었지만 error로 이어질 정도는 아닌 모든 인스턴스를 볼 수 있다.
 
-## Logging levels {#logging-levels}
+## logging level {#logging-levels}
 
 이는 항상 까다로운 문제다. 특히 기본값에서 적절한 정도의 verbosity와 이것이 고성능 시스템이라는 점 사이의 균형을 맞춰야 하기 때문이다.
 
@@ -71,14 +71,14 @@ span은 단일 event가 아니라 전체 시간 블록을 포착하므로 start,
 
 자세한 내용은 [EnvFilter](https://docs.rs/tracing-subscriber/latest/tracing_subscriber/filter/struct.EnvFilter.html) 주제를 참고한다.
 
-## Metrics {#metrics}
+## 메트릭 {#metrics}
 
 Sui에는 Prometheus 기반 metrics가 포함된다:
 
 - RPC Server API metrics와 latency를 위한 `rpc_requests_by_route` 및 관련 metrics(`rpc-server.rs` 참조)
 - validator transaction metrics(`authority.rs`의 `AuthorityMetrics` 참조)
 
-## Viewing logs, traces, metrics {#viewing-logs-traces-metrics}
+## log, trace, metric 보기 {#viewing-logs-traces-metrics}
 
 tracing 아키텍처는 출력을 처리하고 서로 다른 sink로 전달해 볼 수 있도록 tracing 라이브러리에 연결하는 [subscribers](https://github.com/tokio-rs/tracing#project-layout) 개념에 기반한다. 여러 subscriber를 동시에 활성화할 수 있다.
 
@@ -88,13 +88,13 @@ Vector 같은 로그 및 metrics 집계기를 사용하면 validator 서버를 �
 
 metrics는 기본적으로 `<host>:9184/metrics`의 Prometheus scrape endpoint로 제공된다.
 
-### Stdout (default) {#stdout-default}
+### stdout(기본값) {#stdout-default}
 
 기본적으로 로그(span은 제외)는 사람이 읽기 쉬운 형식으로 포맷되어 stdout으로 출력되며, 각 줄 끝에는 key-value 태그가 붙는다.
 
 필터링을 포함한 커스텀 로깅 출력을 위해 `RUST_LOG`를 구성할 수 있다. 자세한 내용은 앞서 설명한 [Logging levels](#logging-levels) 섹션을 참고한다.
 
-### Tracing and span output {#tracing-and-span-output}
+### tracing 및 span output {#tracing-and-span-output}
 
 상세한 span 시작 및 종료 로그를 생성하려면 `SUI_JSON_SPAN_LOGS` 환경 변수를 정의한다. 그러면 모든 출력이 JSON 형식이 되는데, 사람이 읽기에는 덜 적합하므로 기본적으로는 활성화되지 않는다.
 
@@ -111,7 +111,7 @@ metrics는 기본적으로 `<host>:9184/metrics`의 Prometheus scrape endpoint�
 {"v":0,"name":"sui","msg":"[PROCESS_CERT - END]","level":20,"hostname":"Evan-MLbook.lan","pid":51425,"time":"2022-03-08T22:48:11.248688Z","target":"sui_core::authority_server","line":67,"file":"sui_core/src/authority_server.rs","tx_digest":"t#d1385064287c2ad67e4019dd118d487a39ca91a40e0fd8e678dbc32e112a1493","elapsed_milliseconds":2}
 ```
 
-### Jaeger (seeing distributed traces) {#jaeger}
+### Jaeger(distributed trace 보기) {#jaeger}
 
 중첩된 span을 [Jaeger](https://www.jaegertracing.io)에서 시각적으로 보려면 다음을 수행한다:
 
@@ -136,7 +136,7 @@ $ SUI_TRACING_ENABLE=1 RUST_LOG="info,sui_core=trace" ./sui start
 
 :::
 
-### Live async inspection / Tokio Console {#tokio-console}
+### live async inspection / Tokio Console {#tokio-console}
 
 [Tokio-console](https://github.com/tokio-rs/console)은 Tokio를 사용하는 Rust 앱을 실시간으로 분석하고 디버그를 돕기 위해 설계된 훌륭한 CLI tool이다. 🎉 특별한 subscriber에 의존한다.
 
@@ -150,7 +150,7 @@ Tokio-console 지원을 추가하면 Sui validator/gateway의 속도가 크게 �
 
 :::
 
-### Memory profiling {#memory-profiling}
+### memory profiling {#memory-profiling}
 
 Sui는 대부분의 플랫폼에서 기본적으로 [jemalloc memory allocator](https://jemalloc.net/)를 사용하며, jemalloc의 sampling profiler를 사용해 자동 메모리 프로파일링을 활성화하는 코드가 포함되어 있다. 이는 매우 가볍고 프로덕션 사용을 염두에 두고 설계되었다. 프로파일링 코드는 기본적으로 총 메모리가 20% 증가했을 때에만 최대 5분마다 profile을 기록한다. 프로파일링 파일 이름은 `jeprof.<TIMESTAMP>.<memorysize>MB.prof` 형식이므로 디버깅을 위해 metrics와 incident를 쉽게 연관 지을 수 있다.
 

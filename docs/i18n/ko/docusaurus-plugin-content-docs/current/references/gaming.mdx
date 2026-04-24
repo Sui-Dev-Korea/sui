@@ -9,23 +9,23 @@ Sui에서의 게이밍은 블록체인 기술을 활용하여 게임 내 경제,
 
 이 주제에서는 게이밍을 위한 Sui의 핵심 기능, 실제 사용 사례, 빌더를 위한 필수 도구를 살펴본다. RPG, 레이싱 게임, 디지털 카드 게임 중 무엇을 만들든 Sui는 차세대 게이밍 프로젝트를 구동할 Web3 인프라를 제공한다.
 
-## Player onboarding
+## 플레이어 온보딩
 
 Sui는 플레이어 계정과 프로필 생성을 간소화하는 데 도움이 되는 다양한 도구를 제공한다.
 
 ### zkLogin
 
-많은 플레이어는 single sign-on (SSO) 또는 social login을 사용해 게임 계정을 만든다. [zkLogin], a Sui primitive, (https://www.sui.io/zklogin)은 익숙한 인증 흐름을 통해 블록체인 계정 생성을 가능하게 하여 기존 지갑 설정 과정의 복잡성을 줄인다.
+많은 플레이어는 single sign-on (SSO) 또는 social login을 사용해 게임 계정을 만든다. [zkLogin](https://www.sui.io/zklogin)은 Sui primitive로, 익숙한 인증 흐름을 통해 블록체인 계정 생성을 가능하게 하여 기존 지갑 설정 과정의 복잡성을 줄인다.
 
-### Sponsored transactions
+### 스폰서 트랜잭션
 
 현대의 플레이어는 대체로 선불 비용이 필요 없는 free-to-play (F2P) 게임을 선택한다. Sponsored transactions를 사용하면 사용자 또는 지정된 엔터티가 플레이어에게 필요한 gas fees를 대신 부담할 수 있으므로, 처음에 SUI tokens를 구매할 필요가 없어진다.
 
-## Representing in-game objects on-chain
+## game object를 on-chain에 표현하기
 
 블록체인 게임은 일반적으로 게임 내 assets를 on-chain objects로 표현한다. 화폐, 아이템, 캐릭터 속성 또는 기타 게임 요소를 관리하든, 이러한 objects를 생성하고 통합하는 방법을 이해하는 것은 블록체인 기반 게임 경험을 구축하는 데 기본이 된다.
 
-### On-chain randomness and verification
+### on-chain randomness 및 verification
 
 Sui는 [온체인 랜덤니스](/sui-stack/on-chain-primitives/randomness-onchain)를 제공하므로 게임이 중앙화된 운영자를 신뢰하지 않고도 작동할 수 있다.
 
@@ -33,19 +33,19 @@ Sui는 [온체인 랜덤니스](/sui-stack/on-chain-primitives/randomness-onchai
 
 Off-chain computation도 [Nautilus 설계](/sui-stack/nautilus/nautilus-design)를 참고해 on-chain에서 검증할 수 있다.
 
-### In-game currencies
+### 인게임 통화
 
 In-game currencies를 사용하면 사용자가 아이템, 업그레이드, 프리미엄 콘텐츠와 같은 게임 기능을 구매할 수 있다. Web2 게임에서는 이러한 화폐가 오직 게임 내에만 존재하며, 그 가치는 개발자가 정한다.
 
 Sui를 사용하면 플레이어는 이제 [true ownership of their in-game currency](/onchain-finance/examples-patterns/in-game-currency)를 가질 수 있다. 이 화폐는 [token on the Sui blockchain](/onchain-finance/fungible-tokens/currency)으로 존재하므로, 플레이어는 그 화폐를 on-chain에 존재하는 다른 무엇과도 사고팔거나 교환할 수 있다고 상상할 수 있다. 게임 생태계를 만든다면 플레이어는 한 게임에서 화폐를 구매하고 동일한 화폐를 사용하는 다른 게임에서 그 화폐를 사용할 수 있다. 가능성은 광범위하지만, 먼저 그 화폐를 만드는 방법을 배워야 한다.
 
-### Closed-Loop Tokens
+### Closed-Loop Token
 
-In-game currencies와 유사하게 [Closed-Loop Tokens](/onchain-finance/closed-loop-token/index)는 Web3 없이는 불가능한 수준의 참여와 제어를 게임 경험에 통합한다.
+In-game currencies와 유사하게 [Closed-Loop Tokens](/onchain-finance/closed-loop-token/)는 Web3 없이는 불가능한 수준의 참여와 제어를 게임 경험에 통합한다.
 
 예를 들어 게임과 연관된 토큰을 만들어 사용자 기반의 [reward loyalty](/onchain-finance/examples-patterns/loyalty-tokens)할 수 있다. 또한 특정 capability를 보유한 사람이 토큰에 접근 가능한 addresses를 제어할 수 있게 하는 [regulated tokens](/onchain-finance/fungible-tokens/regulated-tokens)를 생성할 수도 있으며, 이는 특별 이벤트, 리그, 기타 게임 기능에 대한 gated access를 용이하게 한다.
 
-## Game features
+## 게임 기능
 
 [Non-fungible tokens (NFTs)](/onchain-finance/tokenized-assets)은 게임 내 objects, battle passes, rewards, skins, game cards or keys, loot boxes와 같은 많은 전통적인 게임 기능을 표현할 수 있다.
 
@@ -59,7 +59,7 @@ Sui에서 object는 key-value pair 데이터 구조로 볼 수 있다. Sui의 sm
 
 모든 object의 첫 번째 key-value pair는 `id: address`이며, 이는 `UID` 타입의 고유한 값이다. 모든 object는 서로 다른 address를 가지며, 이 필수 key-value pair가 각 object를 구별하고 고유하게 만들기 때문에 모든 object가 NFT이다.
 
-#### Creating assets
+#### asset 생성
 
 Smart contracts에는 objects를 생성하는 함수가 포함된다. 이전 예제를 사용하면, object를 생성하는 함수(`new`)는 표현된 object(디지털 tic-tac-toe gameboard)에 대해 각 attribute의 값을 제공한다. Sui framework는 이 특정 게임을 고유하게 식별하는 UID를 생성한다.
 
@@ -67,13 +67,13 @@ Smart contracts에는 objects를 생성하는 함수가 포함된다. 이전 예
 
 이는 on-chain action, 즉 transaction이다. 이 경우 transaction은 체인에 object를 생성해 달라는 요청이다. 함수에 필요한 데이터를 제공하고 네트워크 validators의 계산 노력에 대한 gas fee를 지불한다. 그 결과 address(`id`)에 존재하는 새로운 NFT가 Sui 블록체인에 생성된다.
 
-#### Updating assets
+#### asset update
 
 Sui에서는 NFT를 정의하는 smart contract가 허용하는 경우 별도의 transaction을 사용해 NFT asset을 업데이트할 수 있다. 생성과 마찬가지로 관련 update 함수에 데이터를 제공하고 [pay the gas fee](/develop/transaction-payment/gas-in-sui)를 지불하면 smart contract가 올바른 address의 object를 새로운 정보로 업데이트한다.
 
 tic-tac-toe 예제를 사용하면, 사용 가능한 칸에 `x`를 놓기 위해 smart contract에 gameboard object를 업데이트하라고 지시할 수 있다. 대부분의 업데이트에 필요한 계산 노력은 원래 object를 생성하는 데 필요한 노력보다 적기 때문에, 결과로 발생하는 gas fees도 일반적으로 더 적다.
 
-#### Composing assets
+#### asset composition
 
 Sui에서는 한 object 안에 다른 object를 포함할 수 있다(dynamic fields). 예를 들어 `Parent`라는 이름의 object가 `Child` 타입의 objects를 포함할 수 있다. Smart contract는 parent에서 child objects를 추가하고 제거하는 데 필요한 함수를 제공할 수 있다.
 
@@ -89,15 +89,15 @@ Dynamic fields는 많은 사용 사례에 적용할 수 있다. 예를 들어 `T
 
 Composability는 Sui의 매우 중요한 기능이다. 이는 Sui에서 아이디어를 개발할 때 많은 선택지를 제공할 뿐 아니라, 기존 프로젝트 위에 구축하고 프로젝트 안에서 third-party assets를 사용할 수 있게 한다. 이는 "*특정 NFT를 소유한 사용자만 할인을 받을 수 있다*"에서부터 두 개의 서로 다른 프로젝트 간 완전한 협업까지, 그리고 그 사이의 모든 것을 smart contract 수준에서 가능하게 할 수 있다.
 
-#### Transfer to object
+#### object로 transfer
 
 Sui는 [transfer to object feature](/develop/objects/transfers/transfer-to-object)를 통해 더 많은 사용 사례를 가능하게 하며, 이 기능은 owned object를 다른 object(shared 또는 owned)로 보낼 수 있게 한다. 이 경우 전송된 object는 parent object가 소유한 것으로 나타난다. 위 예제들에서는 objects가 다른 objects 안에 wrapping되며, parent object를 검사할 때 parent object의 metadata에서 이를 확인할 수 있다.
 
 Object가 다른 object로 전송되면 parent object의 metadata는 그대로 유지되지만, 그 `id`는 새로운 object를 갖는다. 이 기능은 `Wallet` object를 사용해 다른 objects를 예치하는 on-chain wallets와 같은 사용 사례를 가능하게 할 수 있다. 이를 transfer to object와 결합하면 복잡하고 흥미로운 사용 사례로 이어질 수 있다.
 
-#### Deleting assets
+#### asset 삭제
 
-Sui에서는 smart contract가 작업을 허용하면 object를 삭제할 수 있다. 올바른 smart contract 함수가 있다면 단일 transaction으로 object를 삭제할 수 있다. 이는 gas-fee rebate로 이어지며, 체인에서 bytes가 해제될 때마다 이런 일이 발생한다. Transaction의 gas payer는 더 이상 필요하지 않지만 이미 비용이 지불된 object의 미래 저장을 고려해 [receives a rebate](/develop/sui-architecture/tokenomics-overview#storage-fund/)를 받는다.
+Sui에서는 smart contract가 작업을 허용하면 object를 삭제할 수 있다. 올바른 smart contract 함수가 있다면 단일 transaction으로 object를 삭제할 수 있다. 이는 gas-fee rebate로 이어지며, 체인에서 bytes가 해제될 때마다 이런 일이 발생한다. Transaction의 gas payer는 더 이상 필요하지 않지만 이미 비용이 지불된 object의 미래 저장을 고려해 [rebate를 받는다](/develop/sui-architecture/tokenomics-overview#storage-fund).
 
 ### Soulbound assets {#soulbound-assets}
 
@@ -127,7 +127,7 @@ Sui Object Display standard는 몇 가지 핵심 이점과 구성 요소를 제�
 
 주의해야 할 몇 가지 제한 사항이 있다. 첫째, 현재 Sui Object Display의 구조는 타입별이므로 범위가 제한된다. 둘째, 그 구조는 nested attributes나 enums를 허용하지 않는다.
 
-#### Implementation overview
+#### implementation 개요
 
 높은 수준에서 이 기능은 다음 단계로 구현한다:
 
@@ -171,11 +171,11 @@ Display
 - `project_url`: object 또는 creator와 연관된 웹사이트 링크이다.
 - `creator`: object creator를 나타내는 string이다.
 
-## Game economies
+## game economy
 
 Sui 블록체인에서 토큰과 coins를 설계하고 관리하는 것은 실행 가능한 game economy를 만드는 데 중요하다.
 
-### GameFi
+### 게임파이
 
 GameFi (Gaming Finance)는 게이밍과 블록체인 기반 금융 인센티브를 결합한다. 이는 게임 내 성취에 대한 토큰 보상을 통해 플레이어에게 경제적 혜택을 제공한다. 최근 GameFi의 부상은 게이밍 ecosystems를 지원하기 위한 토큰 출시의 상당한 증가로 이어졌다.
 
@@ -190,7 +190,7 @@ GameFi (Gaming Finance)는 게이밍과 블록체인 기반 금융 인센티브�
 - Decentralized autonomous organization (DAO): smart contracts와 토큰을 사용해 의사결정을 수행하는 governance model이다.
 - 거버넌스 토큰: 탈중앙화 네트워크에서 voting power를 부여하는 토큰이다.
 
-### Token economics (Tokenomics)
+### token economics (tokenomics)
 
 Tokenomics는 Web3 ecosystem을 위한 토큰을 지배하는 규칙의 모델과 설계를 의미한다. GameFi의 경우, 이는 토큰이 게이밍 플랫폼 안에서 어떻게 생성되고, 배포되고, 활용되고, 유지되는지를 정의한다. 토큰 economics를 구성하는 기능에는 supply 세부 정보, distribution mechanisms, staking, vesting 등이 포함된다.
 
@@ -228,7 +228,7 @@ Tokens를 가장 잘 출시하는 방법을 결정할 때는 몇 가지 핵심 �
 
 ### Kiosk
 
-Sui에서 owned objects는 자유롭게 transferable하거나 non-transferable하다. Royalties를 보장하기 위해 Sui는 [Kiosk](/onchain-finance/kiosk/index)라는 standard를 제공한다. Kiosk는 단일 address 또는 user에 대한 접근을 제한하는 shared object이다.
+Sui에서 owned objects는 자유롭게 transferable하거나 non-transferable하다. Royalties를 보장하기 위해 Sui는 [Kiosk](/onchain-finance/kiosk/)라는 standard를 제공한다. Kiosk는 단일 address 또는 user에 대한 접근을 제한하는 shared object이다.
 
 Kiosk 소유자(shared object는 Sui의 관점에서 owner가 없지만 smart contract는 오직 하나의 address만 접근할 수 있도록 보장한다)는 다음을 할 수 있다:
 
@@ -279,12 +279,6 @@ Sui ecosystem에는 Sui 게임 비전을 실현하는 데 도움이 되는 여�
 <TabItem label="Playtron GameOS" value="playtron-os" >
 
 [Playtron GameOS](https://www.playtron.one/playtron-os)는 PCs, handhelds, desktops를 전용 게이밍 콘솔로 바꾸는 것을 목표로 하는 Linux 기반 운영 체제이다. 이는 Steam과 Epic Games 같은 여러 game stores를 지원하여 Steam Deck, ROG Ally, Lenovo Legion Go와 같은 기기에서 원활한 게이밍 경험을 제공한다.
-
-</TabItem>
-
-<TabItem label="E4C: Ludus" value="ludus" >
-
-[E4C: Ludus](https://ludus.ambrus.studio/)는 단일 플랫폼에서 Web2와 Web3 게이밍 경험을 통합하도록 설계된 cross-platform gaming layer이다. Sui 블록체인을 활용하여 개발자에게 dynamic NFTs와 zkLogin에 대한 접근을 제공하므로, 다양한 플랫폼의 게임에 블록체인 기능을 통합하는 일을 용이하게 한다. Native E4C token은 주요 화폐이며 in-game purchases와 transactions를 가능하게 한다. E4C: Ludus는 또한 플레이어가 다양한 게임에 접근할 수 있는 통합 frontend를 제공하며, 플레이어 참여를 강화하고 게이밍 경험을 단순화하는 것을 목표로 한다.
 
 </TabItem>
 

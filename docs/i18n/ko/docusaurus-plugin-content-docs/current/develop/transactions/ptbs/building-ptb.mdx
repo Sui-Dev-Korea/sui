@@ -69,7 +69,7 @@ transaction 정의가 끝나면 Sui client와 `KeyPair`를 사용해 `client.sig
 client.signAndExecuteTransaction({ signer: keypair, transaction: tx });
 ```
 
-## Constructing inputs
+## input 구성
 
 입력은 외부 값을 PTB에 제공하는 방법이며, 예를 들어 전송할 SUI amount, Move call에 전달할 object, shared object 등을 넣는다.
 
@@ -86,7 +86,7 @@ client.signAndExecuteTransaction({ signer: keypair, transaction: tx });
 
 [inputs](/develop/transactions/ptbs/inputs-and-results)에 대해 더 알아본다.
 
-## Passing transaction results as arguments
+## transaction result를 argument로 전달
 
 transaction command의 결과를 이후 transaction command의 인자로 사용할 수 있다.
 transaction builder의 각 transaction command method는 transaction 결과를 가리키는 reference를 반환한다.
@@ -110,7 +110,7 @@ const mintMany = tx.moveCall({ target: '0x2::nft::mint_many' });
 tx.transferObjects([mintMany[0], mintMany[1]], tx.pure.address(address));
 ```
 
-## Use the gas coin
+## gas coin 사용
 
 PTB에서는 `splitCoin`을 사용해 설정된 balance를 가진 coin을 gas payment coin으로부터 구성할 수 있다.
 이는 SUI 결제에 유용하며 사전 coin 선택이 필요하지 않게 해준다.
@@ -128,7 +128,7 @@ const coin = tx.splitCoins(otherCoin, [tx.pure.u64(100)]);
 tx.transferObjects([coin], tx.pure.address(address));
 ```
 
-## Get PTB bytes
+## PTB byte 가져오기
 
 PTB에 서명하거나 실행하는 대신 PTB byte가 필요하다면 transaction builder 자체의 `build` method를 사용할 수 있다.
 
@@ -155,7 +155,7 @@ const bytes = getTransactionBytesFromSomewhere();
 const tx = Transaction.from(bytes);
 ```
 
-## Building offline
+## offline build
 
 `provider`가 필요 없도록 PTB를 오프라인에서 build하려면 모든 입력 값과 gas 구성을 완전히 정의해야 한다.
 pure value에는 transaction에서 직접 사용하는 `Uint8Array`를 제공할 수 있다.
@@ -177,12 +177,12 @@ tx.object(Inputs.SharedObjectRef({ objectId, initialSharedVersion, mutable }));
 그런 다음 transaction에 대해 `build`를 호출할 때 `provider` object를 생략할 수 있다.
 필수 데이터가 누락되어 있으면 error가 발생한다.
 
-## Gas configuration
+## gas 구성
 
 transaction builder는 gas price, budget, gas로 사용할 coin 선택을 포함해 모든 gas 로직에 대한 기본 동작을 제공한다.
 이 동작은 사용자화할 수 있다.
 
-### Gas price
+### gas price
 
 기본적으로 SDK는 gas price를 network의 reference gas price로 설정한다.
 `setGasPrice`를 transaction builder에 호출해 PTB의 gas price를 명시적으로 설정할 수도 있다:
@@ -191,7 +191,7 @@ transaction builder는 gas price, budget, gas로 사용할 coin 선택을 포함
 tx.setGasPrice(gasPrice);
 ```
 
-### Budget
+### budget
 
 기본적으로 SDK는 먼저 PTB의 dry-run을 실행해 gas budget을 자동으로 산정한다.
 그 다음 SDK는 dry run gas consumption을 사용해 transaction에 필요한 balance를 결정한다.
@@ -207,7 +207,7 @@ Sui는 gas budget을 SUI로 표현하므로 PTB의 gas price를 고려해야 한
 tx.setGasBudget(gasBudgetAmount);
 ```
 
-### Gas payment
+### gas payment
 
 기본적으로 SDK는 gas payment를 자동으로 결정한다.
 PTB의 입력으로 사용되지 않는, 제공된 address의 모든 coin을 선택한다.
@@ -255,7 +255,7 @@ function handleSignRequest(input) {
 }
 ```
 
-## Sponsored PTBs
+## sponsored PTB
 
 PTB builder는 PTB를 build할 때 `onlyTransactionKind` flag를 사용함으로써 sponsored PTB를 지원할 수 있다.
 

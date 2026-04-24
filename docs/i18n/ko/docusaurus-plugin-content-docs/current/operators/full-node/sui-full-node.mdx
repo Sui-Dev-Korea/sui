@@ -1,5 +1,6 @@
 ---
 title: Sui 풀 노드 구성
+sidebar_label: Sui 풀 노드 구성
 description: transactions, checkpoints, epoch changes 같은 blockchain 활동을 검증하기 위해 Sui 풀 노드를 운영한다.
 keywords: [ fullnode configuration, full node configuration, sui full nodes, state synchronization, state sync, full node architecture, node hardware requirements, node software requirements, grpc, starting a full node, running a full node ]
 ---
@@ -15,13 +16,13 @@ Sui 풀 노드는 transactions, checkpoints, epoch changes를 포함한 blockcha
 
 이 역할을 통해 validators는 transactions 제공과 처리에 집중할 수 있다. validator가 새로운 transactions 집합(또는 transactions block)을 커밋하면 validator는 이를 연결된 모든 풀 노드로 push하고, 풀 노드가 clients의 queries를 제공한다.
 
-## Features
+## 기능
 
 Sui 풀 노드는 다음을 수행한다:
 - blockchain state를 독립적으로, 로컬에서 추적하고 검증한다.
 - clients의 read requests를 제공한다.
 
-## State synchronization
+## state synchronization
 
 Sui 풀 노드는 validators와 동기화하여 network의 새 transactions를 수신한다.
 
@@ -35,7 +36,7 @@ transaction 하나가 transaction certificate(TxCert)를 형성하려면 2f+1 va
 
 이 synchronization process는 풀 노드가 모든 새 transactions를 올바르게 처리했음을 보장하려면 최소 `2f+1` validators를 수신해야 한다. Sui는 checkpoints 도입과 다른 풀 노드와 동기화하는 기능을 통해 synchronization process를 개선할 예정이다.
 
-## Architecture
+## 아키텍처
 
 Sui 풀 노드는 본질적으로 네트워크 state의 읽기 전용 view이다. validator 노드와 달리 풀 노드는 transactions에 서명할 수 없지만, quorum의 validators가 이전에 커밋한 transactions를 다시 실행하여 chain의 무결성을 검증할 수는 있다.
 
@@ -43,11 +44,11 @@ Sui 풀 노드는 본질적으로 네트워크 state의 읽기 전용 view이다
 
 validator 노드는 object graph의 frontier에 있는 최신 transactions만 저장한다(예: 미사용 output objects가 0보다 큰 transactions).
 
-## Full node setup
+## full node setup
 
 자체 Sui 풀 노드를 실행하려면 여기의 지침을 따른다. Sui 풀 노드는 `sui-node` binary를 사용해 실행된다.
 
-### Hardware requirements
+### 하드웨어 요구 사항
 
 Sui 풀 노드를 실행하기 위한 권장 최소 하드웨어는 다음과 같다:
 
@@ -55,7 +56,7 @@ Sui 풀 노드를 실행하기 위한 권장 최소 하드웨어는 다음과 �
 - RAM: 128 GB
 - Storage (SSD): 4 TB NVMe drive
 
-### Software requirements
+### 소프트웨어 요구 사항
 
 Sui는 Linux에서 Sui 풀 노드를 실행할 것을 권장한다. Sui는 Ubuntu와 Debian distributions를 지원한다. macOS에서도 Sui 풀 노드를 실행할 수 있지만, 이는 개발용으로만 권장되며 production 사용에는 권장되지 않는다.
 
@@ -81,9 +82,9 @@ clang \
 cmake
 ```
 
-### Considerations to enable gRPC
+### gRPC enable 고려 사항
 
-풀 노드에서 gRPC support를 활성화해야 한다. JSON-RPC는 **deprecated** 상태이다. 전체 전환 계획에 대한 안내는 [Sui's data serving roadmap](/develop/accessing-data/data-serving#grpc-api)을 참고한다.
+풀 노드에서 gRPC support를 활성화해야 한다. JSON-RPC는 **deprecated** 상태이다. 전체 전환 계획에 대한 안내는 [Sui's data serving roadmap](/develop/accessing-data/data-serving)을 참고한다.
 
 [gRPC API](/develop/accessing-data/grpc/what-is-grpc)를 제공하려면 gRPC 전용 데이터를 indexing하도록 풀 노드에서 이를 활성화해야 한다. 초기 gRPC indexing 단계에서는 풀 노드가 [**deprecated** JSON-RPC](/references/sui-api) requests를 포함해 다른 트래픽을 처리하지 못할 수 있다. rollout을 신중히 계획하고(`rolling upgrade` 메커니즘 사용 등), 다운타임이 있다면 고객과 파트너에게 미리 알린다. gRPC indexes 동기화에 걸리는 시간은 풀 노드의 하드웨어와 소프트웨어 구성에 따라 달라진다.
 
@@ -116,7 +117,7 @@ authority-store-pruning-config:
 
 gRPC data retention 기간은 풀 노드의 resource profile과 JSON-RPC 비활성화 여부에 따라 조정한다. 어떤 경우든 longer retention period를 애플리케이션에서 gRPC를 사용하거나 다른 개발자에게 제공하기 전에 성능과 확장성 측면에서 테스트한다.
 
-## Running a full node {#running-a-full-node}
+## full node 실행 {#running-a-full-node}
 
 `sui-node` binary를 build, install, download하는 지침은 [Install from Binaries](/getting-started/onboarding/install-binaries) 가이드에서 확인할 수 있다.
 이 install 지침은 `sui` CLI에 특화되어 있지만 `sui-node` binary에도 동일하게 적용된다.
@@ -131,13 +132,13 @@ Sui 풀 노드는 여러 방식으로 실행할 수 있으며(bare metal, virtua
 * [풀 노드 업데이트하기](/operators/full-node/updates): Sui 풀 노드는 network와 동기화 상태를 유지하려면 최신 버전으로 업데이트되어야 한다.
 * [Sui 아카이브](/operators/data-management/archives): archival fallback을 사용하면 chain history의 어느 시점에서든 checkpoints를 동기화할 수 있다. 아래의 network `seed-peers`는 몇 개 epoch 분량의 history만 유지한다.
 
-### Using Docker Compose
+### Docker Compose 사용
 
 Sui repository에는 [Docker Compose](https://github.com/MystenLabs/sui/tree/main/docker/fullnode#readme)를 통해 풀 노드를 실행하는 가이드가 있다.
 이 방법만으로는 production 환경에 적합하지 않지만, 개발 목적의 virtual machine이나 로컬 머신에서 풀 노드를 빠르게 구동하는 데 사용할 수 있다.
 production use cases와 관련된 지침은 [Running a full node](#running-a-full-node)를 참고한다.
 
-### Setting up a full node
+### full node 설정
 
 production 환경에서 `sui-node`를 실행할 준비가 되면 다음 단계를 완료해 풀 노드를 설정할 수 있다:
 
@@ -224,7 +225,7 @@ production 환경에서 `sui-node`를 실행할 준비가 되면 다음 단계�
         genesis-file-location: "/sui-fullnode/genesis.blob"
     ```
 
-### Starting your full node {#starting-a-full-node}
+### full node 시작 {#starting-a-full-node}
 
 풀 노드를 genesis 시작점부터 동기화해서는 안 된다. 이렇게 하면 시간이 매우 오래 걸리고 많은 resources를 소비하며, 디스크도 쉽게 가득 찰 수 있다.
 
@@ -238,7 +239,7 @@ $ sui-node --config-path fullnode.yaml
 
 production 환경에서는 systemd 같은 도구를 사용해 풀 노드를 관리하는 것이 좋다.
 
-### Troubleshooting
+### 문제 해결
 
 `cannot find -lpq` error가 발생하면 `libpq` library가 없는 것이다. Linux에서는 `sudo apt-get install libpq-dev`, macOS에서는 `brew install libpq`로 설치한다. macOS에 설치한 뒤에는 `brew link --force libpq`로 Homebrew link를 만든다. 자세한 배경은 [issue on Stack Overflow](https://stackoverflow.com/questions/70313347/ld-library-not-found-for-lpq-when-build-rust-in-macos?rq=1)를 참고한다.
 

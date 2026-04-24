@@ -22,7 +22,7 @@ PTB는 한 번의 실행에서 최대 1,024개의 고유 operation을 수행할 
 이 구조는 더 저렴한 gas fee도 촉진한다.
 개별 transaction을 처리하는 비용은 같은 transaction을 PTB로 묶어 처리하는 비용보다 항상 더 높다.
 
-## Transaction components
+## Transaction component 구성
 
 실행 의미론과 관련해 PTB에는 두 부분이 있다.
 transaction sender나 gas limit 같은 다른 transaction 정보는 참조될 수 있지만 여기서는 범위 밖이다.
@@ -66,7 +66,7 @@ PTB의 구조는 다음과 같다:
 
 각 [PTB 명령](/references/ptb-commands)에 대해 더 알아본다.
 
-## Inputs and results
+## Input과 result
 
 입력은 PTB에 제공되는 값이고, 결과는 PTB command가 만들어 내는 값이다.
 입력은 object이거나 단순한 Move 값이며, 결과는 object를 포함한 임의의 Move 값이다.
@@ -78,7 +78,7 @@ PTB의 구조는 다음과 같다:
 
 [inputs and results](/develop/transactions/ptbs/inputs-and-results)에 대해 더 알아본다.
 
-## `Argument` structure and usage
+## `Argument` structure와 usage
 
 command는 사용할 입력 또는 결과를 지정하는 `Argument` 값을 받는다.
 런타임은 command가 기대하는 타입을 바탕으로 인자를 reference로 전달할지 값으로 전달할지를 추론한다.
@@ -93,13 +93,13 @@ command는 사용할 입력 또는 결과를 지정하는 `Argument` 값을 받�
 
 - **`Result(u16)`:** `NestedResult(i, 0)`의 축약형이지만 인덱스 `i`의 command가 정확히 1개의 결과를 반환할 때만 유효하다. 0개 또는 여러 결과를 반환하는 command에는 `NestedResult`를 사용한다.
 
-## Execution {#execution}
+## Execution 실행 {#execution}
 
 PTB를 실행할 때 입력 벡터는 입력 object 또는 pure value bytes로 채워진다.
 그 다음 transaction command가 순서대로 실행되고, 결과는 결과 벡터에 저장된다.
 마지막으로 transaction의 effect가 원자적으로 적용된다.
 
-### Start of execution
+### Execution 시작
 
 실행 시작 시 PTB 런타임은 입력 object를 가져와 입력 배열에 적재한다.
 이 object들은 존재 여부와 유효한 소유권 같은 규칙을 검사하며 네트워크가 이미 검증한 상태이다.
@@ -109,13 +109,12 @@ pure value bytes도 배열에 적재되지만 사용할 때까지는 검증되�
 실행 시작 시 최대 gas budget(SUI 기준)이 gas coin에서 인출된다.
 사용되지 않은 gas는 실행 끝에 gas coin으로 반환되며, coin의 owner가 바뀌었더라도 마찬가지이다.
 
-### Object consumption 
-
+### Object consumption 처리
 Move command가 생성하거나 반환한 모든 object는 소비되거나(파기, 전송, 다른 command에서 사용), 타입에 `drop` ability가 있다면 명시적으로 drop되어야 한다.
 
 PTB에서 Move command를 통해 object를 생성한 뒤 이를 파기하거나 전송하거나 다음 command에서 사용하지 않으면 transaction은 error와 함께 실패한다.
 
-### Pre-execution validation
+### Pre-execution validation 검증
 
 transaction에 서명되면 네트워크는 특정 command에 대해 다음 검증을 수행한다:
 
@@ -125,7 +124,7 @@ transaction에 서명되면 네트워크는 특정 command에 대해 다음 검�
 
 - [`Publish`](/references/ptb-commands): `ModuleBytes`가 비어 있지 않은지 검증한다.
 
-### Argument usage rules {#arguments}
+### Argument usage rule 규칙 {#arguments}
 
 각 인자는 reference 또는 값으로 사용될 수 있다.
 사용 방식은 인자의 타입과 command의 타입 signature에 따라 결정된다:
@@ -143,7 +142,7 @@ transaction에 서명되면 네트워크는 특정 command에 대해 다음 검�
 그 결과 인자에 `copy`는 있고 `drop`이 없다면 마지막 사용은 값으로 이뤄져야 한다.
 그렇지 않으면 `drop`이 없는 값이 사용되지 않았기 때문에 transaction이 실패한다.
 
-#### Borrowing rules
+#### Borrowing rule 규칙
 
 borrow는 안전한 reference 사용을 보장하기 위해 추가 규칙을 따른다:
 
@@ -155,7 +154,7 @@ borrow는 안전한 reference 사용을 보장하기 위해 추가 규칙을 따
 
 - **Copy:** 남아 있는 borrow와 관계없이 허용된다.
 
-#### Special object handling
+#### Special object handling 처리
 
 object 입력은 underlying object의 타입 `T`를 가진다.
 예외는 `ObjectArg::Receiving` 입력이며, 이 경우 타입은 `sui::transfer::Receiving<T>`이다.
@@ -170,7 +169,120 @@ shared object는 transaction 끝까지 shared 상태를 유지하거나 삭제�
 
 - shared object는 실행 중에 wrap되거나 dynamic field로 변환될 수 있지만, transaction이 끝나기 전에 다시 공유되거나 삭제되어야 한다.
 
-#### Pure value type checking
+#### Move call rule 규칙
+
+PTB는 `public` function과 모든 `entry` function을 호출할 수 있다. 여기에는 private `entry fun f()`와 `public(package) entry fun f()`도 포함된다. Non-entry private function과 `public(package)` function은 PTB에서 호출할 수 없다. 이런 이유로 `public` function에 `entry`를 추가할 필요는 없다.
+
+:::info
+
+이전에는 `entry` function이 `public` function보다 parameter와 return type에 더 제한적인 signature restriction을 가졌다. 이러한 restriction은 제거되었다. 이제 `entry` function은 모든 `public` function과 같은 signature를 가질 수 있다.
+
+:::
+
+**return type:**
+Move call은 reference(`&T` 또는 `&mut T`)를 return할 수 없다. 이 restriction은 향후 제거될 예정이다.
+
+**Private generics:**
+일부 framework function에는 같은 module에 정의된 type으로만 instantiate할 수 있는 type parameter가 있다. PTB는 module이 아니므로 이러한 type을 제공할 수 없고, 따라서 해당 function을 직접 호출할 수 없다. 예를 들어 `transfer`와 `share_object` 같은 특정 `sui::transfer` function은 호출 module에 정의된 type을 요구하므로 PTB에서 호출할 수 없다. 대신 `public_transfer` 및 `public_share_object` variant를 사용한다.
+
+**`TxContext` handling:**
+`TxContext` parameter(`&TxContext` 또는 `&mut TxContext`)는 runtime이 자동으로 inject하며 caller가 제공하지 않는다. `TxContext`는 parameter list의 어느 위치에나 나타날 수 있고, immutable(`&TxContext`)인 한 하나의 function에 여러 `TxContext` parameter가 있을 수 있다. 이러한 parameter는 indexing을 위해 user-supplied argument count에 포함되지 않는다.
+
+#### Non-public entry function 제한
+
+Non-public `entry` function은 `entry`로 선언되었지만 **`public`이 아닌** function이다. 이는 private(`entry fun f()`)이거나 `public(package)`(`public(package) entry fun f()`)이다. 이러한 function은 PTB에서 직접 호출할 수 있지만 다른 package에서는 호출할 수 없다.
+
+Non-public `entry` function에는 하나의 restriction이 있다. Function이 호출될 때 argument가 "hot" clique(아래 참조)에 있으면 안 된다. 이 restriction의 직관은 non-public `entry` function의 argument가 function 실행 후 behavior를 강제할 수 있는 outstanding [hot potato](https://move-book.com/programmability/hot-potato-pattern) value와 얽히지 않도록 하는 것이다.
+
+**Hot potato values**
+
+Type에 `drop` ability와 `store` ability가 모두 없으면 그 value는 hot potato이다. Hot potato value는 transaction이 완료되기 전에 consume(값으로 move)되어야 하며, 조용히 drop되거나 store될 수 없다.
+
+**Cliques**
+
+System은 clique를 사용해 어떤 value가 얽혀 있는지 추적한다. 목표는 위에서 설명한 것처럼 hot potato value가 non-public `entry` function 호출 밖의 behavior를 강제하지 못하게 하는 것이다. Clique는 live hot potato value 수와 그 value가 상호작용한 value를 count하여 이러한 "entanglement"를 model한다:
+
+- 각 PTB input은 hot count 0인 자체 clique에서 시작한다.
+- value가 command의 argument로 함께 사용되면 clique가 merge된다. hot count는 더해진다.
+- command의 hot potato return value는 merge된 clique의 hot count를 증가시킨다.
+- hot potato를 move(consume)하면 해당 clique의 hot count가 감소한다.
+- non-public `entry` call 전에 argument의 merged clique는 hot count 0이어야 한다.
+
+Non-public `entry` function은 hot potato value를 consume할 수 있지만, 해당 clique의 마지막 hot value여야 한다. Hot count check는 argument가 consume된 뒤 function이 verify되기 전에 발생한다.
+
+**Shared objects consumed by value**
+
+Shared object를 값으로 consume하면 해당 clique는 영구적으로 "always hot"으로 표시된다. Shared object는 wrap될 수 없고 다시 share되거나 delete되어야 하므로, 값을 consume하는 것은 resolve될 수 없는 hot potato와 유사하게 처리된다. Non-public `entry` function은 shared object를 값으로 직접 받을 수 있지만, 이전에 값으로 consume된 shared object와 상호작용한 clique의 value는 받을 수 없다.
+
+**Examples**
+
+다음 module을 고려한다:
+
+```move
+module ex::m;
+
+public struct HotPotato()
+
+public fun hot<T>(x: &mut Coin<T>): HotPotato { ... }
+
+entry fun spend<T>(x: &mut Coin<T>) { ... }
+
+public fun cool(h: HotPotato) { ... }
+```
+
+다음 invalid PTB에서는 command 0의 `HotPotato`가 `spend` 호출 시 `Input(0)`과 같은 clique에서 아직 live 상태이다:
+
+```rust
+// Invalid PTB
+// Input 0: Coin<SUI>
+// cliques: { Input(0) } => 0
+0: ex::m::hot(Input(0));
+// cliques: { Input(0), Result(0) } => 1
+1: ex::m::spend(Input(0)); // INVALID: Input(0)'s clique has count > 0
+2: ex::m::cool(Result(0));
+```
+
+하지만 `spend`를 호출하기 전에 hot potato가 consume되면 clique count가 0으로 내려가고 call이 성공한다:
+
+```rust
+// Valid PTB
+// Input 0: Coin<SUI>
+// cliques: { Input(0) } => 0
+0: ex::m::hot(Input(0));
+// cliques: { Input(0), Result(0) } => 1
+1: ex::m::cool(Result(0));
+// cliques: { Input(0) } => 0
+2: ex::m::spend(Input(0)); // Valid: Input(0)'s clique has count 0
+```
+
+Flash loan scenario에서는 entanglement가 transitively 확장된다. 어떤 value가 loan에 직접 관여하지 않았더라도 loan의 hot potato와 같은 clique에 있으면 non-public `entry` call에 사용할 수 없다:
+
+```move
+module flash::loan;
+
+public struct Loan { amount: u64 }
+
+public fun issue(bank: &mut Bank, amount: u64): (Balance<SUI>, Loan) { ERROR }
+
+public fun repay(bank: &mut Bank, loan: Loan, repayment: Balance<SUI>) { ERROR }
+```
+
+```rust
+// Invalid PTB
+// Input 0: flash::loan::Bank, Input 1: u64
+// cliques: { Input(0) } => 0, { Input(1) } => 0
+0: flash::loan::issue(Input(0), Input(1))
+// cliques: { Input(0), Input(1), NestedResult(0,0), NestedResult(0,1) } => 1
+1: sui::coin::from_balance(NestedResult(0,0));
+// cliques: { Input(0), Input(1), NestedResult(0,1), Result(1) } => 1
+2: ex::m::spend(Result(1)); // INVALID: Result(1)'s clique has count > 0
+3: sui::coin::into_balance(Result(1));
+4: flash::loan::repay(Input(0), NestedResult(0,1), Result(3));
+```
+
+Command 1에서 만든 `Coin`이 flash loan에 직접 관여하지 않았더라도 outstanding `Loan` hot potato(`NestedResult(0,1)`)와 같은 clique의 일부이다. `spend`를 호출하기 전에 loan을 repay하면 PTB가 valid해진다.
+
+#### Pure value type checking 검증
 
 pure value는 사용 시점까지 타입 검사를 받지 않는다.
 pure value의 타입이 `T`인지 검사할 때 시스템은 먼저 `T`가 pure value에 유효한 타입인지 확인한다([Inputs section](/develop/transactions/ptbs/inputs-and-results)의 목록을 참조한다).
@@ -179,7 +291,11 @@ bytes가 각 타입에 대해 모두 유효하기만 하면 하나의 pure value
 예를 들어 문자열은 ASCII string인 `std::ascii::String`으로도, UTF8 string인 `std::string::String`으로도 사용할 수 있다.
 그러나 pure value를 가변 borrow한 뒤에는 타입이 고정되며, 이후의 모든 사용은 그 타입으로 이뤄져야 한다.
 
-### End of execution
+#### Publish 및 upgrade rule
+
+`Publish`와 `Upgrade` command는 system-created value를 return한다. 이 value는 regular object와 같은 argument usage rule을 따른다. Publish는 upgrade capability를 반환하고, upgrade는 upgrade receipt를 반환한다. 이러한 value도 transaction이 끝나기 전에 consume되어야 한다.
+
+### Execution 종료
 
 실행 마지막에는 남아 있는 값을 검사하고 transaction의 effect를 계산한다.
 
@@ -209,8 +325,7 @@ gas coin은 `TransferObjects`로만 값으로 꺼낼 수 있으므로 wrap되거
 
 그 뒤 전체 effect(생성, 수정, 삭제된 object)가 실행 계층 밖으로 전달되고 Sui network가 이를 적용한다.
 
-## Execution example 
-
+## Execution example 예시
 각 command의 실행을 따라가 보면 입력이 command를 통해 어떻게 흐르는지, 결과가 어떻게 누적되는지, 최종 transaction effect가 어떻게 결정되는지를 확인할 수 있다.
 
 `100 MIST`를 지불하고 marketplace에서 item 2개를 산다고 가정해 보자.
@@ -286,7 +401,7 @@ item은 값으로 이동되고 address는 값으로 복사된다.
 | `Results[1][1]` | moved |
 | Result | `[]` |
 
-#### Initial state
+#### Initial state 상태
 
 ```rust
 Gas Coin: Coin<SUI> { id: gas_coin, balance: 1_000_000u64 }
@@ -300,7 +415,7 @@ Results: []
 Gas Coin: Coin<SUI> { id: gas_coin, balance: 500_000u64 }
 ```
 
-#### Final state
+#### Final state 상태
 
 ```rust
 Gas Coin: _ (moved)
@@ -314,7 +429,7 @@ Results: [
 ]
 ```
 
-#### End of execution checks
+#### End of execution check 확인
 
 - Input objects: gas coin은 이동되었다. Marketplace는 shared 상태로 남으며 수정되었다.
 

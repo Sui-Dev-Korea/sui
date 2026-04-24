@@ -7,17 +7,17 @@ keywords: [ indexer, index data, sui-indexer, custom indexer, sequential pipelin
 
 `sui-indexer-alt-framework`는 두 가지 고유한 파이프라인 아키텍처를 제공한다. 올바른 접근 방식을 선택하려면 이 차이점을 이해하는 것이 중요하다.
 
-## Sequential versus concurrent pipelines
+## Sequential pipeline과 concurrent pipeline 비교
 
 [Sequential pipelines](#sequential-pipeline-architecture)은 complete checkpoints를 순서대로 commit한다. 각 checkpoint는 다음 checkpoint보다 먼저 완전히 commit되므로 단순하고 일관된 reads를 보장한다.
 
 [Concurrent pipelines](#concurrent-pipeline-architecture)은 순서와 무관하게 commit하며 개별 checkpoints를 부분적으로 commit할 수 있다. 이를 통해 더 높은 throughput을 위해 여러 checkpoints를 동시에 처리할 수 있지만, 일관성을 보장하려면 reads가 어떤 데이터가 완전히 commit되었는지 확인해야 한다.
 
-## When to use each pipeline
+## 각 pipeline 사용 시점
 
 두 파이프라인 유형 모두 in-place updates, aggregations, complex business logic를 처리할 수 있다. Sequential pipelines는 concurrent pipelines에 비해 throughput 제한이 있지만, 둘 중 하나를 선택하는 결정은 성능 요구 사항보다 엔지니어링 복잡성에 더 가깝다.
 
-### Recommended: Sequential pipeline
+### 권장: Sequential pipeline
 
 대부분의 사용 사례에서는 여기서 시작한다. 더 직접적인 구현과 유지보수를 제공한다.
 
@@ -28,7 +28,7 @@ keywords: [ indexer, index data, sui-indexer, custom indexer, sequential pipelin
 <li><span className="text-sui-success-dark">✓</span> 운영 단순성을 중요하게 여긴다.</li>
 </ul>
 
-### Concurrent pipeline
+### Concurrent pipeline 방식
 
 다음과 같은 경우에는 concurrent pipeline 구현을 고려한다:
 
@@ -43,7 +43,7 @@ keywords: [ indexer, index data, sui-indexer, custom indexer, sequential pipelin
 - Watermark-aware queries: 모든 reads는 어떤 데이터가 완전히 commit되었는지 확인해야 한다. 자세한 내용은 [the watermark system](#watermark-system) 섹션을 참조한다.
 - Complex application logic: complete checkpoints를 처리하는 대신 data commits를 조각 단위로 처리해야 한다.
 
-## Decision framework
+## 결정 framework
 
 프로젝트에 어떤 파이프라인을 선택해야 할지 확신이 없다면 구현과 디버깅이 더 쉬운 sequential pipeline으로 시작한다. 그런 다음 현실적인 부하에서 성능을 측정한다. Sequential pipeline이 프로젝트 요구 사항을 충족할 수 없다면 concurrent pipeline으로 전환한다.
 
@@ -54,17 +54,17 @@ keywords: [ indexer, index data, sui-indexer, custom indexer, sequential pipelin
 
 어떤 파이프라인을 사용할지 결정하는 것 외에도 scaling도 고려해야 한다. 여러 종류의 데이터를 indexing한다면 여러 pipelines와 watermarks를 사용하는 것을 고려한다.
 
-## Common pipeline components
+## 공통 pipeline component
 
 Sequential pipelines와 concurrent pipelines는 공통된 components와 concepts를 공유한다. 이러한 공통 요소를 이해하면 두 아키텍처가 어떻게 다른지 더 명확해진다.
 
-### Processor component {#processor}
+### Processor component 설명 {#processor}
 
 <ImportContent source="indexer-pipeline-processor" mode="snippet" />
 
 `Processor` component는 sequential pipelines와 concurrent pipelines에서 동일하게 동작한다. 이는 `Broadcaster`로부터 checkpoint data를 받아 custom logic으로 변환하고, 처리된 결과를 파이프라인의 다음 단계로 전달한다.
 
-### Watermark concepts summary
+### Watermark concept 요약
 
 파이프라인별 아키텍처를 살펴보기 전에 coordination에 사용되는 세 가지 watermarks를 이해한다:
 
@@ -76,13 +76,13 @@ Sequential pipelines와 concurrent pipelines는 공통된 components와 concepts
 
 이 watermarks들은 함께 안전한 out-of-order processing, 자동 data cleanup, failures로부터의 recovery를 가능하게 한다.
 
-## The watermark system {#watermark-system}
+## Watermark system 개요 {#watermark-system}
 
 각 pipeline에 대해 indexer는 최소한 해당 지점까지의 모든 data가 commit된 가장 높은 checkpoint를 추적한다. 추적은 committer watermark인 `checkpoint_hi_inclusive`를 통해 수행된다. Concurrent pipelines와 sequential pipelines 모두 restart 시 처리를 재개할 위치를 이해하기 위해 `checkpoint_hi_inclusive`에 의존한다.
 
 선택적으로 pipeline은 pruning이 활성화된 경우 읽기와 pruning 작업의 안전한 하한을 정의하는 `reader_lo`와 `pruner_hi`를 추적한다. 이러한 watermarks는 data integrity를 유지하면서 out-of-order processing을 가능하게 하므로 concurrent pipelines에 특히 중요하다.
 
-### Safe pruning
+### 안전한 pruning
 
 Watermark system은 강력한 data lifecycle management system을 만든다:
 
@@ -96,7 +96,7 @@ Watermark system은 강력한 data lifecycle management system을 만든다:
 
 이 watermark system은 concurrent pipelines를 고성능이면서도 신뢰할 수 있게 만들어 주며, 강력한 data availability guarantees와 자동 storage management를 유지하면서 대규모 throughput을 가능하게 한다.
 
-### Scenario 1: Basic watermark (no pruning)
+### Scenario 1: 기본 watermark(pruning 없음)
 
 Pruning이 비활성화된 경우 indexer는 각 pipeline committer의 `checkpoint_hi_inclusive`만 보고한다. 다음 타임라인을 생각해 보자. 여기서는 여러 checkpoints가 처리되고 있으며 일부는 순서와 무관하게 commit된다.
 
@@ -123,7 +123,7 @@ Checkpoint 1002가 commit된 후에는 1003까지의 데이터를 안전하게 �
 (start   →   checkpoint_hi_inclusive at 1003)
 ```
 
-### Scenario 2: Pruning enabled
+### Scenario 2: pruning 활성화
 
 Pruning은 retention policy로 구성된 pipelines에 대해 활성화된다. 예를 들어 table이 너무 커져 마지막 4개의 checkpoints만 유지하려면 `retention = 4`이다. 이는 indexer가 `checkpoint_hi_inclusive`와 구성된 retention의 차이로 `reader_lo`를 주기적으로 업데이트한다는 뜻이다. 별도의 pruning task는 `[pruner_hi, reader_lo]` 사이의 data를 pruning하는 역할을 한다.
 
@@ -162,7 +162,7 @@ Clear safe zones:
 [--PRUNED--][--- Safe Reading Zone ---] [--- Processing ---]             
 ```
 
-### How watermarks progress over time
+### Watermark가 시간에 따라 진행되는 방식
 
 **Step 1:** Checkpoint 1004가 완료된다.
 
@@ -209,11 +209,11 @@ pruner_hi = 1000 (unchanged as pruner hasn't run yet)
 - pruner가 cleanup을 아직 완료하지 않음
 :::
 
-## Sequential pipeline architecture {#sequential-pipeline-architecture}
+## Sequential pipeline architecture 구조 {#sequential-pipeline-architecture}
 
 Sequential pipelines는 ordered processing을 우선시하는 보다 직접적이면서도 강력한 indexing 아키텍처를 제공한다. Concurrent pipelines에 비해 일부 throughput을 희생하지만 더 강한 guarantees를 제공하며, 대체로 reasoning하기 더 쉽다.
 
-### Architecture overview
+### Architecture 개요
 
 Sequential pipeline은 두 개의 주요 components만으로 구성되어 concurrent pipeline의 여섯 component 아키텍처보다 훨씬 단순하다.
 
@@ -223,7 +223,7 @@ Sequential pipeline은 두 개의 주요 components만으로 구성되어 concur
 
 핵심 차이점은 ordering, batching, database commits를 처리하는 단 하나의 `Committer` component만 있는 극적으로 단순화된 pipeline core이다. 반대로 concurrent pipelines는 `Processor` 외에 `Collector`, `Committer`, `CommitterWatermark`, `ReaderWatermark`, `Pruner`라는 다섯 개의 별도 components를 가진다.
 
-### Sequential pipeline components {#sequential-components}
+### Sequential pipeline component 구성 {#sequential-components}
 
 Sequential pipelines는 shared [Processor](#processor) 외에 pipeline-specific component 하나, 즉 [`Committer`](#seq-committer)를 가진다.
 
@@ -235,7 +235,6 @@ Sequential `Committer`는 pipeline의 주요 component이자 주된 customizatio
 1. **Orders** data를 checkpoint sequence 기준으로 정렬한다.
 1. **Batches** 여러 checkpoints를 사용자의 logic으로 함께 batching한다.
 1. **Commits** batch를 데이터베이스에 원자적으로 commit한다.
-1. **Signals** ingestion layer에 progress를 다시 전달한다.
 
 이를 customize하기 위해 사용자의 코드는 committer가 호출하는 두 개의 핵심 함수를 사용한다:
 
@@ -247,50 +246,22 @@ Sequential `Committer`는 pipeline의 주요 component이자 주된 customizatio
 
 <ImportContent source="crates/sui-indexer-alt-framework/src/pipeline/sequential/mod.rs" mode="code" fun="commit" noComments />
 
-### Sequential pipeline backpressure mechanisms
+### Sequential pipeline backpressure 메커니즘
 
 Sequential pipelines는 memory overflow와 ordering-related deadlocks를 방지하기 위해 두 계층의 backpressure를 사용한다:
 
 ![Backpressure sequential pipeline architecture](../images/backpressure-sequential.png)
 
-#### Channel-based backpressure
+#### Channel 기반 backpressure
 
-Sequential pipelines는 components 수가 적기 때문에 더 단순한 topology로 channel-based flow control을 사용한다:
+Sequential pipelines는 concurrent pipelines와 동일한 bounded-channel backpressure model을 사용한다:
 
-- **Broadcaster → Processor:** `checkpoint_buffer_size` slots.
-- **Processor → Committer:** `processor_channel_size` slots (`num_cpus / 2`가 기본값).
+- **Broadcaster → Processor:** `subscriber_channel_size` slots를 가진 bounded channel. 가득 차면 send가 block되며, broadcaster의 adaptive controller는 channel의 `len / capacity`를 읽고 subscriber가 뒤처질 때 `ingest_concurrency`를 줄인다.
+- **Processor → Committer:** `processor_channel_size` slots (`num_cpus / 2`가 기본값). Processor의 adaptive `fanout` controller를 구동한다.
 
-어떤 channel이든 가득 차면 senders는 자동으로 block되며, 이로 인해 파이프라인을 거슬러 올라가는 upstream pressure가 만들어진다. 이 메커니즘은 concurrent pipelines와 동일하게 동작하지만 channel hops 수가 더 적다. Channel-based blocking이 어떻게 전파되는지에 대한 자세한 동작은 [concurrent pipeline backpressure](#concurrent-backpressure)를 참조한다.
+Downstream pressure는 역방향으로 전파된다. Committer가 느려지면 processor-to-committer channel이 차고 `fanout`이 minimum으로 줄어든다. 그다음 broadcaster-to-processor channel이 차며 broadcaster가 `ingest_concurrency`를 줄인다. Committer 자체는 pending checkpoints의 unbounded in-memory buffer를 보유하므로, 순서와 무관하게 도착한 checkpoints도 contiguous prefix를 구성해 commit할 수 있다.
 
-#### Watermark-based regulation (sequential-specific) {#sequential-watermark-regulation}
-
-Sequential pipelines는 checkpoints를 엄격한 순서(N, 그다음 N+1, 그다음 N+2...)로 처리해야 한다. Checkpoint N이 누락되면 이후 checkpoints가 존재하더라도 commit할 수 없다.
-
-Regulation이 없으면 누락된 checkpoints는 다음과 같은 상황에서 deadlocks를 일으킬 수 있다:
-
-1. Pipeline이 checkpoint 100을 기다린다.
-1. Checkpoint 100이 drop되거나 delay된다.
-1. Ingestion이 buffer를 101, 102, 103...으로 채운다.
-1. Buffer가 가득 차 사용 가능해졌을 때 checkpoint 100을 다시 fetch할 수 없게 된다.
-1. Pipeline이 영구적으로 멈춘다.
-
-이 함정을 피하려면 watermark progress reporting을 사용할 수 있다. Successful commits 후 pipelines가 `commit_hi_tx` channel을 통해 broadcaster에 `(pipeline_name, highest_committed_checkpoint)`를 보내도록 지시한다.
-
-<ImportContent source="crates/sui-indexer-alt-framework/src/pipeline/sequential/committer.rs" tag="send" />
-    
-`Broadcaster`는 `commit_hi_rx`를 listen하여 updates를 수신한다. 그 후 모든 pipelines 전반의 ingestion boundary를 계산한다(`min_subscriber_watermark + buffer_size`).
-
-<ImportContent source="crates/sui-indexer-alt-framework/src/ingestion/broadcaster.rs" tag="regulator" />
-
-이 접근 방식은 다음과 같이 deadlocks를 방지한다:
-
-- `Broadcaster`는 계산된 boundary까지의 checkpoints만 fetch한다.
-- 어떤 pipeline도 ingestion front보다 지나치게 뒤처지지 않는다.
-- 누락된 checkpoints를 retry하기 위한 buffer space가 항상 남도록 보장한다.
-
-Concurrent pipelines는 checkpoints를 out-of-order로 처리할 수 있고, 누락된 checkpoints가 전체 progress를 멈추는 대신 watermark updates만 지연시키므로 이러한 유형의 regulation은 sequential pipelines에만 필요하다.
-
-### Performance tuning
+### Performance tuning 조정
 
 Sequential pipelines는 더 기본적인 구성을 갖지만 여전히 중요한 tuning parameters가 필요하다:
 
@@ -306,9 +277,6 @@ let config = SequentialConfig {
         collect_interval_ms: 1000,
     },
 
-    // Checkpoints to lag behind live data (default: 0)
-    checkpoint_lag: 100,
-
     // Adaptive concurrency (default). Starts at 1 and scales up to num_cpus.
     fanout: None,
     // Or use fixed concurrency:
@@ -323,20 +291,26 @@ let config = SequentialConfig {
     min_eager_rows: None,
     max_batch_checkpoints: None,
     processor_channel_size: None, // defaults to num_cpus / 2
+
+    // Per-pipeline overrides for the ingestion layer's defaults.
+    ingestion: pipeline::IngestionConfig {
+        // None falls back to the built-in default (max(num_cpus / 2, 4)).
+        subscriber_channel_size: None,
+    },
 };
 ```
 
 - `collect_interval_ms`: 값이 높을수록 batch당 더 많은 checkpoints를 허용하므로 효율성이 좋아진다.
-- `checkpoint_lag`: incomplete data 처리를 피하기 위해 live indexing에 필수적이다.
 - `write_concurrency`: sequential pipelines에는 적용되지 않는다(항상 single-threaded writes이다).
 - `fanout`: 기본적으로 processor concurrency는 adaptive이며, 1에서 시작해 downstream channel pressure에 따라 CPU 개수까지 확장된다. Controller는 processor-to-committer channel의 fill fraction을 모니터링하고 60%와 85% fill 사이의 dead band를 사용해 concurrency를 조정한다. 이는 fixed concurrency(`ConcurrencyConfig::Fixed`)로 override할 수도 있고 adaptive bounds(`ConcurrencyConfig::Adaptive`)를 customize할 수도 있다. 기본 max인 `num_cpus`는 processor가 CPU-bound라고 가정한다. Processor가 IO를 수행한다면(예를 들어 외부 서비스에서 데이터를 가져오는 경우) 더 높은 max를 원할 수 있다. Adaptive controller는 fill-fraction thresholds를 override하는 `dead_band` parameter도 제공하지만, 기본값이면 대부분의 workloads에 충분하다.
+- `ingestion.subscriber_channel_size`: bounded broadcaster-to-processor channel의 capacity이다. `None`이면 기본값 `max(num_cpus / 2, 4)`를 사용한다. 가끔 burst가 있는 pipeline은 자체 capacity를 늘릴 수 있지만, 값이 클수록 해당 pipeline이 shared controller에 덜 찬 것처럼 보이므로 throttling이 다른 pipeline보다 늦게 trigger된다.
 - `processor_channel_size`: processor와 committer 사이 channel의 크기를 제어한다. 기본값은 `num_cpus / 2`이다. 이 channel은 adaptive concurrency controller를 구동하는 signal이기도 하다.
 
-## Concurrent pipeline architecture {#concurrent-pipeline-architecture}
+## Concurrent pipeline architecture 구조 {#concurrent-pipeline-architecture}
 
 Concurrent pipelines는 raw checkpoint data를 indexed database records로 변환하는 정교한 multi-stage architecture를 제공하며, data integrity를 유지하면서 최대 throughput을 달성하도록 설계되었다. [watermark system section](#watermark-system)에서 다룬 watermark system은 모든 component가 coordination하는 방식의 기반이다.
 
-### Architecture overview
+### Architecture 개요
 
 ![Concurrent Pipeline Diagram](../images/concurrent.png)
 
@@ -346,7 +320,7 @@ Key design principles:
 - **Handler abstraction:** business logic가 framework에 연결되는 지점이다.
 - **Automatic storage management:** framework가 `Watermark` database 안에서 watermark tracking과 data cleanup을 처리한다.
 
-### Concurrent pipeline components {#concurrent-components}
+### Concurrent pipeline component 구성 {#concurrent-components}
 
 Concurrent pipelines는 shared [Processor](#processor) 외에 다섯 개의 pipeline-specific components를 가진다:
 
@@ -431,7 +405,7 @@ Polling을 사용하므로 updates는 즉시 일어나는 대신 구성 가능�
 
 `Pruner`는 현재 `pruner_hi`와 `reader_lo`가 결정하는 safe boundary 사이의 범위에서 동작하므로 readers는 영향을 받지 않는다. 세 watermark coordination에 대한 자세한 내용은 [watermark system](#watermark-system)을 참조한다.
 
-### Handler abstraction
+### Handler abstraction 구조
 
 `Handler`는 indexing business logic을 구현하는 곳이다. Framework는 세 가지 핵심 methods를 호출한다:
 
@@ -456,7 +430,7 @@ Framework components(`Committer`, `Pruner`)는 concurrency, retries, watermark c
 
 :::
 
-### Watermark table management
+### Watermark table 관리
 
 `Watermark` table은 모든 watermark coordination을 관리한다. Framework가 올바른 checkpoint부터 재개하기 위해 이 table을 읽기 때문에 recovery에 매우 중요하다.
 
@@ -466,19 +440,19 @@ Indexer를 처음 실행하면 framework가 database에 `Watermark` table을 자
 
 <ImportContent mode="code" source="crates/sui-pg-db/src/schema.rs" />
 
-###  Concurrent pipeline backpressure mechanisms {#concurrent-backpressure}
+### Concurrent pipeline backpressure 메커니즘 {#concurrent-backpressure}
 
 Component architecture를 살펴봤으므로, 이제 inter-component channels를 사용한 cascading backpressure를 통해 파이프라인이 memory overflow를 방지하는 방법을 본다.
 
 ![Concurrent Backpressure Pipeline](../images/backpressure-concurrent.png)
 
-#### Channel-level blocking with fixed sizes
+#### Fixed size를 사용하는 channel-level blocking
 
 각 channel은 가득 차면 자동으로 block되는 fixed buffer size를 가진다:
 
-**`Broadcaster` to `Processor`**: `checkpoint_buffer_size` slots → `Broadcaster`가 block되어 upstream pressure가 생긴다.
+**`Broadcaster` to `Processor`**: `subscriber_channel_size` slots → `Broadcaster`가 block되어 upstream pressure가 생긴다.
 
-<ImportContent mode="code" source="crates/sui-indexer-alt-framework/src/ingestion/mod.rs" struct="IngestionConfig" highlight="checkpoint_buffer_size" />
+<ImportContent mode="code" source="crates/sui-indexer-alt-framework/src/pipeline/mod.rs" struct="IngestionConfig" highlight="subscriber_channel_size" />
 
 **`Processor` to `Collector`**: `processor_channel_size` slots (`num_cpus / 2`가 기본값) → 모든 workers가 `send()`에서 block된다.
 
@@ -490,7 +464,7 @@ Component architecture를 살펴봤으므로, 이제 inter-component channels를
 
 어떤 channel이든 가득 차면 pressure가 전체 pipeline을 통해 자동으로 역방향 전파된다.
 
-#### Component-level blocking
+#### Component-level blocking 동작
 
 Component 수준에서 `Collector`는 memory limits를 준수하며 `pending_rows ≥ MAX_PENDING_ROWS`일 때 수락을 중단한다.
 
@@ -498,15 +472,7 @@ Component 수준에서 `Collector`는 memory limits를 준수하며 `pending_row
     
 Database connection limits도 존재한다. `Committer`는 모든 connections가 사용 중일 때 block된다.
 
-#### Application-level coordination
-
-`Watermark` feedback은 `Watermark` updates를 통해 `Broadcaster`에 진행 상황을 보고함으로써 application-level coordination을 제공한다. 추가 coordination은 bounded ingestion을 통해 제공되며, `Broadcaster`는 현재 watermark보다 제한된 범위만큼 앞선 fetches에만 신호를 보낸다.
-
-<ImportContent mode="code" source="crates/sui-indexer-alt-framework/src/ingestion/broadcaster.rs" fun="spawn_aborting" /> 
-    
-마지막으로 memory protection은 전체 system이 예측 가능한 memory bounds 안에서 동작하도록 보장한다.
-
-#### Backpressure in practice
+#### 실제 backpressure 동작
 
 기본 예제: 느린 database 시나리오
 
@@ -515,8 +481,8 @@ Database connection limits도 존재한다. `Committer`는 모든 connections가
 1. **Backpressure cascade**:
     - `Committer` channel이 가득 찬다(commit을 충분히 빠르게 할 수 없음).
     - `Collector`가 `Committer`로 보내기를 멈춘다(channel full).
-    - `Processor` workers가 `Collector`로 보내기를 멈춘다(channel full).
-    - `Broadcaster`가 새로운 checkpoints를 fetch해서 `Processors`로 보내는 일을 멈춘다(channel full).
+    - `Processor` channel이 가득 차고, adaptive `fanout` controller가 processor concurrency를 minimum 쪽으로 줄인다.
+    - `Broadcaster`는 subscriber channel이 차는 것을 보고 adaptive `ingest_concurrency` controller로 fetch concurrency를 minimum 쪽으로 줄인다. Channel이 capacity에 도달하면 ingest tasks가 `send`에서 block되고 channel이 비워질 때까지 checkpoint ingestion이 멈춘다.
 1. **End result**:
     - Indexer가 자동으로 초당 50 checkpoints로 느려져 database capacity에 맞춰진다.
     - Memory는 bounded 상태를 유지하고 runaway growth가 없다.
@@ -530,11 +496,11 @@ Database connection limits도 존재한다. `Committer`는 모든 connections가
 - Memory usage는 안정적으로 유지된다(증가 없음).
 - System은 responsive한 상태를 유지하지만 throughput이 감소한다.
 
-### Performance tuning
+### Performance tuning 조정
 
 다음 섹션에서는 최적의 성능을 위해 구현할 수 있는 configuration settings를 설명한다.
 
-#### Concurrent pipeline `Handler` constants
+#### Concurrent pipeline `Handler` constant 설정
 
 `Handler` constants는 pipeline behavior를 튜닝하는 가장 직접적인 방법이다. 이는 `Handler` trait 구현의 associated constants로 구현되며 per-handler defaults 역할을 한다.
 
@@ -577,6 +543,12 @@ let config = ConcurrentConfig {
     processor_channel_size: None, // defaults to num_cpus / 2
     collector_channel_size: None, // defaults to num_cpus / 2
     committer_channel_size: None, // defaults to num_cpus
+
+    // Per-pipeline overrides for the ingestion layer's defaults.
+    ingestion: pipeline::IngestionConfig {
+        // None falls back to the built-in default (max(num_cpus / 2, 4)).
+        subscriber_channel_size: None,
+    },
 };
 ```
 
@@ -586,11 +558,12 @@ Tuning guidelines:
 - **`processor_channel_size`:** processor와 collector 사이 channel의 크기를 제어한다. 기본값은 `num_cpus / 2`이다. 이 channel은 adaptive concurrency controller를 구동하는 signal이기도 하다.
 - **`collector_channel_size`:** collector와 committer 사이 channel의 크기를 제어한다. 기본값은 `num_cpus / 2`이다. Committer가 collector보다 더 빨리 batches를 비우는 경우 늘릴 수 있다.
 - **`committer_channel_size`:** committer와 watermark updater 사이 channel의 크기를 제어한다. 기본값은 `num_cpus`이다. 드물게만 튜닝이 필요하다.
+- **`ingestion.subscriber_channel_size`:** bounded broadcaster-to-processor channel의 capacity이다. `None`이면 기본값 `max(num_cpus / 2, 4)`를 사용한다. Ingestion bursts에 대한 여유가 더 필요한 pipeline에서 값을 늘린다. 값이 클수록 해당 pipeline은 adaptive ingest controller의 throttling을 다른 pipeline보다 늦게 trigger한다.
 - **`MIN_EAGER_ROWS`:** 낮은 값은 data commit latency를 줄이고(개별 data가 database에 더 빨리 나타남), 높은 값은 전체 throughput을 개선한다(더 큰 batches가 더 효율적임).
 - **`MAX_PENDING_ROWS`:** committer가 뒤처질 때 얼마나 많은 data가 누적될 수 있는지 제어한다. 높은 값은 더 많은 buffer space를 제공하지만 bottlenecks 동안 더 많은 memory를 사용한다.
 - **`MAX_WATERMARK_UPDATES`:** sparse pipelines(드문 events)에서는 낮추고 dense pipelines에서는 기본값을 유지한다.
 
-#### `CommitterConfig` optimization
+#### `CommitterConfig` optimization 조정
 
 `CommitterConfig`는 data가 collection에서 database commits로 흐르는 방식을 제어한다:
 
@@ -620,7 +593,7 @@ Tuning guidelines:
 - **`collect_interval_ms`:** 낮은 값은 latency를 줄이지만 CPU overhead를 높인다.
 - **`watermark_interval_ms`:** watermarks가 얼마나 자주 업데이트되는지 제어한다. 값이 높을수록 빈번한 watermark writes로 인한 database contention은 줄지만, indexer가 pipeline progress에 반응하는 속도는 느려진다.
 
-#### `PrunerConfig` settings
+#### `PrunerConfig` 설정
 
 Data retention과 pruning performance를 구성한다:
 

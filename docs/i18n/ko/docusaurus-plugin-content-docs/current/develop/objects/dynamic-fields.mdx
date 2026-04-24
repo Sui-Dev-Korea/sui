@@ -16,7 +16,7 @@ wrapping과 같은 방식으로 primitive data와 다른 object를 저장하기 
 다행히 Sui는 식별자뿐 아니라 arbitrary name을 가지는 dynamic field를 제공하며, 이는 즉시 추가 및 제거되고 접근될 때만 gas에 영향을 준다.
 Dynamic field는 heterogeneous value를 저장할 수 있다. 
 
-## Fields and object fields
+## field와 object field
 
 dynamic field에는 fields와 object fields라는 2가지 type이 있으며, 이는 value를 저장하는 방식에 따라 다르다:
 
@@ -25,12 +25,12 @@ dynamic field에는 fields와 object fields라는 2가지 type이 있으며, 이
 | Fields | `store`를 가진 어떤 value든 저장할 수 있지만, 이런 kind의 field에 저장된 object는 wrapped된 것으로 간주되어 external tool(explorer, wallet 등)에서 ID를 통해 접근할 수 없다. | [`dynamic_field`](https://github.com/MystenLabs/sui/tree/main/crates/sui-framework/packages/sui-framework/sources/dynamic_field.move) |
 | Object field | value는 object(`key` ability와 첫 번째 field로서의 `id: UID`를 가져야 함)여야 하지만, external tool에서 해당 ID로 계속 접근할 수 있다. | [`dynamic_object_field`](https://github.com/MystenLabs/sui/tree/main/crates/sui-framework/packages/sui-framework/sources/dynamic_object_field.move) |
 
-## Field names
+## field name
 
 이름이 Move 식별자여야 하는 object의 일반 field와 달리, dynamic field name은 `copy`, `drop`, `store`를 가진 어떤 value든 될 수 있다.
 여기에는 모든 Move primitive(integer, Boolean, byte string)와, 내용물 전체가 `copy`, `drop`, `store`를 가지는 struct가 포함된다.
 
-## Adding dynamic fields
+## dynamic field 추가
 
 dynamic field를 추가하려면 관련 Sui framework module의 `add` 함수를 사용한다:
 
@@ -65,7 +65,7 @@ dynamic field를 추가하려면 관련 Sui framework module의 `add` 함수를 
 이미 정의된 것과 같은 `<Name>` type과 value를 가진 field를 추가하려는 transaction은 실패한다.
 field를 mutable하게 빌려 제자리에서 수정할 수 있고, 먼저 이전 value를 제거하면 안전하게 덮어쓸 수 있다.
 
-## Accessing dynamic fields
+## dynamic field 접근
 
 다음 API를 사용해 dynamic field를 참조할 수 있다:
 
@@ -104,7 +104,7 @@ field를 mutable하게 빌려 제자리에서 수정할 수 있고, 먼저 이�
 dynamic object field value는 반드시 이 API를 통해 접근해야 한다.
 그 object를 입력으로(값 또는 reference로) 사용하려는 transaction은 invalid input으로 거부된다.
 
-## Removing a dynamic field
+## dynamic field 제거
 
 일반 field에 들어 있는 object를 unwrapping하는 것과 비슷하게, dynamic field를 제거해 그 value를 노출할 수 있다:
 
@@ -125,7 +125,7 @@ dynamic object field value는 반드시 이 API를 통해 접근해야 한다.
 
 존재하지 않는 field나 다른 `Value` type의 field를 제거하려는 transaction은 실패한다.
 
-## Deleting an object with dynamic fields
+## dynamic field가 있는 object 삭제
 
 아직 정의된 dynamic field를 (잠재적으로 non-`drop`인 경우까지 포함해) 가진 object를 삭제하는 것은 가능하다.
 field value는 dynamic field와 연결된 object 및 field name을 통해서만 접근할 수 있으므로, 여전히 dynamic field가 정의된 object를 삭제하면 future transaction에서는 그 value 전부에 접근할 수 없게 된다.
@@ -141,7 +141,7 @@ dynamic field와 마찬가지로, 두 경우 모두 `object_` variant도 있는�
 `Table`과 `ObjectTable`, `Bag`와 `ObjectBag`의 관계는 field와 object field의 관계와 같다: 전자는 어떤 `store` type이든 value로 담을 수 있지만, value로 저장된 object는 external storage에서 볼 때 숨겨진다.
 후자는 value로 object만 저장할 수 있지만, external storage에서 그 object가 ID로 계속 보이게 한다.
 
-### Tables
+### Table
 
 `Table<K, V>`는 homogeneous map이며, 이는 모든 key가 서로 같은 type(`K`)이고 모든 value도 서로 같은 type(`V`)이라는 뜻이다.
 이는 `sui::table::new`로 생성되며, `Table` 자체가 다른 어떤 object처럼 transfer, share, wrap, unwrap될 수 있는 object이기 때문에 `&mut TxContext`에 대한 접근이 필요하다.
@@ -158,7 +158,7 @@ public fun new<K: copy + drop + store, V: store>(
 ): Table<K, V>;
 ```
 
-### Bags
+### Bag
 
 `Bag`는 heterogeneous map이므로 임의의 type의 key-value pair를 담을 수 있고, 서로 type이 일치할 필요가 없다.
 이 때문에 `Bag` type에는 type parameter가 없다.
@@ -174,7 +174,7 @@ public struct Bag has key, store { /* ... */ }
 public fun new(ctx: &mut TxContext): Bag;
 ```
 
-### Interacting with collections
+### collection과 상호 작용
 
 모든 collection type에는 각자의 module에 정의된 다음 함수가 함께 제공된다:
 
@@ -216,7 +216,7 @@ dynamic field와 마찬가지로, 이미 존재하는 key를 덮어쓰거나 존
 `Bag`의 heterogeneity가 주는 추가 유연성은 type system이 한 type의 value를 추가한 뒤 다른 type으로 이를 빌리거나 제거하려는 시도를 정적으로 막아주지 않는다는 뜻이다.
 이 패턴은 dynamic field의 동작과 비슷하게 runtime에서 실패한다.
 
-### Querying length
+### length query
 
 다음 함수 계열을 사용해 모든 collection type의 길이를 질의하고 비어 있는지 확인할 수 있다:
 
@@ -234,7 +234,7 @@ public fun is_empty<K: copy + drop + store, V: store>(
 
 `Bag`에도 이 함수들이 있지만, `Bag`는 그런 type parameter를 가지지 않으므로 `K`와 `V`에 대해 generic하지 않다.
 
-### Querying for containment
+### containment query
 
 Table은 다음으로 key containment를 질의할 수 있다:
 
@@ -262,7 +262,7 @@ public fun contains_with_type<K: copy + drop + store, V: store>(
 
 첫 번째 함수는 `bag`에 key가 `k: K`인 key-value pair가 들어 있는지를 검사하고, 두 번째 함수는 그 value가 type `V`인지 검사한다.
 
-### Clean-up
+### 정리
 
 collection type은 비어 있지 않을 수 있을 때 accidental deletion으로부터 보호한다.
 이 보호는 그 type들이 `drop`을 가지지 않는다는 사실에서 오며, 따라서 이 API를 사용해 명시적으로 삭제해야 한다:
@@ -296,7 +296,7 @@ eligible한 table이 scope를 벗어나기 전에 `drop`이 암묵적으로 호�
 
 `ObjectTable`은 value가 object여야 하고, object는 `id: UID` field를 포함해야 하며 `UID`는 `drop`을 가지지 않으므로 `drop`을 지원하지 않는다.
 
-### Equality
+### 동등성
 
 collection의 equality는 identity를 기반으로 하며, 예를 들어 collection type의 instance는 같은 entry를 가진 모든 collection과 같다고 간주되는 것이 아니라 자기 자신과만 같다고 간주된다:
 

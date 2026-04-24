@@ -1,12 +1,13 @@
 ---
 title: 객체로 전송
 description: Sui에서는 address로 object를 전송하는 것과 동일한 방식으로 object로 object를 전송할 수 있다.
+keywords: [ transfer to object, object transfer, transfer objects, parent-child relationship, object ownership, receiving objects, transfer receive, object id, stable id, custom receiving rules, soul-bound objects, dynamic fields, shared objects, programmable transaction blocks, PTB, receiving argument ]
 ---
 
 
 object를 address로 전송하는 것과 동일한 방식으로, 동일한 함수를 사용하여 object ID로 object를 전송할 수 있다. 이는 Sui에서 address와 object가 모두 32바이트 ID를 사용하며, 두 ID가 구분되지 않기 때문이다(이들은 중복되지 않음이 보장된다). transfer to object 작업은 이 특성을 활용하여 전송 작업의 address 입력에 object ID를 제공할 수 있도록 한다.
 
-:::note
+:::info
 
 [Party 객체](../object-ownership/party)의 경우, 소유 address가 object ID에 해당하는 경우 객체로 전송 메커니즘이 지원되지 않는다.
 
@@ -20,7 +21,7 @@ object를 다른 object로 전송하는 것은 기본적으로 부모–자식 �
 
 transfer to object 작업의 이점 중 하나는, 예를 들어 온체인 지갑이나 계정이 안정적인 ID를 유지할 수 있다는 점이다. object의 전송은 수신 object의 상태와 관계없이 해당 ID에 영향을 주지 않는다. object를 전송하면 해당 object의 모든 자식 object가 함께 이동하며, object의 address는 전송하든, wrap하든, dynamic field로 보유하든 동일하다.
 
-## Transferring to object
+## object로 transfer할 때 고려 사항
 
 일반적인 object 전송과 마찬가지로 수신 object ID가 실제로 존재하는지 확인해야 한다.  또한 수신 object가 immutable object가 아닌지도 확인해야 한다.  immutable object로 전송된 object에는 접근할 수 없다.
 
@@ -48,6 +49,8 @@ transfer::public_transfer(c, @0x0B);
 
 object를 object ID로 전송하면 address로 전송한 것과 동일한 결과가 나오며, object의 소유자는 제공된 32바이트 address 또는 object ID가 된다. 또한 object 전송의 결과에 차이가 없기 때문에 32바이트 ID에 대해 기존 RPC 메서드(예: `getOwnedObjects`)를 사용할 수 있다. ID가 address를 나타내면 메서드는 해당 address가 소유한 object를 반환하고, ID가 object ID이면 메서드는 해당 object ID가 소유한 object(전송된 object)를 반환한다.
 
+## RPC method
+
 ```json
 // address 0xADD가 소유한 object를 가져온다. `b`를 반환한다.
 {
@@ -66,7 +69,7 @@ object를 object ID로 전송하면 address로 전송한 것과 동일한 결과
 }
 ```
 
-## Receiving objects
+## object 받기
 
 object `c`가 다른 object `p`로 전송된 후, `p`는 이를 사용하기 위해 `c`를 수신해야 한다. object `c`를 수신하려면 programmable transaction blocks(PTBs)에서 `Receiving(o: ObjectRef)` 인자 타입을 사용하며, 이는 수신될 object의 `ObjectID`, `Version`, `Digest`를 포함하는 object 참조를 받는다(이는 PTB의 owned object 인자와 동일한 방식이다). 그러나 `Receiving` PTB 인자는 transaction 내에서 owned 값이나 mutable 참조로 전달되지 않는다.
 
@@ -104,72 +107,7 @@ PTB에서 타입 `T`의 전송된 object를 참조하는 각 Receiving 인자는
 
 `sui::transfer::Receiving`은 `drop` ability만 가지므로 `Receiving<T>` 인자의 존재는 `T` 유형의 object를 수신할 수 있는 능력을 나타내지만, PTB 내 object 참조로 지정된 해당 object를 반드시 수신해야 하는 의무는 아니다. `Receiving` 인자는 해당 transaction 동안 PTB에서 `Receiving` 인자를 일부만 사용해도, 전혀 사용하지 않아도, 모두 사용해도 문제가 없다. `Receiving` 인자에 해당하는 object는 수신되지 않는 한 그대로 유지된다(특히 object 참조가 동일하게 유지됨).
 
-## Custom receiving rules
-
-[custom transfer policies](/develop/objects/transfers/custom-rules)와 마찬가지로 Sui는 `key`-only object에 대한 custom receivership 규칙의 정의를 허용한다. 특히 `transfer::receive` 함수는 `transfer::receive`가 호출되는 모듈에 정의된 object에만 사용할 수 있으며, 이는 `transfer::transfer` 함수 사용 규칙과 동일하다.
-
-마찬가지로 `store` ability를 가진 object는 누구나 `transfer::public_receive`로 수신할 수 있다. 이는 `transfer::public_transfer`가 `store` ability를 가진 모든 object를 전송할 수 있는 것과 동일하다.
-
-부모 object가 receivership에 대한 custom 규칙을 정의할 수 있다는 사실과 결합될 때, 자식 object의 ability를 기반으로 object 수신 및 전송되는 object의 ability에 관한 다음의 권한 매트릭스를 반드시 고려해야 한다.
-
-자식의 ability | 부모의 접근 제한 가능 | 자식의 접근 제한 가능
---- | --- | ---
-`key` | Yes | Yes
-`key` + `store` | Yes | No
-
-custom transfer 정책과 마찬가지로 이러한 제약을 결합해 강력한 정책을 설계할 수 있다. 예를 들어 [soul-bound objects](#soul-bound-example)는 custom transfer와 receivership 규칙을 함께 사용해 구현할 수 있다.
-
-## Using SDKs
-
-Transaction 생성 시 `Receiving` 입력은 Sui TypeScript SDK의 다른 object 인자와 거의 동일하게 다룬다. 예를 들어 [Simple Account](#simple-account) 예제에서 ID가 `0xc0ffee` 인 coin object를 당신의 account인 `0xcafe`로 수신하는 transaction을 보내려면 Sui TypeScript SDK 또는 Sui Rust SDK를 사용하여 다음과 같이 수행할 수 있다:
-
-<Tabs groupId="code-language">
-
-<TabItem label="TypeScript" value="typescript">
-
-```ts
-... // Setup TypeScript SDK as normal.
-const tx = new Transaction();
-tx.moveCall({
-  target: `${examplePackageId}::account::accept_payment`,
-  arguments: [tx.object("0xcafe"), tx.object("0xc0ffee")]
-});
-const result = await client.signAndExecuteTransaction({
-      transaction: tx,
-  });
-...
-```
-
-</TabItem>
-
-<TabItem label="Rust" value="rust">
-
-```rust
-... // setup Rust SDK client as normal
-client
-  .transaction_builder()
-  .move_call(
-     sending_account,
-     example_package_id,
-     "account",
-     "accept_payment",
-     vec!["0x2::sui::SUI"],
-     vec![
-       SuiJsonValue::from_object_id("0xcafe"),
-       SuiJsonValue::from_object_id("0xc0ffee") // 0xcoffee is turned into the `Receiving<...>` argument of `accept_payment` by the SDK
-     ])
-  ...
-```
-
-</TabItem>
-</Tabs>
-또한 일반 object 인자에 명시적 object ID, version, digest를 제공하는 `ObjectRef` 생성자가 있는 것처럼, Receiving 인자에도 동일한 인자를 받는 `ReceivingRef` 생성자가 있다.
-
-## Examples
-
-다음 예시는 이전에 전송된 object를 수신하는 방법을 보여준다.
-
-### Receiving objects from shared objects {#receive-shared-example}
+### shared object에서 object 받기 {#receive-shared-example}
 
 일반적으로 모듈에 정의된 shared object에서 전송된 object를 수신할 수 있도록 하려면 동적 권한 검사를 추가한다. 그렇지 않으면 누구나 전송된 object를 수신할 수 있다. 이 예제에서는 shared object(`SharedObject`)는 카운터를 보유하며 누구나 증가시킬 수 있지만, address `0xB0B`만 shared object로부터 object를 수신할 수 있다.
 
@@ -213,7 +151,7 @@ public fun receive_object<T: key + store>(
 }
 ```
 
-### Receiving objects and adding them as dynamic fields {#simple-account}
+### object를 받아 dynamic field로 추가 {#simple-account}
 
 이 예제는 기본 account-type 모델을 정의하며, `Account` object가 dynamic field에 coin 잔액을 저장한다. 이 `Account`는 다른 address나 object로 전송할 수도 있다.
 
@@ -278,7 +216,69 @@ public fun transfer_account(account: Account, to: address, _ctx: &mut TxContext)
 }
 ```
 
-### Soul-bound objects {#soul-bound-example}
+### custom receiving rule
+
+[custom transfer policies](/develop/objects/transfers/custom-rules)와 마찬가지로 Sui는 `key`-only object에 대한 custom receivership 규칙의 정의를 허용한다. 특히 `transfer::receive` 함수는 [`transfer::receive`](/references/framework/sui_sui/transfer#sui_transfer_receive)가 호출되는 모듈에 정의된 object에만 사용할 수 있으며, 이는 [`transfer::transfer`](/references/framework/sui_sui/transfer#sui_transfer_transfer) 함수를 해당 함수가 사용되는 모듈에 정의된 object에만 사용할 수 있는 것과 동일하다.
+
+마찬가지로 `store` ability도 가진 object는 누구나 [`transfer::public_receive`](/references/framework/sui_sui/transfer#sui_transfer_public_receive) 함수로 수신할 수 있다. 이는 [`transfer::public_transfer`](/references/framework/sui_sui/transfer#sui_transfer_public_transfer)가 `store` ability를 가진 모든 object를 전송할 수 있는 것과 동일하다.
+
+부모 object가 receivership에 대한 custom 규칙을 정의할 수 있다는 사실과 결합될 때, 자식 object의 ability를 기반으로 object 수신 및 전송되는 object의 ability에 관한 다음의 권한 매트릭스를 반드시 고려해야 한다.
+
+| Child abilities | Parent can restrict access | Child can restrict access |
+| --------------- | -------------------------- | ------------------------- |
+| `key`           | Yes                        | Yes                       |
+| `key` + `store` | Yes                        | No                        |
+
+custom transfer 정책과 마찬가지로 이러한 제약을 결합해 강력한 정책을 설계할 수 있다. 예를 들어 [soul-bound objects](#soul-bound-example)는 custom transfer와 receivership 규칙을 함께 사용해 구현할 수 있다.
+
+## TypeScript 및 Rust SDK
+
+Transaction 생성 시 `Receiving` 입력은 Sui TypeScript SDK의 다른 object 인자와 거의 동일하게 다룬다. 예를 들어 [Simple Account](#simple-account) 예제에서 ID가 `0xc0ffee`인 coin object를 account `0xcafe`로 수신하는 transaction을 보내려면 [Sui TypeScript SDK](https://sdk.mystenlabs.com/typescript) 또는 [Sui Rust SDK](https://github.com/MystenLabs/sui-rust-sdk)를 사용하여 다음과 같이 수행할 수 있다:
+
+<Tabs groupId="code-language">
+
+<TabItem label="TypeScript" value="typescript">
+
+```ts
+... // Setup TypeScript SDK as normal.
+const tx = new Transaction();
+tx.moveCall({
+  target: `${examplePackageId}::account::accept_payment`,
+  arguments: [tx.object("0xcafe"), tx.object("0xc0ffee")]
+});
+const result = await client.signAndExecuteTransaction({
+      transaction: tx,
+  });
+...
+```
+
+</TabItem>
+
+<TabItem label="Rust" value="rust">
+
+```rust
+... // setup Rust SDK client as normal
+client
+  .transaction_builder()
+  .move_call(
+     sending_account,
+     example_package_id,
+     "account",
+     "accept_payment",
+     vec!["0x2::sui::SUI"],
+     vec![
+       SuiJsonValue::from_object_id("0xcafe"),
+       SuiJsonValue::from_object_id("0xc0ffee") // 0xcoffee is turned into the `Receiving<...>` argument of `accept_payment` by the SDK
+     ])
+  ...
+```
+
+</TabItem>
+</Tabs>
+
+또한 일반 object 인자에 명시적 object ID, version, digest를 제공하는 `ObjectRef` 생성자가 있는 것처럼, Receiving 인자에도 동일한 인자를 받는 `ReceivingRef` 생성자가 있다.
+
+## Soulbound object {#soul-bound-example}
 
 object가 언제, 어떻게 수신될 수 있는지와 언제, 어떻게 전송될 수 있는지를 제어할 수 있는 ability는, transaction에서 값으로 사용할 수 있지만 항상 동일한 위치에 머물러야 하거나 동일한 object로 반환되어야 하는 일종의 *soul-bound* object를 정의할 수 있게 한다.
 

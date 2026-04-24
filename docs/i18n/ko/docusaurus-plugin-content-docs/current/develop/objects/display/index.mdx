@@ -15,7 +15,7 @@ Object Display V1은 이미 이를 지원하던 RPC(JSON-RPC, GraphQL)에서 **7
 
 **권장 사항:** Move 코드에서 display를 만들 때는 `sui::display_registry` API를 사용한다. 중간 단계에서는 `migrate_v1_to_v2` 함수를 사용해 legacy display를 마이그레이션하고 V2 `Display<T>`와 `DisplayCap<T>`를 받는다.
 
-기존 V1 display는 모두 **system snapshot migration**으로 V2에 마이그레이션된다. 사전에 해야 할 일은 없다. 스냅샷 이후 준비가 되면 capability를 claim할 수 있다([V2로 마이그레이션](/develop/objects/display/using-display#migrating-to-v2) 참조).
+기존 V1 display는 모두 **system snapshot migration**으로 V2에 마이그레이션된다. 사전에 해야 할 일은 없다. 스냅샷 이후 준비가 되면 capability를 claim할 수 있다([V2로 마이그레이션](/develop/objects/display/using-display#v2로-migration) 참조).
 
 :::
 

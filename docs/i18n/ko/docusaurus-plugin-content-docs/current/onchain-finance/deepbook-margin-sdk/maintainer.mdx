@@ -16,7 +16,7 @@ keywords:
 
 Maintainer SDK는 margin pool을 관리하고, interest rate를 구성하며, 어떤 DeepBook pool이 margin lending에 액세스할 수 있는지 제어하기 위한 administrative 함수를 제공한다. 이 함수들은 적절한 capability를 가진 maintainer로 제한된다.
 
-## Maintainer functions
+## maintainer function
 
 DeepBook Margin SDK는 pool administration과 configuration을 위한 다음 함수를 제공한다.
 
@@ -24,7 +24,7 @@ DeepBook Margin SDK는 pool administration과 configuration을 위한 다음 함
 
 특정 asset에 대한 새 margin pool을 생성하려면 `createMarginPool`을 사용한다. maintainer capability가 필요하다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `coinKey`: asset 타입을 식별하는 String이다.
 - `poolConfig`: protocol configuration을 나타내는 `TransactionArgument`이다.
@@ -35,7 +35,7 @@ DeepBook Margin SDK는 pool administration과 configuration을 위한 다음 함
 
 margin pool setting과 interest parameter를 결합한 새 protocol configuration object를 생성하려면 `newProtocolConfig`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `coinKey`: asset 타입을 식별하는 String이다.
 - `marginPoolConfig`: pool setting을 포함하는 `MarginPoolConfigParams` object이다.
@@ -47,7 +47,7 @@ margin pool setting과 interest parameter를 결합한 새 protocol configuratio
 
 margin pool configuration object를 생성하려면 `newMarginPoolConfig`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `coinKey`: asset 타입을 식별하는 String이다.
 - `marginPoolConfig`: 다음을 포함하는 `MarginPoolConfigParams` object이다:
@@ -62,7 +62,7 @@ margin pool configuration object를 생성하려면 `newMarginPoolConfig`를 사
 
 interest configuration object를 생성하려면 `newInterestConfig`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `interestConfig`: 다음을 포함하는 `InterestConfigParams` object이다:
   - `baseRate`: base interest rate를 나타내는 Number이다
@@ -76,7 +76,7 @@ interest configuration object를 생성하려면 `newInterestConfig`를 사용�
 
 이 함수들을 사용해 어떤 DeepBook pool이 margin pool에서 차입할 수 있는지 제어한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `deepbookPoolKey`: DeepBook pool을 식별하는 String이다.
 - `coinKey`: margin pool asset을 식별하는 String이다.
@@ -88,7 +88,7 @@ interest configuration object를 생성하려면 `newInterestConfig`를 사용�
 
 margin pool의 interest rate parameter를 업데이트하려면 `updateInterestParams`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `coinKey`: margin pool asset을 식별하는 String이다.
 - `marginPoolCap`: margin pool capability ID를 나타내는 String이다.
@@ -100,7 +100,7 @@ margin pool의 interest rate parameter를 업데이트하려면 `updateInterestP
 
 margin pool의 configuration setting을 업데이트하려면 `updateMarginPoolConfig`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `coinKey`: margin pool asset을 식별하는 String이다.
 - `marginPoolCap`: margin pool capability ID를 나타내는 String이다.
@@ -112,7 +112,7 @@ margin pool의 configuration setting을 업데이트하려면 `updateMarginPoolC
 
 margin pool에서 누적된 maintainer fee를 인출하려면 `withdrawMaintainerFees`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `coinKey`: margin pool asset을 식별하는 String이다.
 - `marginPoolCap`: margin pool capability ID를 나타내는 String이다.
@@ -123,7 +123,7 @@ margin pool에서 누적된 maintainer fee를 인출하려면 `withdrawMaintaine
 
 margin pool에서 누적된 protocol fee를 인출하려면 `withdrawProtocolFees`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `coinKey`: margin pool asset을 식별하는 String이다.
 
@@ -133,17 +133,17 @@ margin pool에서 누적된 protocol fee를 인출하려면 `withdrawProtocolFee
 
 margin pool에서 default referral fee를 인출하려면 `adminWithdrawDefaultReferralFees`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `coinKey`: margin pool asset을 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginMaintainer.ts" mode="code" fun="adminWithdrawDefaultReferralFees" org="MystenLabs" repo="ts-sdks" signatureOnly />
 
-## Examples
+## 예시
 
 다음 예시는 일반적인 maintainer operation을 시연한다.
 
-### Create a margin pool
+### margin pool 생성
 
 ```tsx
 // 예시: USDC margin pool을 생성한다
@@ -174,7 +174,7 @@ createUsdcMarginPool = (tx: Transaction) => {
 };
 ```
 
-### Enable a DeepBook pool for borrowing
+### borrowing용 DeepBook pool enable
 
 ```tsx
 // 예시: SUI/USDC pool이 USDC margin pool에서 차입하도록 허용한다
@@ -189,7 +189,7 @@ enablePoolForBorrowing = (tx: Transaction) => {
 };
 ```
 
-### Update interest rate parameters
+### interest rate parameter update
 
 ```tsx
 // 예시: USDC margin pool 금리를 업데이트한다
@@ -208,7 +208,7 @@ updateInterestRates = (tx: Transaction) => {
 };
 ```
 
-### Update margin pool configuration
+### margin pool configuration update
 
 ```tsx
 // 예시: USDC margin pool 한도를 업데이트한다
@@ -227,7 +227,7 @@ updatePoolConfig = (tx: Transaction) => {
 };
 ```
 
-### Complete pool setup workflow
+### pool setup workflow 완료
 
 ```tsx
 // 예시: 새 margin pool 설정 workflow를 완료한다

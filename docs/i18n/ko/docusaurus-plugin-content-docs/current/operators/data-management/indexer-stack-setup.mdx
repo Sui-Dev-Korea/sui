@@ -9,16 +9,16 @@ keywords: [indexer, consistent store, graphql, setup, dex]
 
 스택에 대한 자세한 내용은 [GraphQL 및 General-purpose Indexer](/develop/accessing-data/custom-indexer/custom-indexers)를 참조하라.
 
-## Indexer setup
+## 인덱서 설정
 
 Indexer는 각 pipeline이 checkpoint 데이터를 읽고, 변환하고, 테이블에 기록하는 여러 pipeline으로 구성된다. 여러 Indexer instance를 병렬로 실행할 수 있으며, 각 instance는 자체 TOML 파일로 구성된다.
 
-#### Hardware requirements
+#### 하드웨어 요구 사항
 
 - **CPU:** instance당 2 cores
 - **Memory:** instance당 4GB
 
-#### Storage requirements
+#### 스토리지 요구 사항
 
 General-purpose Indexer는 Postgres database에 기록한다. 아래 storage footprint 추정치는 2026년 초 기준 네트워크를 바탕으로 하며, 네트워크 성장에 따라 달라질 수 있다. 이 수치는 정확한 값이라기보다 방향성을 보여 주는 참고치로 봐야 한다.
 
@@ -60,7 +60,7 @@ General-purpose Indexer는 Postgres database에 기록한다. 아래 storage foo
 
 각 구성 파일마다 아래 명령으로 Indexer instance를 실행하라. 명령은 pipeline이 prunable인지 unprunable인지에 따라 달라진다.
 
-#### For unprunable pipelines (must start from genesis)
+#### unprunable pipeline용(genesis부터 시작해야 함)
 
 ```sh
 $ sui-indexer-alt indexer \
@@ -69,7 +69,7 @@ $ sui-indexer-alt indexer \
     --remote-store-url <REMOTE_STORE_URL>
 ```
 
-#### For prunable pipelines with retention period
+#### retention period가 있는 prunable pipeline용
 
 ```sh
 $ sui-indexer-alt indexer \
@@ -88,10 +88,10 @@ Prunable pipeline의 경우 retention 기간을 기준으로 `first-checkpoint`�
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `<CONFIG_FILE>`      | Indexer 구성 파일 경로이다. |
 | `<DATABASE_URL>`     | Postgres database connection string이다. |
-| `<REMOTE_STORE_URL>` | indexing에 사용할 checkpoint bucket URL이다. 가능한 여러 [data sources](/develop/accessing-data/custom-indexer/custom-indexers#data-sources) 중 하나를 사용한다. |
+| `<REMOTE_STORE_URL>` | indexing에 사용할 checkpoint bucket URL이다. 가능한 여러 [data sources](/develop/accessing-data/custom-indexer/custom-indexers#데이터-source) 중 하나를 사용한다. |
 | `<CHECKPOINT_NUMBER>`| (선택 사항) Prunable pipeline에서만 사용한다. retention 요구 사항에 따라 indexing을 시작할 checkpoint이다. |
 
-#### Examples
+#### 예시
 
 **Unprunable pipeline(Genesis부터):**
 
@@ -112,7 +112,37 @@ $ sui-indexer-alt indexer \
     --first-checkpoint 89632000
 ```
 
-### Run config recommendations {#indexer-run-config}
+**HTTPS remote store URL(GCS bucket access의 대안):**
+
+```sh
+$ sui-indexer-alt indexer \
+    --config events.toml \
+    --database-url postgres://username:password@localhost:5432/database \
+    --remote-store-url https://checkpoints.mainnet.sui.io \
+    --first-checkpoint 89632000
+```
+
+**Full node gRPC endpoint에서 steady-state operation(권장):**
+
+```sh
+$ sui-indexer-alt indexer \
+    --config events.toml \
+    --database-url postgres://username:password@localhost:5432/database \
+    --rpc-api-url https://fullnode.mainnet.sui.io:443 \
+    --streaming-url https://fullnode.mainnet.sui.io:443
+```
+
+:::info
+
+`https://checkpoints.mainnet.sui.io`는 최근 30일 checkpoint만 보존한다. Mainnet에서 30일보다 오래된 backfill 또는 genesis부터의 backfill에는 `--remote-store-gcs mysten-mainnet-checkpoints-use4`를 통해 `gs://mysten-mainnet-checkpoints-use4`를 사용한다.
+
+사용 중인 checkpoint bucket에 Requester Pays가 활성화되어 있다면 `--remote-store-gcs`를 사용할 때 GCS credential과 billing project를 구성한다. Sui object store config에서 관련 field는 `google_service_account`와 `google_project_id`이다. `google_project_id`는 GCS Requester Pays에 필요한 `x-goog-user-project` header로 전송된다.
+
+Requester Pays에 대한 자세한 내용은 [Use Requester Pays](https://cloud.google.com/storage/docs/using-requester-pays)를 참조한다. Source selection과 steady-state operation guidance는 [Running a Remote Store](/operators/data-management/remote-store-setup) 및 [Archival Stack Setup](/operators/data-management/archival-stack-setup)을 참조한다. 일반적으로 full node gRPC endpoint를 사용할 수 있다면 `https://checkpoints.mainnet.sui.io`를 steady state의 기본 source로 삼지 않는 것이 좋다.
+
+:::
+
+### 실행 config 권장 사항 {#indexer-run-config}
 
 아래 TOML 파일을 사용하라. pipeline 속도별로 묶어 두었으며, 하나의 instance 안에서는 가장 느린 pipeline이 전체를 제한하므로 각 파일은 대략 비슷한 속도로 실행되는 pipeline만 담고 있다.
 
@@ -272,16 +302,16 @@ $ sui-indexer-alt indexer \
 	</tbody>
 </table>
 
-## Consistent store setup
+## Consistent store 설정
 
 모든 Consistent Store pipeline은 하나의 구성 파일을 기반으로 동일한 instance에서 실행된다. Indexer와 마찬가지로 pipeline은 병렬로 실행되며, 처리량은 가장 느린 pipeline에 의해 제한된다.
 
-#### Hardware requirements
+#### 하드웨어 요구 사항
 
 - **CPU:** 8 cores
 - **Memory:** 32GB
 
-### Restore command
+### restore command
 
 GCS bucket의 checkpoint 데이터에서 하나 이상의 pipeline을 복원한다.
 
@@ -305,7 +335,7 @@ $ sui-indexer-alt-consistent-store restore \
 | `<HTTP_ENDPOINT>` \*        | 포멀 스냅샷 API URL이다. |
 | `<OBJECT_FILE_CONCURRENCY>` | Indexer 구성 파일 경로이다. |
 | `<PIPELINE_NAME>`           | 복원할 pipeline 이름이다. 여러 번 지정할 수 있으며, pipeline마다 한 번씩 사용한다. |
-| `<REMOTE_STORE_URL>`        | indexing에 사용할 checkpoint bucket URL이다. 가능한 여러 [data sources](/develop/accessing-data/custom-indexer/custom-indexers#data-sources) 중 하나를 사용한다. |
+| `<REMOTE_STORE_URL>`        | indexing에 사용할 checkpoint bucket URL이다. 가능한 여러 [data sources](/develop/accessing-data/custom-indexer/custom-indexers#데이터-source) 중 하나를 사용한다. |
 | `<S3_BUCKET>` \*            | [managed snapshots](https://docs.sui.io/operators/snapshots#mysten-labs-managed-snapshots)를 담고 있는 AWS S3 bucket의 이름 또는 URL이다. |
 
 \* `<AZURE_BUCKET>`, `<GCS_ACCOUNT>`, `<HTTP_ENDPOINT>`, `<S3_BUCKET>` 중 하나는 반드시 지정해야 한다.
@@ -323,7 +353,7 @@ $ sui-indexer-alt-consistent-store restore \
     --remote-store-url https://checkpoints.mainnet.sui.io
 ```
 
-### Run command
+### run command
 
 다음 구성 파일을 사용해 Consistent Store instance를 실행하라.
 
@@ -338,7 +368,7 @@ $ sui-indexer-alt-consistent-store run \
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `<CONFIG_FILE>`      | Consistent Store 구성 파일 경로이다. |
 | `<DATABASE_PATH>`    | RocksDB database 경로이다. |
-| `<REMOTE_STORE_URL>` | indexing에 사용할 checkpoint bucket URL이다. 가능한 여러 [data sources](/develop/accessing-data/custom-indexer/custom-indexers#data-sources) 중 하나를 사용한다. |
+| `<REMOTE_STORE_URL>` | indexing에 사용할 checkpoint bucket URL이다. 가능한 여러 [data sources](/develop/accessing-data/custom-indexer/custom-indexers#데이터-source) 중 하나를 사용한다. |
 
 예시:
 
@@ -349,7 +379,7 @@ $ sui-indexer-alt-consistent-store run \
     --remote-store-url https://checkpoints.mainnet.sui.io
 ```
 
-### Run config recommendations
+### 실행 config 권장 사항
 
 <table>
 	<thead>
@@ -383,7 +413,7 @@ $ sui-indexer-alt-consistent-store run \
 	<ImportContent source="examples/prod-config/consistent_store.toml" mode="code" />
 </details>
 
-## GraphQL RPC server setup
+## GraphQL RPC server 설정
 
 GraphQL RPC server는 General-purpose Indexer의 database(Postgres), Consistent Store, 그리고 [archival service](/develop/accessing-data/archival-store/using-archival-store)에서 데이터를 읽는다.
 
@@ -395,14 +425,14 @@ GraphQL RPC server는 General-purpose Indexer의 database(Postgres), Consistent 
 </TabItem>
 </Tabs>
 
-#### Hardware requirements
+#### 하드웨어 요구 사항
 
 - **CPU:** instance당 2 cores
 - **Memory:** instance당 4GB
 
 원하는 read throughput 요구 사항에 맞춰 node 수를 조정하라.
 
-### GraphQL RPC server dependencies
+### GraphQL RPC server dependency
 
 GraphQL RPC server는 서로 다른 유형의 query를 처리하기 위해 여러 백엔드 서비스에 의존한다.
 
@@ -442,7 +472,7 @@ sui-indexer-alt-graphql rpc \
 | `CONFIG_FILE`                    | 선택적인 GraphQL RPC server 구성 파일 경로 |
 | `INDEXER_CONFIG_FILE`            | General-purpose Indexer 구성 파일 경로이다. 서로 다른 pipeline에 대해 여러 번 지정할 수 있다 |
 | `LEDGER_GRPC_URL`                | 아카이브 서비스의 `LedgerService` gRPC API URL |
-| `CONSISTENT_STORE_URL`           | [Consistent store](#consistent-store-setup) API URL |
+| `CONSISTENT_STORE_URL`           | [Consistent store](#consistent-store-설정) API URL |
 | `DATABASE_URL`                   | Postgres database connection string |
 | `FULLNODE_RPC_URL`               | 풀 노드 RPC URL |
 
@@ -494,19 +524,19 @@ Indexer와 GraphQL server는 둘 다 공유하는 Postgres-compatible database�
 
 AlloyDB Omni는 vCPU당 8GB RAM을 권장한다 [link](https://docs.cloud.google.com/alloydb/omni/containers/current/docs/plan-installation#hardware). 이보다 적게 할당하면 부하 테스트 중 database가 Indexer와 GraphQL 연결을 종료한다.
 
-#### Hardware requirements
+#### 하드웨어 요구 사항
 
 - **CPU:** 6 cores
 - **Memory:** 48GB
 
 ### Vanilla Postgres
 
-#### Hardware requirements
+#### 하드웨어 요구 사항
 
 - **CPU:** 6 cores
 - **Memory:** 48GB
 
-## Adding a new pipeline
+## 새 pipeline 추가
 
 기존 Indexer에 새 pipeline을 추가하려면 현재 다음 단계가 필요하다:
 
@@ -514,7 +544,35 @@ AlloyDB Omni는 vCPU당 8GB RAM을 권장한다 [link](https://docs.cloud.google
    * 참고: `--first-checkpoint`는 해당 pipeline의 watermark record가 없을 때만 적용된다(즉, pipeline이 이전에 실행된 적이 없어야 한다). 다른 `--first-checkpoint` 값을 사용하려면 watermark record를 수동으로 제거해야 하며, 그렇지 않으면 무시된다.
 2. 새 pipeline이 network tip까지 따라잡으면, 선택적으로 다른 Indexer instance에 병합할 수 있다.
 
-## Reducing indexer pipeline table and index bloat
+## 다른 checkpoint에서 re-indexing
+
+Pipeline이 data indexing을 시작하고 indexer가 watermark를 기록하기 시작하면, 이후 pipeline 실행은 `--first-checkpoint` flag를 무시하고 항상 마지막으로 기록된 checkpoint부터 resume한다.
+
+다른 initial checkpoint에서 다시 시작하고 index하려면 해당 pipeline의 watermark record를 삭제한다. Data inconsistency를 피하려면 해당 pipeline의 기존 data도 삭제한다.
+
+General-purpose indexer가 Postgres에 write하도록 다음 template을 사용한다.
+
+```sql
+BEGIN;
+
+-- One statement per pipeline to re-index
+TRUNCATE TABLE ev_emit_mod;
+
+
+DELETE FROM watermarks
+WHERE pipeline IN (
+-- List all pipelines to re-index
+  'ev_emit_mod'
+);
+
+SELECT * FROM WATERMARKS; -- Verify that the watermark record(s) have been deleted
+
+-- Verify that the tables have been cleared
+
+COMMIT;
+```
+
+## indexer pipeline table 및 index bloat 줄이기
 
 bloat는 테이블 또는 인덱스 안의 데이터 크기와, 그것이 디스크에서 실제로 차지하는 공간 사이의 차이를 뜻한다. pipeline pruning이 활성화된 경우처럼 삽입과 삭제가 계속 비슷한 수로 일어나면 Autovacuum이 bloat를 방지한다. 하지만 삭제되는 row 수가 삽입되는 row 수보다 많아지면 Autovacuum만으로는 처리할 수 없다. 이런 상황은 두 가지 경우에 발생한다.
 

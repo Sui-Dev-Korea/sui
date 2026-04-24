@@ -26,7 +26,7 @@ keywords:
 
 Automated address management는 하나 이상의 Sui 네트워크에 게시된 하나의 패키지에 대해 작동한다. 패키지가 네트워크에 다시 게시되면 해당 네트워크에 대해 추적된 address를 덮어쓰게 된다.
 
-## Adopting automated address management
+## automated address management 도입
 
 이전에는 `Move.toml`의 `published-at` 항목이 **필수**였다. 데이터가 `Move.lock`에서 추적되는 경우에는 더 이상 필요하지 않다. 기존 패키지의 경우 다음과 같이 자동 추적으로 마이그레이션할 수 있다:
 
@@ -69,11 +69,11 @@ Automated address management는 하나 이상의 Sui 네트워크에 게시된 �
 
 ## Package upgrade guidance
 
-[upgrading](/develop/publish-upgrade-packages/upgrade#upgrade-requirements) 시, 패키지의 `UpgradeCap` ID가 필요하다. Automated address management는 `UpgradeCap`을 추적하지 않는다.
+[upgrading](/develop/publish-upgrade-packages/upgrade#업그레이드-요구-사항) 시, 패키지의 `UpgradeCap` ID가 필요하다. Automated address management는 `UpgradeCap`을 추적하지 않는다.
 
 또한 패키지의 `[addresses]` 값을 `Move.toml`에서 `0x0`으로 설정하고, 업그레이드 후 `ORIGINAL-ADDRESS`로 복원해야 한다.
 
-## Troubleshooting
+## 문제 해결
 
 패키지 데이터가 일치하지 않게 되면 address 충돌이 발생할 수 있다.
 
@@ -84,7 +84,7 @@ Automated address management는 하나 이상의 Sui 네트워크에 게시된 �
 - **자신의 패키지의 경우:**
 
     - 더 이상 필요하지 않은 경우 `Move.toml`에서 `published-at` 값을 삭제한다. 그런 다음 `[addresses]`에서 패키지의 address를 `0x0`으로 설정한다.
-    - 또는, 위의 [adoption steps](#adopting-automated-address-management)를 따른다.
+    - 또는, 위의 [adoption steps](#automated-address-management-도입)를 따른다.
 
 - **종속성 패키지의 경우:**
 
@@ -116,5 +116,5 @@ published-version = "1"
 
 - 각 `[env]` 테이블 항목은 하나의 환경을 나타낸다. 패키지가 게시되면 해당 항목이 추가되거나 업데이트된다.
 - 항목은 `[env.NAME]`이 아닌 `chain-id`를 키로 사용한다. 이는 사용자가 임의의 환경 이름을 할당하더라도 address가 일관되게 확인되도록 보장한다.
-- 키-값 쌍은 [adopting automated address management](#adopting-automated-address-management)에서 설명된 데이터에 대응한다. 이러한 값을 수정하기 위한 진입점으로 `sui move manage-package` 명령을 사용한다.
+- 키-값 쌍은 [adopting automated address management](#automated-address-management-도입)에서 설명된 데이터에 대응한다. 이러한 값을 수정하기 위한 진입점으로 `sui move manage-package` 명령을 사용한다.
 :::

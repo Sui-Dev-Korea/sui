@@ -16,7 +16,7 @@ entry fun roll_dice(r: &Random, ctx: &mut TxContext): Dice {
 ```
 
 `Random`은 예약된 address `0x8`을 가진다.
-Sui에서 randomness에 접근하는 Move API는 <UnsafeLink href="/references/framework/sui_sui/random">`random.move`</UnsafeLink>를 참조한다.
+Sui에서 randomness에 접근하는 Move API는 <UnsafeLink href="/references/framework/sui-framework/sui_sui/random">`random.move`</UnsafeLink>를 참조한다.
 
 :::info
 
@@ -59,7 +59,7 @@ transaction당 고려해야 할 다른 제한 resource는 다음과 같다:
 추첨 winner나 lottery number를 고르는 경우처럼 randomness와 무관하게 실행되는 code에서는 이 공격이 문제가 되지 않는 경우가 많다.
 하지만 이 공격이 문제가 될 수 있는 다른 사용 사례에서는 다음 접근법 중 하나를 고려한다.
 
-### Divide logic
+### logic 분리
 
 서로 다른 transaction이 호출해야 하는 2개의 함수로 로직을 나눈다.
 
@@ -84,7 +84,7 @@ Example
 
 </details>
 
-### Resource usage
+### resource usage
 
 주요 처리 경로가 무거운 작업을 수행하고 early-exit 경로는 빠르게 반환하도록 함수를 작성한다.
 다음 사항을 염두에 둔다:
@@ -151,7 +151,7 @@ composition attack으로부터 보호하려면 함수를 private `entry` functio
 
 Move compiler는 `Random`을 인자로 받는 `public` 함수를 거부함으로써 이 동작을 강제한다.
 
-## Programmable transaction block (PTB) restrictions
+## Programmable transaction block(PTB) 제한
 
 앞서 설명한 것과 비슷한 공격은 `play_dice`가 private `entry` function으로 정의되어 있더라도 PTB를 통해 가능하다.
 예를 들어 앞서 정의한 `entry play_dice(guess: u8, fee: Coin<SUI>, r: &Random, ctx: &mut TxContext): Ticket { … }` 함수를 생각해 보면, 공격자는 다음 함수를 게시하고 첫 번째 command의 출력인 `Result(0)`를 사용해 `play_dice(...), attack(Result(0))` command를 가진 PTB를 보낼 수 있다:
@@ -193,7 +193,7 @@ tx.moveCall({
 ...
 ```
 
-## Best practices 
+## 모범 사례
 
 random number에 접근할 수 있다는 것은 secure application을 설계하는 일의 한 부분일 뿐이다.
 randomness를 어떻게 사용하는지도 세심하게 주의해야 한다.

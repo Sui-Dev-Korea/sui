@@ -7,11 +7,17 @@ keywords: [ archival store, archival service, historical data, data retention, l
 
 확장성과 성능을 위해 풀 노드는 제한된 리텐션만 적용하지만, 개발자에게는 온체인 과거 데이터에 대한 장기 접근이 필수적이다. 아카이브 스토어 및 서비스(Archival Store and Service)는 풀 노드나 인덱서 데이터베이스가 일반적으로 유지하는 범위를 넘어서는 Sui 과거 데이터에 접근할 수 있도록 확장 가능하고 일관된 기반을 제공한다. 이 인프라는 GraphQL RPC, gRPC 기반 앱, 데이터 플랫폼의 과거 데이터 기반 역할을 하며, 풀 노드가 데이터를 pruning한 뒤에도 오래된 transactions, checkpoints, object states에 대한 효율적인 포인트 조회를 제공한다.
 
-## When to use
+:::info
+
+<ImportContent source="json-rpc-deprecation" mode="snippet" />
+
+:::
+
+## 사용 시점
 
 개발자와 RPC 및 데이터 제공자 모두 Archival Store and Service를 사용해 이점을 얻지만, 목표와 사용 패턴은 다르다.
 
-### Developers
+### 개발자
 
 - transaction history, object lineage, 이전 앱 상태와 같은 UI 기능을 렌더링하기 위해 과거 데이터에 접근한다.
 - 인프라 오버헤드를 피하기 위해 장기 데이터는 호스팅된 archival service에 의존한다.

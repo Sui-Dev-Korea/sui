@@ -1,52 +1,86 @@
 ---
-title: 스폰서드 트랜잭션
-description: Sponsored transaction은 한 Sui address가 다른 address가 제출한 transaction의 gas fee를 지불하는 경우를 의미한다. Sponsored transaction은 사용자 온보딩을 촉진하고 자산 관리를 단순화하는 데 도움이 된다.
-keywords:
-  - sponsored transaction
-  - how to sponsor a transaction
-  - sponsor a transaction
-  - pay gas for another address
-  - can you pay gas for another address
-  - sponsoring a transaction
-  - paying fee for another user
-  - paying gas for another user
-  - paying for someone else
-  - paying gas for someone else
-  - sponsoring someone's transaction
+title: Sponsored transaction
+description: Sponsored transactions를 사용하면 다른 사용자를 대신해 gas fee를 지불할 수 있어 SUI를 보유하지 않은 사용자의 onboarding friction을 줄일 수 있다.
+keywords: [sponsored transactions, gas station, sponsor a transaction, pay gas for another address, GasData, user onboarding, gas fees]
 ---
 
+Sui에서 transaction을 실행하려면 gas payment가 필요하다. Payment는 `0x2::coin::Coin<0x2::sui::SUI>` object 목록이다.
 
-Sui sponsored transaction은 한 Sui address(sponsor의 address)가 다른 address(사용자의 address)가 초기화한 transaction의 gas fee를 지불하는 것을 의미한다. Sponsored transaction을 사용하면 사이트나 앱의 사용자가 fee를 부담하지 않도록 대신 지불할 수 있다. 이는 Web2 사용자가 Web3로 진입할 때 맞닥뜨리는 on-chain에서 transaction을 수행하기 위해 토큰을 구매해야 하는 중요한 장벽을 제거한다. 예를 들어, 전환율을 높이기 위해 게이머의 초기 transaction을 sponsor할 수 있다.
+Sponsored transactions를 사용하면 다른 사용자를 대신해 gas fee를 지불할 수 있다. 사용자는 SUI를 소유하거나 gas mechanism을 이해하지 않아도 transaction을 실행할 수 있으므로 onboarding friction이 줄어든다. Sponsor는 transaction에 사용할 gas payment object를 제공한다.
 
-Sponsored transaction은 자금 전송을 위해 SUI 토큰을 보유한 여러 계정을 유지할 필요가 없으므로 자산 관리도 용이하게 한다.
+## role
 
-Sui sponsored transaction은 다음과 같은 용도로 사용할 수 있다:
+Sponsored transaction에는 세 가지 role이 있다:
 
-- 사용자가 초기화한 transaction을 sponsor(gas fee 지불)한다.
-- Sponsor로서 초기화한 transaction을 sponsor한다.
-- 사용자에게 와일드카드 `GasData` object를 제공한다. 이 object는 사용자 transaction의 gas fee를 대신 부담한다. `GasData` object는 예산이 충분한 한 해당 transaction에 대해 결정된 모든 fee 금액을 충당한다.
+- **User:** transaction을 실행하려는 entity이다.
 
-## Potential risks using sponsored transactions
+- **Gas station:** user transaction에 gas payment object를 제공하는 service이다.
 
-Sponsored transaction을 사용할 때 가장 중요한 잠재적 위험은 [equivocation](/references/sui-glossary#equivocation)이다. 일부 조건에서는 sponsored transaction이 Sui validators가 검사할 때 gas를 포함한 연관된 모든 owned object가 locked 상태가 되는 결과를 초래할 수 있다. 이중 지출을 방지하기 위해 validators는 transaction을 검증할 때 object를 lock한다. Equivocation은 owned object의 쌍(`ObjectID`, `SequenceNumber`)이 여러 개의 확정되지 않은 transaction에서 동시에 사용될 때 발생한다.
+- **Sponsor:** gas station에 자금을 제공하는 entity이다.
 
-Equivocation을 일으키려면 사용자 또는 sponsor가 원래 transaction의 owned object를 조작하려는 또 다른 transaction에 서명하고 제출해야 한다. Owned object는 오직 소유자만 사용할 수 있으므로 이 조건을 발생시킬 수 있는 이는 사용자와 sponsor뿐이다.
+Gas station과 sponsor는 같은 entity인 경우가 많다. 예를 들어 Web3 gaming company는 user acquisition 중 free-to-play experience를 제공하기 위해 자체 gas station을 운영할 수 있다. 또는 자체 운영 대신 third-party gas station service를 사용할 수도 있다.
 
-## Create a user-initiated sponsored transaction
+## 데이터 구조
 
-사용자에 의해 초기화된 sponsored transaction은 다음 단계들을 포함한다:
+Sponsored transaction의 data structure는 다음과 유사하다:
 
-1. 사용자가 `GasLessTransactionData` transaction을 초기화한다.
-2. 사용자가 `GasLessTransactionData`를 sponsor에게 보낸다.
-3. Sponsor는 transaction을 검증하고 gas fee가 포함된 `TransactionData`를 구성한 뒤 해당 `TransactionData`에 서명한다.
-4. Sponsor는 서명된 `TransactionData`와 sponsor의 `Signature`를 사용자에게 다시 보낸다.
-5. 사용자는 `TransactionData`를 검증 후 서명하고 이중 서명된 transaction을 full node 또는 sponsor를 통해 Sui network로 보낸다.
+```rust
+pub struct SenderSignedTransaction {
+    pub intent_message: IntentMessage<TransactionData>,
+    /// A list of signatures signed by all transaction participants.
+    /// 1. non participant signature must not be present.
+    /// 2. signature order does not matter.
+    pub tx_signatures: Vec<GenericSignature>,
+}
 
-### GasLessTransactionData
+pub struct TransactionDataV1 {  // <-- A variant of `TransactionData`
+    pub kind: TransactionKind,  // <-- This is the actual transaction details
+    pub sender: SuiAddress,
+    pub gas_data: GasData,
+    pub expiration: TransactionExpiration,
+}
 
-`GasLessTransactionData`는 기본적으로 `GasData`가 없는 `TransactionData`이다. 이는 `sui-core` 데이터 구조가 아니며, 사용자와 sponsor 사이의 인터페이스일 뿐이다.
+pub struct GasData {
+    pub payment: Vec<ObjectRef>,
+    pub owner: SuiAddress,
+    pub price: u64,
+    pub budget: u64,
+}
+```
 
-다음 예시는 `GasLessTransactionData` object를 구성한다.
+앞의 code에서 주목할 부분은 다음과 같다:
+
+- `TransactionDataV1`(`TransactionData`의 variant)의 `sender`는 user address이다.
+
+- `TransactionDataV1`의 `gas_data`는 gas payment이다.
+
+- `GasData`는 gas object 목록을 허용하지만, 동일한 address가 이를 소유해야 한다. 즉 `GasData`의 `owner`인 sponsor가 소유해야 한다. `owner`가 `sender`와 같으면 regular 또는 non-sponsored transaction이다.
+
+- `SenderSignedTransaction`의 `tx_signatures`는 signature 목록이다. Sponsored transaction에서는 user와 sponsor의 signature가 어떤 순서로든 모두 포함되어야 한다. Signature는 `GasData`를 포함한 전체 `TransactionData`에 대해 서명된다.
+
+올바른 sponsored transaction을 구성하려면 먼저 `TransactionData` object를 build해야 한다. user도 sponsor도 아니라면 transaction을 두 당사자 모두에게 전달해 서명하게 한다. sponsor라면 transaction에 서명한 다음 transaction과 signature를 다른 당사자에게(`SenderSignedTransaction` 형태로) 전달하여 서명하게 한다. 실제로는 후자가 더 일반적인 scenario이다.
+
+## `GasData` object를 사용해 sponsored transaction 생성
+
+`GasData` object를 사용해 transaction의 gas fee를 sponsor하려면 transaction에 대해 결정된 fee를 충당하는 `GasData` object를 만든다. User는 fee가 얼마인지 알거나 승인할 필요가 없다.
+
+`GasData` object를 사용하는 sponsor transaction은 다음 단계로 이루어진다:
+
+1. sponsor가 user에게 `GasData` object를 제공한다.
+
+1. user가 `TransactionData`를 구성하고 서명하여 `Signature`를 생성한다.
+
+1. user가 `TransactionData`와 `Signature`를 sponsor에게 보낸다.
+
+1. sponsor가 `TransactionData`를 확인한 다음 서명한다.
+
+1. sponsor가 dual-signed `TransactionData`를 full node에 submit하여 transaction을 실행한다.
+
+### `GasLessTransactionData`
+
+`GasLessTransactionData`는 `GasData`가 없는 `TransactionData`이다. 이는 `sui-core` data structure가 아니라 user와 sponsor 사이의 interface일 뿐이다.
+
+다음 예시는 `GasLessTransactionData` object를 구성한다:
 
 ```rust
 pub struct GasLessTransactionData {
@@ -56,109 +90,96 @@ pub struct GasLessTransactionData {
 }
 ```
 
-## Create a sponsor-initiated sponsored transaction
+### User proposed transaction 단계
 
-Sponsor에 의해 초기화된 sponsored transaction은 다음 단계를 포함한다:
+Gas payment를 제공하기 전에 transaction이 승인된 application 범위 안에 있는지 검토한다.
 
-1. Sponsor는 transaction 세부 정보와 관련 gas fee 데이터를 포함하는 `TransactionData` object를 구성한다. Sponsor는 이를 사용자에게 보내기 전에 서명하여 `Signature`를 생성한다. 서명되지 않은 `TransactionData`는 email, SMS, 또는 애플리케이션 인터페이스를 통해 보낼 수 있다.
-2. 사용자는 transaction을 확인하고 서명하여 해당 transaction의 두 번째 `Signature`를 생성한다.
-3. 사용자는 이중 서명된 transaction을 Sui full node 또는 sponsor에게 제출하여 실행한다.
+User-proposed sponsored transaction은 다음 단계로 이루어진다:
 
-Sponsor에 의해 초기화된 sponsored transaction은 광고주로서 사용하거나 사용자가 gas fee를 지불하지 않고 특정 행동을 하도록 인센티브를 제공하기 위해 사용할 수 있다.
+1. user가 `GasLessTransactionData` transaction을 초기화한다.
 
-## Create sponsored transactions using a GasData object
+1. user가 `GasLessTransactionData`를 sponsor에게 보낸다.
 
-Transaction의 gas fee를 sponsor하기 위해 `GasData` object를 사용하려면, 해당 transaction에 대해 결정된 fee를 대신 지불하는 `GasData` object를 생성한다. 이는 오직 gas fee를 대신 지불하는 데만 사용할 수 있는 백지 수표를 사용자에게 제공하는 것과 유사하다. 사용자는 fee가 얼마인지 알거나 이를 승인할 필요가 없다.
+1. sponsor가 transaction을 validate하고 gas fee가 포함된 `TransactionData`를 구성한 다음 `TransactionData`에 서명한다.
 
-`GasData` object를 사용하는 sponsor transaction은 다음 단계를 포함한다:
+1. sponsor가 signed `TransactionData`와 sponsor `Signature`를 user에게 다시 보낸다.
 
-1. Sponsor는 사용자에게 `GasData` object를 제공한다.
-2. 사용자는 `TransactionData`를 구성하고 서명하여 `Signature`를 생성한다.
-3. 사용자는 `TransactionData`와 `Signature`를 sponsor에게 보낸다.
-4. Sponsor는 `TransactionData`를 확인하고 서명한다.
-5. Sponsor는 이중 서명된 `TransactionData`를 full node에 제출하여 transaction을 실행한다.
+1. user가 `TransactionData`를 verify한 다음 서명하고 dual-signed transaction을 full node 또는 sponsor를 통해 Sui network에 보낸다.
 
-## Create a Sui gas station
+([swimlane link](https://swimlanes.io/d/wAcnOpA_h))
 
-Sui에서 가스 스테이션(gas station)은 사용자 transaction을 sponsor하기 위한 프로세스를 설정하는 장소를 설명하는 개념이다. 필요한 특정 사용자 지향 기능을 지원하도록 Sui 가스 스테이션을 커스터마이즈할 수 있다. Sui 가스 스테이션의 예시 유즈 케이스는 다음과 같다:
+![](https://static.swimlanes.io/b090340af36c8a4af6c36d4479a4d04f.png)
 
-- 네트워크의 실시간 gas price를 모니터링하여 station이 제공할 gas price를 결정한다.
-- 네트워크에서 사용자에게 제공된 gas 사용량을 추적한다.
-- 비용을 최소화하거나 잠금 상태에서 비유동적으로 남아 있는 대량의 잠금된 object 위험을 줄이기 위해 특정 gas object를 사용하는 등 gas pool 관리를 수행한다.
+### Sponsor proposed transaction 단계
 
-### Authorization and rate limiting
+Sponsor는 rewards claim 또는 promotional offer 같은 transaction을 제안하고 user는 이를 실행할지 결정한다. Sponsor proposed sponsored transaction은 다음 단계로 이루어진다:
 
-가스 스테이션의 성격에 따라 악의적 행위자에 의한 스팸을 방지하기 위해 다양한 권한 규칙을 적용할 수 있다. 가능한 정책은 다음을 포함한다:
+1. sponsor가 transaction detail과 관련 gas fee data를 포함하는 `TransactionData` object를 구성한다. Sponsor는 user에게 보내기 전에 서명하여 `Signature`를 생성한다. Unsigned `TransactionData`는 email, SMS 또는 application interface를 통해 보낼 수 있다.
 
-- 계정 또는 IP address별로 gas 요청을 rate limit한다.
-- 별도의 rate limit을 가진 유효한 authorization header가 있는 요청만 수락한다.
+1. user가 transaction을 확인하고 서명하여 transaction의 두 번째 `Signature`를 생성한다.
 
-### Abuse detection
+1. user가 dual-signed transaction을 Sui full node 또는 sponsor에 submit하여 실행한다.
 
-Sponsor로서 제공하는 모든 gas object에 대해 사용자가 equivocation을 시도하여 object를 잠그려는지를 추적해야 한다. 이러한 행동을 감지하면 해당 사용자 또는 요청자를 적절히 차단한다.
+Sponsor proposed transaction은 advertiser로서 사용하거나 user가 gas fee를 지불하지 않고 특정 action을 수행하도록 incentive를 제공할 때 사용할 수 있다.
 
-## Code examples to create a Sui gas station
+([swimlane link](https://swimlanes.io/#ZZE9T8QwDIb3/ApvLIWBsQMSEh8DEkI6mInb+O6itk4VOxInxH8nqe76AVki+X392G+iXnuq4fYGdmNgCRHeYhiDkIP3iCzYqg9syuGg2WmstWZMDYjG1Ora9YCK8G0gn2LoPLt6rb/kQjXLQuwo1rBL/t65SCKLdkD5dJlWwzNKwS4SfY0+YsFt2I9zuTI/047mEuj67pKthjmlHj13ki+CD6EIA56gIfCslFfRHN8zIOgyoQJkB2G/pyhZsefNLKDAiKeBWDczC7YG++d97EQ5264ExB8YNUUyZtpjbmyP1Hbb+cX7H7g0PqW+fw0uf5KkZvAKLmE/deU4K9Iv))
 
-다음 Rust SDK 코드 예시는 앞서 설명한 각 sponsored transaction 유형을 지원하는 Sui 가스 스테이션을 구현하는 방법을 보여준다.
+![](https://static.swimlanes.io/d917884a263c494bb6127102d0f64840.png)
 
-### User-initiated sponsored transactions
+### Wildcard gas payment 처리
 
-API endpoint를 사용하여 `GaslessTransaction` transaction을 수신하고 단독 서명된 `SenderSignedData` object를 반환한다.
+Sponsor는 제한이 거의 없는 모든 valid transaction을 sponsor한다.
+
+- **Gasless wallets:** user가 제안하는 모든 valid transaction을 sponsor하는 데 동의한다.
+
+- **Rewards or discounts:** budget 내에서 어떤 transaction이든 실행하는 wildcard gas payment를 제공한다.
+
+([swimlane link](https://static.swimlanes.io/ee3962b3ac3cc5d34f317cecdde125b0.png))
+
+![](https://static.swimlanes.io/ee3962b3ac3cc5d34f317cecdde125b0.png)
+
+## API endpoint 예시
 
 ```rust
+// User-initiated: receive GaslessTransaction, return signed TransactionData
 pub fn request_gas_and_signature(gasless_tx: GaslessTransaction) -> Result<SenderSignedData, Error>;
-```
 
-### Sponsored transactions with GasData objects
+// Wildcard: return a GasData object for the user
+pub fn request_gas(/* requirements */) -> Result<GasData, Error>;
 
-API endpoint를 사용하여 단독 서명된 `SenderSignedData`를 수신하고 transaction의 결과를 반환한다.
-
-```rust
+// Submit a single-signed transaction, sponsor signs and executes
 pub fn submit_sole_signed_transaction(sole_signed_data: SenderSignedData) -> Result<(Transaction, CertifiedTransactionEffects), Error>;
-```
 
-또는 API endpoint를 사용하여 GasData object를 반환한다.
-
-```rust
-pub fn request_gas(/*requirement data*/) -> Result<GasData, Error>;
-```
-
-### User and sponsor-initiated transaction
-
-API endpoint를 사용하여 이중 서명된 `SenderSignedData`를 수신하고 transaction의 결과를 반환한다.
-
-```rust
+// Submit a dual-signed transaction for execution
 pub fn submit_dual_signed_transaction(dual_signed_data: SenderSignedData) -> Result<(Transaction, CertifiedTransactionEffects), Error>;
 ```
 
-사용자에 의해 초기화된 transaction 및 sponsor에 의해 초기화된 transaction의 경우, 사용자는 이중 서명된 transaction을 sponsor 또는 full node를 통해 제출할 수 있다.
+## Risk consideration
 
-## Sponsored transaction data structure
+Sponsored transactions에는 여러 party가 관여하므로 추가 risk가 생긴다.
 
-다음 코드 블록은 sponsored transaction을 위한 `TransactionData` 구조와 `GasObject`를 설명한다. Sui GitHub repository에서 [source code](https://github.com/MystenLabs/sui/blob/224a28ed9dece21a952547896bd5d794bdf8b562/crates/sui-types/src/transaction.rs)를 볼 수 있다.
+### Client equivocation
 
-**`TransactionData` Structure**
+Client equivocation은 같은 version의 owned object(예: gas coin)를 하나 이상 공유하는 여러 valid transaction이 network에 동시에 submit될 때 발생한다.
 
-```rust
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
-pub struct TransactionDataV1 {
-    pub kind: TransactionKind,
-    pub sender: SuiAddress,
-    pub gas_data: GasData,
-    pub expiration: TransactionExpiration,
-}
-```
+Transaction이 submit되면 validator는 owned object를 현재 version에서 lock한다. 각 validator는 object version마다 하나의 transaction만 accept하고 나머지는 reject한다. Validator가 competing transaction을 서로 다른 순서로 받을 수 있으므로 서로 다른 transaction을 accept할 수 있다. 단일 transaction이 validator의 3분의 2 이상에게 accept되지 않으면 owned object는 epoch 끝까지 locked 상태로 남는다.
 
-**`GasData` Structure**
+Client equivocation은 드물며 보통 buggy client software에서 발생한다. 그러나 sponsored transactions는 counterparty risk를 추가한다:
 
-```rust
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
-pub struct GasData {
-    pub payment: Vec<ObjectRef>,
-    pub owner: SuiAddress,
-    pub price: u64,
-    pub budget: u64,
-}
-```
+- malicious user가 gas station의 signed transaction에 포함된 owned object를 사용하는 competing transaction을 submit하여 gas station의 gas coin을 lock할 수 있다.
 
-Sui에서 transaction에 대해 더 알아보려면 [트랜잭션 개요](./index)을 참조하라.
+- malicious gas station도 user-owned object를 유사하게 lock할 수 있다.
+
+이러한 risk를 완화하려면:
+
+- gas station은 user behavior를 monitor하고 anomaly를 flag해야 한다.
+
+- user와 sponsor 모두 counterparty의 reputation을 고려해야 한다.
+
+- 양 당사자는 `GasData`를 포함한 전체 `TransactionData`에 서명해야 한다. 이렇게 하면 malicious full node 같은 third party가 partially signed data를 intercept하여 equivocation을 일으키는 것을 방지할 수 있다.
+
+### Censorship risk
+
+Dual-signed transaction을 full node에 직접 submit하지 않고 sponsor 또는 gas station을 통해 submit하면 sponsor가 transaction을 network에서 delay하거나 withhold할 수 있다.
+
+이 risk를 피하려면 transaction을 full node에 직접 submit한다.

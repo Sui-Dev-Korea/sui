@@ -27,9 +27,9 @@ keywords:
 ---
 
 
-order 배치는 모든 DeepBook 통합의 주요 기능이다. 하지만 order를 배치하기 전에 먼저 balance manager를 설정해야 한다. balance manager 설정에 대한 정보는 [DeepBookV3 SDK](/onchain-finance/deepbookv3-sdk)를 참조한다.
+order 배치는 모든 DeepBook 통합의 주요 기능이다. 하지만 order를 배치하기 전에 먼저 balance manager를 설정해야 한다. balance manager 설정에 대한 정보는 [DeepBookV3 SDK](/onchain-finance/deepbookv3-sdk/deepbookv3-sdk)를 참조한다.
 
-## Order functions
+## 주문 함수
 
 DeepBookV3 SDK는 pool에 대해 order를 leverage하기 위한 다음 함수를 제공한다.
 
@@ -37,7 +37,7 @@ DeepBookV3 SDK는 pool에 대해 order를 leverage하기 위한 다음 함수를
 
 limit order를 배치하려면 `placeLimitOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `params`: swap의 parameter를 나타내는 `SwapParams` object이다.
 
@@ -47,7 +47,7 @@ limit order를 배치하려면 `placeLimitOrder`를 사용한다. 이 호출은 
 
 market order를 배치하려면 `placeMarketOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `params`: swap의 parameter를 나타내는 `SwapParams` object이다.
 
@@ -61,7 +61,7 @@ market order를 배치하려면 `placeMarketOrder`를 사용한다. 이 호출�
 `orderId`는 order 배치 중 생성되는 프로토콜 `orderId`이며, client `orderId`와는 다르다.
 :::
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: borrow할 pool을 식별하는 String이다.
 - `balanceManagerKey`: `BalanceManager`를 식별하는 String이다.
@@ -73,7 +73,7 @@ market order를 배치하려면 `placeMarketOrder`를 사용한다. 이 호출�
 
 order ID array를 제공하여 여러 order를 atomic하게 취소하려면 `cancelOrders`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `balanceManagerKey`: `BalanceManager`를 식별하는 String이다.
@@ -85,7 +85,7 @@ order ID array를 제공하여 여러 order를 atomic하게 취소하려면 `can
 
 제공한 key에 해당하는 balance manager에 대해 모든 order를 취소하려면 `cancelAllOrders`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: borrow할 pool을 식별하는 String이다.
 - `balanceManagerKey`: `BalanceManager`를 식별하는 String이다.
@@ -96,7 +96,7 @@ order ID array를 제공하여 여러 order를 atomic하게 취소하려면 `can
 
 quantity를 변경하여 기존 order를 수정하려면 `modifyOrder`를 사용한다. 새 quantity는 원래 quantity보다 작고 filled quantity보다 커야 한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `balanceManagerKey`: `BalanceManager`를 식별하는 String이다.
@@ -109,7 +109,7 @@ quantity를 변경하여 기존 order를 수정하려면 `modifyOrder`를 사용
 
 특정 pool에서 balance manager에 대한 모든 settled amount를 인출하려면 `withdrawSettledAmounts`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `balanceManagerKey`: `BalanceManager`를 식별하는 String이다.
@@ -120,18 +120,18 @@ quantity를 변경하여 기존 order를 수정하려면 `modifyOrder`를 사용
 
 어떤 balance manager에 대해서도 settled amount를 permissionless하게 인출하려면 `withdrawSettledAmountsPermissionless`를 사용한다. 누구나 호출할 수 있으며 trade proof가 필요하지 않다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `balanceManagerKey`: `BalanceManager`를 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/deepbook.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="withdrawSettledAmountsPermissionless" signatureOnly/>
 
-## Examples
+## 예시
 
 다음 예시는 DeepBookV3 order에 대한 일부 custom 함수를 시연한다.
 
-### Limit orders
+### limit order
 
 서로 다른 order type과 self matching option에 대해서는 [주문](../deepbookv3/contract-information/orders)를 참조한다.
 
@@ -210,7 +210,7 @@ customPlaceMarketOrder = (tx: Transaction) => {
 };
 ```
 
-### Cancel an order
+### order cancel
 
 balance manager에 대해 pool에서 단일 order를 취소하는 예시이다.
 
@@ -234,7 +234,7 @@ cancelOrder = (tx: Transaction) => {
 };
 ```
 
-### Cancel all orders
+### 모든 order cancel
 
 balance manager에 대해 pool에서 모든 order를 취소하는 예시이다.
 

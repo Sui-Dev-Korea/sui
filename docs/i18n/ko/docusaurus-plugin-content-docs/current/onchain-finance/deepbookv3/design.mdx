@@ -29,7 +29,7 @@ keywords:
 
 <p class="flex justify-center">![1](./images/DBv3Architecture.png)</p>
 
-## Pool shared object {#pool}
+## pool shared object {#pool}
 
 모든 공개 함수는 `Pool` shared object를 가변 또는 불변 참조로 받는다. `Pool`은 다음 세 가지 구성 요소로 이루어진다:
 
@@ -41,17 +41,17 @@ keywords:
 
 <p class="flex justify-center">![Pool Modules](./images/pool.png)</p>
 
-### Book
+### book
 
 이 구성 요소는 메인 `Book` 모듈과 `Fill`, `OrderInfo`, `Order` 모듈로 이루어진다. `Book` struct는 매수 또는 매도용 `BigVector<Order>` object 두 개와 일부 메타데이터를 유지한다. `Orders`의 저장, 매칭, 수정, 제거를 담당한다.
 
 주문 시 먼저 `OrderInfo`가 생성된다. 해당되는 경우 기존 maker 주문과 먼저 매칭되며 그 과정에서 `Fill`이 누적된다. 남은 수량은 `Order` object를 만들어 book에 주입하는 데 사용된다. Book 처리 종료 시점에는 `OrderInfo` object에 모든 관련 사용자와 전체 state를 갱신할 정보가 갖춰진다.
 
-### State
+### state
 
 `State`는 `Governance`, `History`, `Account`를 저장한다. 모든 요청을 처리하며, 저장된 struct 중 최소 하나를 갱신한다.
 
-#### Governance
+#### governance
 
 `Governance` 모듈은 pool의 거래 파라미터들과 관련된 데이터를 저장한다. 이 파라미터들은 taker 수수료, maker 수수료, 필요 stake가 포함된다. 필요 stake는 taker, maker 인센티브를 받기 위해 사용자가 해당 pool에 stake해야 하는 DEEP 토큰 수량을 의미한다.
 
@@ -88,7 +88,7 @@ keywords:
 
 <p class="flex justify-center">![DeepBookV3 Governance Timeline](./images/governance.png)</p>
 
-#### History
+#### history
 
 `History` 모듈은 현재 epoch 및 이전 epoch에 대한 집계 거래량, 거래 파라미터, 수집 수수료, 소각 대상 수수료를 저장한다. 주문 처리 중 fill은 총 거래량 계산 및 갱신에 사용된다. 또한 해당 거래의 maker가 충분한 stake를 보유한 경우 총 stake 거래량도 갱신된다.
 
@@ -107,7 +107,7 @@ keywords:
 
 요약하면, epoch 동안 총 거래량이 최근 28일 중앙값보다 크면 리베이트는 없다. 중앙값 대비 거래량이 낮을수록 리베이트가 더 많이 주어진다. epoch당 최대 리베이트는 해당 epoch에 수집된 DEEP 총량과 같다. 남은 DEEP은 소각된다.
 
-#### Account
+#### 계정
 
 `Account`는 단일 사용자와 그에 관한 데이터를 나타낸다. 거래량, stake, 투표한 제안, 미수령 리베이트, 이체할 잔액과 관련된 모든 것이 포함된다. `BalanceManager`와 `Account`는 1대1 관계이다.
 
@@ -115,7 +115,7 @@ keywords:
 
 각 계정에는 정산 잔액과 미납 잔액이 있다. 정산 잔액은 pool이 사용자에게 갚아야 할 금액이고, 미납 잔액은 사용자가 pool에 갚아야 할 금액이다. 예를 들어 주문 시 사용자의 미납 잔액이 늘어나 그 주문에 사용자가 지불해야 할 자금을 나타낸다. 그다음 다른 사용자가 메이커 주문을 체결하면 메이커의 정산 잔액이 늘어나 메이커에게 지급될 자금을 나타낸다.
 
-### Vault
+### vault
 
 사용자가 DeepBookV3에서 수행하는 모든 transaction은 해당 사용자의 정산, 미납 잔액을 초기화한다. 볼트는 이 잔액을 사용자 대신 처리하며, `BalanceManager`에서 자금을 차감하거나 추가한다.
 
@@ -129,13 +129,13 @@ keywords:
 
 B+ Tree의 노드는 `BigVector`에 매달린 개별 dynamic field로 저장된다.
 
-## Place limit order flow
+## limit order 배치 flow
 
 주문 배치 동작의 생명 주기를 보여주는 다음 다이어그램은 book, state, vault 순의 흐름을 시각화하는 데 도움이 된다.
 
 <p class="flex justify-center">![Place limit order flow](./images/placeorder.png)</p>
 
-### Pool
+### pool
 
 `Pool` 모듈에서 사용자 입력 파라미터로 `place_order_int`가 호출된다. 이 함수에서는 다음 네 가지가 순서대로 일어난다:
 
@@ -144,7 +144,7 @@ B+ Tree의 노드는 `BigVector`에 매달린 개별 dynamic field로 저장된�
 3. `State` 함수 `process_create`가 호출된다.
 4. `Vault` 함수 `settle_balance_manager`가 호출된다.
 
-### Book
+### book
 
 Book 내 주문 생성에는 다음 세 가지 주요 작업이 포함된다:
 
@@ -160,7 +160,7 @@ Book 내 주문 생성에는 다음 세 가지 주요 작업이 포함된다:
 
 방향이나 주문 유형에 관계없이 DeepBookV3 매칭은 단일 함수에서 처리된다.
 
-### State
+### state
 
 `State`의 `process_create` 함수는 pool state 내 주문 생성 이벤트 처리를 담당하며, 주문에 대한 transaction 금액과 수수료를 계산하고 계정 거래량을 이에 맞게 갱신한다.
 
@@ -168,7 +168,7 @@ Book 내 주문 생성에는 다음 세 가지 주요 작업이 포함된다:
 
 마지막으로 함수는 taker와 메이커 수수료를 반영해 부분 taker fill과 메이커 주문 수량(해당되는 경우)을 계산한다. 이를 계정의 기존 정산 및 미납 잔액에 더한다. 거래 이력은 해당 주문에서 수집된 총 수수료로 갱신되고, 정산 및 미납 잔액 두 튜플이 (base, quote, DEEP) 형식으로 `Pool`에 반환되어 `Vault`에서 올바른 자산이 이체되도록 한다.
 
-### Vault
+### vault
 
 `Vault`의 `settle_balance_manager` 함수는 `BalanceManager`에 대한 정산 및 미납 금액의 이체를 관리한다.
 

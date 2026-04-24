@@ -36,7 +36,7 @@ public fun new_policy<T>(
 
 ## Allow and disallow
 
-어떤 조건도 없이 action을 허용하려면 `token::allow` 함수를 사용한다. 이 함수는 `TokenPolicy`와 `TokenPolicyCap`을 인자로 받는다. 허용된 경우 `token::confirm_request` 함수를 사용해 `TokenPolicy`에서 action을 confirm할 수 있다(참고: [`ActionRequest`](./action-request#confirming-with-tokenpolicy)).
+어떤 조건도 없이 action을 허용하려면 `token::allow` 함수를 사용한다. 이 함수는 `TokenPolicy`와 `TokenPolicyCap`을 인자로 받는다. 허용된 경우 `token::confirm_request` 함수를 사용해 `TokenPolicy`에서 action을 confirm할 수 있다(참고: [`ActionRequest`](./action-request#tokenpolicy로-confirm)).
 
 ```move
 // module sui::token

@@ -23,7 +23,7 @@ provider가 아직 gRPC를 지원하지 않는다면 다음과 같이 할 수 �
 </TabItem>
 </Tabs>
 
-## Field masks
+## 필드 마스크
 
 protocol buffer의 [`FieldMask`](https://protobuf.dev/reference/protobuf/google.protobuf/#field-mask)는 message 안의 field 부분집합을 읽거나, 업데이트하거나, 반환하도록 지정하는 메커니즘이다.
 전체 object를 가져오는 대신 client는 field path 목록을 제공해 필요한 field만 요청할 수 있다.
@@ -42,7 +42,7 @@ Field mask는 `google.protobuf.FieldMask`를 사용해 정의되며, 보통 requ
 
 - 어떤 경우에는 standard `FieldMask` 동작으로는 전형적이지 않더라도, non-terminal repeated field가 mask에서 지원될 수 있다.
 
-## Field presence
+## 필드 존재 여부
 
 Sui와 함께 gRPC를 사용할 때는 특히 `proto3` syntax를 다룰 때 [field presence](https://github.com/protocolbuffers/protobuf/blob/main/docs/field_presence.md)가 어떻게 동작하는지 이해하는 것이 중요하다.
 `proto3`에서는 숫자, Boolean, string 같은 primitive field가 message에 없으면 항상 기본값으로 초기화된다.
@@ -58,7 +58,7 @@ proto에서 field가 `optional`로 표시되어 있더라도 request가 유효�
 
 :::
 
-## Encoding
+## 인코딩
 
 Sui gRPC API에서 standard human-readable format을 가지는 identifier는 proto schema에서 `string`으로 표현된다:
 
@@ -68,7 +68,7 @@ Sui gRPC API에서 standard human-readable format을 가지는 identifier는 pro
 
 - `TypeTag`와 `StructTag`: canonical string format으로 표현된다(예: `0x0000000000000000000000000000000000000000000000000000000000000002::coin::Coin<0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI>`)
 
-## Pagination
+## 페이지네이션
 
 account balance나 owned object처럼 데이터 목록을 반환하는 gRPC API를 사용할 때는 보통 pagination을 처리해야 한다.
 이 API는 결과를 chunk 단위로 반환하고 다음 batch를 요청하는 데 도움이 되는 token을 포함한다.
@@ -84,7 +84,7 @@ server가 비어 있는 `next_page_token`을 반환하면 목록의 끝에 도�
 paginated call 사이에는 request의 나머지 parameter를 모두 동일하게 유지해야 한다.
 그렇지 않으면 server가 `INVALID_ARGUMENT` error로 request를 거부할 수 있다.
 
-## Errors
+## 오류
 
 Sui gRPC service는 [AIP-193](https://google.aip.dev/193)에 정의된 [richer error model](https://grpc.io/docs/guides/error/#richer-error-model)을 따른다.
 RPC가 non-OK status code를 반환할 때는 보통 자세한 error 정보가 `grpc-status-details-bin` header에 포함된다.
@@ -93,7 +93,7 @@ RPC가 non-OK status code를 반환할 때는 보통 자세한 error 정보가 `
 이 message를 decode하면 특정 원인, context, metadata를 포함할 수 있는 구조화된 error detail에 접근할 수 있다.
 이 덕분에 client application에서 error를 이해하고 프로그래밍 방식으로 처리하기가 더 쉬워진다.
 
-## HTTP headers
+## HTTP header 설정
 
 많은 gRPC 응답에서 Sui API는 추가 metadata를 HTTP header 형태로 포함한다.
 이 header는 현재 network 상태에 대한 contextual information을 제공하며, debugging, telemetry, 또는 데이터 신선도 이해에 유용할 수 있다.
@@ -119,11 +119,11 @@ RPC가 non-OK status code를 반환할 때는 보통 자세한 error 정보가 `
 모든 API 응답에 모든 header가 반드시 존재하는 것은 아니다.
 주어진 RPC에 적용될 때만 포함된다.
 
-## Access data using `grpcurl`
+## `grpcurl`로 데이터 접근
 
 [`grpcurl`](https://github.com/fullstorydev/grpcurl)을 사용해 gRPC와 상호작용한다. 
 
-### List available gRPC services
+### 사용 가능한 gRPC service 나열
 
 ```shell
 $ grpcurl <full node URL:port> list
@@ -131,43 +131,43 @@ $ grpcurl <full node URL:port> list
 
 Sui Foundation이 관리하는 full node의 port는 `443`이다. 
 
-### List available APIs in the `LedgerService`
+### `LedgerService`에서 사용 가능한 API 나열
 
 ```shell
 $ grpcurl <full node URL:port> list sui.rpc.v2.LedgerService
 ```
 
-### Get the events and effects details of a particular transaction
+### 특정 transaction의 event와 effect detail 가져오기
 
 ```shell
 $ grpcurl -d '{ "digest": "J4NvV5iQZQFm1xKPYv9ffDCCPW6cZ4yFKsCqFUiDX5L4" }' <full node URL:port> sui.rpc.v2.LedgerService/GetTransaction
 ```
 
-### Get the transactions in a particular checkpoint
+### 특정 checkpoint의 transaction 가져오기
 
 ```shell
 $ grpcurl -d '{ "sequence_number": "164329987", "read_mask": { "paths": ["transactions"]} }' <full node URL:port> sui.rpc.v2.LedgerService/GetCheckpoint
 ```
 
-### Get the latest information for a coin type
+### Coin type의 최신 정보 가져오기
 
 ```shell
 $ grpcurl -d '{ "coin_type": "0x2::sui::SUI" }' <full node URL:port> sui.rpc.v2.StateService/GetCoinInfo
 ```
 
-### List the objects owned by a particular address
+### 특정 address가 own한 object 나열
 
 ```shell
 $ grpcurl -d '{ "owner": "0x94096a6a54129234237759c66e6ef1037224fb3102a0ae29d33b490281c8e4d5" }' <full node URL:port> sui.rpc.v2.StateService/ListOwnedObjects
 ```
 
-### List the dynamic fields in a particular object
+### 특정 object의 dynamic field 나열
 
 ```shell
 $ grpcurl -d '{ "parent": "0xb57fba584a700a5bcb40991e1b2e6bf68b0f3896d767a0da92e69de73de226ac" }' <full node URL:port> sui.rpc.v2.StateService/ListDynamicFields
 ```
 
-## Access streaming data with Buf
+## Buf로 streaming data 접근
 
 `grpcurl`은 server-side streaming RPC를 지원하지 않는다.
 `SubscriptionService`를 테스트하거나 실험하려면 대신 [Buf CLI](https://buf.build/docs/cli/)를 사용한다.
@@ -178,11 +178,11 @@ $ buf curl --protocol grpc https://<full node URL>/sui.rpc.v2.SubscriptionServic
 
 
 
-## Build gRPC clients
+## gRPC client build 방법
 
 :::info
 
-gRPC client를 만들 때는 [supported SDKs](/develop/accessing-data/data-serving#supported-sdks) 중 하나를 사용하는 것을 권장한다. 해당 SDK가 사용 사례를 충족하지 못하면 아래 예시를 참조한다.
+gRPC client를 만들 때는 [supported SDKs](/develop/accessing-data/data-serving#지원-sdk) 중 하나를 사용하는 것을 권장한다. 해당 SDK가 사용 사례를 충족하지 못하면 아래 예시를 참조한다.
 :::
 
 <Tabs groupId="language">
@@ -191,7 +191,7 @@ gRPC client를 만들 때는 [supported SDKs](/develop/accessing-data/data-servi
 
 이 예시는 Sui gRPC API용 TypeScript client를 만드는 방법을 보여준다. 
 
-#### Step 1: Install dependencies
+#### Step 1: dependency install 실행
 
 ```shell
 npm init -y
@@ -215,7 +215,7 @@ npm i -D tsx
 
 모든 `sui/rpc/v2` proto file을 [Github](https://github.com/MystenLabs/sui-apis/tree/main/proto)에서 같은 folder로 다운로드한다.
 
-#### Step 2: Edit `client.ts` to get events and effects details of a particular transaction
+#### Step 2: 특정 transaction의 event와 effect detail을 가져오도록 `client.ts` 편집
 
 ```ts
 import * as grpc from '@grpc/grpc-js';
@@ -264,7 +264,7 @@ client.GetTransaction(request, (err: any, response: any) => {
 });
 ```
 
-#### Step 3: Run the sample client
+#### Step 3: sample client 실행
 
 ```shell
 npx tsx c
@@ -282,7 +282,7 @@ npx tsx c
 
 이 예시는 Sui gRPC API용 Go client를 만드는 방법을 보여준다. 
 
-#### Step 1: Install dependencies
+#### Step 1: dependency install 실행
 
 먼저 환경에 `go`와 `protoc`가 설치되어 있는지 확인한 뒤, 다음을 설치한다:
 
@@ -291,8 +291,7 @@ go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 ```
 
-#### Step 2: Edit `go.mod` 
-
+#### Step 2: `go.mod` 편집
 아래 내용을 추가하되 version number는 최신 버전으로 업데이트한다:
 
 ```go
@@ -302,7 +301,7 @@ require (
 )
 ```
 
-#### Step 3: Generate Go code from proto files
+#### Step 3: proto file에서 Go code 생성
 
 [Github](https://github.com/MystenLabs/sui-apis/tree/main/proto)에서 `v2` proto file을 받았다고 가정하고 다음을 실행한다:
 
@@ -310,7 +309,7 @@ require (
 protoc --proto_path=./protos --go_out=. --go-grpc_out=. protos/sui/rpc/v2/ledger_service.proto
 ```
 
-#### Step 4: Edit `main.go` to get events and effects details of a particular transaction
+#### Step 4: 특정 transaction의 event와 effect detail을 가져오도록 `main.go` 편집
 
 ```go
 package main
@@ -364,7 +363,7 @@ func main() {
 }
 ```
 
-#### Step 5: Run the sample client
+#### Step 5: sample client 실행
 
 `go.mod`이 올바르게 설정되어 있고 gRPC code(`*.pb.go`, `*_grpc.pb.go`)를 이미 생성했다면 다음을 실행한다:
 
@@ -392,7 +391,7 @@ request의 digest는 `Base58` format으로 직접 제공되지만, source format
 이 예시는 Sui gRPC API용 Python client를 만드는 방법을 보여준다.
 선택적으로 community contributed SDK인 [`pysui`](https://github.com/FrankC01/pysui/)를 참조할 수 있다.
 
-#### Step 1: Install dependencies
+#### Step 1: dependency install 실행
 
 먼저 환경에 `python`과 `protoc`가 설치되어 있는지 확인한 뒤, 다음을 설치한다:
 
@@ -400,7 +399,7 @@ request의 digest는 `Base58` format으로 직접 제공되지만, source format
 pip install grpcio grpcio-tools protobuf
 ```
 
-#### Step 2: Generate Python code from proto files
+#### Step 2: proto file에서 Python code 생성
 
 [Github](https://github.com/MystenLabs/sui-apis/tree/main/proto)에서 `v2` proto file을 받았다고 가정하고 다음을 실행한다:
 
@@ -408,7 +407,7 @@ pip install grpcio grpcio-tools protobuf
 python -m grpc_tools.protoc -I./protos --python_out=. --grpc_python_out=. ./protos/sui/rpc/v2/ledger_service.proto
 ```
 
-#### Step 3: Edit `client.py` to get events and effects details of a particular transaction
+#### Step 3: 특정 transaction의 event와 effect detail을 가져오도록 `client.py` 편집
 
 ```python
 import grpc
@@ -438,7 +437,7 @@ if __name__ == "__main__":
     main()
 ```
 
-#### Step 4: Run the sample client
+#### Step 4: sample client 실행
 
 ```shell
 python client.py

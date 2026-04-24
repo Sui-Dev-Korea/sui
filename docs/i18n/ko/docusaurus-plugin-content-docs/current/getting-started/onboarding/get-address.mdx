@@ -1,63 +1,225 @@
 ---
-title: Sui 주소 만들기
-description: NFT 거래를 시작하고, SUI 토큰을 구매하거나  기타 transaction을 수행하려면 Sui 네트워크의 address가 필요하다.
-keywords:
-  - get an address
-  - sui address
-  - how to get sui address
-  - sui wallets
-  - slush
-  - suiet
-  - glass wallet
-  - martian extension
-  - surf wallet
-  - private keys
+title: Sui address 생성
+description: Package를 build하고 object를 소유하려면 Sui network의 address가 필요하다.
+keywords: [ create an address, sui address, how to get sui address, sui wallets, slush, suiet, glass wallet, martian extension, surf wallet, private keys ]
 pagination_prev: null
 pagination_next: null
 ---
 
+Address는 blockchain network에서 고유하고 익명인 identity이다. Sui에서 address는 다음을 수행할 수 있는 onchain location을 나타낸다:
 
-address는 Sui 블록체인 네트워크에 존재하는 계정을 고유하고 익명으로 식별하는 방법이다. 즉, address는 사용자가 개인 식별 정보(이메일 주소, 전화번호 등)를 제공하지 않고 Sui 네트워크에서 토큰을 저장하고 사용할 수 있는 방법이다. 예를 들어, 게임을 하기 위해 여러 SUI 토큰을 구매하려면 이러한 토큰이 입금될 address를 지정해야 한다.
+- token을 hold하고 send한다.
 
-Sui address는 고유하며, 사회보장번호나 개인 식별번호가 한 사람에게 고유한 것과 유사하다. 그러나 Sui에서는 여러 address를 생성하고 소유할 수 있으며, 모두 고유하다.
+- NFT와 Move package 같은 object를 own한다.
 
-Sui에서 address는 32바이트이며 종종 `0x` 접두사가 있는 16진수로 인코딩된다. 예를 들어, 이것은 유효한 Sui address이다: `0x02a212de6a9dfa3a69e22387acfbafbb1a9e591bd9d636e7895dcfc8de05f331`. Sui 네트워크 탐색기를 사용하여 이 address와 이 address가 소유한 object에 대한 자세한 정보를 찾을 수 있다.
+- transaction을 submit하고 smart contract와 interact한다.
 
-## How to obtain a Sui address
+Address를 만들기 위해 personally identifying information을 제공할 필요는 없다. 한 사람이 여러 address를 만들고 소유할 수 있다.
 
-Sui는 Sui address를 얻는 여러 방법을 제공한다. 다음은 가장 일반적인 두 가지 방법이다.
+모든 Sui address는 고유한 32-byte identifier이며, [alias](#address-alias)로 참조하지 않는 한 `0x` prefix가 있는 hexadecimal encoding으로 표시된다. 예:
 
-### Command line interface
+```
+0x02a212de6a9dfa3a69e22387acfbafbb1a9e591bd9d636e7895dcfc8de05f331
+```
 
-Sui 명령줄 인터페이스(CLI)를 사용하여 Sui 네트워크와 상호 작용하는 경우 `sui client`  명령을 사용하여 새 address를 생성할 수 있다. 기본적으로 Sui CLI가 처음 실행될 때 로컬 지갑을 설정하라는 메시지가 표시되며, 그런 다음 하나의 Sui address와 관련 비밀 복구 구문을 생성한다. 비밀 복구 구문을 적어서 안전한 곳에 보관해야 한다.
+Cryptographic hash function은 public key를 생성하고 모든 address는 이 public key에서 파생된다. 각 public key에는 address와 address가 소유한 object에 access하는 corresponding private key가 있다. Address와 관련 key pair를 합쳐 account라고 한다.
 
-새 Sui address를 생성하려면 ``sui client new-address ed25519`를 사용하며, 이 명령은 키 쌍 체계 플래그를 `ed25519` 유형으로 지정한다.
+Sui address가 파생되는 방식과 cryptography 관련 topic은 [Learn more](/develop/transactions/transaction-auth/auth-overview)을 참조한다.
 
-자세한 내용은 [Sui Client CLI](/references/cli/client) 문서를 참조한다.
+## Sui address 얻기
 
-컴퓨터의 로컬 지갑에 생성된 모든 address를 보려면 `sui keytool list`를 실행한다. keytool 옵션에 대한 자세한 내용은 [Sui Keytool CLI](/references/cli/keytool) 문서를 참조한다.
+:::caution
+
+[Configure a Sui Client](/getting-started/onboarding/configure-sui-client)에서 이미 address가 있거나 새 address를 만들었다면 onboarding step을 계속하기 위해 [Get SUI from Faucet](/getting-started/onboarding/get-coins)로 건너뛸 수 있다.
+
+:::
+
+<Tabs className="tabsHeadingCentered--small">
+<TabItem value="prereq" label="Prerequisites">
+
+- [x] [Download and install Sui](/getting-started/onboarding/sui-install).
+
+- [x] [Configure your Sui client](/getting-started/onboarding/configure-sui-client).
+
+</TabItem>
+</Tabs>
+
+기본적으로 Sui client가 처음 실행되면 [configure the client](/getting-started/onboarding/configure-sui-client)를 요청한다. 이 initial configuration은 새 Sui address, key pair, 관련 secret recovery phrase를 생성한다.
+
+Initial client configuration 외부에서 새 Sui address를 만들려면 다음을 실행한다:
+
+```
+$ sui client new-address ed25519
+```
+
+이 command는 key pair scheme을 `ed25519` type으로 지정한다.
+
+<ImportContent source="crypto-schemes" mode="snippet" />
+
+### recovery phrase
+
+모든 Sui address에는 recovery phrase가 있다. Recovery phrase는 address의 key pair에 대한 access를 잃었을 때 address를 복구하는 데 사용하는 무작위 12개 word series이다.
 
 :::danger
 
-Sui address와 관련된 개인 키는 CLI가 설치된 해당 기기의 `~/.sui/sui_config/sui.keystore` 파일에 로컬로 저장된다. 계정에 대한 액세스를 얻는 데 사용할 수 있으므로 이를 누구에게도 노출하지 않도록 해야 한다.
+Sui는 recovery phrase를 한 번만 표시한다. System은 이를 어디에도 자동으로 저장하지 않으며, 직접 저장하지 않으면 다시 가져올 수 없다.
+
+Recovery phrase는 address가 소유한 모든 object와 token에 access할 수 있게 하므로 안전하게 보관하고 누구와도 공유하지 않는다.
 
 :::
 
-### Sui wallets
+Recovery phrase를 사용해 address를 복구하려면 다음 command를 사용한다:
 
-처음 사용하는 사용자가 Sui address를 얻는 가장 직관적인 방법 중 하나는 Sui 네트워크에 액세스하는 지갑을 이용하는 것이다. CLI 옵션과 달리 Sui 네트워크에 연결된 지갑은 일부 사용자에게 더 나을 수 있는 시각적 워크플로를 제공한다. Sui Foundation은 이러한 유형의 지갑을 제공하지 않으나, Sui 네트워크의 빌더가 제공하는 여러 옵션이 있다.
+```
+$ sui keytool import '<RECOVERY_PHRASE>' <KEY_SCHEME>
+```
 
-다음 Chrome 확장 지갑은 브라우저에 통합되며 address를 생성하는 과정을 단계별로 안내하는 UI 워크플로를 제공한다. address를 얻는 정확한 과정은 선택한 확장의 문서를 확인한다.
+`<RECOVERY_PHRASE>`를 12-word recovery phrase로 바꾼다. 전체 recovery phrase는 single quotation mark `'`로 감싸야 한다. Word는 올바른 순서로 입력해야 한다.
 
-:::info
+`<KEY_SCHEME>`을 address를 처음 만들 때 사용한 encryption type(예: `ed25519`)으로 바꾼다.
 
-이 확장 프로그램에 대한 링크는 편의를 위해 제공된다. 목록에 포함된 것은 어떠한 종류의 지지, 추천 또는 승인도 아니다. 사용할 확장 프로그램을 결정하기 전에 자체적으로 실사를 수행한다.
+성공하면 CLI가 address를 restore하고 CLI output에 출력한다.
+
+## `sui.keystore`
+
+Sui는 각 address의 private key를 macOS/Linux 또는 Windows system의 `~/.sui/sui_config/sui.keystore` 또는 `%USERPROFILE/.sui/sui_config/sui.keystore` file에 저장한다.
+
+이 file에는 다음과 유사한 content가 들어 있다:
+
+```
+[
+  "AK6q1/Yzz5qmTfHGLot4wkbRP5lP5NUQVDlf3FggLrKZ",
+  "ADAWAFS+J9KcDjFmAiVI/e9ZluG0id9AnI6a7Bk5tH+G",
+  "AJ42rQfCrPIfrQvzCgeHVDCcQZ4R1qAzKtob61VTw5k5",
+  "AHoKrY7DDnUOq2RgP7gXLPa86bFfzqEMvmOs7TmHtST+"
+]
+```
+
+System에서 새 address를 만들면 해당 address의 private key로 구성된 새 line이 이 file에 추가된다. 다른 사람이 account에 access하는 데 사용할 수 있으므로 누구에게도 노출하지 않는다.
+
+:::danger
+
+`sui.keystore` file은 website password, fingerprint 같은 biometric data 또는 다른 authentication credential을 포함하는 machine의 local keystore와 **같지 않다**. Machine의 local keystore는 Sui에서 transaction에 서명하고 submit할 수 없다. `sui.keystore` file에 포함된 associated key가 있는 address만 transaction에 서명하고 submit할 수 있다.
 
 :::
 
-- [Slush — A Sui wallet](https://chromewebstore.google.com/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil): 이전에 Sui Wallet으로 알려졌던 Slush는 Sui를 구축한 팀인 Mysten Labs에서 만든 지갑이다.
-- [Suiet | Sui Wallet](https://chromewebstore.google.com/detail/suiet-sui-wallet/khpkpbbcccdmmclmpigdgddabeilkdpd): Sui 블록체인 위에 구축된, 모든 사용자를 위한 Suiet 지갑이다.
-- [Glass wallet](https://chromewebstore.google.com/detail/glass-wallet-sui-wallet/loinekcabhlmhjjbocijdoimmejangoa): Glass Wallet은 코인, 키, NFT를 안전하게 제어할 수 있는 non-커스터디 지갑이다.
-- [Martian Aptos &amp; Sui Wallet Extension](https://chromewebstore.google.com/detail/martian-aptos-sui-wallet/efbglgofoippbgcjepnhiblaibcnclgk): Martian은 Aptos와 Sui용 셀프 커스터디 암호화 지갑이다.
-- [Surf Wallet](https://chromewebstore.google.com/detail/surf-wallet/emeeapjkbcbpbpgaagfchmcgglmebnen): Surf Wallet은 블록체인에서 토큰 전송과 NFT 수집을 편리하고 안전하게 할 수 있는 플랫폼이다.
-- 사용 가능한 Sui 지갑 확장 프로그램의 전체 목록은 [chrome web store](https://chromewebstore.google.com/search/sui%20wallet)를 방문한다.
+## address alias
+
+Alias는 Sui address의 전체 32-byte hexadecimal string 대신 사용할 수 있는 human-readable name이다. Script와 CLI command에서 address를 더 쉽게 참조하기 위해 address를 사용할 수 있는 모든 곳에서 alias를 사용할 수 있다.
+
+Address를 만들면 Sui는 기본적으로 random alias를 할당한다. 다음 command로 address의 current alias를 볼 수 있다:
+
+```
+$ sui client addresses
+```
+
+Output에는 address, alias, local address가 여러 개 있는 경우 active address 표시가 포함된다:
+
+```
+╭───────────────────────┬────────────────────────────────────────────────────────────────────┬────────────────╮
+│ alias                 │ address                                                            │ active address │
+├───────────────────────┼────────────────────────────────────────────────────────────────────┼────────────────┤
+│ vigorous-spinel       │ 0x6ebb36a3c1ab2124c082d93f60f518f70494b82d8d13c5aabb3abad6ec8cd82d │ *              │
+╰───────────────────────┴────────────────────────────────────────────────────────────────────┴────────────────╯
+```
+
+그런 다음 alias를 다른 값으로 update하려면 다음 command를 사용한다:
+
+```
+$ sui keytool update-alias <OLD-ALIAS> <NEW-ALIAS>
+```
+
+이제 command에서 address 대신 alias를 사용할 수 있다. 예:
+
+```
+$ sui client objects <NEW-ALIAS>
+```
+
+## 모든 local Sui address 보기
+
+Active address는 Sui client가 현재 사용하는 address이다. Command에서 `--address` flag로 달리 지정하지 않는 한 이 address가 만든 object와 submit한 transaction을 소유한다.
+
+Current active address를 보려면 다음 command를 사용한다:
+
+```
+$ sui client active-address
+```
+
+Local machine의 모든 address를 보려면 다음을 실행한다:
+
+```
+$ sui keytool list
+```
+
+이 command는 모든 address와 해당 alias, public key, key scheme, peer ID를 반환한다.
+
+```
+╭────────────────────────────────────────────────────────────────────────────────────────────╮
+│ ╭─────────────────┬──────────────────────────────────────────────────────────────────────╮ │
+│ │ alias           │  vigorous-spinel                                                     │ │
+│ │ suiAddress      │  0x6ebb36a3c1ab2124c082d93f60f518f70494b82d8d13c5aabb3abad6ec8cd82d  │ │
+│ │ publicBase64Key │  AKDCajKN877Uc7o8NP2cQVJkSewhq1ZbWgw5LgpWVqbj                        │ │
+│ │ keyScheme       │  ed25519                                                             │ │
+│ │ flag            │  0                                                                   │ │
+│ │ peerId          │  a0c26a328df3bed473ba3c34fd9c41526449ec21ab565b5a0c392e0a5656a6e3    │ │
+│ ╰─────────────────┴──────────────────────────────────────────────────────────────────────╯ │
+╰────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+`keytool` command에 대한 자세한 내용은 [Sui Keytool CLI](/references/cli/keytool) documentation을 참조한다.
+
+### active address 변경
+
+다른 address로 전환하려면 먼저 active address와 전환 가능한 address를 확인한다:
+
+```
+$ sui client addresses
+```
+
+그런 다음 다른 address로 전환하려면 다음 command를 사용한다:
+
+```
+$ sui client switch --address <ADDRESS>
+```
+
+## address 정보 query
+
+Sui network explorer를 사용해 address, token balance, address가 소유한 object에 대한 자세한 정보를 찾을 수 있다. Popular Sui explorer는 다음과 같다:
+
+- [SuiVision](https://suivision.xyz/)
+
+- [SuiScan](https://suiscan.xyz/mainnet/accounts)
+
+:::danger
+
+Explorer에 표시되는 data는 address를 만든 network에 따라 다르다. 이전에 [Configure a Sui Client](/getting-started/onboarding/configure-sui-client) page를 따라왔다면 Testnet을 사용하고 있을 가능성이 높다. Sui explorer에서 Testnet을 선택하거나 https://**testnet**.suivision.xyz/ 같은 dedicated URL을 사용해야 한다.
+
+:::
+
+CLI에서 address가 소유한 모든 object를 보려면 다음 command를 사용한다:
+
+```
+$ sui client objects <ADDRESS>
+```
+
+Address를 제공하지 않으면 이 command는 active address가 소유한 모든 object를 반환한다.
+
+<div className="next-steps-module">
+  <div className="next-steps-header">
+    <h3>Next steps</h3>
+  </div>
+  <div className="next-steps-grid">
+    <Card className="plausible-event-name=address+faucet+button"
+      title="Get SUI from Faucet"
+      href="/getting-started/onboarding/get-coins"
+    >
+      Faucet에서 SUI를 받아 Testnet에 package를 deploy한다.
+    </Card>
+        <Card className="plausible-event-name=address+hello+button"
+      title="Hello, World!"
+      href="/getting-started/onboarding/hello-world"
+    >
+      "Hello, World!" project를 clone하고 build한다.
+    </Card>
+  </div>
+</div>

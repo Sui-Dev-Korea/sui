@@ -4,11 +4,11 @@ description: Sui 네트워크에서 checkpoints는 블록체인의 이력을 정
 ---
 
 
-실행 이전에 블록을 생성하는 전통적인 블록체인과 달리, Sui는 transaction 실행 이후에 checkpoints를 생성하여 체인 이력에 대한 인증된 기록을 제공한다. Checkpoints에는 이전 checkpoint의 cryptographic hash, checkpoint에 포함된 모든 transaction digests 및 이에 대응하는 transaction effects digests의 목록, 그리고 checkpoint 생성 시점에 위원회를 구성하던 validators의 [quorum](/develop/sui-architecture/consensus#quorums) (3분의 2 초과)으로부터의 서명 집합이 포함된다.
+실행 이전에 블록을 생성하는 전통적인 블록체인과 달리, Sui는 transaction 실행 이후에 checkpoints를 생성하여 체인 이력에 대한 인증된 기록을 제공한다. Checkpoints에는 이전 checkpoint의 cryptographic hash, checkpoint에 포함된 모든 transaction digests 및 이에 대응하는 transaction effects digests의 목록, 그리고 checkpoint 생성 시점에 위원회를 구성하던 validators의 [quorum](/develop/sui-architecture/consensus#quorum) (3분의 2 초과)으로부터의 서명 집합이 포함된다.
 
-둘 다 [validators](/operators/validator/index)와 [full nodes](/operators/full-node/sui-full-node)는 네트워크와 동기화를 유지하기 위해 checkpoints를 소비한다.
+둘 다 [validators](/operators/validator/)와 [full nodes](/operators/full-node/sui-full-node)는 네트워크와 동기화를 유지하기 위해 checkpoints를 소비한다.
 
-## Verifying checkpoints
+## checkpoint 검증
 
 풀 노드와 validators는 checkpoint를 신뢰하기 위해 이를 검증한다. 이 검증은 Sui [validator committee](/operators/validator/validator-rewards)가 그것을 생성했고 그것이 진본임을 확인한다.
 
@@ -29,7 +29,7 @@ Checkpoint verification에는 서로 의존적인 두 단계가 필요하다:
 
 이 과정은 client가 현재 시점까지의 모든 checkpoints를 검증할 수 있도록 한다.
 
-## Checkpoint commitments
+## checkpoint commitment
 
 Client가 checkpoint를 검증한 이후에는 해당 정보를 사용하여 transaction을 실행하고 결과를 확인할 수 있다.
 

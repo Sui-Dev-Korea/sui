@@ -9,7 +9,7 @@ Sui에서 epoch은 네트워크가 정의하는 시간 구간이다. 이 시간 
 
 Epoch 값은 모든 [트랜잭션](/develop/transactions/txn-overview)의 metadata에 포함된다. transaction은 설정된 epoch 이전에 실행되는 경우에만 유효하다.
 
-## Equivocation
+## equivocation
 
 Sui에서 [object versioning](/develop/objects/versioning)은 각 [object](/develop/sui-architecture/object-model)가 `SequenceNumber`가 object의 version을 가리키는 고유한 (`ObjectId`, `SequenceNumber`) 쌍으로 참조되도록 보장한다. 특정 version에서 object를 수정할 수 있는 transaction은 하나뿐이다. transaction이 object를 수정한 후에는 version이 증가한다. 이후 transactions에서는 최신 version만 사용할 수 있다. Object versioning은 transactions와 epochs 전반에서 objects의 상태를 추적한다.
 
@@ -19,15 +19,15 @@ _Equivocation_ 은 owned object 쌍(`ObjectId`, `SequenceNumber`)이 여러 비-
 
 - user 또는 smart contract가 첫 번째 transaction이 final되기 전에 동일한 (`ObjectId`, `SequenceNumber`)를 사용하는 두 개의 transactions를 제출하는 경우.
 
-- [smart contract](/getting-started/onboarding/hello-world) 코드의 의도치 않은 logic traps, 예를 들어 [sponsored transactions](/develop/transaction-payment/sponsor-txn#client-equivocation-risk)을 처리할 때.
+- [smart contract](/getting-started/onboarding/hello-world) 코드의 의도치 않은 logic traps, 예를 들어 [sponsored transactions](/develop/transaction-payment/sponsor-txn#client-equivocation)을 처리할 때.
 
-### Locked objects
+### locked object
 
 두 transactions가 모두 final되지 않았더라도 equivocated transactions를 제출하면 개발자와 사용자 모두에게 다른 문제가 계속 발생한다. 예를 들어 equivocation이 감지되면 관련 objects는 현재 epoch이 끝날 때까지 lock된다. 어느 transaction도 진행할 수 없고 해당 objects는 다른 어떤 transaction에서도 사용할 수 없다. 악의적인 행위자는 중요 objects를 lock하고 의도적으로 앱을 방해하기 위해 equivocated transactions를 의도적으로 제출할 수 있다.
 
 smart contract에서 객체가 의도치 않게 잠기는 문제가 발생하면 [자주 발생하는 오류 해결하기](/develop/testing-debugging/common-errors) 문서를 참고한다. [`sui-tool`](https://github.com/MystenLabs/sui/tree/main/crates/sui-tool) 유틸리티를 설치하고 `locked-object` 명령을 사용해 특정 RPC 네트워크(`--fullnode-rpc-url` 값)에서 전달한 자산의 locked 상태를 확인할 수 있다. address를 제공하면 `locked-object`는 해당 address가 소유한 모든 gas objects가 lock되었는지 확인한다. 특정 object가 lock되었는지 확인하려면 object ID를 전달하라. 명령이 대상으로 삼는 object를 해제하려면 `--rescue` 플래그를 포함하라. object가 아직 validators의 과반수에 의해 lock되지 않았다면 rescue가 가능하다.
 
-### Double spending
+### double spending
 
 user가 여러 transactions에서 동일한 coin object로 gas를 지불하려 할 때도 equivocation이 발생할 수 있다.
 
@@ -35,11 +35,11 @@ Sui의 versioning 아키텍처는 일련의 transactions 전반에서 동일한 
 
 double spending을 방지하기 위해 validators는 transactions를 검증하면서 objects를 lock한다.
 
-### Punishment for equivocation
+### equivocation에 대한 penalty
 
 Sui 네트워크에는 equivocation에 관여하는 validators를 처벌하기 위한 보호 장치가 있다. Sui의 object versioning은 equivocation을 방지하도록 설계되었지만 처벌은 여전히 필요하다. 예방만으로는 사용자가 equivocation을 시도하는 transactions를 제출하는 것을 막지 못하며, 이는 objects를 lock하고 네트워크 사용성을 저하시킨다. Equivocation에 대한 처벌은 우발적이거나 의도적인 남용 모두를 억제하여 개발자가 자신의 코드가 우발적으로 equivocation을 일으키지 않도록 동기를 부여한다.
 
-## Common pitfalls to avoid
+## 피해야 할 일반적인 pitfall
 
 1. 대부분의 smart contracts에서 equivocation은 의도된 동작이 아니다. 의도치 않은 equivocation의 흔한 원천은 같은 address가 수행하는 여러 transactions에서 나온다. gas fees를 적절히 처리하지 않으면 하나 이상의 transaction에 같은 [coin](/onchain-finance/fungible-tokens/coin)과 version을 사용하려다 smart contract를 lock할 수 있다.
 
@@ -51,7 +51,7 @@ Sui 네트워크에는 equivocation에 관여하는 validators를 처벌하기 �
 
     **Recommendation**: 여러 owned objects를 만드는 것이 실용적이지 않거나 원하지 않는 경우에는 threads 전반에서 사용되는 object 주위에 wrapper를 만들 수 있다. wrapper는 allowlist를 통해 자신의 object에 대한 접근을 승인하는 shared object이다. transaction이 wrapped object에 접근해야 할 때마다 같은 PTB에서 wrapper로부터 권한을 얻는다. authorization을 이전해야 할 때는 wrapper의 allowlist가 그에 맞게 업데이트된다. 이 접근 방식은 object wrapper가 자신의 object를 input으로 의존하는 직렬화된 transactions를 생성하기 때문에 지연 시간 병목을 만들 수 있다. Sui TypeScript SDK는 병렬 transactions를 효율적으로 처리하기 위한 executor class인 `ParallelTransactionExecutor`를 제공한다.
 
-## Reconfiguration
+## reconfiguration
 
 Reconfiguration은 각 epoch의 끝에서 발생하는 중요한 과정이다. 이는 다가오는 epoch에 맞추어 네트워크를 조정하기 위한 몇 가지 핵심 단계를 포함한다:
 

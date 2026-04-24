@@ -1,25 +1,25 @@
 ---
-title: Querying Balances and Assets
-sidebar_label: Querying Assets
-description: How to read PAS-managed balances for a wallet address using the PAS SDK and standard Sui APIs.
+title: 잔액 및 자산 쿼리
+sidebar_label: 자산 쿼리
+description: PAS SDK와 표준 Sui API를 사용해 지갑 주소의 PAS 관리 잔액을 읽는 방법을 설명한다.
 keywords: [ PAS, query, balance, assets, derived address, explorer, wallet, portfolio ]
 ---
 
-The Permissioned Asset Standard (PAS) does not expose dedicated read APIs in the SDK. This is by design. PAS stores assets in standard Sui objects with deterministic addresses, so you query them using the same RPC methods you use for any other address-owned data (for example, balance queries and owned object queries).
+Permissioned Asset Standard (PAS)는 SDK에서 dedicated read API를 노출하지 않는다. 이는 의도된 설계다. PAS는 deterministic address가 있는 표준 Sui object에 자산을 저장하므로, 다른 address-owned data(예: balance query와 owned object query)에 사용하는 동일한 RPC method로 조회한다.
 
-A wallet address on Sui can hold 2 kinds of balances:
+Sui의 wallet address는 두 종류의 잔액을 보유할 수 있다.
 
-- **Regular balances:** Owned directly by the wallet address
+- **일반 잔액:** wallet address가 직접 소유한다.
 
-- **PAS balances:** Managed by PAS on behalf of the wallet address
+- **PAS 잔액:** wallet address를 대신해 PAS가 관리한다.
 
-From your perspective, both belong to the same address. PAS balances are held in a derived Account object, but transfers always target the wallet address, not the Account address. The SDK resolves the underlying Account transparently.
+사용자 관점에서는 둘 다 같은 address에 속한다. PAS 잔액은 derived Account object에 보관되지만, transfer는 항상 Account address가 아니라 wallet address를 대상으로 한다. SDK는 underlying Account를 투명하게 resolve한다.
 
-## Query PAS balances
+## PAS 잔액 쿼리
 
-To read a wallet's PAS balances, derive the internal Account address from the wallet address using the PAS SDK (the derivation is deterministic), then query it with core SDK balance methods.
+wallet의 PAS 잔액을 읽으려면 PAS SDK를 사용해 wallet address에서 internal Account address를 derive한 다음(derivation은 deterministic), core SDK balance method로 쿼리한다.
 
-The following diagram shows the derivation flow:
+다음 diagram은 derivation flow를 보여준다.
 
 ```
 Wallet Address (for example, 0xAlice)
@@ -36,9 +36,9 @@ Wallet Address (for example, 0xAlice)
 Account Address (deterministic, same every time)
 ```
 
-The derived address is different per network (Mainnet compared to Testnet) because the PAS namespace object has a different ID on each network. The SDK handles this based on the client network configuration.
+derived address는 network마다(Mainnet과 Testnet) 다르다. PAS namespace object가 각 network에서 다른 ID를 갖기 때문이다. SDK는 client network configuration을 기반으로 이를 처리한다.
 
-The following example shows how to query both regular and PAS-managed balances:
+다음 예시는 일반 잔액과 PAS 관리 잔액을 모두 쿼리하는 방법을 보여준다.
 
 ```tsx
 import { SuiGrpcClient } from '@mysten/sui/grpc';
@@ -60,9 +60,9 @@ const { balance } = await client.core.getBalance({
 });
 ```
 
-### Check if a wallet has a PAS Account
+### wallet에 PAS Account가 있는지 확인
 
-If `getObject` returns `null` for the derived address, the wallet has no PAS Account yet:
+derived address에 대해 `getObject`가 `null`을 반환하면 wallet에는 아직 PAS Account가 없다.
 
 ```tsx
 const { object } = await client.core.getObject({ objectId: accountAddress });
@@ -71,13 +71,13 @@ if (!object) {
 }
 ```
 
-## Non-policy assets in Accounts
+## Account의 non-policy asset
 
-An Account can hold asset types that a PAS policy does not govern. For example, `Balance<SUI>` might end up in an Account through a direct `balance::send_funds` call. When you call `getAllBalances`, these show up alongside policy-managed assets.
+Account는 PAS policy가 관리하지 않는 asset type도 보유할 수 있다. 예를 들어 direct `balance::send_funds` call을 통해 `Balance<SUI>`가 Account에 들어갈 수 있다. `getAllBalances`를 호출하면 이런 잔액은 policy-managed asset과 함께 표시된다.
 
-## Key points
+## 핵심 사항
 
-- **Wallet-centric:** PAS balances belong to the wallet address. The Account is an internal detail that the SDK handles.
-- **Deterministic:** The same wallet address always resolves to the same Account.
-- **Standard RPC:** `getBalance` and `getAllBalances` work on the derived address. No custom endpoints are needed.
-- **No indexing needed:** Derivation is client-side. No event subscriptions or custom indexers are required.
+- **Wallet 중심:** PAS 잔액은 wallet address에 속한다. Account는 SDK가 처리하는 내부 detail이다.
+- **Deterministic:** 같은 wallet address는 항상 같은 Account로 resolve된다.
+- **표준 RPC:** `getBalance`와 `getAllBalances`는 derived address에서 동작한다. custom endpoint가 필요하지 않다.
+- **Indexing 불필요:** derivation은 client-side에서 수행된다. event subscription이나 custom indexer가 필요하지 않다.

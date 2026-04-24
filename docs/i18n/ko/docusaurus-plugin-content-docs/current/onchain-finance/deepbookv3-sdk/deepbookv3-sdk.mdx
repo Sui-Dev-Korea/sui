@@ -10,7 +10,7 @@ DeepBookV3 TypeScript SDK는 transaction calls를 추상화하여 `DeepBook` pac
 - [SDK repository](https://github.com/MystenLabs/ts-sdks/tree/main/packages/deepbook-v3)
 - [NPM version](https://www.npmjs.com/package/@mysten/deepbook-v3)
 
-## Install
+## 설치
 
 프로젝트에서 SDK를 사용하려면 `@mysten/deepbook` package를 설치한다.
 
@@ -18,7 +18,7 @@ DeepBookV3 TypeScript SDK는 transaction calls를 추상화하여 `DeepBook` pac
 npm install @mysten/deepbook-v3
 ```
 
-## Constants
+## constant
 
 DeepBookV3 SDK에는 DeepBookV3의 최신 deployed addresses와 몇 가지 staple coins 및 pools를 유지하는 constants file(`/utils/constants.ts`)이 포함되어 있다.
 
@@ -80,7 +80,7 @@ class DeepBookMarketMaker {
 
 coin, pool, 또는 manager를 입력으로 요구하는 함수는 parameter로 해당 object의 key를 요구한다. SDK는 이 데이터의 `key:value` 관계를 memory에서 관리한다. 일부 default data는 SDK에 포함되어 있다(`utils/constants.ts`에서 볼 수 있다). coins는 `CoinMap`에 저장되고 pools는 config의 `PoolMap`에 저장된다.
 
-### Balance manager
+### BalanceManager
 
 어떤 trade를 배치하기 전에 client에 balance manager address를 제공해야 한다. manager key는 client의 `BalanceManager` 인터페이스로 정의된 object를 가리킨다. [BalanceManager docs](/onchain-finance/deepbookv3/contract-information/balance-manager). client로 balance manager를 초기화한다. balance manager를 생성하지 않으면 client가 대신 생성하도록 할 수 있지만, 그러면 사용자는 client를 다시 초기화해야 한다.
 
@@ -252,7 +252,7 @@ SDK는 Testnet에서 네 개의 default coins와 Mainnet에서 다섯 개의 def
 
 default로 지원되지 않는 pools와 상호작용하기 위해 custom coins로 SDK를 초기화할 수도 있다. 이를 위해 `CoinMap` object를 생성하여 client의 constructor에 전달한다.
 
-### Pool
+### pool
 
 coins와 마찬가지로 SDK에는 default pools가 포함되어 있다. 이 동작을 override하려면 생성 시 `PoolMap`을 제공할 수 있다.
 
@@ -322,7 +322,7 @@ export class DeepBookMarketMaker {
 }
 ```
 
-### Example setup
+### 예시 setup
 
 다음 예시는 제공된 default pools와 coins를 사용한다.
 
@@ -363,7 +363,7 @@ import { DeepBookMarketMaker } from './deepbookMarketMaker.js';
 })();
 ```
 
-## Referral functions
+## 리퍼럴 함수
 
 SDK는 pool-specific referrals를 관리하기 위한 함수를 제공한다. Referrals는 사용자가 자신이 refer한 traders로부터 trading fees의 일부를 벌 수 있도록 한다.
 
@@ -398,7 +398,7 @@ client.deepbook.getPoolReferralBalances('SUI_DBUSDC', referralId)(tx);
 client.deepbook.poolReferralMultiplier('SUI_DBUSDC', referralId)(tx);
 ```
 
-### Balance manager referral functions
+### BalanceManager referral function
 
 이 함수는 referrals를 balance managers와 연결하기 위해 `balanceManager` contract에서 사용할 수 있다.
 

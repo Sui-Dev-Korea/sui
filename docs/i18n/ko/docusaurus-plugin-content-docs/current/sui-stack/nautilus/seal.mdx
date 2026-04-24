@@ -15,7 +15,7 @@ enclave의 지정된 Platform Configuration Register(PCR)로 구성된 Seal poli
 
 :::
 
-## Components
+## component
 
 Seal-Nautilus pattern을 보여주는 다음 예시는 다음 구성 요소를 사용한다:
 
@@ -27,7 +27,7 @@ Seal-Nautilus pattern을 보여주는 다음 예시는 다음 구성 요소를 �
 
 [View the example's full source code](https://github.com/MystenLabs/nautilus/tree/main/src/nautilus-server/src/apps/seal-example).
 
-## Phase 1: Start and register the server
+## Phase 1: server 시작 및 등록
 
 :::info
 
@@ -60,13 +60,13 @@ admin은 노출된 `/get_attestation` endpoint와 함께 enclave를 빌드하고
 
 1. admin은 Seal response로 `/admin/complete_seal_key_load`를 호출한다. enclave는 모든 Seal key를 복호화해 이후 사용을 위해 memory에 cache한다.
 
-## Phase 3: Provision application secrets
+## Phase 3: application secret provision
 
 1. 이제 Seal key가 cache되었으므로 encrypted object를 cache된 key를 사용해 필요할 때 복호화할 수 있다. 이 예시에서는 admin이 encrypted weather API key object로 `/admin/provision_weather_api_key`를 호출한다. enclave는 cache된 key를 사용해 이를 복호화하고 `SEAL_API_KEY`로 저장한다.
 
 1. enclave는 이제 `/process_data` request를 처리할 수 있다.
 
-## Security guarantees
+## security guarantee
 
 enclave는 시작 시 3개의 key를 생성하며, 모두 enclave memory에만 유지된다:
 
@@ -88,15 +88,15 @@ enclave는 시작 시 3개의 key를 생성하며, 모두 enclave memory에만 �
 
 `/init_seal_key_load` 동안 enclave는 encryption key pair도 생성하고 `FetchKeyRequest`의 일부로 encryption public key를 반환한다. fetch key CLI는 enclave 밖에서 호출되지만, encryption secret key는 enclave만 가지고 있으므로 enclave 외에는 누구도 `FetchKeyResponse`를 복호화할 수 없다. 그런 다음 `FetchKeyResponse`는 `/complete_seal_key_load`에서 enclave로 전달되며, Seal key를 memory에서 검증하고 복호화할 수 있는 것도 enclave뿐이다.
 
-### Why is a 2-step key load needed?
+### 2-step key load가 필요한 이유
 
 enclave는 인터넷에 직접 접근할 수 없으므로 Seal key server의 HTTP endpoint에서 secret를 직접 가져올 수 없다. 이 예시는 host를 중개자로 사용해 Seal server에서 암호화된 secret를 가져온다.
 
 Seal response는 enclave의 encryption key 아래에서 암호화되므로 enclave만 가져온 Seal response를 복호화할 수 있어 이러한 위임은 안전하다. `seal_config.yaml`에 있는 Seal server의 public key는 admin이 enclave 안에서 정의하므로, enclave는 복호화된 Seal key가 변조되지 않았음을 검증할 수 있다.
 
-## Example deployment steps
+## deployment step 예시
 
-### Step 0: Build, run, and register enclave
+### Step 0: enclave build, 실행, 등록
 
 ```shell
 # enclave package를 게시한다
@@ -155,7 +155,7 @@ curl -H 'Content-Type: application/json' -d '{"payload": { "location": "San Fran
 {"error":"API key not initialized. Please complete key load first."}%
 ```
 
-### Step 1: Encrypt secret
+### Step 1: secret encrypt
 
 [Seal repo](https://github.com/MystenLabs/seal)의 root directory에서 Seal CLI command를 실행할 수 있다. secret 값이 안전한 어느 곳에서나 이 단계를 수행한다. 출력은 이후 Step 4에서 사용한다.
 
@@ -187,7 +187,7 @@ Encrypted object:
 `-t`: 암호화에 사용하는 threshold이다.
 `-n`: 사용하는 key server의 network이다.
 
-### Step 2: Initialize key load
+### Step 2: key load 초기화
 
 이 단계는 enclave가 실행 중인 host에서 수행하며, 이 host는 port 3001을 통해 enclave와 통신할 수 있다.
 
@@ -202,7 +202,7 @@ curl -X POST http://localhost:3001/admin/init_seal_key_load \
 {"encoded_request":"<FETCH_KEY_REQUEST>"}
 ```
 
-### Step 3: Fetch keys from Seal servers
+### Step 3: Seal server에서 key fetch
 
 Seal repo의 root에서 다음 command를 실행한다:
 ```bash
@@ -223,7 +223,7 @@ Encoded seal responses:
 
 이 command는 hexadecimal encoding된 BCS serialized `FetchKeyRequest`를 parsing하고, 주어진 network에 대해 지정된 key server object에서 key를 가져온다. 각 key server는 PTB와 signature를 검증한 뒤 Seal policy가 충족되면 enclave의 ephemeral ElGamal key로 암호화된 key share를 반환한다. CLI는 모든 response를 모아 Seal object ID 목록과 그 server response를 담은 hexadecimal encoded 값을 반환한다.
 
-### Step 4: Complete key load
+### Step 4: key load 완료
 
 이 단계는 enclave가 실행 중인 host에서 수행하며, 이 host는 port 3001을 통해 enclave와 통신할 수 있다. `OK`를 반환하면 enclave는 Seal key를 복호화해 memory에 cache한다. `<ENCODED_SEAL_RESPONSES>`를 Step 3의 출력으로 바꾼다.
 ```bash
@@ -237,7 +237,7 @@ curl -X POST http://localhost:3001/admin/complete_seal_key_load \
 {"status":"OK"}
 ```
 
-### Step 5: Provision weather API key
+### Step 5: weather API key provision
 
 이 단계는 enclave가 실행 중인 host에서 수행하며, 이 host는 port 3001을 통해 enclave와 통신할 수 있다. `<ENCRYPTED_OBJECT>`를 Step 1의 출력으로 바꾼다.
 
@@ -253,7 +253,7 @@ curl -X POST http://localhost:3001/admin/provision_weather_api_key \
 {"status":"OK"}
 ```
 
-### Step 6: Use the service
+### Step 6: service 사용
 
 enclave server는 이제 완전히 동작하며 데이터를 처리할 수 있다.
 ```bash
@@ -263,7 +263,7 @@ curl -H 'Content-Type: application/json' -d '{"payload": { "location": "San Fran
 {"response":{"intent":0,"timestamp_ms":1755805500000,"data":{"location":"San Francisco","temperature":18}},"signature":"4587c11eafe8e78c766c745c9f89b3bb7fd1a914d6381921e8d7d9822ddc9556966932df1c037e23bedc21f369f6edc66c1b8af019778eb6b1ec1ee7f324e801"}
 ```
 
-## Handle multiple secrets
+## 여러 secret 처리
 
 Seal은 public key encryption을 사용하므로 같은 고정 ID 값 0을 사용해 많은 secret를 암호화할 수 있다. 같은 package ID와 같은 ID 값 0을 사용해 어떤 데이터든 Step 1을 반복한다.
 
@@ -271,11 +271,11 @@ enclave용 Seal key를 cache하려면 Step 2–4를 한 번 실행한다.
 
 key가 cache되면 Step 5와 비슷한 하나 이상의 provision endpoint를 구현하여 어떤 encrypted object든 복호화한다.
 
-## Multiple enclaves
+## 여러 enclave
 
 여러 enclave가 같은 Seal encrypted secret에 접근할 수 있다. 대안으로는 한 enclave를 사용해 Seal에서 key를 가져올 필요 없이 다른 attested enclave에 직접 provision하는 방법도 있다.
 
-## Troubleshooting
+## 문제 해결
 
 1. Step 3의 Certificate expired error: `FetchKeyRequest`의 certificate는 30분(TTL) 후 만료된다. 새 certificate가 있는 fresh request를 생성하려면 Step 2를 다시 실행하고, 그 뒤 Step 3을 다시 시도한다.
 

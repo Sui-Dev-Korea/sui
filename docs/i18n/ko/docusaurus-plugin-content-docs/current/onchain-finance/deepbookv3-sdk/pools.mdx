@@ -26,15 +26,15 @@ keywords:
 
 Pools는 market을 나타내는 shared object이다. pools에 대한 자세한 내용은 [풀 조회](../deepbookv3/contract-information/query-the-pool)을 참조한다.
 
-## Pool functions
+## 풀 함수
 
-DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를 노출한다. 이러한 함수는 일반적으로 `managerKey`, `coinKey`, `poolKey`, 또는 이들의 조합을 요구한다. 이러한 keys에 대한 자세한 내용은 [DeepBookV3 SDK](/onchain-finance/deepbookv3-sdk#keys)를 참조한다. SDK에는 `constants.ts` file에서 볼 수 있는 몇 가지 기본 keys가 포함되어 있다.
+DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를 노출한다. 이러한 함수는 일반적으로 `managerKey`, `coinKey`, `poolKey`, 또는 이들의 조합을 요구한다. 이러한 keys에 대한 자세한 내용은 [DeepBookV3 SDK](/onchain-finance/deepbookv3-sdk/deepbookv3-sdk#keys)를 참조한다. SDK에는 `constants.ts` file에서 볼 수 있는 몇 가지 기본 keys가 포함되어 있다.
 
 :::tip SDK Unit Handling
 입력 amount, 수량, price는 표준 소수 형식(예: `10.5` SUI, `0.00001` nBTC)으로 제공해야 한다. SDK는 내부적으로 base units로의 변환을 처리한다. 반환되는 amounts도 표준 소수 형식이다.
 :::
 
-### account
+### 계정
 
 `account`를 사용하여 pool에서 `BalanceManager`에 대한 account 정보를 조회하며, 이는 다음 형식을 가진다:
 
@@ -60,7 +60,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 }
 ```
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 - `balanceManagerKey`: SDK에서 정의된 balance manager의 key이다.
@@ -71,7 +71,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 
 `accountOpenOrders`를 사용하여 제공한 IDs를 가진 balance manager와 pool에 대한 open orders를 조회한다. 이 호출은 open order IDs의 array를 포함하는 `Promise`를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 - `managerKey`: 조회할 balance manager를 식별하는 String이다.
@@ -89,7 +89,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 }
 ```
 
-**Parameters**
+**매개변수**
 
 - `managerKey`: 조회할 balance manager를 식별하는 String이다.
 - `coinKey`: balance를 조회할 coin을 식별하는 String이다.
@@ -117,7 +117,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 }
 ```
 
-**Parameters**
+**매개변수**
 
 `poolKey`: 조회할 pool을 식별하는 String이다.
 `orderId`: 조회할 order의 ID이다.
@@ -139,7 +139,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 
 여기서 `deepRequired`는 dry run에 필요한 DEEP의 양이다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 - `baseQuantity`: 변환하려는 base 수량을 정의하는 Number이다.
@@ -161,7 +161,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 
 여기서 `deepRequired`는 dry run에 필요한 DEEP의 양이다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 - `quoteQuantity`: 변환하려는 quote 수량을 정의하는 Number이다.
@@ -184,7 +184,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 
 여기서 `deepRequired`는 dry run에 필요한 DEEP의 양이다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 - `baseQuantity`: 변환하려는 base 수량을 정의하는 Number이다. quote 수량을 사용하는 경우 `0`으로 설정한다.
@@ -203,7 +203,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 }
 ```
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 - `priceLow`: price range의 lower bound를 나타내는 Number이다.
@@ -225,7 +225,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 }
 ```
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 - `ticks`: mid-price로부터의 ticks 수를 나타내는 Number이다.
@@ -244,7 +244,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 }
 ```
 
-**Parameters**
+**매개변수**
 
 `poolKey`: 조회할 pool을 식별하는 String이다.
 `balanceManagerKey`: SDK에서 정의된 balance manager의 key이다.
@@ -263,7 +263,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 }
 ```
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 
@@ -281,7 +281,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 }
 ```
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 
@@ -291,7 +291,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 
 `getPoolIdByAssets`를 사용하여 제공한 자산 types에 대한 pool ID를 조회한다. 이 호출은 pool을 찾으면 해당 address를 담은 `Promise`를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `baseType`: base 자산의 type을 나타내는 String이다.
 - `quoteType`: quote 자산의 type을 나타내는 String이다.
@@ -302,7 +302,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 
 `midPrice`를 사용하여 제공한 ID를 가진 pool의 mid price를 조회한다. 이 호출은 mid price를 담은 `Promise`를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 
@@ -312,7 +312,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 
 `whitelisted`를 사용하여 제공한 ID를 가진 pool이 whitelisted인지 확인한다. 이 호출은 pool이 whitelisted인지 여부를 나타내는 boolean인 `Promise`를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 
@@ -322,7 +322,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 
 `poolBookParams`를 사용하여 tick size, lot size, min size를 포함한 pool의 book parameters를 조회한다. 이 호출은 book parameters를 담은 `Promise`를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 
@@ -332,7 +332,7 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 
 `getOrders`를 사용하여 pool에서 여러 orders를 조회한다. 이 호출은 order information의 array를 담은 `Promise`를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 - `orderIds`: 조회할 order IDs를 나타내는 strings의 Array이다.
@@ -343,13 +343,13 @@ DeepBookV3 SDK는 pool의 상태를 읽기 위해 호출할 수 있는 함수를
 
 `getPoolDeepPrice`를 사용하여 pool에 대한 DEEP price conversion을 가져온다. 이 호출은 DEEP price information을 담은 `Promise`를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: 조회할 pool을 식별하는 String이다.
 
 <ImportContent source="/packages/deepbook-v3/src/client.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="getPoolDeepPrice" signatureOnly />
 
-## Administrative functions
+## admin function
 
 SDK는 pool 관리를 위한 관리 함수를 제공한다.
 
@@ -357,7 +357,7 @@ SDK는 pool 관리를 위한 관리 함수를 제공한다.
 
 `addDeepPricePoint`를 사용하여 reference pool을 사용해 target pool에 DEEP price point를 추가한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `targetPoolKey`: target pool을 식별하는 String이다.
 - `referencePoolKey`: reference pool을 식별하는 String이다.
@@ -368,7 +368,7 @@ SDK는 pool 관리를 위한 관리 함수를 제공한다.
 
 `updatePoolAllowedVersions`를 사용하여 pool에 대해 허용된 package versions를 업데이트한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 
@@ -378,7 +378,7 @@ SDK는 pool 관리를 위한 관리 함수를 제공한다.
 
 `createPermissionlessPool`을 사용하여 새로운 permissionless pool을 생성한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `params`: 다음을 포함하는 `CreatePermissionlessPoolParams` object이다:
 - `baseCoinKey`: base coin을 식별하는 String이다.
@@ -394,13 +394,13 @@ SDK는 pool 관리를 위한 관리 함수를 제공한다.
 
 `getBalanceManagerIds`를 사용하여 특정 owner에 대한 모든 balance manager IDs를 가져온다. 이 호출은 balance manager IDs의 array를 담은 `Promise`를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `owner`: owner address를 나타내는 String이다.
 
 <ImportContent source="/packages/deepbook-v3/src/client.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="getBalanceManagerIds" signatureOnly />
 
-## Referral functions
+## referral function
 
 SDK는 referrals를 관리하고 trading activity로부터 referral fees를 획득하기 위한 함수를 제공한다.
 
@@ -408,7 +408,7 @@ SDK는 referrals를 관리하고 trading activity로부터 referral fees를 획�
 
 `mintReferral`을 사용하여 지정된 multiplier로 pool에 대한 새로운 referral을 생성한다. multiplier는 trading fees의 몇 퍼센트를 referrer에게 할당할지 결정한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `multiplier`: referral multiplier를 나타내는 Number이다(예: 10%에 대해 0.1).
@@ -419,7 +419,7 @@ SDK는 referrals를 관리하고 trading activity로부터 referral fees를 획�
 
 `updateReferralMultiplier`를 사용하여 기존 referral의 multiplier를 업데이트한다. referral owner만 multiplier를 업데이트할 수 있다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `referral`: referral ID를 나타내는 String이다.
@@ -431,7 +431,7 @@ SDK는 referrals를 관리하고 trading activity로부터 referral fees를 획�
 
 `claimReferralRewards`를 사용하여 누적된 referral fees를 claim한다. 이 호출은 `baseRewards`, `quoteRewards`, `deepRewards`를 포함하는 object를 반환한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `referral`: referral ID를 나타내는 String이다.
@@ -442,7 +442,7 @@ SDK는 referrals를 관리하고 trading activity로부터 referral fees를 획�
 
 `getReferralBalances`를 사용하여 claim하지 않고 referral의 현재 누적 balances를 조회한다. 이 호출은 base, quote, DEEP tokens의 balances를 담은 `Promise`를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `poolKey`: pool을 식별하는 String이다.
 - `referral`: referral ID를 나타내는 String이다.

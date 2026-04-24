@@ -20,7 +20,7 @@ Programmable transaction blocks에는 다음 metadata field가 있다:
 
 - **Sender address:** transaction을 보내는 사용자의 [address](/getting-started/onboarding/get-address)이다.
 
-- **Gas input:** transaction 실행과 저장 비용을 지불하는 데 사용하는 object를 가리키는 reference이다. sender address는 이 object를 소유해야 하며 이 object의 타입은 `sui::coin::Coin<SUI>`여야 한다.
+- **Gas input:** transaction 실행과 저장 비용을 지불하는 데 사용하는 object를 가리키는 reference이다. sender address는 이 object를 소유해야 하며 이 object의 타입은 `sui::coin::Coin<SUI>`여야 한다. 또는 gas payment가 빈 list일 수 있으며, 이 경우 transaction은 sender의 address balance에서 gas를 지불한다.
 
 - **Gas price:** transaction이 gas unit당 지불하는 native token 수를 지정하는 unsigned integer이다. gas price는 0보다 커야 한다.
 
@@ -70,40 +70,9 @@ Tom은 Alice에게 1 SUI coin을 보내기로 결정한다.
 Object B는 파기되고 그 값이 Object A에 더해진다.
 그 결과 이 transaction의 출력은 값이 6 SUI인 Object A 하나뿐이다.
 
-```mermaid
-flowchart LR
-    id1(Object A
-    fa:fa-coins 5 SUI
-    fa:fa-person Tom):::object-a;
-    id2(Object C
-    fa:fa-coins 1 SUI
-    fa:fa-person Alice);
-    id3(Object A
-    fa:fa-coins 4 SUI
-    fa:fa-person Tom):::object-a;
-    id4(Object B
-    fa:fa-coins 2 SUI
-    fa:fa-person John):::object-b;
-    id5(Object B
-    fa:fa-coins 2 SUI
-    fa:fa-person Alice):::object-b;
-    id6(Object B
-    fa:fa-coins 2 SUI
-    fa:fa-person Tom):::object-b;
-    id7(Object A
-    fa:fa-coins 6 SUI
-    fa:fa-person John):::object-a;
-    id1-->|tx-1|id2;
-    id1-->|tx-1|id3;
-    id4-->|tx-2|id5;
-    id5-->|tx-3|id6;
-    id3-->|tx-4|id7;
-    id6-->|tx-4|id7;
-    classDef object-a fill:#f225;
-    classDef object-b fill:#ff43;
-```
+![Transaction example](./images/example-transaction_transactions_v1.png)
 
-## Limits on transactions, objects, and data
+## transaction, object, data의 제한
 
 Sui에는 transaction과 그에 사용되는 데이터에 대해 최대 크기와 사용 가능한 object 수 같은 몇 가지 제한이 있다.
 이 제한은 Sui repo의 [`sui-protocol-config` crate](https://github.com/MystenLabs/sui/blob/main/crates/sui-protocol-config/src/lib.rs)에서 찾을 수 있다.

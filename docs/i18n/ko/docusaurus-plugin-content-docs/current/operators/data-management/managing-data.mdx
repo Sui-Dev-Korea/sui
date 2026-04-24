@@ -7,7 +7,7 @@ keywords: [ data management, run data management, what is data management, full 
 
 Sui 풀 노드의 data를 관리하는 일은 건전한 Sui network를 유지하는 데 중요하다. 이 주제는 풀 노드 구성을 최적화하는 데 사용할 수 있는 Sui 풀 노드의 data management를 상위 수준에서 설명한다. pruning policies와 archival settings 같은 Sui 풀 노드 관련 자세한 내용은 [Sui 풀 노드 구성](/operators/full-node/sui-full-node)를 참고한다.
 
-## Basic Sui full node functionality
+## 기본 Sui full node 기능
 
 최소 기능의 Sui 풀 노드는 Sui validators가 commit하는 모든 transactions를 실행한다. Sui 풀 노드는 시스템에 새 transactions를 제출하는 일도 orchestrate한다:
 
@@ -22,7 +22,7 @@ Sui 풀 노드의 data를 관리하는 일은 건전한 Sui network를 유지하
 2. **RPCs:** Sui 풀 노드는 시스템의 최신 state를 query하기 위한 Sui RPC endpoints를 노출하며, 여기에는 최신 state metadata(예: `sui_getProtocolConfig`)와 최신 state object data (`sui_getObject`)가 모두 포함된다.
 3. **Transaction submission:** 각 Sui 풀 노드는 Sui validators quorum에 대한 transaction submission을 orchestrate하고, 설정된 경우 선택적으로 확정된 transactions를 로컬에서 실행하는데(이를 fast path execution이라고 한다), 이렇게 하면 checkpoint synchronization을 기다리지 않아도 된다.
 
-## Sui full node data and RPC types
+## Sui full node data 및 RPC type
 
 Sui 풀 노드는 영구 store에 여러 범주의 data를 저장한다.
 
@@ -59,7 +59,7 @@ Sui archive 인스턴스는 genesis 이후의 전체 Sui transaction history를 
 
 피어로부터 state sync protocol을 통해 checkpoints를 가져오지 못하는 Sui 풀 노드는 미리 구성한 archive에서 누락된 checkpoints를 다운로드하는 방식으로 폴백한다. 이 폴백을 통해 풀 노드는 peers의 pruning policies와 관계없이 시스템의 나머지 부분을 따라잡을 수 있다.
 
-## Sui node pruning policies
+## Sui node pruning policy
 
 앞서 설명했듯이, 지속 가능한 disk usage를 위해서는 Sui nodes(validators와 풀 노드)가 과거 object versions 정보와 해당 effects 및 events를 포함한 과거 transactions 정보, 그리고 오래된 checkpoint data를 pruning해야 한다.
 
@@ -75,7 +75,7 @@ object pruning policies에 대해 더 알아보려면 [Object pruning](#object-p
 
 transaction pruning policies에 대해 더 알아보려면 [Transaction pruning](#transaction-pruning)을 참고한다. transaction pruning을 구성하려면 `num-epochs-to-retain-for-checkpoints: X` config 옵션을 지정한다. transactions, effects, events를 포함한 checkpoints는 X epochs 전까지 pruning된다. transaction pruning은 2 epochs로 설정하는 것을 권장한다.
 
-## Object pruning {#object-pruning}
+## object pruning {#object-pruning}
 
 Sui는 transaction execution의 일부로 database에 새로운 object versions를 추가한다. 이로 인해 이전 versions는 garbage collection 대상이 된다. 하지만 pruning이 없으면 database 성능이 저하될 수 있고 많은 storage space가 필요하다. Sui는 각 checkpoint에서 pruning 대상 object를 식별한 다음 백그라운드에서 pruning을 수행한다.
 
@@ -111,7 +111,7 @@ authority-store-pruning-config:
   # 기본 설정은 대부분의 사용 사례에 적합하다.
   max-transactions-in-batch: 1000
 ```
-## Transaction pruning {#transaction-pruning}
+## transaction pruning {#transaction-pruning}
 
 transaction pruning은 이전 transactions와 effects를 database에서 제거한다. Sui는 주기적으로 checkpoints를 생성한다. 각 checkpoint에는 해당 checkpoint 동안 발생한 transactions와 그에 연결된 effects가 포함된다.
 
@@ -145,7 +145,7 @@ transactions를 pruning하더라도 archival nodes는 뒤처진 peer nodes가 �
 :::
 
 
-## Pruning policy examples
+## pruning policy 예시
 
 이 섹션의 예시를 사용해 Sui 풀 노드를 구성한다. 예시를 그대로 복사한 다음, 필요하다면 환경에 맞게 값을 수정할 수 있다.
 
@@ -164,7 +164,7 @@ authority-store-pruning-config:
   num-epochs-to-retain-for-checkpoints: 2
 ```
 
-### Full node with indexing but limited object history
+### indexing이 있지만 object history가 제한된 full node
 
 이 설정은 최신 state에 더해 secondary indexing도 관리하지만, 몇 epoch가 지나면 과거 data는 pruning한다. 이 구성을 사용하는 풀 노드는 다음을 수행한다:
 
@@ -179,7 +179,7 @@ authority-store-pruning-config:
   num-epochs-to-retain-for-checkpoints: 2
 ```
 
-### Full node with full object history but pruned transaction history
+### 전체 object history가 있지만 transaction history가 pruned된 full node
 
 이 구성은 전체 object history를 관리하면서도 과거 transaction history는 계속 pruning한다. 이 구성을 사용하는 풀 노드는 transaction data에 대해서는 transaction query fallback을 사용해, `sui_getTransactionBlock()`의 `showBalanceChanges` filter처럼 과거 objects가 필요한 queries를 포함한 모든 과거 및 indexing queries에 응답할 수 있다.
 

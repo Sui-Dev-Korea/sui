@@ -1,6 +1,6 @@
 ---
-title: Address Balances
-description: Address balances introduce a canonical balance system for fungible assets tied to Sui addresses.
+title: 주소 잔액
+description: Address balances는 Sui address에 연결된 fungible asset을 위한 canonical balance system을 도입한다.
 keywords:
   [
     address balances,
@@ -15,18 +15,18 @@ keywords:
 draft: true
 ---
 
-Address balances introduce a canonical balance system for fungible assets tied to Sui addresses. This replaces the UTXO-style `Coin<T>` model with direct address-owned balances, which simplifies transaction construction and eliminates coin selection complexity.
+Address balances는 Sui address에 연결된 fungible asset을 위한 canonical balance system을 도입한다. 이는 UTXO-style `Coin<T>` model을 direct address-owned balance로 대체하여 transaction construction을 단순화하고 coin selection complexity를 제거한다.
 
-For the full specification, see [SIP-58: Sui Address Balances](https://github.com/sui-foundation/sips/blob/main/sips/sip-58.md).
+전체 specification은 [SIP-58: Sui Address Balances](https://github.com/sui-foundation/sips/blob/main/sips/sip-58.md)를 참조한다.
 
-Previously, balances on Sui were computed by summing the values of all `Coin<T>` objects owned by an address. With address balances, each address might additionally have one address-owned balance for each currency type `T`. The total balance is the sum of all `Coin<T>` objects plus the address balance value for that coin type.
+이전에는 Sui의 balance가 address가 소유한 모든 `Coin<T>` object의 value를 합산해 계산되었다. Address balances를 사용하면 각 address가 currency type `T`마다 하나의 address-owned balance를 추가로 가질 수 있다. Total balance는 모든 `Coin<T>` object의 합계에 해당 coin type의 address balance value를 더한 값이다.
 
-`Coin<T>` and address balances coexist. Existing coins remain functional and can still be transferred with `transfer::public_transfer`. However, address balances provide significant operational advantages:
+`Coin<T>`와 address balances는 공존한다. Existing coin은 계속 동작하며 `transfer::public_transfer`로 여전히 transfer할 수 있다. 그러나 address balances는 중요한 operational advantage를 제공한다:
 
-- No coin selection logic required.
-- Automatic deposit merging into a single canonical balance.
-- Stateless transaction construction without querying object states.
-- Direct gas payment from SUI address balances.
+- coin selection logic이 필요 없다.
+- deposit이 단일 canonical balance로 자동 병합된다.
+- object state를 query하지 않고 stateless transaction construction이 가능하다.
+- SUI address balance에서 직접 gas payment를 수행한다.
 
 import DocCardList from '@theme/DocCardList';
 

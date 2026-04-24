@@ -19,7 +19,7 @@ keywords:
 
 margin manager를 통해 order를 배치하고 관리하면 DeepBook에서 leveraged trading을 수행할 수 있다. Orders SDK는 limit order와 market order를 배치하고, position을 관리하며, governance에 참여하기 위한 함수를 제공한다.
 
-## Order functions
+## 주문 함수
 
 DeepBook Margin SDK는 margin manager를 통해 order를 관리하기 위한 다음 함수를 제공한다.
 
@@ -27,7 +27,7 @@ DeepBook Margin SDK는 margin manager를 통해 order를 관리하기 위한 다
 
 margin manager를 통해 limit order를 배치하려면 `placeLimitOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `params`: 다음을 포함하는 `PlaceMarginLimitOrderParams` object이다:
   - `poolKey`: DeepBook pool을 식별하는 String이다
@@ -47,7 +47,7 @@ margin manager를 통해 limit order를 배치하려면 `placeLimitOrder`를 사
 
 margin manager를 통해 market order를 배치하려면 `placeMarketOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `params`: limit order와 유사한 parameter를 포함하는 `PlaceMarginMarketOrderParams` object이다(price 및 expiration은 제외한다).
 
@@ -57,7 +57,7 @@ margin manager를 통해 market order를 배치하려면 `placeMarketOrder`를 �
 
 기존 debt position만 줄일 수 있는 limit order를 배치하려면 `placeReduceOnlyLimitOrder`를 사용한다. margin trading이 비활성화되어 있고 position을 종료해야 할 때 유용하다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `params`: `PlaceMarginLimitOrderParams` object이다(`placeLimitOrder`와 같다).
 
@@ -67,7 +67,7 @@ margin manager를 통해 market order를 배치하려면 `placeMarketOrder`를 �
 
 기존 debt position만 줄일 수 있는 market order를 배치하려면 `placeReduceOnlyMarketOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `params`: `PlaceMarginMarketOrderParams` object이다(`placeMarketOrder`와 같다).
 
@@ -81,7 +81,7 @@ margin manager를 통해 market order를 배치하려면 `placeMarketOrder`를 �
 `orderId`는 order 배치 중 생성되는 프로토콜 `orderId`이며, client `orderId`와는 다르다.
 :::
 
-**Parameters**
+**매개변수**
 
 - `marginManagerKey`: margin manager를 식별하는 String이다.
 - `orderId`: 프로토콜 order ID의 String이다.
@@ -93,7 +93,7 @@ margin manager를 통해 market order를 배치하려면 `placeMarketOrder`를 �
 
 이 함수를 사용해 margin manager의 order를 취소한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `marginManagerKey`: margin manager를 식별하는 String이다.
 - `orderId` (cancelOrder only): 프로토콜 order ID의 String이다.
@@ -105,7 +105,7 @@ margin manager를 통해 market order를 배치하려면 `placeMarketOrder`를 �
 
 완료된 trade에서 settled amount를 인출하려면 `withdrawSettledAmounts`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `marginManagerKey`: margin manager를 식별하는 String이다.
 
@@ -115,7 +115,7 @@ margin manager를 통해 market order를 배치하려면 `placeMarketOrder`를 �
 
 이 함수를 사용해 trading fee 혜택을 위해 margin manager를 통해 DEEP token을 stake 및 unstake한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `marginManagerKey`: margin manager를 식별하는 String이다.
 - `stakeAmount` (stake only): stake할 amount를 나타내는 Number이다.
@@ -126,7 +126,7 @@ margin manager를 통해 market order를 배치하려면 `placeMarketOrder`를 �
 
 이 함수를 사용해 margin manager를 통해 pool governance에 참여한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `marginManagerKey`: margin manager를 식별하는 String이다.
 - `params` (submitProposal): `takerFee`, `makerFee`, 그리고 `stakeRequired`가 포함된 `MarginProposalParams` object이다.
@@ -138,17 +138,38 @@ margin manager를 통해 market order를 배치하려면 `placeMarketOrder`를 �
 
 margin manager를 통해 획득한 trading rebate를 claim하려면 `claimRebate`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
 
-**Parameters**
+**매개변수**
 
 - `marginManagerKey`: margin manager를 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/poolProxy.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="claimRebate" signatureOnly />
 
-## Examples
+### `withdrawMarginSettledAmounts`
+
+Object ID로 임의의 margin manager에 대해 settled amounts를 permissionless하게 인출하려면 `withdrawMarginSettledAmounts`를 사용한다. Ownership이 필요한 `withdrawSettledAmounts`와 달리 누구나 호출할 수 있다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**매개변수**
+
+- `poolKey`: DeepBook pool을 식별하는 String이다.
+- `marginManagerId`: margin manager의 object ID를 나타내는 String이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/poolProxy.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="withdrawMarginSettledAmounts" signatureOnly />
+
+### `updateCurrentPrice`
+
+Pyth oracle을 사용해 pool의 current price를 업데이트하려면 `updateCurrentPrice`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**매개변수**
+
+- `poolKey`: DeepBook pool을 식별하는 String이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/poolProxy.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="updateCurrentPrice" signatureOnly />
+
+## 예시
 
 다음 예시는 일반적인 margin order operation을 시연한다.
 
-### Place a limit order
+### limit order 배치
 
 ```tsx
 // limit order용 params
@@ -183,7 +204,7 @@ placeLimitOrder = (tx: Transaction) => {
 };
 ```
 
-### Place a market order
+### market order 배치
 
 ```tsx
 // 예시: SUI 5의 market sell order를 넣는다
@@ -203,7 +224,7 @@ placeMarketOrder = (tx: Transaction) => {
 };
 ```
 
-### Place a reduce-only order
+### reduce-only order 배치
 
 ```tsx
 // 예시: position을 닫기 위한 reduce-only limit order를 넣는다
@@ -224,7 +245,7 @@ placeReduceOnly = (tx: Transaction) => {
 };
 ```
 
-### Modify and cancel orders
+### order 수정 및 cancel
 
 ```tsx
 // 예시: order 수량을 수정한다
@@ -256,7 +277,7 @@ cancelAll = (tx: Transaction) => {
 };
 ```
 
-### Stake and participate in governance
+### stake 및 governance 참여
 
 ```tsx
 // 예시: DEEP tokens을 stake한다

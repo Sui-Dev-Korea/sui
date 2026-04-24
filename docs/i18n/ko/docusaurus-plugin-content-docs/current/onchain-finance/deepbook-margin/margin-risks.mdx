@@ -17,11 +17,11 @@ keywords:
 
 Margin trading은 이익과 손실을 모두 증폭시킨다. DeepBook Margin을 사용하기 전에, 관련된 risk를 이해하는 것이 중요하다. 이 가이드는 주요 risk를 설명하고, 정보에 기반한 결정을 내리는 데 도움이 되도록 구체적인 예시를 제공한다.
 
-## Liquidation risk
+## 청산 리스크
 
 margin trading에서 가장 중요한 risk는 **liquidation**이다 - 프로토콜이 유지하기에 너무 위험해졌을 때 position이 강제로 종료되는 것이다.
 
-### How liquidation works
+### 청산 작동 방식
 
 fund를 차입해 trading할 때, 최소 [리스크 비율](./contract-information/risk-ratio)을 유지해야 한다(총 asset 대비 총 debt의 비율이다). position의 risk ratio가 **Liquidation Risk Ratio** 이하로 떨어지면, 누구나 position을 liquidation할 수 있다.
 
@@ -29,7 +29,7 @@ fund를 차입해 trading할 때, 최소 [리스크 비율](./contract-informati
 SUI/USDC(5x leverage)의 경우 risk ratio가 1.1과 1.2 사이로 떨어지면 **warning zone**에 해당한다. WAL/USDC 및 DEEP/USDC(3x leverage)의 경우 warning zone은 1.2와 1.3 사이이다. 이러한 수준에서는 작은 가격 변동만으로도 liquidation에 이를 수 있다. position을 주의 깊게 모니터링하고 collateral을 추가하거나 position size를 줄이는 것을 고려한다.
 :::
 
-### Partial liquidation
+### 부분 청산
 
 DeepBook Margin에서 liquidation은 total이 아니라 **partial**이다. 프로토콜은 position의 risk ratio를 **Target Liquidation Risk Ratio**로 복원하는 데 필요한 만큼만 liquidation한다(SUI/USDC는 1.25, WAL/USDC 및 DEEP/USDC는 1.5).
 
@@ -44,7 +44,7 @@ liquidation 중:
 
 **하지만**, position이 심각하게 underwater 상태라면(asset이 debt와 reward를 간신히 커버하는 수준), 모든 debt가 상환되고 lending pool에 bad debt가 발생할 수 있는 **full liquidation**이 발생할 수 있다.
 
-### Example: Getting liquidated on SUI/USDC
+### 예: SUI/USDC에서 liquidation되는 경우
 
 **Liquidation Risk Ratio가 1.1**인 SUI/USDC trading pair를 사용해 구체적인 예시를 살펴본다.
 
@@ -74,7 +74,7 @@ liquidation 중:
 
 **Key insight:** 5x leverage에서는 **15% adverse price movement**만으로도 liquidation이 발생할 수 있다. leverage가 없다면, 단지 장부상 15% 손실일 뿐이다.
 
-### Liquidation is immediate
+### liquidation은 즉시 발생
 
 collateral을 추가할 시간을 주는 전통적인 margin call과 달리, DeFi liquidation은 즉시 발생한다:
 - fund를 더 deposit할 수 있는 유예 기간이 없다
@@ -82,7 +82,7 @@ collateral을 추가할 시간을 주는 전통적인 margin call과 달리, DeF
 - 일단 trigger되면 취소하거나 방지할 수 없다
 - partial liquidation은 position의 일부를 보존하지만, fee로 인한 equity 손실은 영구적이다
 
-### Leverage multiplies losses (and gains)
+### leverage는 손실과 이익을 증폭
 
 암호화폐 가격은 변동성이 매우 크다. leverage는 long이든 short이든 equity에 대한 이 변동성을 증폭시킨다.
 
@@ -103,11 +103,11 @@ collateral을 추가할 시간을 주는 전통적인 margin call과 달리, DeF
 
 암호화폐 시장은 몇 시간 내에 10-20% 움직일 수 있다. flash crash, short squeeze, 거래소 outage, 또는 주요 뉴스 이벤트는 사용자가 대응하기 전에 leveraged position을 liquidation하는 급격한 가격 변동을 유발할 수 있다.
 
-## Interest rate risk
+## interest rate risk
 
 fund를 차입하면 연속적으로 누적되는 interest를 지불한다. 이 interest는 **variable**이며 pool utilization에 따라 크게 변할 수 있다.
 
-### How interest rates fluctuate
+### interest rate 변동 방식
 
 DeepBook Margin은 optimal utilization 지점까지는 rate가 점진적으로 증가하고, 이후에는 급격히 상승하는 [kinked interest rate model](./contract-information/interest-rates)을 사용한다.
 
@@ -121,7 +121,7 @@ DeepBook Margin은 optimal utilization 지점까지는 rate가 점진적으로 �
 | 85% | 37% |
 | 90% (max) | 62% |
 
-### Example: Interest rate spike
+### 예: interest rate spike
 
 80% utilization에서 약 12% APR을 지불할 것으로 예상하며 leveraged position을 연다고 가정한다:
 
@@ -136,7 +136,7 @@ DeepBook Margin은 optimal utilization 지점까지는 rate가 점진적으로 �
 
 한 달 동안 이 차이는 크게 누적되며, 가격이 불리하게 움직이지 않더라도 position의 equity를 잠식할 수 있다.
 
-### Interest compounds your liquidation risk
+### interest는 liquidation risk를 복리로 키움
 
 interest는 debt에 누적되므로:
 - 총 debt가 시간에 따라 증가한다
@@ -148,14 +148,14 @@ interest는 debt에 누적되므로:
 - risk ratio는 1.25에서 약 1.21로 하락한다
 - 가격 변동이 없어도 liquidation에 더 가까워진다
 
-## Oracle risk
+## oracle risk
 
 DeepBook Margin은 Pyth price oracle을 사용해 asset과 debt의 가치를 평가한다. 프로토콜에 여러 보호 장치가 포함되어 있지만, 일부 oracle 관련 risk는 남아 있다:
 
 - **Price delays:** oracle price는 변동성이 극단적으로 큰 기간에 실제 시장 가격보다 지연될 수 있다. 프로토콜은 약 60초보다 오래된 price를 거부함으로써 이를 완화하지만, 이 window 내의 짧은 지연은 여전히 발생할 수 있다.
 - **Price manipulation:** Pyth는 manipulation에 강하도록 설계되어 있고 DeepBook은 confidence interval 및 EWMA(exponentially weighted moving average) price에 대해 price를 검증하지만, 극단적인 시장 상황은 price 정확도에 영향을 줄 수 있다.
 
-### Oracle protections
+### oracle protection
 
 DeepBook Margin은 oracle issue에 대한 여러 safeguard를 구현한다:
 
@@ -163,45 +163,45 @@ DeepBook Margin은 oracle issue에 대한 여러 safeguard를 구현한다:
 - **Confidence interval checks:** 프로토콜은 Pyth price confidence interval이 허용 가능한 범위 내에 있는지 검증한다
 - **EWMA price verification:** spot price는 EWMA price에 대해 검증되어, 비정상적인 price spike를 감지하고 거부한다
 
-## Risk mitigation strategies
+## risk mitigation strategy
 
-### 1. Use less than maximum leverage
+### 1. maximum leverage보다 적게 사용
 
 5x로 차입할 수 있다고 해서 반드시 그래야 하는 것은 아니다. 다음을 고려한다:
 - 5x 대신 2-3x leverage를 사용한다
 - 이는 liquidation 전에 가격 변동을 위한 더 큰 여유를 제공한다
 
-### 2. Monitor your risk ratio actively
+### 2. risk ratio 적극 monitoring
 
 - 특히 변동성이 큰 시장에서 position을 정기적으로 확인한다
 - 가능하다면 alert를 설정한다
 - 자신의 liquidation price를 파악한다
 
-### 3. Use Take Profit / Stop Loss orders
+### 3. Take Profit / Stop Loss order 사용
 
 DeepBook Margin은 position을 자동으로 닫는 [이익 실현 및 손실 제한](./contract-information/tpsl)을 지원한다:
 - stop loss를 liquidation price보다 위에 설정한다
 - 이는 liquidation되는 대신 더 작은 손실로 position을 종료한다
 
-### 4. Maintain collateral reserves
+### 4. collateral reserve 유지
 
 - position이 liquidation에 가까워질 때 deposit할 수 있도록 추가 fund를 준비한다
 - collateral을 추가하면 risk ratio가 개선된다는 점을 기억한다
 
-### 5. Understand the interest rate environment
+### 5. interest rate environment 이해
 
 - 차입 전에 현재 pool utilization을 확인한다
 - rate가 증가할 수 있다는 점을 감안한다
 - interest cost를 position sizing에 반영한다
 
-### 6. Start small
+### 6. 작게 시작
 
 margin trading이 처음이라면:
 - 작은 position size로 시작한다
 - 잃어도 감당할 수 있는 금액으로 시스템을 학습한다
 - 경험이 쌓이면 점진적으로 size를 늘린다
 
-## Summary of key risks
+## 주요 risk 요약
 
 | Risk | What Can Happen | How to Mitigate |
 |------|-----------------|-----------------|
