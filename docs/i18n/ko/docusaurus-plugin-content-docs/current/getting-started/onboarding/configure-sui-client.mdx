@@ -1,0 +1,111 @@
+---
+title: Sui 클라이언트 설정
+description: Sui 클라이언트 구성은 어떤 네트워크에 연결하고 어떤 address로 transaction을 전송할지 지정한다.
+keywords: [ sui client, sui configuration, client.yaml, client config, local config, configure tooling, configure sui client, configure sui, config sui ]
+pagination_prev: null
+pagination_next: null
+---
+
+
+Sui 클라이언트 구성은 어떤 네트워크에 연결하고 어떤 address로 transaction을 전송할지 지정한다.
+
+<Tabs className="tabsHeadingCentered--small">
+<TabItem value="prereq" label="Prerequisites">
+
+먼저 Sui가 성공적으로 설치되었는지 확인한다:
+
+```
+$ sui --version
+```
+
+이 명령이 `sui not found`를 반환하면 Sui가 설치되지 않은 것이므로 [Sui 설치](/getting-started/onboarding/sui-install)를 먼저 진행한다.
+
+</TabItem>
+</Tabs>
+
+## `sui client`
+
+다음 명령으로 Sui CLI를 실행한다:
+
+```
+$ sui client
+```
+
+:::info
+
+이전 Sui 설치가 `client.yaml` 파일을 로컬에 저장했다면 콘솔에서 `sui client --help` 출력을 받는다.
+
+새로 시작하려면 기존 `~/.sui/sui_config/client.yaml` 파일을 삭제할 수 있고, 기존 구성을 계속 사용해도 된다.
+
+:::
+
+프롬프트가 `client.yaml` 파일을 만들지 묻으면 `Y`를 선택하거나 enter를 누른다.
+
+`sui client -y`로 이 프롬프트를 건너뛸 수 있다.
+
+```
+No sui config found in `~/.sui/sui_config/client.yaml`, create one [Y/n]?
+```
+
+다음 출력이 표시된다:
+
+```
+Generated new keypair ...
+  secret recovery phrase : [recovery phrase words are here]
+Created "~/.sui/sui_config/client.yaml"
+Set active environment to testnet
+```
+
+:::caution
+
+복구 구문은 address가 소유한 모든 object와 token에 접근할 수 있게 해 주므로 안전하게 보관하고 누구와도 공유하지 않는다.
+
+CLI 히스토리가 사라지면 다시는 보이지 않는다.
+
+Sui address, 키 생성, 복구 구문에 대해 [Learn more](/getting-started/onboarding/get-address).
+
+:::
+
+## `client.yaml`
+
+이제 Sui 클라이언트가 구성되었다.
+
+기본적으로 Sui는 이 정보를 `~/.sui/sui_config/client.yaml` 파일(macOS/Linux) 또는 `%USERPROFILE%\.sui\sui_config\client.yaml` 파일(Windows)에 저장한다.
+
+선호하면 다른 위치에 `client.yaml` 파일을 저장하고 `--client.config` 플래그로 그 위치를 지정할 수 있다.
+
+`client.yaml`에는 서로 다른 Sui 네트워크(Testnet, Mainnet, Devnet, Localnet)에 연결하기 위한 구성과 현재 활성 환경이 들어 있으며, 이는 명시적으로 지정하지 않을 때 CLI가 어떤 네트워크를 사용할지 알려 준다.
+
+`sui client` 하위 명령을 사용해 구성을 수정할 수 있다.
+
+자세한 내용은 `sui client --help` 출력을 참조한다.
+
+Sui는 Sui address의 키를 `~/.sui/sui_config/sui.keystore` (macOS/Linux) 또는 `%USERPROFILE/.sui/sui_config/sui.keystore` (Windows)라는 별도 파일에 저장한다.
+
+[Sui 주소 만들기](/getting-started/onboarding/get-address)에서 Sui address에 대해 더 알아본다.
+
+<div className="next-steps-module">
+  <div className="next-steps-header">
+    <h3>다음 단계</h3>
+  </div>
+  <div className="next-steps-grid">
+    <Card className="plausible-event-name=client+address+button"
+      title="Sui 주소 만들기"
+      href="/getting-started/onboarding/get-address"
+    >
+      이제 Sui address를 만들었으므로 address 관리, key pair, 복구 구문 모범 사례를 알아본다.
+    </Card>
+    <Card className="plausible-event-name=client+faucet+button"
+      title="Faucet에서 SUI 받기"
+      href="/getting-started/onboarding/get-coins"
+    >
+      Testnet에 package를 배포하기 위해 faucet에서 SUI를 받는다.
+    </Card>
+        <Card className="plausible-event-name=client+hello+button"
+      title="Hello, World!"
+      href="/getting-started/onboarding/hello-world"
+    >
+      "Hello, World!" project를 clone한다.
+    </Card>
+  </div>
+</div>

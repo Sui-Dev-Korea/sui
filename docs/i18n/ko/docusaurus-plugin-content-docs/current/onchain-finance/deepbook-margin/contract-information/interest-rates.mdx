@@ -1,0 +1,63 @@
+---
+title: 이자율
+description: margin pool 차입에 대한 interest rate가 어떻게 계산되는지 설명한다.
+keywords:
+  [
+    interest rate,
+    borrow rate,
+    utilization rate,
+    margin pool,
+    deepbook margin,
+    APR,
+  ]
+---
+
+
+Margin pool은 kinked interest rate model을 사용하며, 이 모델에서는 borrow rate가 optimal utilization 지점까지는 점진적으로 증가하고 그 이후에는 과도한 차입을 억제하고 출금을 위한 liquidity를 유지하기 위해 급격히 상승한다.
+
+## Borrow interest formula
+
+Borrow interest rate (APR)의 공식은 다음과 같다:
+
+```
+if utilization < optimalUtilization:
+    borrowRate = baseRate + utilization × baseSlope
+else:
+    borrowRate = baseRate + optimalUtilization × baseSlope + (utilization - optimalUtilization) × excessSlope
+```
+
+여기서:
+- **Utilization**: 총 borrowed asset 대비 총 supplied asset의 비율이다
+- **Base Rate**: utilization이 0%일 때의 최소 interest rate이다
+- **Base Slope**: optimal utilization 이하에서의 증가율이다
+- **Optimal Utilization**: 목표 utilization rate이다(보통 80%)
+- **Excess Slope**: optimal utilization 초과 구간에서의 가파른 증가율이다
+
+## Current parameters
+
+| Asset | Base Rate | Base Slope | Optimal Utilization | Excess Slope | Max Utilization |
+| ----- | --------- | ---------- | ------------------- | ------------ | --------------- |
+| USDC    | 0%        | 15%        | 80%                 | 500%         | 90%             |
+| SUIUSDE | 0%        | 15%        | 80%                 | 500%         | 90%             |
+| SUI     | 3%        | 20%        | 80%                 | 500%         | 90%             |
+| DEEP    | 5%        | 25%        | 80%                 | 500%         | 90%             |
+| WAL     | 5%        | 25%        | 80%                 | 500%         | 90%             |
+
+**Max Utilization** rate는 pool liquidity 중 얼마나 많이 차입될 수 있는지를 제한하여 supplier가 항상 자신의 fund 일부를 출금할 수 있도록 보장한다.
+
+## Examples
+
+**At 50% utilization in the USDC pool (below optimal):**
+```
+borrowRate = 0% + 50% × 15% = 0% + 7.5% = 7.5% APR
+```
+
+**At 80% utilization (at optimal):**
+```
+borrowRate = 0% + 80% × 15% = 0% + 12% = 12% APR
+```
+
+**At 85% utilization (above optimal, below max):**
+```
+borrowRate = 0% + 80% × 15% + (85% - 80%) × 500% = 0% + 12% + 25% = 37% APR
+```

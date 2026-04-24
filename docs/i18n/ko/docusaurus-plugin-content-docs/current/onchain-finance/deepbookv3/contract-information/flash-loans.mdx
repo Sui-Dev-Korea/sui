@@ -1,0 +1,50 @@
+---
+title: 플래시 론
+description: 하나의 programmable transaction block 안에서 대출과 상환이 모두 이루어지는 uncollaterized loan인 flash loan을 DeepBookV3에서 사용하는 방법을 설명한다.
+keywords: [ uncollateralized, flash loans, loans, uncollateralized loans, programmable transaction blocks, ptbs, borrow flash loan base, borrow flash loan quote, retrieve flash loan base, retrieve flash loan quote ]
+---
+
+
+Flash loan은 정의상 하나의 programmable transaction block 안에서 대출과 상환이 모두 이루어지는 uncollateralized loan이다. 사용자는 어떤 DeepBookV3 pool에서든 base asset 또는 quote asset으로 flash loan을 빌릴 수 있다. Flash loan은 `FlashLoan` hot potato(ability가 없는 struct)를 반환하며, 이는 호출이 끝나기 전에 pool에 반환되어야 한다. transaction은 atomic이므로 대출이 반환되지 않으면 전체 transaction이 실패한다.
+
+빌릴 수 있는 수량은 pool이 보유한 최대 amount일 수 있다. pool에서 빌리고 같은 pool에서 거래하면 거래에는 자금 이동이 필요하므로 실패할 수 있다. 자금을 빌리면 이동시킬 자금이 남지 않기 때문이다.
+
+## API
+
+다음은 flash loan을 위해 `Pool`이 제공하는 endpoint이다.
+
+<details>
+<summary>Borrow flash loan base</summary>
+
+`Pool`에서 base asset을 빌린다. 이 함수는 hot potato를 반환하여 차입자가 같은 transaction 안에서 자산을 반환하도록 강제한다.
+
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="borrow_flashloan_base" noComments />
+
+</details>
+
+<details>
+<summary>Borrow flash loan quote</summary>
+
+`Pool`에서 quote asset을 빌린다. 이 함수는 hot potato를 반환하여 차입자가 같은 transaction 안에서 자산을 반환하도록 강제한다.
+
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="borrow_flashloan_quote" noComments />
+
+</details>
+
+<details>
+<summary>Retrieve flash loan base</summary>
+
+flash loan으로 빌린 base asset을 `Pool`에 반환한다. 자산이 반환된 경우에만 `FlashLoan` object가 unwrap되며, 그렇지 않으면 transaction이 실패한다.
+
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="return_flashloan_base" noComments />
+
+</details>
+
+<details>
+<summary>Retrieve flash loan quote</summary>
+
+flash loan으로 빌린 quote asset을 `Pool`에 반환한다. 자산이 반환된 경우에만 `FlashLoan` object가 unwrap되며, 그렇지 않으면 transaction이 실패한다.
+
+<ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="return_flashloan_quote" noComments />
+
+</details>

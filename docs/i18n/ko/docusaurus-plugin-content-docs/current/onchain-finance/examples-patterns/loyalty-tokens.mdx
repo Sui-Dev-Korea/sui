@@ -1,0 +1,57 @@
+---
+title: 로열티 토큰
+description: Sui Closed-Loop Token standard를 사용해 특정 workflow와 service 안에서만 유효한 token을 생성한다. Closed-Loop Token의 한 예시는 loyalty token이다.
+keywords: [ closed-loop tokens, closed-loop, closed loop, loyalty tokens, token example, create a token, how to create token, SUI token standards ]
+---
+
+
+Sui [Closed-Loop Token](/onchain-finance/closed-loop-token/index) standard를 사용하면, 항공사가 항공권이나 업그레이드를 구매하도록 상용 고객에게 token을 지급하고 싶어 하는 경우처럼, 특정 service에 대해서만 유효한 token을 생성할 수 있다. 
+
+다음 예시는 bearer가 디지털 gift shop에서 구매하는 데 사용할 수 있는 loyalty token의 생성을 보여준다.
+
+## Example
+
+loyalty token 예시는 Closed Loop Token standard로 생성된 loyalty token을 보여준다.
+이 예시를 구현한다고 가정하면, Admin은 service 사용자의 loyalty에 대한 보상으로 `LOYALTY` token을 보낸다.
+예시는 holder가 `LOYALTY` token을 사용해 `Gift`를 살 수 있는 `GiftShop`을 만든다.
+
+`loyalty.move` source file에는 loyalty token을 만드는 `examples::loyalty` module code가 들어 있다.
+이 module에는 coin을 생성하는 One-Time Witness(OTW)가 포함되어 있으며(이름은 module과 같은 `LOYALTY`), `drop` ability만 가지고 field는 없다.
+이것이 OTW의 특성이며, `LOYALTY` type이 단일 instance를 갖도록 보장한다.
+
+<ImportContent source="examples/move/token/sources/loyalty.move" mode="code" struct="LOYALTY" />
+
+module의 `init` 함수는 `LOYALTY` OTW를 사용해 token을 생성한다.
+모든 `init` 함수는 package publish event 중에만 실행된다.
+initializer 함수는 앞서 정의한 OTW `LOYALTY` type을 사용해 `create_currency`를 호출한다.
+이 함수는 또한 policy를 정의하고 policy capability와 treasury capability 둘 다 publish event와 연결된 address로 보낸다.
+이 transferable capability의 holder는 새로운 `LOYALTY` token을 mint하고 그 policy를 수정할 수 있다.
+
+<ImportContent source="examples/move/token/sources/loyalty.move" mode="code" fun="init" noComments />
+
+`LOYALTY` minting 함수의 이름은 `reward_user`이다.
+앞서 언급했듯이 `TreasuryCap` holder는 이 함수를 호출해 새로운 loyalty token을 mint하고 원하는 address로 보낼 수 있다.
+이 함수는 `token::mint` 함수를 사용해 token을 생성하고 `token::transfer`를 사용해 의도한 recipient에게 보낸다. 
+
+<ImportContent source="examples/move/token/sources/loyalty.move" mode="code" fun="reward_user" noComments />
+
+마지막으로 예시에는 `LOYALTY` token을 `Gift` type으로 교환하는 redemption을 처리하기 위한 `buy_a_gift` 함수가 포함되어 있다.
+이 함수는 gift 가격이 사용된 loyalty token 수와 일치하는지 확인한 다음 `token::spend` 함수를 사용해 treasury bookkeeping을 처리한다. 
+
+<ImportContent source="examples/move/token/sources/loyalty.move" mode="code" fun="buy_a_gift" noComments />
+
+### Complete code 
+
+comment를 포함한 이 예시의 complete source를 표시하려면 toggle을 사용하거나, GitHub에서 project source를 보려면 [Related links](#related-links) 섹션의 링크를 사용한다.
+
+<details>
+
+<summary>
+
+`loyalty.move`
+
+</summary>
+
+<ImportContent source="examples/move/token/sources/loyalty.move" mode="code" />
+
+</details>

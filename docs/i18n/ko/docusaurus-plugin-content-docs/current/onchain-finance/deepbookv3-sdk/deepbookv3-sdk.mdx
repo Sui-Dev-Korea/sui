@@ -1,0 +1,424 @@
+---
+title: DeepBookV3 SDK
+description: DeepBook TypeScript SDK를 사용하여 DeepBook 패키지와 직접 상호 작용한다.
+keywords: [ deepbook, deep book, deepbook v3, typescript, typescript SDK, mysten/deepbook, deepbookV3 SDK, Coin, Pool, Manager ]
+---
+
+
+DeepBookV3 TypeScript SDK는 transaction calls를 추상화하여 `DeepBook` package와 직접 상호작용할 수 있도록 한다.
+
+- [SDK repository](https://github.com/MystenLabs/ts-sdks/tree/main/packages/deepbook-v3)
+- [NPM version](https://www.npmjs.com/package/@mysten/deepbook-v3)
+
+## Install
+
+프로젝트에서 SDK를 사용하려면 `@mysten/deepbook` package를 설치한다.
+
+```sh npm2yarn
+npm install @mysten/deepbook-v3
+```
+
+## Constants
+
+DeepBookV3 SDK에는 DeepBookV3의 최신 deployed addresses와 몇 가지 staple coins 및 pools를 유지하는 constants file(`/utils/constants.ts`)이 포함되어 있다.
+
+<details>
+<summary>
+`constants.ts`
+</summary>
+
+```ts reference
+https://github.com/MystenLabs/ts-sdks/blob/main/packages/deepbook-v3/src/utils/constants.ts
+```
+
+</details>
+
+## DeepBookClient
+
+DeepBookV3로 작업하려면 client extension을 사용하여 Sui client에 DeepBook 기능을 추가한다. [Sui TypeScript SDK](https://sdk.mystenlabs.com/typescript)는 transaction을 처리하는 데 필요한 `SuiGrpcClient`와 주요 기능을 제공한다. 다음 예시는 해당 라이브러리도 함께 import한다.
+
+```tsx
+import { deepbook, type DeepBookClient } from '@mysten/deepbook-v3';
+import type { ClientWithExtensions } from '@mysten/sui/client';
+import { SuiGrpcClient } from '@mysten/sui/grpc';
+import { decodeSuiPrivateKey } from '@mysten/sui/cryptography';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+
+class DeepBookMarketMaker {
+	client: ClientWithExtensions<{ deepbook: DeepBookClient }>;
+	keypair: Ed25519Keypair;
+
+	constructor(privateKey: string, env: 'testnet' | 'mainnet') {
+		this.keypair = this.getSignerFromPK(privateKey);
+		this.client = new SuiGrpcClient({
+			network: env,
+			baseUrl:
+				env === 'mainnet'
+					? 'https://fullnode.mainnet.sui.io:443'
+					: 'https://fullnode.testnet.sui.io:443',
+		}).$extend(
+			deepbook({
+				address: this.getActiveAddress(),
+			}),
+		);
+	}
+
+	getSignerFromPK = (privateKey: string): Ed25519Keypair => {
+		const { scheme, secretKey } = decodeSuiPrivateKey(privateKey);
+		if (scheme === 'ED25519') return Ed25519Keypair.fromSecretKey(secretKey);
+
+		throw new Error(`Unsupported scheme: ${scheme}`);
+	};
+
+	getActiveAddress() {
+		return this.keypair.toSuiAddress();
+	}
+}
+```
+
+## Keys: Coin, Pool, and Manager {#keys}
+
+coin, pool, 또는 manager를 입력으로 요구하는 함수는 parameter로 해당 object의 key를 요구한다. SDK는 이 데이터의 `key:value` 관계를 memory에서 관리한다. 일부 default data는 SDK에 포함되어 있다(`utils/constants.ts`에서 볼 수 있다). coins는 `CoinMap`에 저장되고 pools는 config의 `PoolMap`에 저장된다.
+
+### Balance manager
+
+어떤 trade를 배치하기 전에 client에 balance manager address를 제공해야 한다. manager key는 client의 `BalanceManager` 인터페이스로 정의된 object를 가리킨다. [BalanceManager docs](/onchain-finance/deepbookv3/contract-information/balance-manager). client로 balance manager를 초기화한다. balance manager를 생성하지 않으면 client가 대신 생성하도록 할 수 있지만, 그러면 사용자는 client를 다시 초기화해야 한다.
+
+기존 balance manager를 사용하는 예시:
+
+```tsx
+import { deepbook, type DeepBookClient } from '@mysten/deepbook-v3';
+import type { ClientWithExtensions } from '@mysten/sui/client';
+import type { BalanceManager } from '@mysten/deepbook-v3';
+import { SuiGrpcClient } from '@mysten/sui/grpc';
+import { decodeSuiPrivateKey } from '@mysten/sui/cryptography';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import { config } from 'dotenv';
+
+config();
+
+const BALANCE_MANAGER_KEY = 'MANAGER_1';
+
+class DeepBookMarketMaker {
+	client: ClientWithExtensions<{ deepbook: DeepBookClient }>;
+	keypair: Ed25519Keypair;
+
+	constructor(privateKey: string, env: 'testnet' | 'mainnet') {
+		this.keypair = this.getSignerFromPK(privateKey);
+		this.client = new SuiGrpcClient({
+			network: env,
+			baseUrl:
+				env === 'mainnet'
+					? 'https://fullnode.mainnet.sui.io:443'
+					: 'https://fullnode.testnet.sui.io:443',
+		}).$extend(
+			deepbook({
+				address: this.getActiveAddress(),
+				balanceManagers: this.getBalanceManagers(),
+			}),
+		);
+	}
+
+	getSignerFromPK = (privateKey: string): Ed25519Keypair => {
+		const { scheme, secretKey } = decodeSuiPrivateKey(privateKey);
+		if (scheme === 'ED25519') return Ed25519Keypair.fromSecretKey(secretKey);
+
+		throw new Error(`Unsupported scheme: ${scheme}`);
+	};
+
+	getActiveAddress() {
+		return this.keypair.toSuiAddress();
+	}
+
+	getBalanceManagers(): { [key: string]: BalanceManager } {
+		const balanceManagerAddress = process.env.BALANCE_MANAGER_ADDRESS;
+		const balanceManagerTradeCap = process.env.BALANCE_MANAGER_TRADE_CAP;
+		if (!balanceManagerAddress) {
+			throw new Error('No balance manager address found');
+		}
+		return {
+			[BALANCE_MANAGER_KEY]: {
+				address: balanceManagerAddress,
+				tradeCap: balanceManagerTradeCap,
+			},
+		};
+	}
+}
+```
+
+balance manager를 생성하는 예시:
+
+```tsx
+import { deepbook, type DeepBookClient } from '@mysten/deepbook-v3';
+import type { ClientWithExtensions } from '@mysten/sui/client';
+import type { BalanceManager } from '@mysten/deepbook-v3';
+import { SuiGrpcClient } from '@mysten/sui/grpc';
+import { decodeSuiPrivateKey } from '@mysten/sui/cryptography';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import { Transaction } from '@mysten/sui/transactions';
+
+const BALANCE_MANAGER_KEY = 'MANAGER_1';
+
+class DeepBookMarketMaker {
+	client: ClientWithExtensions<{ deepbook: DeepBookClient }>;
+	keypair: Ed25519Keypair;
+	env: 'testnet' | 'mainnet';
+
+	constructor(privateKey: string, env: 'testnet' | 'mainnet') {
+		this.env = env;
+		this.keypair = this.getSignerFromPK(privateKey);
+		this.client = this.#createClient(env);
+	}
+
+	#createClient(env: 'testnet' | 'mainnet', balanceManagers?: { [key: string]: BalanceManager }) {
+		return new SuiGrpcClient({
+			network: env,
+			baseUrl:
+				env === 'mainnet'
+					? 'https://fullnode.mainnet.sui.io:443'
+					: 'https://fullnode.testnet.sui.io:443',
+		}).$extend(
+			deepbook({
+				address: this.getActiveAddress(),
+				balanceManagers,
+			}),
+		);
+	}
+
+	getSignerFromPK = (privateKey: string): Ed25519Keypair => {
+		const { scheme, secretKey } = decodeSuiPrivateKey(privateKey);
+		if (scheme === 'ED25519') return Ed25519Keypair.fromSecretKey(secretKey);
+
+		throw new Error(`Unsupported scheme: ${scheme}`);
+	};
+
+	getActiveAddress() {
+		return this.keypair.toSuiAddress();
+	}
+
+	async createBalanceManagerAndReinitialize() {
+		let tx = new Transaction();
+		tx.add(this.client.deepbook.balanceManager.createAndShareBalanceManager());
+
+		const result = await this.client.core.signAndExecuteTransaction({
+			transaction: tx,
+			signer: this.keypair,
+			include: { effects: true, objectTypes: true },
+		});
+
+		if (result.$kind === 'FailedTransaction') {
+			throw new Error('Transaction failed');
+		}
+
+		const objectTypes = result.Transaction?.objectTypes ?? {};
+		const balanceManagerAddress = result.Transaction?.effects?.changedObjects?.find(
+			(obj) => obj.idOperation === 'Created' && objectTypes[obj.objectId]?.includes('BalanceManager'),
+		)?.objectId;
+
+		if (!balanceManagerAddress) {
+			throw new Error('Failed to create balance manager');
+		}
+
+		const balanceManagers: { [key: string]: BalanceManager } = {
+			[BALANCE_MANAGER_KEY]: {
+				address: balanceManagerAddress,
+				tradeCap: undefined,
+			},
+		};
+
+		this.client = this.#createClient(this.env, balanceManagers);
+	}
+}
+```
+
+### Coin
+
+SDK는 Testnet에서 네 개의 default coins와 Mainnet에서 다섯 개의 default coins를 제공한다.
+
+**Default Testnet coins**
+
+- DEEP
+- SUI
+- DBUSDC
+- DBUSDT
+
+**Default Mainnet coins**
+
+- DEEP
+- SUI
+- USDC
+- USDT
+- WETH
+
+default로 지원되지 않는 pools와 상호작용하기 위해 custom coins로 SDK를 초기화할 수도 있다. 이를 위해 `CoinMap` object를 생성하여 client의 constructor에 전달한다.
+
+### Pool
+
+coins와 마찬가지로 SDK에는 default pools가 포함되어 있다. 이 동작을 override하려면 생성 시 `PoolMap`을 제공할 수 있다.
+
+```tsx
+import { deepbook, type DeepBookClient } from '@mysten/deepbook-v3';
+import type { ClientWithExtensions } from '@mysten/sui/client';
+import type { BalanceManager } from '@mysten/deepbook-v3';
+import { SuiGrpcClient } from '@mysten/sui/grpc';
+import { decodeSuiPrivateKey } from '@mysten/sui/cryptography';
+import type { Keypair } from '@mysten/sui/cryptography';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+import type { Transaction } from '@mysten/sui/transactions';
+
+export class DeepBookMarketMaker {
+	keypair: Keypair;
+	client: ClientWithExtensions<{ deepbook: DeepBookClient }>;
+
+	constructor(
+		keypair: string | Keypair,
+		env: 'testnet' | 'mainnet',
+		balanceManagers?: { [key: string]: BalanceManager },
+		adminCap?: string,
+	) {
+		if (typeof keypair === 'string') {
+			this.keypair = DeepBookMarketMaker.#getSignerFromPK(keypair);
+		} else {
+			this.keypair = keypair;
+		}
+
+		this.client = new SuiGrpcClient({
+			network: env,
+			baseUrl:
+				env === 'mainnet'
+					? 'https://fullnode.mainnet.sui.io:443'
+					: 'https://fullnode.testnet.sui.io:443',
+		}).$extend(
+			deepbook({
+				address: this.getActiveAddress(),
+				balanceManagers,
+				adminCap,
+			}),
+		);
+	}
+
+	static #getSignerFromPK = (privateKey: string) => {
+		const { schema, secretKey } = decodeSuiPrivateKey(privateKey);
+		if (schema === 'ED25519') return Ed25519Keypair.fromSecretKey(secretKey);
+
+		throw new Error(`Unsupported schema: ${schema}`);
+	};
+
+	signAndExecute = async (tx: Transaction) => {
+		const result = await this.client.core.signAndExecuteTransaction({
+			transaction: tx,
+			signer: this.keypair,
+			include: { effects: true },
+		});
+		if (result.$kind === 'FailedTransaction') {
+			throw new Error('Transaction failed');
+		}
+		return result.Transaction;
+	};
+
+	getActiveAddress() {
+		return this.keypair.getPublicKey().toSuiAddress();
+	}
+}
+```
+
+### Example setup
+
+다음 예시는 제공된 default pools와 coins를 사용한다.
+
+```tsx
+import { Transaction } from '@mysten/sui/transactions';
+
+import { DeepBookMarketMaker } from './deepbookMarketMaker.js';
+
+(async () => {
+	const privateKey = ''; // 이를 .env 파일에 넣을 수 있다
+
+	// 생성된 balance managers가 있으면 함께 초기화한다
+	const balanceManagers = {
+		MANAGER_1: {
+			address: '',
+			tradeCap: '',
+		},
+	};
+	const mmClient = new DeepBookMarketMaker(privateKey, 'testnet', balanceManagers);
+
+	const tx = new Transaction();
+
+	// 읽기 전용 호출
+	console.log(await mmClient.client.deepbook.checkManagerBalance('MANAGER_1', 'SUI'));
+	console.log(await mmClient.client.deepbook.getLevel2Range('SUI_DBUSDC', 0.1, 100, true));
+
+	// Balance manager contract 호출
+	mmClient.client.deepbook.balanceManager.depositIntoManager('MANAGER_1', 'DBUSDT', 10000)(tx);
+	mmClient.client.deepbook.balanceManager.withdrawAllFromManager(
+		'MANAGER_1',
+		'DBUSDT',
+		mmClient.getActiveAddress(),
+	)(tx);
+
+	let res = await mmClient.signAndExecute(tx);
+
+	console.dir(res, { depth: null });
+})();
+```
+
+## Referral functions
+
+SDK는 pool-specific referrals를 관리하기 위한 함수를 제공한다. Referrals는 사용자가 자신이 refer한 traders로부터 trading fees의 일부를 벌 수 있도록 한다.
+
+### Pool referral functions
+
+이 함수는 pool level에서 referrals를 관리하기 위해 `deepbook` contract에서 사용할 수 있다.
+
+:::info Multiplier constraints
+
+referral multiplier는 0.1의 배수(예: 0.1, 0.2, 0.3, ...)여야 하며 2.0을 초과할 수 없다.
+
+:::
+
+```tsx
+// 특정 pool용 새 referral을 mint한다
+// multiplier는 referrer에게 할당되는 fee 비율을 결정한다
+// 유효한 값: 0.1, 0.2, 0.3, ... 최대 2.0
+client.deepbook.mintReferral('SUI_DBUSDC', 0.1)(tx);
+
+// 기존 referral의 multiplier를 업데이트한다
+client.deepbook.updatePoolReferralMultiplier('SUI_DBUSDC', referralId, 0.2)(tx);
+
+// 누적 referral reward를 청구한다(base, quote, DEEP coin 반환)
+const { baseRewards, quoteRewards, deepRewards } = tx.add(
+	client.deepbook.claimPoolReferralRewards('SUI_DBUSDC', referralId)
+);
+
+// referral의 현재 balance를 가져온다
+client.deepbook.getPoolReferralBalances('SUI_DBUSDC', referralId)(tx);
+
+// referral의 multiplier를 가져온다
+client.deepbook.poolReferralMultiplier('SUI_DBUSDC', referralId)(tx);
+```
+
+### Balance manager referral functions
+
+이 함수는 referrals를 balance managers와 연결하기 위해 `balanceManager` contract에서 사용할 수 있다.
+
+```tsx
+// 먼저 TradeCap을 생성한다(referral 설정에 필요하다)
+const tradeCap = tx.add(client.deepbook.balanceManager.mintTradeCap('MANAGER_1'));
+
+// balance manager에 referral을 설정한다(pool-specific)
+// 각 balance manager는 pool마다 다른 referral을 가질 수 있다
+client.deepbook.balanceManager.setBalanceManagerReferral('MANAGER_1', referralId, tradeCap)(tx);
+
+// 특정 pool에 대한 referral 설정을 해제한다
+client.deepbook.balanceManager.unsetBalanceManagerReferral('MANAGER_1', 'SUI_DBUSDC', tradeCap)(tx);
+
+// 특정 pool에 대해 balance manager와 연결된 referral ID를 가져온다
+client.deepbook.balanceManager.getBalanceManagerReferralId('MANAGER_1', 'SUI_DBUSDC')(tx);
+
+// referral의 owner를 가져온다
+client.deepbook.balanceManager.balanceManagerReferralOwner(referralId)(tx);
+
+// referral과 연결된 pool ID를 가져온다
+client.deepbook.balanceManager.balanceManagerReferralPoolId(referralId)(tx);
+```

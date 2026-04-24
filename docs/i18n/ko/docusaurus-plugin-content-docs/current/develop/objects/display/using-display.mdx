@@ -1,0 +1,159 @@
+---
+title: Display 만들기
+description: Object Display는 명시적으로 만들어야 하며, 이후 package 또는 type owner가 유지 관리해야 한다.
+keywords: [ Object Display, object, display, display properties, object properties, sui::display, Sui utility objects ]
+---
+
+:::danger
+
+Object Display V2는 Sui v1.68에서 사용할 수 있게 된다. v1.68을 Devnet, Testnet, Mainnet에서 사용할 수 있는 시점을 확인하려면 [release schedule](https://www.sui.io/networkinfo)을 확인한다.
+
+기존 V1 display는 모두 **system snapshot migration**으로 V2에 마이그레이션된다. 사전에 해야 할 일은 없다. 스냅샷 이후 준비가 되면 capability를 claim할 수 있다([V2로 마이그레이션](#migrating-to-v2) 참조).
+
+:::
+
+Object Display는 명시적으로 만들어야 하며, 이후 [package 또는 type owner](#display-registry)가 유지 관리해야 한다. 표준은 설정할 수 있는 field를 제한하지 않는다. 모든 object property에 접근하고 template string의 일부로 삽입하려면 `{property}` 구문을 사용한다. 기본 권장 property 집합은 다음과 같다:
+
+- `name`: object의 이름이다. 사용자가 object를 볼 때 표시된다.
+- `description`: object의 설명이다. 사용자가 object를 볼 때 표시된다.
+- `link`: 애플리케이션에서 사용할 object 링크이다.
+- `image_url`: object 이미지에 대한 URL 또는 blob이다.
+- `thumbnail_url`: wallet, explorer, 기타 product에서 preview로 사용할 더 작은 이미지에 대한 URL이다.
+- `project_url`: object 또는 creator와 연결된 웹사이트 링크이다.
+- `creator`: object creator를 나타내는 문자열이다.
+
+전체 Object Display 구문은 [Object Display reference page](/references/object-display-syntax)를 참조한다.
+
+## Display registry
+
+V1에서는 type의 display를 찾기 위해 `DisplayCreated<T>` 같은 event에 의존했다. Client는 type별 historical event를 query하고 어떤 object가 display를 나타내는지 추론해야 했다. 이 접근 방식은 historical event data에 의존하고, full history를 보관하지 않을 수 있는 full node에는 확장되지 않으며, type `T`의 display를 event scan 없이 안정적이고 저렴하게 resolve해야 하는 JSON-RPC, gRPC 같은 RPC API에 잘 맞지 않는다.
+
+V2에서는 type `T`의 display가 global registry와 type에서 파생된 단일 deterministic ID를 가진다. 이 ID는 event나 history를 사용하지 않고 오프라인에서 계산할 수 있다. RPC는 derivation만으로 type `T`의 display를 resolve할 수 있으므로 full node에 지속 가능하다. 이것이 JSON-RPC와 gRPC에서 얻는 주요 이점이다. GraphQL은 자체 indexed state를 유지하므로 영향이 덜하다.
+
+### Structural change: N to 1, and derived
+
+Object Display V1에서는 type별로 N개의 display를 가질 수 있었고, 이를 query하려면 event를 사용해야 했다. Object Display V2에서는 type별로 display가 하나만 있으며, derivation으로 이를 얻는다.
+
+|                                | **V1**                                              | **V2**                                                                                                                                                        |
+| ------------------------------ | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Displays per type**          | 여러 `Display<T>`가 존재할 수 있었다.                  | type `T`마다 정확히 하나의 `Display<T>`가 있다.                                                                                                                        |
+| **How you find `Display<T>`**  | type별 event를 query한다. historical event가 필요하다.   | Offline derivation. `Display<T>`는 `(DisplayRegistry UID, DisplayKey<T>)`에서 파생된 derived object이다. ID는 registry와 type에서 계산할 수 있으며 event나 scan이 필요 없다. |
+| **Identity**                   | 예측할 수 없다(creation transaction마다 다름).           | Deterministic하다. 같은 registry와 같은 `T`는 어디서나 같은 display ID를 만든다.                                                                       |
+
+## Example
+
+`display::new<T>` call은 custom function 또는 module initializer 안에서, 또는 programmable transaction의 일부로 `Display`를 만든다. 다음 code sample은 `Display`를 만드는 방법을 보여준다:
+
+```move
+module sui::display;
+
+/// Get a new Display object for the `T`.
+/// Publisher must be the publisher of the T, `from_package`
+/// check is performed.
+public fun new<T>(pub: &Publisher): Display<T> { /* ... */ }
+```
+
+`Display`를 만든 뒤에는 이를 수정할 수 있다. 다음 code sample은 `Display`를 수정하는 방법을 보여준다:
+
+```move
+module sui::display;
+
+/// Sets multiple fields at once
+public fun add_multiple(
+    self: &mut Display,
+    keys: vector<String>,
+    values: vector<String>
+) { /* ... */ }
+
+/// Edit a single field
+public fun edit(self: &mut Display, key: String, value: String) { /* ... */ }
+
+/// Remove a key from Display
+public fun remove(self: &mut Display, key: String ) { /* ... */ }
+```
+
+그다음 `update_version` call은 변경 사항을 적용하고 event를 emit하여 `T`에 대한 `Display`를 설정한다. Full node는 event를 받고 event 안의 data를 사용해 해당 type의 template을 가져온다.
+
+다음 code sample은 `update_version` call을 사용하는 방법을 보여준다:
+
+```move
+module sui::display;
+
+/// Update the version of Display and emit an event
+public fun update_version(self: &mut Display) { /* ... */ }
+```
+
+## Object Display patterns
+
+다음은 Object Display pattern 예시이다. [Object Display template preview](/develop/objects/display/display-overview)를 사용해 추가 pattern을 탐색하고 상호작용할 수 있다.
+
+### Objects with unique static content
+
+이 예시는 object의 mint event 중 한 번 설정되는 static metadata를 가진 object를 보여준다. metadata standard가 발전하고 일부 ecosystem project가 몇 가지 property에 새 feature를 추가하더라도, 이 object는 항상 원래 form을 유지하며 backward-compatible change가 필요할 수 있다.
+
+```move
+module sui::devnet_nft;
+
+use std::string::String;
+
+/// A Collectible with a static data. URL, name, description are
+/// set only once on a mint event
+public struct DevNetNFT has key, store {
+    id: UID,
+    name: String,
+    description: String,
+    url: String,
+}
+```
+
+### Objects with data duplication
+
+in-game item에서 흔한 경우는 많은 수의 유사한 object가 특정 기준으로 그룹화되는 것이다. 이들의 크기와 mint 및 update cost를 최적화하는 것이 중요하다. 일반적으로 game은 group 또는 item criterion마다 단일 source image 또는 URL을 사용한다. 모든 object 안에 source image를 저장하는 것은 최적이 아니다.
+
+경우에 따라 사용자는 game이 허용할 때 또는 in-game item을 구매할 때 in-game item을 mint한다. 이를 가능하게 하려면 일부 metadata를 미리 다른 곳, 예를 들어 [Walrus](https://docs.wal.app)에 만들고 저장해야 한다. 이를 위해서는 보통 item의 in-game property와 관련 없는 추가 logic이 필요하다.
+
+다음 예시는 `Capy` item을 만드는 방법을 보여준다:
+
+```move
+module capy::capy_items;
+
+use std::string::String;
+
+/// A wearable Capy item. For some items there can be an
+/// unlimited supply. And items with the same name are identical.
+public struct CapyItem has key, store {
+    id: UID,
+    name: String
+}
+```
+
+### Sui utility objects
+
+Sui에서 utility object는 capability에 대한 authorization을 가능하게 한다. 거의 모든 module에는 필요한 capability가 있어야만 접근할 수 있는 feature가 있다. Generic module은 marketplace 같은 application마다 하나의 capability를 허용한다. 일부 capability는 shared object의 ownership을 온체인에 표시하거나, 다른 account에서 shared data에 접근할 수 있게 한다.
+
+capability에서는 user interface implementation을 쉽게 하도록 object에 의미 있는 description을 제공하는 것이 중요하다. 이렇게 하면 object가 유사할 때 실수로 잘못된 object를 transfer하는 것을 피하는 데 도움이 된다. 또한 사용자가 보는 item에 user-friendly description을 제공한다.
+
+다음 예시는 `capy`라는 capability를 만드는 방법을 보여준다:
+
+```move
+module capy::utility;
+
+/// A capability which grants Capy Manager permission to add
+/// new genes and manage the Capy Market
+public struct CapyManagerCap has key, store { id: UID }
+```
+
+## Migrating to V2
+
+:::caution
+
+기존 V1 display는 모두 **system snapshot migration**에서 V2로 마이그레이션된다. 사전에 해야 할 일은 없다. 스냅샷 이후 각 type마다 단일 V2 `Display<T>`가 존재하며, capability가 claim될 때까지 `cap_id: none` 상태이다.
+
+:::
+
+두 가지 방법 중 하나로 capability를 claim할 수 있다:
+
+- **Publisher** using `claim_with_publisher`: `Publisher` object를 보유하고 있다면 이 방법을 사용한다. `publisher.from_package<T>()`를 통해 type ownership을 증명한다.
+- **Legacy Display** using `claim`: V1 `Display<T>` object를 보유하고 있다면 이 방법을 사용한다. 이를 전달하면 consume되고 `DisplayCap<T>`를 받는다.
+
+claim한 뒤에는 `DisplayCap<T>` holder가 display field를 update할 수 있다(`set`, `unset`, `clear`). V1 `Display<T>`를 보유한 누구나 `delete_legacy(display, legacy)`를 호출해 legacy object를 burn할 수 있다.

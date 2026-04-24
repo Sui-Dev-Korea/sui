@@ -1,0 +1,56 @@
+---
+title: 주소 소유 객체
+description: Address-owned object는 Sui의 32바이트 address가 소유하며, 이 address는 account address 또는 object ID일 수 있다. 이러한 object를 생성하고 접근하는 방법을 학습한다.
+keywords:
+  - address-owned objects
+  - address-owned
+  - owned objects
+  - objects owned by address
+  - accessing objects
+  - accessing owned objects
+  - address ownership
+---
+
+
+Address-owned object는 특정 32바이트 address가 소유하며, 이 address는 account address (특정 서명 체계에서 파생됨) 이거나 object ID이다. Address-owned object는 오직 해당 소유자만 접근할 수 있으며 다른 누구도 접근할 수 없다.
+
+소유자 (Address-owned object를 소유한 address의 소유자)는 이를 다른 address로 전송할 수 있다. 오직 한 명의 소유자만 이러한 object에 접근할 수 있기 때문에, owned object만을 사용하는 transaction을 공통된 object가 없는 다른 transaction과 병렬로 실행할 수 있으며 consensus를 거칠 필요가 없다.
+
+## Creating address-owned objects
+
+다음 [transfer module](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/transfer.move) 함수를 사용하여 address-owned object를 생성한다.
+
+```move
+public fun transfer<T: key>(obj: T, recipient: address)
+public fun public_transfer<T: key + store>(obj: T, recipient: address)
+```
+
+Object에 대한 [custom transfer rules](/develop/objects/transfers/custom-rules)를 정의하는 경우 <code>sui::transfer::transfer</code> 함수를 사용해야 한다. Object가 `store` capability를 가진다면 `sui::transfer::public_transfer` 함수를 사용하여 address-owned object를 생성한다.
+
+Object를 address-owned로 선언한 이후, 그 object의 생애 동안 소유권은 변경될 수 있다 - dynamic object field로 추가하거나, 다른 주소로 전송하거나, immutable로 만드는 경우. 그러나 중요한 점은, object를 생성하고 소유권을 설정한 이후에는 해당 object가 공유될 수 없다는 것이다.
+
+## Accessing address-owned objects
+
+Object의 주소 소유자가 object ID에 해당하는지 여부에 따라 address-owned object에 접근하는 방법은 두 가지이다.
+
+Object의 주소 소유자가 object ID인 경우, [객체로 전송](../transfers/transfer-to-object)에 정의된 메커니즘을 사용하여 transaction 실행 중에 동적 인증 후 접근해야 한다.
+
+Object의 주소 소유자가 서명으로 파생된 주소 (account address)인 경우, 해당 주소가 서명한 transaction의 실행 중에 owned object를 직접 사용하고 접근할 수 있다. 다른 주소는 transaction 내에서 해당 owned object에 어떤 방식으로도 접근할 수 없으며, 읽는 것조차 불가능하다.
+
+## When to use address-owned objects
+
+다음과 같은 경우 address-owned object를 사용한다:
+
+- 단일 소유권이 필요한 경우
+- shared object보다 더 나은 성능이 필요한 경우
+- consensus sequencing을 피하고자 하는 경우
+
+## Example
+
+흔히 address-owned 형태로 존재하는 object의 예로는 [Coin object](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/coin.move)가 있다. 예를 들어 address `0xA11CE`가 100 SUI의 coin `C`를 보유하고 있고 address `0xB0B`에 100 SUI를 보내고자 한다면, `0xA11CE`는 `C`를 `0xB0B`로 전송하면 된다.
+
+```move
+transfer::public_transfer(C, @0xB0B);
+```
+
+이렇게 하면 `C`의 새로운 address 소유자는 `0xB0B`가 되며, 이후 `0xB0B`는 해당 100 SUI coin을 사용할 수 있다.

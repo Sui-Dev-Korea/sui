@@ -1,9 +1,9 @@
-Archival Store와 Service는 [Sui data access infrastructure](/concepts/data-access/data-serving.mdx)의 일부이다.
+Archival Store와 Service는 [Sui data access infrastructure](/develop/accessing-data/data-serving)의 일부이다.
 
 이 스택은 Google Cloud Bigtable을 기반으로 하는 gRPC 서비스를 통해 과거 온체인 데이터에 대한 장기 저장소와 저지연 포인트 조회를 제공한다.
 
 이 스택은 full node 또는 indexer database의 retention horizon을 넘어 과거 transaction, checkpoint, object, epoch 데이터를 제공해야 하는 operator와 data provider에 최적화되어 있다.
 
-Archival Service는 Sui full node와 동일한 [gRPC LedgerService API](/concepts/data-access/grpc)를 노출하므로, 기존 gRPC client는 endpoint를 변경하는 것만으로 이를 query할 수 있다.
+Archival Service는 Sui full node와 동일한 [gRPC LedgerService API](/develop/accessing-data/grpc/what-is-grpc)를 노출하므로, 기존 gRPC client는 endpoint를 변경하는 것만으로 이를 query할 수 있다.
 
 이 서비스는 원격 checkpoint store에서 checkpoint를 읽어 처리된 데이터를 Bigtable에 쓰는 indexer(`sui-kvstore-alt`)와, Bigtable에서 읽어 client request를 제공하는 gRPC server(`sui-kv-rpc`)로 구동된다.

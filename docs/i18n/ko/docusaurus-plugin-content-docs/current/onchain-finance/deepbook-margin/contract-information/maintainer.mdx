@@ -1,0 +1,158 @@
+---
+title: 메인터이너
+description: margin pool과 system configuration을 관리하기 위한 maintainer 함수를 설명한다.
+keywords:
+  [
+    maintainer,
+    margin pool admin,
+    pool configuration,
+    interest rates,
+    protocol config,
+    deepbook margin,
+  ]
+---
+
+
+maintainer module은 margin pool을 관리하고, interest rate를 구성하고, 어떤 DeepBook pool이 margin lending에 접근할 수 있는지 제어하는 함수를 제공한다. 이 함수들은 적절한 capability를 가진 maintainer로 제한된다.
+
+## API
+
+다음은 `MarginPool`이 제공하는 maintainer 함수이다.
+
+<details>
+<summary>Create a margin pool</summary>
+
+특정 asset에 대한 새로운 margin pool을 생성하고 등록한다. asset type당 하나의 margin pool만 존재할 수 있다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="create_margin_pool"
+	noComments
+/>
+
+</details>
+
+<details>
+<summary>Enable or disable DeepBook pools</summary>
+
+이 margin pool에서 차입할 수 있는 DeepBook pool을 제어한다. 활성화된 pool과 연결된 margin manager만 대출을 받을 수 있다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="enable_deepbook_pool_for_loan,disable_deepbook_pool_for_loan"
+/>
+
+</details>
+
+<details>
+<summary>Update pool parameters</summary>
+
+interest rate parameter와 margin pool configuration setting을 업데이트한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="update_interest_params,update_margin_pool_config"
+/>
+
+</details>
+
+<details>
+<summary>Withdraw fees</summary>
+
+margin pool에서 누적된 maintainer 및 protocol fee를 인출한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="withdraw_maintainer_fees,withdraw_protocol_fees,admin_withdraw_default_referral_fees"
+/>
+
+</details>
+
+## Events
+
+<details>
+<summary>`MaintainerCapUpdated`</summary>
+
+maintainer capability가 업데이트될 때 방출된다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_registry.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="MaintainerCapUpdated"
+/>
+
+</details>
+
+<details>
+<summary>`PauseCapUpdated`</summary>
+
+pause capability가 업데이트될 때 방출된다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_registry.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="PauseCapUpdated"
+/>
+
+</details>
+
+<details>
+<summary>`DeepbookPoolRegistered`</summary>
+
+DeepBook pool이 margin registry에 등록될 때 방출된다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_registry.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="DeepbookPoolRegistered"
+/>
+
+</details>
+
+<details>
+<summary>`DeepbookPoolUpdatedRegistry`</summary>
+
+DeepBook pool의 enabled status가 registry에서 업데이트될 때 방출된다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_registry.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="DeepbookPoolUpdated"
+/>
+
+</details>
+
+<details>
+<summary>`DeepbookPoolConfigUpdated`</summary>
+
+DeepBook pool의 configuration이 registry에서 업데이트될 때 방출된다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_registry.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="DeepbookPoolConfigUpdated"
+/>
+
+</details>

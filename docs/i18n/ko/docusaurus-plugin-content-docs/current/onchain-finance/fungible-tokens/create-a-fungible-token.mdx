@@ -1,0 +1,58 @@
+---
+title: "대체 가능 토큰 만들기: Currency Standard"
+description: Sui 네트워크에서 currency를 만들고 coin과 token을 mint하는 방법을 알아본다.
+keywords: [mint tokens, create tokens, use tokens, publish token, custom tokens, sui CLI, denylist, regulated coins, coin registry, currency registry]
+---
+
+Currency Standard를 사용해 만든 asset은 모든 앱에 저장할 수 있는 free-flowing, [wrappable](/develop/objects/object-ownership/wrapped), [freely transferable](/develop/objects/transfers/custom-rules) 대체 가능 asset이다. Currency Standard는 metadata를 위해 [`sui::coin_registry`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/coin_registry.md) module과 `Currency` object를 사용한다.
+
+`Currency<T>` type은 open-loop 대체 가능 token을 나타낸다. Currency는 type parameter `T`로 표시되며, `T`는 모든 `Currency<T>` instance에 적용되는 metadata(예: 이름, symbol, decimal precision)와도 연결된다. `sui::coin_registry` module은 `Currency<T>`를 fungible로 취급하는 interface를 제공한다. 즉, 전통적인 법정화폐가 동작하는 방식과 유사하게 한 `Currency<T>` instance에 보관된 `T` 단위는 다른 어떤 `T` 단위와도 상호 교환 가능하다.
+
+## Coin Registry
+
+Coin Registry system은 `sui::coin_registry` module을 통해 currency 관리를 위한 중앙화된 접근 방식을 제공한다. Registry는 주소 `0xc`에 있는 shared object이며, 등록된 모든 coin type의 metadata, supply information, regulatory status를 저장한다.
+
+## Creation options
+
+Registry는 두 가지 coin creation flow를 지원한다:
+
+- **Standard creation** (`coin_registry::new_currency`): 대부분의 경우 권장된다. coin type을 게시한 뒤 언제든 이 method를 호출할 수 있다.
+- **One-Time Witness creation** (`coin_registry::new_currency_with_otw`): uniqueness proof에 One-Time Witness를 사용한다. publish와 finalize의 두 단계 process가 필요하다.
+
+두 creation method는 모두 추가 구성을 허용하는 `CurrencyInitializer<T>`를 반환한다:
+
+- **Regulated tokens:** deny list capability를 추가해 token을 regulated하게 만든다.
+- **Supply model:** fixed, burn-only, flexible supply 중에서 선택한다.
+- **Extensions:** custom functionality를 위한 추가 field를 포함한다.
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/registries/coin_registry.move" mode="code" struct="CurrencyInitializer" />
+
+## Standard creation (recommended)
+
+coin type이 게시된 뒤 언제든 `new_currency` function을 사용한다. 이 function은 shared `Currency<T>` object를 만들며, type `T`는 key-only type이어야 한다(`public struct MyCoin has key { id: UID }`):
+
+<ImportContent source="examples/move/coin/sources/non_otw_currency.move" mode="code" fun="new_currency" noComments />
+
+`finalize` function을 호출하면 currency creation이 완료된다:
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/registries/coin_registry.move" mode="code" fun="finalize" signatureOnly />
+
+## One-Time Witness 생성
+
+올바른 생성과 RPC support를 위해서는 currency를 registry로 promote하는 두 번째 transaction이 필요하다.
+
+One-Time Witness creation으로 새 coin을 만드는 과정은 두 단계 process이다. Initialization process는 package publication으로 시작한다:
+
+<ImportContent source="examples/move/coin/sources/my_coin_new.move" mode="code" fun="init" noComments />
+
+그다음 `coin_registry::finalize_registration`을 호출해 coin을 registry에 배치한다:
+
+```sh
+# Requires the ID of the Currency object created during publishing.
+# This step is only required for OTW-created currencies.
+sui client ptb \
+    --assign @created_currency_object_id currency_to_promote \
+    --move-call 0x2::coin_registry::finalize_registration <CURRENCY_TYPE> @0xc currency_to_promote
+```
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/registries/coin_registry.move" mode="code" fun="finalize_registration" signatureOnly />

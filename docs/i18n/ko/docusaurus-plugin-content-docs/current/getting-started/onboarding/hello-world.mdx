@@ -1,0 +1,531 @@
+---
+title: Hello, World!
+description: 기본적인 'Hello, World!' 예제를 사용해 첫 번째 Move package를 생성하고 게시한다.
+keywords: [ first dapp, first package, move package, first move package, hello world, hello, world, what is move, what is a package, what is an object, move object, sui move object, sui move package, sui move module, move module, build package, publish package, call package, make call to package, how to call package ]
+pagination_prev: null
+pagination_next: null
+---
+
+
+Sui 프로그래밍의 기초를 배우기 위해 "Hello, World!" 프로그램을 빌드한다.
+
+Sui에서는 네트워크에 smart contract를 작성하고 배포하여 프로그램을 만든다.
+
+Sui에서 가장 기본적인 storage 단위는 [object](/develop/sui-architecture/object-model)이다.
+
+다른 블록체인은 일반적으로 key-value store를 사용해 storage를 구조화한다.
+
+Sui는 온체인에서 고유 ID address를 가진 object를 중심으로 storage를 구성한다.
+
+모든 Sui smart contract는 다른 object를 조작하는 object이다.
+
+Object는 immutable이거나 mutable일 수 있다:
+
+- **Immutable** object는 전송, 변경, 삭제할 수 없다.
+
+- 아무도 소유하지 않으며 누구나 공개적으로 접근할 수 있다.
+
+- **Mutable** object는 전송, 변경, 삭제할 수 있다.
+
+- Sui address가 소유할 수도 있고, 공개 접근을 위해 shared될 수도 있다.
+
+각 object의 고유 ID와 version number는 온체인에서 해당 object를 참조한다.
+
+네트워크의 모든 transaction은 object를 입력으로 받아 입력을 읽고 쓰고 변경하여 새로운 object 또는 변경된 object를 출력으로 생성한다.
+
+각 object는 자신을 생성한 transaction의 hash를 알고 있다.
+
+Object가 transaction에 의해 수정되면 transaction 출력은 해당 object의 변경된 내용을 같은 object ID에 새 version number와 함께 기록한다.
+
+Sui에는 transaction에 사용되는 최대 transaction 크기(128KB)와 object 수(2,048)에 대한 제한이 있다.
+
+제한에 대한 자세한 내용은 The Move Book의 [Building Against Limits](https://move-book.com/guides/building-against-limits/)를 참조한다.
+
+## What is Move?
+
+[Move](/develop/write-move/sui-move-concepts)는 Sui가 smart contract를 생성하는 데 사용하는 프로그래밍 언어이다.
+
+이는 플랫폼에 구애받지 않으며 데이터와 실행 모델이 매우 다른 블록체인 전반에 걸쳐 공통 라이브러리, 도구, developer 커뮤니티를 가능하게 한다.
+
+Sui 맥락에서 Move를 사용하는 방법은 Move package, Move module, Move object의 세 가지이다.
+
+Sui **Move package**는 Move smart contract라고도 한다.
+
+이는 Sui 네트워크에 게시되는 Move bytecode 집합이다.
+
+이는 immutable이어서 변경하거나 제거할 수 없지만 업그레이드는 할 수 있다.
+
+업그레이드는 온체인에서 package object의 새 version을 생성하고 원래 version은 그대로 둔다.
+
+Package의 이전 version은 모두 온체인에 계속 존재한다.
+
+게시한 후에는 다른 package가 해당 package가 제공하는 module을 import하고 사용할 수 있다.
+
+누구나 package의 내용을 볼 수 있고 Sui Explorer를 사용해 그 logic이 다른 object를 어떻게 조작하는지 확인할 수 있다.
+
+Sui의 모든 Move package에는 온체인 object와 package의 상호작용을 정의하는 하나 이상의 **Sui Move module**이 포함된다.
+
+Module의 이름은 해당 module을 포함하는 package 안에서 항상 고유하다.
+
+Sui Move module은 Sui Move package의 typed data인 Sui **Move object**를 다룬다.
+
+각 Move object 값은 integer와 address 같은 primitive type, 다른 object, object가 아닌 struct를 포함할 수 있는 field를 가진 struct이다.
+
+## Clone "Hello, World!"
+
+<Tabs className="tabsHeadingCentered--small">
+<TabItem value="prereq" label="Prerequisites">
+
+- [x] [Sui 설치](/getting-started/onboarding/sui-install).
+
+- [x] [Sui 클라이언트 설정](/getting-started/onboarding/configure-sui-client).
+
+- [x] [Sui 주소 만들기](/getting-started/onboarding/get-address).
+
+- [x] [Faucet에서 SUI 받기](/getting-started/onboarding/get-coins).
+
+- [x] Move extension을 제공하므로 권장되는 다음 IDE 중 하나를 다운로드해 설치한다:
+
+    - [VSCode](https://code.visualstudio.com/), 해당 [Move extension](https://marketplace.visualstudio.com/items?itemName=mysten.move)
+
+    - [Emacs](https://www.gnu.org/software/emacs/), 해당 [Move extension](https://github.com/amnn/move-mode)
+
+    - [Vim](https://www.vim.org/download.php), 해당 [Move extension](https://github.com/yanganto/move.vim)
+
+    - [Zed](https://zed.dev/), 해당 [Move extension](https://github.com/Tzal3x/move-zed-extension)
+
+        또는 다운로드가 필요 없는 [Move web IDE](https://www.playmove.dev/)를 사용할 수 있다.
+
+        그러나 이 가이드에 필요한 모든 기능을 지원하지는 않는다.
+
+- [x] [Download and install Git](https://git-scm.com/downloads).
+
+</TabItem>
+</Tabs>
+
+Object와 package를 생성하는 방법과 첫 번째 Sui application을 빌드하는 방법을 보여 주기 위해 먼저 "Hello, World!" 예제를 clone한다:
+
+```
+$ git clone \
+  https://github.com/MystenLabs/sui-stack-hello-world.git
+$ cd sui-stack-hello-world/move/hello-world
+```
+
+이 project에는 package의 logic, 정보, dependency를 정의하는 중요한 파일이 두 개 있다:
+
+- `move/hello-world/sources/greeting.move`: package의 logic을 정의한다.
+
+- 이 예제에서는 기본적인 shared greeting object와 그와 상호작용하는 public function을 정의한다.
+
+- `move/hello-world/Move.toml`: package 이름, dependency, address를 정의하는 package의 구성 파일이다.
+
+<details>
+
+<summary>`move/hello-world/Move.toml`</summary>
+
+<ImportContent source="/move/hello-world/Move.toml" mode="code" org="MystenLabs" repo="sui-stack-hello-world" />
+
+</details>
+
+### View the smart contract code
+
+선택한 IDE에서 `greeting.move` 파일을 연다.
+
+다음 Move 코드를 볼 수 있다:
+
+<ImportContent source="/move/hello-world/sources/greeting.move" mode="code" org="MystenLabs" repo="sui-stack-hello-world" />
+
+### Code explanation
+
+먼저 이 코드는 `greeting`이라는 module을 정의한다:
+
+```move
+module hello_world::greeting {
+  use std::string;
+  ...
+}
+```
+
+그런 다음 이 코드는 고유 object ID와 text를 포함하는 `Greeting`이라는 public struct를 정의한다.
+
+Struct는 _resource_의 한 type이다:
+
+<ImportContent source="/move/hello-world/sources/greeting.move" mode="code" struct="Greeting" org="MystenLabs" repo="sui-stack-hello-world" />
+
+그런 다음 이 코드는 `Greeting` struct에 API call을 수행하고 text `"Hello world!"`로 초기화한 뒤 이를 새로운 shared object에 저장하는 함수 `new`를 정의한다:
+
+<ImportContent source="/move/hello-world/sources/greeting.move" mode="code" fun="new" org="MystenLabs" repo="sui-stack-hello-world" />
+
+마지막으로 package는 `Greeting`에 저장된 text를 업데이트하기 위해 호출할 수 있는 `update_text`라는 함수를 정의한다:
+
+<ImportContent source="/move/hello-world/sources/greeting.move" mode="code" fun="update_text" org="MystenLabs" repo="sui-stack-hello-world" />
+
+### Resource safety
+
+Sui에서 애플리케이션을 프로그래밍할 때의 고유한 측면은 Move Bytecode Verifier가 강제하는 resource safety이다.
+
+Move package는 다음 resource safety 조건을 충족해야 한다:
+
+- 모든 resource는 transaction이 끝날 때까지 global storage로 이동되거나 파기되어야 한다.
+
+- Resource는 복사할 수 없다.
+
+"Hello, World!" 예제에서 `Greeting` struct는 resource type이다.
+
+모든 resource가 transaction이 끝날 때까지 이동되거나 파기되어야 한다는 요구 사항을 충족하기 위해 `Greeting`은 `new_greeting`에 할당되고, `transfer::share_object(new_greeting)` 호출이 이를 global storage로 이동한다.
+
+`Greeting`을 변경하기 위해 `update_text` 함수는 resource 자체가 아니라 입력 `(&mut Greeting)`을 받는다.
+
+이 함수는 resource를 복사하지 않고 reference를 통해 이를 변경하므로 resource safety를 충족한다.
+
+Move Bytecode Verifier에 대해 [Learn more](https://github.com/MystenLabs/sui/blob/main/external-crates/move/move-execution/v1/crates/move-bytecode-verifier/README.md).
+
+#### How does this differ from EVM applications?
+
+Ethereum Virtual Machine은 가스 기반 resource safety 전략을 채택한다.
+
+EVM 체인의 모든 opcode에는 연관된 gas 가격이 있어 transaction 비용이 발생하고, 이는 네트워크가 하나의 transaction을 무기한 실행하지 못하게 한다.
+
+## Build the Move package
+
+Move package를 네트워크에 게시하려면 먼저 이를 빌드해야 한다.
+
+`.move` source file은 사람이 읽을 수 있는 코드이지만 네트워크는 bytecode만 이해할 수 있으므로 package를 빌드해야 한다.
+
+"Hello, World!" package를 빌드하려면 먼저 작업 디렉터리가 `~/sui-stack-hello-world/move/hello-world`인지 확인한 다음 다음 명령을 실행한다:
+
+```
+$ sui move build 
+```
+
+빌드 프로세스는 `Move.toml` 파일에 정의된 dependency를 가져와 compile한다.
+
+Move compiler는 `.move` 코드의 type error와 syntax error를 검사하고 [resource safety](#resource-safety)를 강제한 다음 `.move` 코드를 Sui가 실행할 수 있는 bytecode로 변환한다.
+
+:::info
+
+Package를 게시하기 전에 빌드해야 하며, 테스트하기 전에 역시 빌드해야 한다.
+
+코드가 빌드되기 전에는 테스트(`sui move test`)를 실행할 수 없다.
+
+:::
+
+## Publish the Move package
+
+이제 package가 빌드되었으므로 이를 게시해야 한다.
+
+게시한 후에는 다른 package와 사용자가 package ID를 호출해 이 package의 module과 function을 사용할 수 있다.
+
+먼저 client가 활성 환경으로 Testnet을 사용하도록 구성되어 있는지 확인한다:
+
+```
+$ sui client active-env
+```
+
+이 명령은 `testnet`을 반환해야 한다.
+
+`testnet`을 반환하지 않으면 계속하기 전에 [client configuration instructions](/getting-started/onboarding/configure-sui-client)를 따른다.
+
+그런 다음 Testnet에 게시하기에 충분한지 확인하기 위해 SUI token 잔액을 점검한다:
+
+```
+$ sui client balance 
+```
+
+SUI token 잔액이 표시되어야 한다:
+
+```
+╭────────────────────────────────────────────╮
+│ Balance of coins owned by this address     │
+├────────────────────────────────────────────┤
+│ ╭────────────────────────────────────────╮ │
+│ │ coin       balance (raw)  balance      │ │
+│ ├────────────────────────────────────────┤ │
+│ │ Sui        56804696124     0.50 SUI    │ │
+│ ╰────────────────────────────────────────╯ │
+╰────────────────────────────────────────────╯
+```
+
+잔액이 없다면 [SUI faucet instructions](/getting-started/onboarding/get-coins)를 따른다.
+
+이제 다음 명령으로 package를 Testnet에 게시한다:
+
+```
+$ sui client publish 
+```
+
+<details>
+
+<summary>Output</summary>
+
+```
+Transaction Digest: 8R39iKKLGPDG3QkW2SrRW3QX71csRP2BLhK9H7oz9SwW
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Transaction Data                                                                                             │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Sender: 0x9ac241b2b3cb87ecd2a58724d4d182b5cd897ad307df62be2ae84beddc9d9803                                   │
+│ Gas Owner: 0x9ac241b2b3cb87ecd2a58724d4d182b5cd897ad307df62be2ae84beddc9d9803                                │
+│ Gas Budget: 9843200 MIST                                                                                     │
+│ Gas Price: 1000 MIST                                                                                         │
+│ Gas Payment:                                                                                                 │
+│  ┌──                                                                                                         │
+│  │ ID: 0x816e5ec6ff457f18232498b57af8a0e1e219307a3a43fb5df5a4c2198296510c                                    │
+│  │ Version: 591332925                                                                                        │
+│  │ Digest: FLC4NXntT7WiHcqCkpDuBUq14DFTfi3EFeUiJcSNHdPu                                                      │
+│  └──                                                                                                         │
+│                                                                                                              │
+│ Transaction Kind: Programmable                                                                               │
+│ ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │
+│ │ Input Objects                                                                                            │ │
+│ ├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤ │
+│ │ 0   Pure Arg: Type: address, Value: "0x9ac241b2b3cb87ecd2a58724d4d182b5cd897ad307df62be2ae84beddc9d9803" │ │
+│ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
+│ ╭─────────────────────────────────────────────────────────────────────────╮                                  │
+│ │ Commands                                                                │                                  │
+│ ├─────────────────────────────────────────────────────────────────────────┤                                  │
+│ │ 0  Publish:                                                             │                                  │
+│ │  ┌                                                                      │                                  │
+│ │  │ Dependencies:                                                        │                                  │
+│ │  │   0x0000000000000000000000000000000000000000000000000000000000000001 │                                  │
+│ │  │   0x0000000000000000000000000000000000000000000000000000000000000002 │                                  │
+│ │  └                                                                      │                                  │
+│ │                                                                         │                                  │
+│ │ 1  TransferObjects:                                                     │                                  │
+│ │  ┌                                                                      │                                  │
+│ │  │ Arguments:                                                           │                                  │
+│ │  │   Result 0                                                           │                                  │
+│ │  │ Address: Input  0                                                    │                                  │
+│ │  └                                                                      │                                  │
+│ ╰─────────────────────────────────────────────────────────────────────────╯                                  │
+│                                                                                                              │
+│ Signatures:                                                                                                  │
+│    mUxqMIofPq+yIzPxxYM+2mSIPTFneDxhWGGxJ7tM02hnRBRy5/FosnnWKxd4OSAjmaw6FNylwVdqUoUlJSxWCQ==                  │
+│                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭───────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Transaction Effects                                                                               │
+├───────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Digest: 8R39iKKLGPDG3QkW2SrRW3QX71csRP2BLhK9H7oz9SwW                                              │
+│ Status: Success                                                                                   │
+│ Executed Epoch: 875                                                                               │
+│                                                                                                   │
+│ Created Objects:                                                                                  │
+│  ┌──                                                                                              │
+│  │ ID: 0x136e41f505888066f189fb823d710ec96ab4fd75144b3d8008b91d58de85fd12                         │
+│  │ Owner: Account Address ( 0x9ac241b2b3cb87ecd2a58724d4d182b5cd897ad307df62be2ae84beddc9d9803 )  │
+│  │ Version: 591332926                                                                             │
+│  │ Digest: BGfc1tihsYPTLLozrj58HmRkDeQ1DWZfqeaR4SZDb1cX                                           │
+│  └──                                                                                              │
+│  ┌──                                                                                              │
+│  │ ID: 0xa7ed855d30500c485a94c0849f70b508d6b6adf6b0767ab93cc0756c075ecbb1                         │
+│  │ Owner: Immutable                                                                               │
+│  │ Version: 1                                                                                     │
+│  │ Digest: EtGAG9RHHCsguX4iuX1cbRDvW4QAkJXgDCMJjiufHtxB                                           │
+│  └──                                                                                              │
+│ Mutated Objects:                                                                                  │
+│  ┌──                                                                                              │
+│  │ ID: 0x816e5ec6ff457f18232498b57af8a0e1e219307a3a43fb5df5a4c2198296510c                         │
+│  │ Owner: Account Address ( 0x9ac241b2b3cb87ecd2a58724d4d182b5cd897ad307df62be2ae84beddc9d9803 )  │
+│  │ Version: 591332926                                                                             │
+│  │ Digest: CiU5KNZALUmuckc2YUFmJq5YXgbB8oG3rs4cnh2rdDXd                                           │
+│  └──                                                                                              │
+│ Gas Object:                                                                                       │
+│  ┌──                                                                                              │
+│  │ ID: 0x816e5ec6ff457f18232498b57af8a0e1e219307a3a43fb5df5a4c2198296510c                         │
+│  │ Owner: Account Address ( 0x9ac241b2b3cb87ecd2a58724d4d182b5cd897ad307df62be2ae84beddc9d9803 )  │
+│  │ Version: 591332926                                                                             │
+│  │ Digest: CiU5KNZALUmuckc2YUFmJq5YXgbB8oG3rs4cnh2rdDXd                                           │
+│  └──                                                                                              │
+│ Gas Cost Summary:                                                                                 │
+│    Storage Cost: 7843200 MIST                                                                     │
+│    Computation Cost: 1000000 MIST                                                                 │
+│    Storage Rebate: 978120 MIST                                                                    │
+│    Non-refundable Storage Fee: 9880 MIST                                                          │
+│                                                                                                   │
+│ Transaction Dependencies:                                                                         │
+│    2dkJtqsoQcyCZJvjZnskNVPQeynwVtwCcA9goAru6tTi                                                   │
+│    7PStztXyh92keJmrDD1aghHaKVdgCoVkVx4ZmLUfmQeK                                                   │
+│    Dd9pn1zFcSJjinxQewFd2gQdR4XKsHxFioD5MYnwLZQz                                                   │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─────────────────────────────╮
+│ No transaction block events │
+╰─────────────────────────────╯
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Object Changes                                                                                   │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Created Objects:                                                                                 │
+│  ┌──                                                                                             │
+│  │ ObjectID: 0x136e41f505888066f189fb823d710ec96ab4fd75144b3d8008b91d58de85fd12                  │
+│  │ Sender: 0x9ac241b2b3cb87ecd2a58724d4d182b5cd897ad307df62be2ae84beddc9d9803                    │
+│  │ Owner: Account Address ( 0x9ac241b2b3cb87ecd2a58724d4d182b5cd897ad307df62be2ae84beddc9d9803 ) │
+│  │ ObjectType: 0x2::package::UpgradeCap                                                          │
+│  │ Version: 591332926                                                                            │
+│  │ Digest: BGfc1tihsYPTLLozrj58HmRkDeQ1DWZfqeaR4SZDb1cX                                          │
+│  └──                                                                                             │
+│ Mutated Objects:                                                                                 │
+│  ┌──                                                                                             │
+│  │ ObjectID: 0x816e5ec6ff457f18232498b57af8a0e1e219307a3a43fb5df5a4c2198296510c                  │
+│  │ Sender: 0x9ac241b2b3cb87ecd2a58724d4d182b5cd897ad307df62be2ae84beddc9d9803                    │
+│  │ Owner: Account Address ( 0x9ac241b2b3cb87ecd2a58724d4d182b5cd897ad307df62be2ae84beddc9d9803 ) │
+│  │ ObjectType: 0x2::coin::Coin<0x2::sui::SUI>                                                    │
+│  │ Version: 591332926                                                                            │
+│  │ Digest: CiU5KNZALUmuckc2YUFmJq5YXgbB8oG3rs4cnh2rdDXd                                          │
+│  └──                                                                                             │
+│ Published Objects:                                                                               │
+│  ┌──                                                                                             │
+│  │ PackageID: 0xa7ed855d30500c485a94c0849f70b508d6b6adf6b0767ab93cc0756c075ecbb1                 │
+│  │ Version: 1                                                                                    │
+│  │ Digest: EtGAG9RHHCsguX4iuX1cbRDvW4QAkJXgDCMJjiufHtxB                                          │
+│  │ Modules: greeting                                                                             │
+│  └──                                                                                             │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭───────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Balance Changes                                                                                  │
+├───────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  ┌──                                                                                              │
+│  │ Owner: Account Address ( 0x9ac241b2b3cb87ecd2a58724d4d182b5cd897ad307df62be2ae84beddc9d9803 )  │
+│  │ CoinType: 0x2::sui::SUI                                                                        │
+│  │ Amount: -7865080                                                                               │
+│  └──                                                                                              │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+</details>
+
+Move package를 네트워크에 게시하면 네트워크는 bytecode를 고유한 package ID와 version number를 가진 Move package로 업로드하고 저장한다.
+
+네트워크는 SUI token을 gas로 소비하고 transaction을 온체인에서 처리한다.
+
+성공적으로 실행된 후 출력은 gas cost, transaction digest, dependency, owner, sender를 포함해 package 게시에 사용된 transaction의 세부 정보를 제공한다.
+
+이 가이드에서 가장 중요한 섹션은 package의 ID, version, module이 포함된 **Published Objects**이다:
+
+```
+│ Published Objects:                                                                               │
+│  ┌──                                                                                             │
+│  │ PackageID: 0xa7ed855d30500c485a94c0849f70b508d6b6adf6b0767ab93cc0756c075ecbb1                 │
+│  │ Version: 1                                                                                    │
+│  │ Digest: EtGAG9RHHCsguX4iuX1cbRDvW4QAkJXgDCMJjiufHtxB                                          │
+│  │ Modules: greeting                                                                             │
+│  └──
+```
+
+Package ID와 module은 모두 command line에서 package와 상호작용하는 데 필요하다.
+
+나중에 [Move 패키지에 프런트엔드 연결](/getting-started/onboarding/app-frontends) 가이드에서 사용하므로 두 값을 모두 기록해 둔다.
+
+## Interact with the Move package
+
+새로 게시된 package와 상호작용하려면 먼저 새로운 `Greeting` object를 만들고 이를 text `"Hello world!"`로 초기화하는 `new` 함수에 call한다:
+
+```
+$ sui client call --package <PACKAGE_ID> --module greeting --function new
+```
+
+`sui client publish` 명령 출력이 반환한 package ID로 `<PACKAGE_ID>`를 바꾼다.
+
+반드시 `--package`, `--module`, `--function` 플래그를 포함해야 한다.
+
+이 call의 출력에는 새로 생성된 object가 포함된다:
+
+```
+╭───────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Transaction Effects                                                                               │
+├───────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Digest: 6xB9Foy5vyhXG99xppaCxrNvpPTV3UZsH39zqUKNoGsD                                              │
+│ Status: Success                                                                                   │
+│ Executed Epoch: 875                                                                               │
+│                                                                                                   │
+│ Created Objects:                                                                                  │
+│  ┌──                                                                                              │
+│  │ ID: 0x2834aa3d2ed1b5060f4e5d400092544fa9c95430fd894b139b7dfb0312501594                         │
+│  │ Owner: Shared( 591332927 )                                                                     │
+│  │ Version: 591332927                                                                             │
+│  │ Digest: 8xJRijHHp3gNXLExTG98KX5jYAQDVKqsBD8ATFMJXCbA                                           │
+│  └──
+...
+```
+
+Object에 text `"Hello world!"`가 들어 있는지 확인하려면 object 정보를 조회하는 call을 수행한다:
+
+```
+$ sui client object <OBJECT_ID>
+```
+
+`Created Objects, ID:` 아래 값을 `<OBJECT_ID>`에 넣는다.
+
+`text: Hello world!` 값을 포함한 object 세부 정보를 볼 수 있어야 한다:
+
+```
+╭───────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ objectId      │  0x2834aa3d2ed1b5060f4e5d400092544fa9c95430fd894b139b7dfb0312501594                                              │
+│ version       │  591332927                                                                                                       │
+│ digest        │  8xJRijHHp3gNXLExTG98KX5jYAQDVKqsBD8ATFMJXCbA                                                                    │
+│ objType       │  0xa7ed855d30500c485a94c0849f70b508d6b6adf6b0767ab93cc0756c075ecbb1::greeting::Greeting                          │
+│ owner         │ ╭────────┬──────────────────────────────────────────╮                                                            │
+│               │ │ Shared │ ╭────────────────────────┬─────────────╮ │                                                            │
+│               │ │        │ │ initial_shared_version │  591332927  │ │                                                            │
+│               │ │        │ ╰────────────────────────┴─────────────╯ │                                                            │
+│               │ ╰────────┴──────────────────────────────────────────╯                                                            │
+│ prevTx        │  6xB9Foy5vyhXG99xppaCxrNvpPTV3UZsH39zqUKNoGsD                                                                    │
+│ storageRebate │  1413600                                                                                                         │
+│ content       │ ╭───────────────────┬──────────────────────────────────────────────────────────────────────────────────────────╮ │
+│               │ │ dataType          │  moveObject                                                                              │ │
+│               │ │ type              │  0xa7ed855d30500c485a94c0849f70b508d6b6adf6b0767ab93cc0756c075ecbb1::greeting::Greeting  │ │
+│               │ │ hasPublicTransfer │  false                                                                                   │ │
+│               │ │ fields            │ ╭──────┬───────────────────────────────────────────────────────────────────────────────╮ │ │
+│               │ │                   │ │ id   │ ╭────┬──────────────────────────────────────────────────────────────────────╮ │ │ │
+│               │ │                   │ │      │ │ id │  0x2834aa3d2ed1b5060f4e5d400092544fa9c95430fd894b139b7dfb0312501594  │ │ │ │
+│               │ │                   │ │      │ ╰────┴──────────────────────────────────────────────────────────────────────╯ │ │ │
+│               │ │                   │ │ text │  Hello world!                                                                 │ │ │
+│               │ │                   │ ╰──────┴───────────────────────────────────────────────────────────────────────────────╯ │ │
+│               │ ╰───────────────────┴──────────────────────────────────────────────────────────────────────────────────────────╯ │
+╰───────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+### Important transaction considerations
+
+동시에 2개 이상의 transaction을 보낼 수 없으며, 그렇지 않으면 다음과 같은 오류가 발생한다:
+
+```
+Failed to sign transaction by a quorum of validators because one or more of its objects is reserved for another transaction.
+```
+
+이 오류를 받으면 현재 epoch가 끝날 때까지 기다린 다음 transaction을 다시 제출해야 한다.
+
+[Sui Explorer](https://suivision.xyz/) 또는 [SuiScan](https://suiscan.xyz/mainnet/home) 같은 다른 네트워크 explorer를 사용해 현재 epoch에 남은 시간을 확인할 수 있다.
+
+같은 object가 동시에 여러 transaction에 의해 수정되지 않도록 address가 object를 '잠가' 충돌하는 수정을 방지한다.
+
+여러 transaction command를 함께 batch하고 싶다면 [프로그래머블 트랜잭션 블록 (PTB)](/develop/transactions/ptbs/prog-txn-blocks)를 사용할 수 있다.
+
+Transaction에는 전체 크기, object 수, 입력 수와 관련된 제한도 있다.
+
+제한에 대한 자세한 내용은 The Move Book의 [Building Against Limits](https://move-book.com/guides/building-against-limits/)를 참조한다.
+
+<div className="next-steps-module">
+  <div className="next-steps-header">
+    <h3>다음 단계</h3>
+  </div>
+  <div className="next-steps-grid">
+      <Card className="plausible-event-name=hello+frontend+button"
+      title="Move 패키지에 프런트엔드 연결"
+      href="/getting-started/onboarding/app-frontends"
+    >
+      "Hello, World!" smart contract에 frontend interface를 연결한다.
+    </Card>
+    <Card className="plausible-event-name=hello+data+button"
+      title="데이터 접근"
+      href="/develop/accessing-data/data-serving"
+    >
+      Sui에서 data에 접근하는 방법을 더 알아본다.
+    </Card>
+    <Card className="plausible-event-name=hello+community+button"
+      title="다음 단계"
+      href="/getting-started/onboarding/next-steps"
+    >
+      Sui developer 커뮤니티에 참여하고, 다른 example project를 시도하거나, 더 많은 문서를 읽는다.
+    </Card>
+  </div>
+</div>

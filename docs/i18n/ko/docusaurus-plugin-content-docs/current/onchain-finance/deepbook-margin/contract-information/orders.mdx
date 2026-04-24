@@ -1,0 +1,142 @@
+---
+title: 주문
+description: margin manager를 사용해 order를 배치하고 관리하는 방법을 설명한다.
+keywords:
+  [
+    orders,
+    limit order,
+    market order,
+    reduce only,
+    cancel order,
+    modify order,
+    margin trading,
+    deepbook margin,
+  ]
+---
+
+
+`pool_proxy` module은 margin manager로 거래하기 위한 wrapper 함수를 제공한다. 이 함수들은 order 배치, 수정, 취소를 가능하게 하며, margin manager를 통해 staking 및 governance 참여도 관리할 수 있게 한다. 모든 거래 작업은 margin manager가 올바른 DeepBook pool과 연결되어 있어야 한다.
+
+## API
+
+다음은 margin manager로 order를 관리하기 위한 public 함수이다.
+
+<details>
+<summary>Place orders</summary>
+
+margin manager를 통해 limit order와 market order를 배치한다. Order는 pool에서 margin trading이 활성화된 경우에만 배치할 수 있다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/pool_proxy.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="place_limit_order,place_market_order"
+/>
+
+</details>
+
+<details>
+<summary>Place reduce-only orders</summary>
+
+debt position만 줄일 수 있는 reduce-only order를 배치한다. 이 order는 margin trading이 비활성화되어 있고 기존 position을 닫아야 할 때 유용하다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/pool_proxy.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="place_reduce_only_limit_order,place_reduce_only_market_order"
+/>
+
+</details>
+
+<details>
+<summary>Modify order</summary>
+
+quantity를 변경하여 기존 order를 수정한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/pool_proxy.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="modify_order"
+/>
+
+</details>
+
+<details>
+<summary>Cancel orders</summary>
+
+margin manager의 order 하나, 여러 개, 또는 전체를 취소한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/pool_proxy.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="cancel_order,cancel_orders,cancel_all_orders"
+/>
+
+</details>
+
+<details>
+<summary>Withdraw settled amounts</summary>
+
+완료된 거래의 settled amount를 margin manager의 balance manager로 다시 인출한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/pool_proxy.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="withdraw_settled_amounts"
+/>
+
+</details>
+
+<details>
+<summary>Staking</summary>
+
+margin manager를 통해 DEEP token을 stake하고 unstake한다. base asset 또는 quote asset으로 DEEP를 사용하는 pool의 margin manager는 stake할 수 없다는 점에 유의하라.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/pool_proxy.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="stake,unstake"
+/>
+
+</details>
+
+<details>
+<summary>Governance</summary>
+
+margin manager를 통해 governance decision에 대한 proposal을 제출하고 투표한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/pool_proxy.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="submit_proposal,vote"
+/>
+
+</details>
+
+<details>
+<summary>Claim rebates</summary>
+
+margin manager를 통해 획득한 trading rebate를 클레임한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/pool_proxy.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="claim_rebates"
+/>
+
+</details>

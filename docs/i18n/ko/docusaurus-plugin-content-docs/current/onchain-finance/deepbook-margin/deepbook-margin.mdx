@@ -1,0 +1,39 @@
+---
+title: DeepBook Margin
+description: 사용자가 borrowed fund로 거래하고 buying power를 높일 수 있게 하는 DeepBookV3의 leveraged trading 기능이다.
+keywords:
+  [
+    deepbook margin,
+    margin trading,
+    leveraged trading,
+    deepbookv3,
+    collateral,
+    liquidation,
+    isolated margin,
+    deep book,
+  ]
+---
+
+
+DeepBook Margin은 leveraged trading position을 가능하게 하여 DeepBookV3의 거래 기능을 확장한다. Margin trading을 사용하면 사용자는 fund를 빌려 buying power를 높일 수 있다.
+
+## Key features
+
+DeepBook Margin은 다음 기능을 제공한다:
+
+- **Leveraged positions**: 사용 가능한 자본을 넘는 position size를 만들기 위해 borrowed fund로 거래한다
+- **Risk management**: lender를 보호하고 system solvency를 유지하기 위한 built-in liquidation mechanism을 제공한다
+- **Collateral flexibility**: isolated margin position의 collateral로 여러 asset을 지원한다
+- **Interest accrual**: borrowed fund에 대한 transparent interest rate calculation을 제공한다
+
+## Risk considerations
+
+Margin trading에는 position이 trader에게 불리하게 움직일 경우 liquidation 가능성을 포함한 추가 위험이 따른다. 사용자는 DeepBookV3에서 margin trading을 하기 전에 이러한 위험을 이해해야 한다.
+
+### Liquidation mechanisms
+
+Margin position이 maintenance margin requirement 아래로 내려가면 lender를 보호하고 system solvency를 유지하기 위해 해당 position이 liquidate된다. Liquidation engine은 smart contract를 통해 온체인에서 동작하여 transparent하고 공정한 실행을 보장한다.
+
+### Interest rates
+
+Borrowed fund에 대한 interest rate는 utilization rate와 market condition에 따라 투명하게 계산된다.

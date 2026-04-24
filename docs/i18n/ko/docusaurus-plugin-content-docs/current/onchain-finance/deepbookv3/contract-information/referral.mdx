@@ -1,0 +1,256 @@
+---
+title: 리퍼럴
+description: DeepBook referral system과 referral fee를 얻는 방법을 설명한다.
+keywords:
+  [
+    referral,
+    deepbook referral,
+    referral fees,
+    referral rewards,
+    mint referral,
+    claim referral,
+    set referral,
+    referral multiplier,
+    deepbookv3,
+  ]
+---
+
+
+DeepBook referral system은 사용자가 trader를 플랫폼으로 추천해 수수료를 벌 수 있게 한다. Referrer는 특정 pool에 대한 `DeepBookPoolReferral` object를 mint할 수 있고, trader는 자신의 `BalanceManager`를 referral과 연결할 수 있다. 연결된 referral을 가진 trader가 거래를 실행하면 그들의 trading fee 일부가 referral multiplier에 따라 referrer에게 할당된다.
+
+## How referrals work
+
+1. **Mint a referral:** 누구나 특정 multiplier를 사용해 특정 pool에 대한 `DeepBookPoolReferral`을 mint할 수 있다. referral은 mint된 pool에 영구적으로 연결되며 그 pool의 거래에서만 수수료를 벌 수 있다.
+1. **Set referral:** trader는 `TradeCap`을 사용하여 자신의 `BalanceManager`를 pool별 referral과 연결한다. 각 `BalanceManager`는 여러 pool의 서로 다른 referral과 동시에 연결될 수 있다.
+1. **Earn fees:** 해당 pool에서 balance manager가 taker order를 실행하면 multiplier에 따라 referral fee가 자동으로 할당된다. Maker order는 referral fee를 생성하지 않는다.
+1. **Claim rewards:** referrer는 누적된 base, quote, DEEP token 수수료를 클레임할 수 있다.
+
+## API
+
+다음은 DeepBook이 제공하는 referral 관련 함수이다.
+
+<details>
+<summary>Mint a referral</summary>
+
+특정 multiplier를 사용해 특정 pool에 대한 새 `DeepBookPoolReferral` object를 mint한다. multiplier는 referrer에게 할당되는 trading fee의 비율을 결정한다. multiplier는 0.1의 배수여야 하며(예: 0.1, 0.2, 0.3, ...), 2.0을 초과할 수 없다. 생성된 referral의 ID를 반환한다.
+
+<ImportContent
+	source="packages/deepbook/sources/pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="mint_referral"
+	noComments
+/>
+
+</details>
+
+<details>
+<summary>Update referral multiplier</summary>
+
+기존 pool referral의 multiplier를 업데이트한다. referral owner만 multiplier를 업데이트할 수 있다. 새로운 multiplier는 0.1의 배수여야 하며 2.0을 초과할 수 없다.
+
+<ImportContent
+	source="packages/deepbook/sources/pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="update_pool_referral_multiplier"
+	noComments
+/>
+
+</details>
+
+<details>
+<summary>Claim referral rewards</summary>
+
+pool referral에 대해 누적된 referral fee를 클레임한다. referral owner만 rewards를 클레임할 수 있다. base asset, quote asset, DEEP token의 누적 수수료를 나타내는 세 개의 `Coin` object를 반환한다.
+
+<ImportContent
+	source="packages/deepbook/sources/pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="claim_pool_referral_rewards"
+	noComments
+/>
+
+</details>
+
+<details>
+<summary>Get referral balances</summary>
+
+클레임하지 않고 pool referral의 현재 누적 잔액을 조회한다. base, quote, DEEP token amount를 반환한다.
+
+<ImportContent
+	source="packages/deepbook/sources/pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="get_pool_referral_balances"
+	noComments
+/>
+
+</details>
+
+<details>
+<summary>Get referral multiplier</summary>
+
+pool referral의 현재 multiplier를 가져온다.
+
+<ImportContent
+	source="packages/deepbook/sources/pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="pool_referral_multiplier"
+	noComments
+/>
+
+</details>
+
+## `BalanceManager` referral functions
+
+이 함수들은 referral을 연결하거나 연결 해제하기 위해 `BalanceManager`에서 사용할 수 있다.
+
+<details>
+<summary>Set referral</summary>
+
+`BalanceManager`를 pool별 referral과 연결한다. 작업을 승인하려면 `TradeCap`이 필요하다. 설정되면 이 balance manager가 referral의 pool에서 실행하는 모든 거래는 referral의 multiplier에 따라 referral fee를 생성한다. 같은 pool에 대해 이전에 설정된 referral은 교체된다.
+
+<ImportContent
+	source="packages/deepbook/sources/balance_manager.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="set_balance_manager_referral"
+	noComments
+/>
+
+</details>
+
+<details>
+<summary>Unset referral</summary>
+
+특정 pool에 대해 `BalanceManager`의 referral 연결을 제거한다. 작업을 승인하려면 `TradeCap`이 필요하다. 해제 후에는 해당 pool의 거래가 더 이상 referral fee를 생성하지 않는다.
+
+<ImportContent
+	source="packages/deepbook/sources/balance_manager.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="unset_balance_manager_referral"
+	noComments
+/>
+
+</details>
+
+<details>
+<summary>Get referral ID</summary>
+
+특정 pool에 대해 현재 `BalanceManager`와 연결된 referral ID가 있으면 이를 가져온다. 해당 pool에 referral이 설정되어 있지 않으면 `none`인 `Option<ID>`를 반환한다.
+
+<ImportContent
+	source="packages/deepbook/sources/balance_manager.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="get_balance_manager_referral_id"
+	noComments
+/>
+
+</details>
+
+<details>
+<summary>Get referral owner</summary>
+
+pool referral object의 owner address를 가져온다.
+
+<ImportContent
+	source="packages/deepbook/sources/balance_manager.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="balance_manager_referral_owner"
+	noComments
+/>
+
+</details>
+
+<details>
+<summary>Get referral pool ID</summary>
+
+pool referral object와 연결된 pool ID를 가져온다.
+
+<ImportContent
+	source="packages/deepbook/sources/balance_manager.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="balance_manager_referral_pool_id"
+	noComments
+/>
+
+</details>
+
+## Events
+
+<details>
+<summary>`DeepBookReferralCreatedEvent`</summary>
+
+새 referral이 mint될 때 방출된다.
+
+<ImportContent
+	source="packages/deepbook/sources/balance_manager.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="DeepBookReferralCreatedEvent"
+/>
+
+</details>
+
+<details>
+<summary>`DeepBookReferralSetEvent`</summary>
+
+balance manager에 referral이 설정되거나 해제될 때 방출된다.
+
+<ImportContent
+	source="packages/deepbook/sources/balance_manager.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="DeepBookReferralSetEvent"
+/>
+
+</details>
+
+<details>
+<summary>`ReferralClaimed`</summary>
+
+referral owner가 누적된 수수료를 클레임할 때 방출된다.
+
+<ImportContent
+	source="packages/deepbook/sources/pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="ReferralClaimed"
+/>
+
+</details>
+
+<details>
+<summary>`ReferralFeeEvent`</summary>
+
+거래 실행 중 referral fee가 할당될 때 방출된다.
+
+<ImportContent
+	source="packages/deepbook/sources/pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="ReferralFeeEvent"
+/>
+
+</details>

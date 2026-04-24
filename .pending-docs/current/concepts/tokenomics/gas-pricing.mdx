@@ -36,7 +36,7 @@ Sui 네트워크에서는 각 epoch 동안 단일 $ReferencePrice$가 존재하�
 
 더 일반적으로, Sui 가스 가격 메커니즘은 $ReferencePrice$를 네트워크에 transaction을 제출할 때 참조할 수 있는 신뢰가능한 기준으로 만든다. 가스 가격이 참조 가격과 같거나 가까운 transaction이 적절한 시기에 실행될 것이라는 합리적인 확신을 제공한다. 이는 세 가지 핵심 단계를 통해 달성된다.
 
-- **가스 가격에 대한 설문조사:** 모든 validator는 각 epoch 시작 시 조사를 받으며, 모든 validator는 예약 가격을 제출한다. 즉, 각 validator는 transaction을 처리할 의향이 있는 최소 가스 가격을 명시한다. 프로토콜은 이 견적들을 정렬하고 stake 기준 2/3 백분위수를 참조 가격으로 선택한다. 가스 가격 조사의 목적은 검증자 [과반수](../../guides/operator/validator/validator-committee.mdx#quorums)가 신속하게 transaction을 처리할 의향이 있는 참조 가격을 설정하는 것이다.
+- **가스 가격에 대한 설문조사:** 모든 validator는 각 epoch 시작 시 조사를 받으며, 모든 validator는 예약 가격을 제출한다. 즉, 각 validator는 transaction을 처리할 의향이 있는 최소 가스 가격을 명시한다. 프로토콜은 이 견적들을 정렬하고 stake 기준 2/3 백분위수를 참조 가격으로 선택한다. 가스 가격 조사의 목적은 검증자 [과반수](/guides/operator/validator/validator-committee#quorums)가 신속하게 transaction을 처리할 의향이 있는 참조 가격을 설정하는 것이다.
 - **집계 규칙:** epoch 동안 validator는 다른 validator의 운영에 대한 신호를 얻는다. 각 validator는 이 신호를 사용하여 다른 모든 validator의 성능에 대한 (주관적인) 평가를 구축한다. 구체적으로, 각 validator는 다른 모든 validator의 stake 보상에 대한 승수를 구성하여 잘 행동하는 validator는 부스트된 보상을 받고, 그렇지 않은 validator는 감소된 보상을 받도록 한다. 집계 규칙의 목표는 validator가 참조 가스 가격을 준수하도록 장려하는 커뮤니티 시행 메커니즘을 만드는 것이다.
 - **스테이킹 보상 분배 규칙:** epoch가 끝날 때, 집계 규칙의 정보를 사용하여 validator 간의 stake 보상 분배가 조정된다. 구체적으로, 집계 규칙 동안 구성된 개별 승수 세트 중 중앙값(stake로 가중치 적용)을 사용하여 모든 validator에 대한 전역 승수가 구축된다. 다른 조건이 동일할 때, 성능 좋게 운영한 validator는 정규 stake 보상을 받는 반면, 참조 가스 가격에서 성능 좋게 운영하지 않은 validator는 삭감된 보상을 받는다. stake 보상은 각 validator가 소유한 stake 양에 영향을 받으므로, validator는 가스비를 낮추고 비효율적인 validator를 가격 경쟁에서 배제함으로써 더 많은 stake를 확보하도록 장려된다. 이는 stake 보상 분배 규칙이 validator가 더 비용 효율적인 네트워크를 제공하도록 인센티브를 제공하므로 Sui 최종 사용자에게 이익이 된다.
 

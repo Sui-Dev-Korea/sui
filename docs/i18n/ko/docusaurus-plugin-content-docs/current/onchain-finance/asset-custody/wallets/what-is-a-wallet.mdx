@@ -1,0 +1,34 @@
+---
+title: 지갑이란?
+description: Sui wallet이 무엇이고 어떻게 동작하는지, Sui에서 사용할 수 있는 wallet type과 option을 알아본다.
+keywords: [ wallet, wallets, self-custodial, zkLogin, Slush, Phantom, Ledger, key pair, transaction fees, gas, staking ]
+---
+
+wallet은 온체인 asset의 ownership을 증명하는 cryptographic key를 저장하고, Sui network에 제출하는 transaction에 서명한다.
+
+## How wallets work
+
+Sui **account**는 public key와 그 public key에서 파생된 온체인 address이다. 온체인에서 asset을 보유하는 주체이다. 해당 private key는 **wallet**이 저장하고 관리하며, wallet은 하나 이상의 account를 보유할 수 있다. SUI를 보내거나, object를 transfer하거나, smart contract와 상호작용할 때 wallet은 active account의 private key를 사용해 transaction에 서명한다. Sui validator는 어떤 것도 처리하기 전에 이 signature를 검증한다.
+
+이 private key를 안전하게 보관하는 것은 모든 wallet의 핵심 책임이다. wallet이 key를 저장하고 관리하는 방식이 wallet type을 구분한다:
+
+- **Hot wallet**은 browser extension 또는 mobile app처럼 internet에 연결된 device에 private key를 보관한다. Hot wallet은 빈번한 transaction에 편리하지만 online threat에 노출된다.
+- **Cold wallet**은 hardware device처럼 internet에 연결되지 않는 device에 private key를 보관한다. Cold wallet은 routine transaction에는 사용하기 어렵지만 remote compromise에는 훨씬 더 강하다.
+
+Hot wallet과 cold wallet은 모두 **self-custodial**일 수 있다. 즉, 사용자가 private key를 직접 보유하고, third party가 사용자를 대신해 transaction에 access하거나 authorize할 수 없다. 반대 개념은 **custodial wallet**으로, exchange나 developer backend 같은 third party가 key를 보유하고 사용자를 대신해 account를 관리한다.
+
+## Sui wallets
+
+[**Slush**](/onchain-finance/asset-custody/wallets/slush): Mysten Labs가 만들고 유지 관리하는 wallet이다. self-custodial key management와 Sui에 최적화된 first-party interface를 결합한다. Slush는 [wallet 및 app integration용 SDK](https://sdk.mystenlabs.com/slush-wallet)도 제공한다.
+
+[**Self-custodial wallets**](/onchain-finance/asset-custody/wallets/self-custody): private key를 사용자의 device나 hardware에 저장하는 wallet이다. 일반적인 self-custodial option에는 [Phantom](https://phantom.com/) 같은 browser extension wallet과 [Ledger](https://www.ledger.com/) 같은 hardware wallet이 있으며, dedicated device에서 key를 격리한다. Self-custodial wallet은 recovery passphrase를 안전하게 back up해야 한다. device와 passphrase를 모두 잃으면 asset access가 영구적으로 사라진다.
+
+[**zkLogin wallets**](/onchain-finance/asset-custody/wallets/zk-login-wallets): [zero-knowledge login (zkLogin)](/sui-stack/zklogin-integration/zklogin)을 활용하는 wallet이다. zkLogin은 OAuth credential을 온체인에 노출하지 않고 transaction을 authorize할 수 있게 하는 Sui primitive이다. zero-knowledge proof (ZKP)는 Sui address를 OAuth identity와 연결하지 않으면서 사용자가 정당한 account owner임을 검증한다. zkLogin wallet은 key management에 익숙하지 않은 user onboarding에 유용하다.
+
+## Transaction fees
+
+Sui의 모든 transaction에는 SUI로 지불하는 [gas fee](/develop/transaction-payment/gas-in-sui)가 필요하다. 이 fee는 computation(transaction 처리)과 storage(transaction이 생성하거나 변경하는 온체인 data)라는 두 cost를 포함한다. Validator는 각 epoch 시작 시 network-wide reference gas price에 합의하므로, gas budget을 설정할 때 신뢰할 수 있는 기준이 된다. transaction이 온체인 data를 삭제하면 partial storage rebate를 받는다.
+
+## Staking
+
+Sui의 proof-of-stake mechanism에 참여하기 위해 [SUI token을 stake](/develop/sui-architecture/tokenomics-overview)할 수 있다. Staking은 token을 validator에게 delegate하고, validator는 그 stake를 transaction 처리용 voting power로 사용한다. 그 대가로 각 epoch에 수집된 computation fee에서 나온 staking rewards를 받는다. 대부분의 Sui-compatible wallet에는 staking 기능이 포함되어 있다. 선택하는 validator는 reward rate에 영향을 주는데, performance가 나쁜 validator는 rewards가 줄어들 수 있기 때문이다.

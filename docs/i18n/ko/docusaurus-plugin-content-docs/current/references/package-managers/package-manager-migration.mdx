@@ -6,7 +6,8 @@ keywords: [ move, move reference, package management, package manager, migrate, 
 pagination_prev: null
 ---
 
-Sui CLI 버전 1.63은 package management 시스템을 크게 개편했다. 이 문서는 이전 시스템과 새 시스템 사이의 변경 사항을 설명하고 package를 migration하는 지침을 제공한다. 새 시스템의 전체 세부 사항은 [Move 패키지 관리](/guides/developer/packages/move-package-management.mdx)를 참조한다.
+
+Sui CLI 버전 1.63은 package management 시스템을 크게 개편했다. 이 문서는 이전 시스템과 새 시스템 사이의 변경 사항을 설명하고 package를 migration하는 지침을 제공한다. 새 시스템의 전체 세부 사항은 [Move 패키지 관리](/develop/manage-packages/move-package-management)를 참조한다.
 
 새 시스템은 다음과 같은 여러 이점을 제공한다:
 
@@ -24,7 +25,7 @@ Sui CLI 버전 1.63은 package management 시스템을 크게 개편했다. 이 
 1. `Move.toml`의 `name` field를 Move 코드가 package에 사용하는 이름으로 바꾼다([more info](#package-section)).
 2. `Move.toml`의 dependency 이름을 Move 코드가 해당 dependency를 참조하는 이름과 일치하도록 바꾼다([more info](#dependencies-section)).
 3. `Move.toml`의 `[addresses]` 및 `[dev-addresses]` section을 제거한다([more info](#no-addresses-section)).
-4. 필요하면 `[dev-dependencies]`를 [moded dependencies](/guides/developer/packages/move-package-management.mdx#advanced-dependency-configuration)로 바꾼다.
+4. 필요하면 `[dev-dependencies]`를 [moded dependencies](/develop/manage-packages/move-package-management#advanced-dependency-configuration)로 바꾼다.
 
 예를 들어 이전 `Move.toml`이 다음과 같았다면
 
@@ -53,13 +54,13 @@ dep = { ... }
 
 Mainnet과 Testnet의 publication workflow는 새 package 시스템으로도 바뀌지 않아야 한다. 하지만 `localnet`이나 `devnet` 같은 ephemeral network에 publish할 때는 `Published.toml` 파일을 로컬 address로 오염시키지 않기 위해 `sui client test-publish` 명령을 사용해야 한다.
 
-`test-publish` 명령은 `Published.toml`에 쓰는 대신 address를 ephemeral publication 파일(예: `Pub.localnet.toml`)에 기록한다. 사용할 파일은 `--pubfile-path` option으로 선택할 수 있다. 여러 package를 publish하려면 모든 package에 대해 동일한 ephemeral publication 파일을 사용해야 dependency address가 올바르게 설정된다. 이 과정은 `--publish-unpublished-deps` [flag](/guides/developer/packages/move-package-management.mdx#ephemerally-publishing-dependencies)로 자동화할 수도 있다.
+`test-publish` 명령은 `Published.toml`에 쓰는 대신 address를 ephemeral publication 파일(예: `Pub.localnet.toml`)에 기록한다. 사용할 파일은 `--pubfile-path` option으로 선택할 수 있다. 여러 package를 publish하려면 모든 package에 대해 동일한 ephemeral publication 파일을 사용해야 dependency address가 올바르게 설정된다. 이 과정은 `--publish-unpublished-deps` [flag](/develop/manage-packages/move-package-management#ephemerally-publishing-dependencies)로 자동화할 수도 있다.
 
 :::caution
 `--with-unpublished-deps`를 사용하고 있었다면 거의 확실히 대신 `--publish-unpublished-deps`를 사용해야 한다.
 :::
 
-`test-publish` 명령은 어떤 dependency를 ephemeral publication에 사용할지 결정하기 위해 "build environment"를 필요로 한다(Testnet 또는 Mainnet이 기본값이지만 [define your own](/guides/developer/packages/move-package-management.mdx#environments)도 가능하다). build environment는 `--build-env <env>` flag로 지정한다.
+`test-publish` 명령은 어떤 dependency를 ephemeral publication에 사용할지 결정하기 위해 "build environment"를 필요로 한다(Testnet 또는 Mainnet이 기본값이지만 [define your own](/develop/manage-packages/move-package-management#environments)도 가능하다). build environment는 `--build-env <env>` flag로 지정한다.
 
 ## Changes to the `Move.toml` file
 
@@ -161,4 +162,4 @@ bobs_mathlib = { git = "https://github.com/bob.git", rename-from = "mathlib" }
 
 새 package 시스템은 더 이상 publish된 address를 `Move.lock` 파일에 기록하지 않으며, 대신 `Published.toml`이라는 새 파일에 기록한다. 이 파일은 source control에 커밋해야 한다.
 
-[ephemeral publication](/guides/developer/packages/move-package-management.mdx#environments)의 경우 package 시스템은 ephemeral 파일(대개 `Pub.<env>.toml`이라는 이름)을 사용하며 이 파일은 source control에 커밋하면 안 된다. `Pub.*.toml`을 `.gitignore` 파일에 추가하는 것을 권장한다.
+[ephemeral publication](/develop/manage-packages/move-package-management#environments)의 경우 package 시스템은 ephemeral 파일(대개 `Pub.<env>.toml`이라는 이름)을 사용하며 이 파일은 source control에 커밋하면 안 된다. `Pub.*.toml`을 `.gitignore` 파일에 추가하는 것을 권장한다.

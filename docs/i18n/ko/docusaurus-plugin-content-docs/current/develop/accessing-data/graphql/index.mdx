@@ -1,0 +1,11 @@
+---
+title: GraphQL
+description: General-purpose Indexer, 아카이브 스토어, 풀 노드에서 데이터를 읽는 GraphQL RPC 서비스를 사용해 Sui 네트워크를 쿼리한다.
+keywords: ['GraphQL', 'GraphQL RPC', 'Sui indexer', 'data querying', 'Postgres', 'custom indexer', 'Sui API']
+---
+
+GraphQL은 Sui 네트워크를 유연하게 쿼리하는 방법을 제공한다. GraphQL RPC 서비스는 General-purpose Indexer의 Postgres 호환 데이터베이스, 아카이브 스토어 및 서비스, 풀 노드에서 데이터를 읽는다. GraphQL RPC는 gRPC API의 대안이다. General-purpose Indexer는 [커스텀 인덱싱 프레임워크](/develop/accessing-data/custom-indexer/custom-indexers)의 확장 가능한 구현이다. 이 프레임워크는 원격 체크포인트 스토어와 풀 노드 RPC를 사용해 데이터를 수집한다. 여러 유형의 Sui 네트워크 데이터를 Postgres 테이블에 병렬로 로드하도록 구성할 수 있어 데이터 수집 성능을 높인다. 성능과 비용의 균형을 맞추기 위해 테이블마다 pruning도 구성할 수 있다.
+
+import DocCardList from '@theme/DocCardList';
+
+<DocCardList />

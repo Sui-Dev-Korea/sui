@@ -19,7 +19,7 @@ sidebar_label: Committee
 
 Sui 네트워크에는 독립적인 validator들의 집합이 참여하며 각 validator는 별도의 머신(또는 동일한 엔티티가 운영하는 머신의 샤딩된 클러스터)에서 자체 Sui 소프트웨어 인스턴스를 실행한다. 각 validator는 클라이언트가 보낸 읽기 및 쓰기 요청을 처리하며 transaction을 검증하고 온체인 정보를 업데이트한다.
 
-stake/staking 및 보상이 어떻게 동작하는지를 포함하여 Sui validator 노드를 설정하고 실행하는 방법을 알아보려면 [Sui Validator Node Configuration](./validator-config.mdx)을 참조하라.
+stake/staking 및 보상이 어떻게 동작하는지를 포함하여 Sui validator 노드를 설정하고 실행하는 방법을 알아보려면 [Sui Validator Node Configuration](/operators/validator/validator-config)을 참조하라.
 
 > **중요 업데이트**: Sui는 validator의 진입 장벽을 크게 낮추기 위해 SIP-39를 구현하고 있다. 최소 stake 요구 사항은 곧 30M SUI에서 voting power 기반 임계값으로 변경되며 필요한 SUI는 약 3M 수준으로 줄어든다. validator가 되는 데 관심이 있다면 validator 커뮤니케이션에 참여하기 위해 [fill out this form](https://docs.google.com/forms/d/e/1FAIpQLSf6ZngRJ6Q5RdEiBfnbpUqHtj8ShL58I6JRkmRTwTVSzeNtQ/viewform)을 작성하라.
 
@@ -27,7 +27,7 @@ Sui는 위임 지분 증명 (DPoS)을 사용하여 어떤 validator가 네트워
 
 ## Epochs
 
-Sui 네트워크의 운영은 겹치지 않는 대략적인 고정 지속 시간(~24시간)의 epoch로 시간적으로 분할된다. 특정 epoch 동안에는 네트워크에 참여하는 validator 집합과 그들의 voting power가 고정된다. epoch 경계에서 재구성이 발생할 수 있으며 네트워크에 참여하는 validator 집합과 그들의 voting power를 변경할 수 있다. 개념적으로 재구성은 이전 epoch의 최종 상태를 [genesis](../genesis.mdx)로 하고 새로운 validator 집합을 운영자로 하는 Sui 프로토콜의 새 인스턴스를 시작한다. Validator 집합 변경 외에도 stake/staking 및 un-staking과 같은 토큰노믹스 작업과 staking 보상의 분배도 epoch 경계에서 처리된다.
+Sui 네트워크의 운영은 겹치지 않는 대략적인 고정 지속 시간(~24시간)의 epoch로 시간적으로 분할된다. 특정 epoch 동안에는 네트워크에 참여하는 validator 집합과 그들의 voting power가 고정된다. epoch 경계에서 재구성이 발생할 수 있으며 네트워크에 참여하는 validator 집합과 그들의 voting power를 변경할 수 있다. 개념적으로 재구성은 이전 epoch의 최종 상태를 [genesis](/operators/genesis)로 하고 새로운 validator 집합을 운영자로 하는 Sui 프로토콜의 새 인스턴스를 시작한다. Validator 집합 변경 외에도 stake/staking 및 un-staking과 같은 토큰노믹스 작업과 staking 보상의 분배도 epoch 경계에서 처리된다.
 
 ## Quorums
 

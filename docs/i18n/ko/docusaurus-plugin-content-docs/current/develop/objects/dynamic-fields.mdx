@@ -1,0 +1,313 @@
+---
+title: 동적 (객체) 필드
+description: Sui의 dynamic field와 dynamic object field는 동적으로 추가 및 제거되며, 접근될 때만 gas에 영향을 주고, heterogeneous value를 저장한다.
+keywords: [ dynamic fields, dynamic object fields, adding dynamic fields, field names, adding dynamic object fields, accessing dynamic fields, accessing dynamic object fields, deleting an object with dynamic fields ]
+---
+
+
+wrapping과 같은 방식으로 primitive data와 다른 object를 저장하기 위해 object field를 사용하는 다양한 방법이 있지만, 여기에는 몇 가지 제한이 있다:
+
+1. object는 식별자로 keyed된 유한한 field 집합을 가지며, 이는 module을 게시할 때 고정되고 `struct` 선언의 field로 제한된다.
+
+1. object가 다른 여러 object를 wrapping하면 매우 커질 수 있고 object 크기에는 상한이 있다.
+
+1. Move `vector` type은 하나의 단일 type `<T>`로 인스턴스화되어야 하므로, heterogeneous type의 object 컬렉션을 저장해야 하는 사용 사례에는 적합하지 않다.
+
+다행히 Sui는 식별자뿐 아니라 arbitrary name을 가지는 dynamic field를 제공하며, 이는 즉시 추가 및 제거되고 접근될 때만 gas에 영향을 준다.
+Dynamic field는 heterogeneous value를 저장할 수 있다. 
+
+## Fields and object fields
+
+dynamic field에는 fields와 object fields라는 2가지 type이 있으며, 이는 value를 저장하는 방식에 따라 다르다:
+
+| Type | Description | Module |
+| --- | --- | --- |
+| Fields | `store`를 가진 어떤 value든 저장할 수 있지만, 이런 kind의 field에 저장된 object는 wrapped된 것으로 간주되어 external tool(explorer, wallet 등)에서 ID를 통해 접근할 수 없다. | [`dynamic_field`](https://github.com/MystenLabs/sui/tree/main/crates/sui-framework/packages/sui-framework/sources/dynamic_field.move) |
+| Object field | value는 object(`key` ability와 첫 번째 field로서의 `id: UID`를 가져야 함)여야 하지만, external tool에서 해당 ID로 계속 접근할 수 있다. | [`dynamic_object_field`](https://github.com/MystenLabs/sui/tree/main/crates/sui-framework/packages/sui-framework/sources/dynamic_object_field.move) |
+
+## Field names
+
+이름이 Move 식별자여야 하는 object의 일반 field와 달리, dynamic field name은 `copy`, `drop`, `store`를 가진 어떤 value든 될 수 있다.
+여기에는 모든 Move primitive(integer, Boolean, byte string)와, 내용물 전체가 `copy`, `drop`, `store`를 가지는 struct가 포함된다.
+
+## Adding dynamic fields
+
+dynamic field를 추가하려면 관련 Sui framework module의 `add` 함수를 사용한다:
+
+**Dynamic field**
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/dynamic_field.move" mode="code" fun="add" noComments />
+
+**Dynamic object field**
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/dynamic_object_field.move" mode="code" fun="add" noComments />
+
+이 함수들은 이름이 `name`이고 값이 `value`인 field를 `object`에 추가한다.
+실제로 어떻게 동작하는지 보려면 다음 code snippet을 생각해 보자:
+
+먼저 parent와 child를 위한 2개의 object type을 정의한다:
+
+<ImportContent source="examples/move/dynamic_fields/sources/example.move" mode="code" struct="Parent" noComments />
+
+<ImportContent source="examples/move/dynamic_fields/sources/example.move" mode="code" struct="Child" noComments />
+
+다음으로 `Parent` object의 dynamic field로 `Child` object를 추가하는 API를 정의한다:
+
+<ImportContent source="examples/move/dynamic_fields/sources/example.move" mode="code" fun="add_child" />
+
+이 함수는 `Child` object를 값으로 받아 이름이 `b"child"`(type이 `vector<u8>`인 byte string)인 `parent`의 dynamic field로 만든다.
+이 호출은 다음 ownership 관계를 만든다:
+
+1. sender address가 `Parent` object를 소유한다.
+
+1. `Parent` object는 `Child` object를 소유하며, `b"child"`라는 이름으로 이를 참조할 수 있다.
+
+이미 정의된 것과 같은 `<Name>` type과 value를 가진 field를 추가하려는 transaction은 실패한다.
+field를 mutable하게 빌려 제자리에서 수정할 수 있고, 먼저 이전 value를 제거하면 안전하게 덮어쓸 수 있다.
+
+## Accessing dynamic fields
+
+다음 API를 사용해 dynamic field를 참조할 수 있다:
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/dynamic_field.move" mode="code" fun="borrow" noComments />
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/dynamic_field.move" mode="code" fun="borrow_mut" noComments />
+
+`object`는 field가 정의된 object의 UID이고 `name`은 field의 이름이다.
+
+:::info
+
+`sui::dynamic_object_field`는 object field에 대해 동등한 함수를 제공하지만, `Value: key + store`라는 추가 제약이 있다.
+
+:::
+
+앞서 정의한 `Parent`와 `Child` type과 함께 이 API를 사용하려면 다음과 같이 한다:
+
+<ImportContent source="examples/move/dynamic_fields/sources/example.move" mode="code" fun="mutate_child" noComments />
+
+<ImportContent source="examples/move/dynamic_fields/sources/example.move" mode="code" fun="mutate_child_via_parent" noComments />
+
+첫 번째 함수는 `Child` object에 대한 mutable reference를 직접 받으며, `Parent` object의 field로 추가되지 않은 `Child` object와 함께 호출할 수 있다.
+
+두 번째 함수는 `Parent` object에 대한 mutable reference를 받고 `borrow_mut`를 사용해 그 dynamic field에 접근하여 `mutate_child`에 전달한다.
+이 함수는 `b"child"` field가 정의된 `Parent` object에서만 호출할 수 있다.
+`Parent`에 추가된 `Child` object는 dynamic field를 통해 접근해야 하므로, ID를 알고 있더라도 `mutate_child`가 아니라 `mutate_child_via_parent`를 사용해야만 수정할 수 있다.
+
+:::tip
+
+존재하지 않는 field를 빌리려 하면 transaction이 실패한다.
+
+:::
+
+`borrow`와 `borrow_mut`에 전달되는 `<Value>` type은 저장된 field의 type과 일치해야 하며, 그렇지 않으면 transaction이 abort된다.
+
+dynamic object field value는 반드시 이 API를 통해 접근해야 한다.
+그 object를 입력으로(값 또는 reference로) 사용하려는 transaction은 invalid input으로 거부된다.
+
+## Removing a dynamic field
+
+일반 field에 들어 있는 object를 unwrapping하는 것과 비슷하게, dynamic field를 제거해 그 value를 노출할 수 있다:
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/dynamic_field.move" mode="code" fun="remove" noComments />
+
+이 함수는 field가 정의된 `object`의 ID에 대한 mutable reference와 field의 `name`을 받는다.
+`object`의 `name`에 `value: Value`를 가진 field가 정의되어 있으면 이를 제거하고 `value`를 반환하며, 그렇지 않으면 abort된다.
+이후 이 field에 대해 `object`에서 접근하려는 시도는 실패한다.
+
+`sui::dynamic_object_field`는 object field에 대해 동등한 함수를 가진다.
+
+반환된 value는 다른 어떤 value와 마찬가지로 상호작용할 수 있다.
+예를 들어 제거된 dynamic object field value는 그다음 삭제하거나 sender에게 다시 transfer할 수 있다:
+
+<ImportContent source="examples/move/dynamic_fields/sources/example.move" mode="code" fun="delete_child" noComments />
+
+<ImportContent source="examples/move/dynamic_fields/sources/example.move" mode="code" fun="reclaim_child" noComments />
+
+존재하지 않는 field나 다른 `Value` type의 field를 제거하려는 transaction은 실패한다.
+
+## Deleting an object with dynamic fields
+
+아직 정의된 dynamic field를 (잠재적으로 non-`drop`인 경우까지 포함해) 가진 object를 삭제하는 것은 가능하다.
+field value는 dynamic field와 연결된 object 및 field name을 통해서만 접근할 수 있으므로, 여전히 dynamic field가 정의된 object를 삭제하면 future transaction에서는 그 value 전부에 접근할 수 없게 된다.
+이는 field value가 `drop` ability를 가지는지와 무관하게 참이다.
+object에 statically known된 소수의 추가 field를 더하는 경우에는 이것이 문제가 아닐 수 있지만, key-value pair를 dynamic field로 무한정 많이 보관할 수 있는 온체인 collection type에서는 특히 바람직하지 않다.
+
+## `Table` and `Bag`
+
+Sui는 dynamic field를 사용해 구축된 `Table`과 `Bag` collection을 제공하며, 비어 있지 않을 때 accidental deletion으로부터 보호하기 위해 포함한 entry 수를 세는 추가 지원도 제공한다.
+
+이 섹션에서 논의하는 type과 function은 Sui framework의 [`table`](https://github.com/MystenLabs/sui/tree/main/crates/sui-framework/packages/sui-framework/sources/table.move) 및 [`bag`](https://github.com/MystenLabs/sui/tree/main/crates/sui-framework/packages/sui-framework/sources/bag.move) module에 built-in으로 포함되어 있다.
+dynamic field와 마찬가지로, 두 경우 모두 `object_` variant도 있는데, [`object_table`](https://github.com/MystenLabs/sui/tree/main/crates/sui-framework/packages/sui-framework/sources/object_table.move)의 `ObjectTable`과 [`object_bag`](https://github.com/MystenLabs/sui/tree/main/crates/sui-framework/packages/sui-framework/sources/object_bag.move)의 `ObjectBag`가 그것이다.
+`Table`과 `ObjectTable`, `Bag`와 `ObjectBag`의 관계는 field와 object field의 관계와 같다: 전자는 어떤 `store` type이든 value로 담을 수 있지만, value로 저장된 object는 external storage에서 볼 때 숨겨진다.
+후자는 value로 object만 저장할 수 있지만, external storage에서 그 object가 ID로 계속 보이게 한다.
+
+### Tables
+
+`Table<K, V>`는 homogeneous map이며, 이는 모든 key가 서로 같은 type(`K`)이고 모든 value도 서로 같은 type(`V`)이라는 뜻이다.
+이는 `sui::table::new`로 생성되며, `Table` 자체가 다른 어떤 object처럼 transfer, share, wrap, unwrap될 수 있는 object이기 때문에 `&mut TxContext`에 대한 접근이 필요하다.
+
+`Table`의 object-preserving version은 `sui::object_table::ObjectTable`을 참조한다.
+
+```move
+module sui::table;
+
+public struct Table<K: copy + drop + store, V: store> has key, store { /* ... */ }
+
+public fun new<K: copy + drop + store, V: store>(
+    ctx: &mut TxContext,
+): Table<K, V>;
+```
+
+### Bags
+
+`Bag`는 heterogeneous map이므로 임의의 type의 key-value pair를 담을 수 있고, 서로 type이 일치할 필요가 없다.
+이 때문에 `Bag` type에는 type parameter가 없다.
+`Table`과 마찬가지로 `Bag`도 object이므로, `sui::bag::new`로 이를 만들려면 ID를 생성하기 위해 `&mut TxContext`를 제공해야 한다.
+
+`Bag`의 object-preserving version은 `sui::bag::ObjectBag`를 참조한다.
+
+```move
+module sui::bag;
+
+public struct Bag has key, store { /* ... */ }
+
+public fun new(ctx: &mut TxContext): Bag;
+```
+
+### Interacting with collections
+
+모든 collection type에는 각자의 module에 정의된 다음 함수가 함께 제공된다:
+
+```move
+module sui::table;
+
+public fun add<K: copy + drop + store, V: store>(
+    table: &mut Table<K, V>,
+    k: K,
+    v: V,
+);
+
+public fun borrow<K: copy + drop + store, V: store>(
+    table: &Table<K, V>,
+    k: K
+): &V;
+
+public fun borrow_mut<K: copy + drop + store, V: store>(
+    table: &mut Table<K, V>,
+    k: K
+): &mut V;
+
+public fun remove<K: copy + drop + store, V: store>(
+    table: &mut Table<K, V>,
+    k: K,
+): V;
+```
+
+이 함수들은 각각 collection에 entry를 추가하고, 읽고, 쓰고, 제거하며, 모두 key를 값으로 받는다.
+`Table`은 `K`와 `V`에 대한 type parameter를 가지므로, 같은 `Table` instance에서 서로 다른 `K`와 `V` 인스턴스화로 이 함수를 호출하는 것은 불가능하다.
+하지만 `Bag`는 이런 type parameter를 가지지 않으므로, 같은 instance에서 서로 다른 인스턴스화로 호출하는 것을 허용한다.
+
+:::info
+
+dynamic field와 마찬가지로, 이미 존재하는 key를 덮어쓰거나 존재하지 않는 key에 접근하거나 제거하려는 시도는 error이다.
+
+:::
+
+`Bag`의 heterogeneity가 주는 추가 유연성은 type system이 한 type의 value를 추가한 뒤 다른 type으로 이를 빌리거나 제거하려는 시도를 정적으로 막아주지 않는다는 뜻이다.
+이 패턴은 dynamic field의 동작과 비슷하게 runtime에서 실패한다.
+
+### Querying length
+
+다음 함수 계열을 사용해 모든 collection type의 길이를 질의하고 비어 있는지 확인할 수 있다:
+
+```move
+module sui::table;
+
+public fun length<K: copy + drop + store, V: store>(
+    table: &Table<K, V>,
+): u64;
+
+public fun is_empty<K: copy + drop + store, V: store>(
+    table: &Table<K, V>
+): bool;
+```
+
+`Bag`에도 이 함수들이 있지만, `Bag`는 그런 type parameter를 가지지 않으므로 `K`와 `V`에 대해 generic하지 않다.
+
+### Querying for containment
+
+Table은 다음으로 key containment를 질의할 수 있다:
+
+```move
+module sui::table;
+
+public fun contains<K: copy + drop + store, V: store>(
+    table: &Table<K, V>
+    k: K
+): bool;
+```
+
+`Bag`에 대한 동등한 함수는 다음과 같다:
+
+```move
+module sui::bag;
+
+public fun contains<K: copy + drop + store>(bag: &Bag, k: K): bool;
+
+public fun contains_with_type<K: copy + drop + store, V: store>(
+    bag: &Bag,
+    k: K
+): bool;
+```
+
+첫 번째 함수는 `bag`에 key가 `k: K`인 key-value pair가 들어 있는지를 검사하고, 두 번째 함수는 그 value가 type `V`인지 검사한다.
+
+### Clean-up
+
+collection type은 비어 있지 않을 수 있을 때 accidental deletion으로부터 보호한다.
+이 보호는 그 type들이 `drop`을 가지지 않는다는 사실에서 오며, 따라서 이 API를 사용해 명시적으로 삭제해야 한다:
+
+```move
+module sui::table;
+
+public fun destroy_empty<K: copy + drop + store, V: store>(
+    table: Table<K, V>,
+);
+```
+
+이 함수는 collection을 값으로 받는다.
+entry가 전혀 없으면 삭제되고, 그렇지 않으면 호출이 실패한다.
+`sui::table::Table`에는 다음 convenience function도 있다:
+
+```move
+module sui::table;
+
+public fun drop<K: copy + drop + store, V: drop + store>(
+    table: Table<K, V>,
+);
+```
+
+이 convenience function은 value type도 `drop` ability를 가진 table에 대해서만 호출할 수 있으며, 이 경우 table이 비어 있든 아니든 삭제할 수 있다.
+
+eligible한 table이 scope를 벗어나기 전에 `drop`이 암묵적으로 호출되지는 않는다는 점에 유의한다.
+반드시 명시적으로 호출해야 하지만, runtime에서는 성공이 보장된다.
+
+`Bag`와 `ObjectBag`는 서로 다른 여러 type을 담을 수 있고 그중 일부는 `drop`을 가지지만 일부는 아닐 수 있으므로 `drop`을 지원할 수 없다.
+
+`ObjectTable`은 value가 object여야 하고, object는 `id: UID` field를 포함해야 하며 `UID`는 `drop`을 가지지 않으므로 `drop`을 지원하지 않는다.
+
+### Equality
+
+collection의 equality는 identity를 기반으로 하며, 예를 들어 collection type의 instance는 같은 entry를 가진 모든 collection과 같다고 간주되는 것이 아니라 자기 자신과만 같다고 간주된다:
+
+```move
+use sui::table;
+
+let t1 = table::new<u64, u64>(ctx);
+let t2 = table::new<u64, u64>(ctx);
+
+assert!(&t1 == &t1, 0);
+assert!(&t1 != &t2, 1);
+```
+
+이것은 여러분이 원하는 equality 정의일 가능성이 낮다.

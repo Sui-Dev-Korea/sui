@@ -54,7 +54,7 @@ passkey | Compressed, 33바이트
 
 ## Signature requirements {#signature-requirements}
 
-서명은 transaction data의 intent message 해시에 커밋해야 하며, 이는 BCS로 직렬화된 transaction data 앞에 3바이트 intent를 덧붙여 구성할 수 있다. Intent의 개념과 intent message 구성 방법에 대한 자세한 내용은 [Sui Intent Signing](intent-signing.mdx)을 참고한다.
+서명은 transaction data의 intent message 해시에 커밋해야 하며, 이는 BCS로 직렬화된 transaction data 앞에 3바이트 intent를 덧붙여 구성할 수 있다. Intent의 개념과 intent message 구성 방법에 대한 자세한 내용은 [Sui Intent Signing](/develop/transactions/transaction-auth/intent-signing)을 참고한다.
 
 서명 API를 호출할 때는 먼저 Blake2b를 사용하여 transaction data의 intent message를 32바이트로 해시해야 한다. 이 외부 해싱은 signing API 내부에서 수행되는 해싱과는 구별된다. 기존 표준 및 하드웨어 보안 모듈(HSM)과의 호환성을 위해, signing 알고리즘은 내부적으로 추가 해싱을 수행한다. ECDSA Secp256k1과 Secp256r1의 경우 내부 해시 함수로 SHA-2 SHA256을 사용해야 하며, pure Ed25519의 경우 SHA-512를 사용해야 한다.
 
@@ -71,9 +71,9 @@ passkey | Compressed, 33바이트
 1. 서명은 [RFC 8032](https://www.rfc-editor.org/rfc/rfc8032.html#section-5.1.6)에 따라 생성되어야 한다. 내부적으로 사용되는 해시는 SHA-512이다.
 2. 서명은 [ZIP215](https://github.com/zcash/zips/blob/main/zip-0215.rst)에 따라 유효해야 한다.
 
-CLI를 사용한 오프라인 서명의 구체적 예시는 [Offline Signing](../transaction-auth/offline-signing.mdx) 항목에서 확인할 수 있다.
+CLI를 사용한 오프라인 서명의 구체적 예시는 [Offline Signing](/develop/transactions/transaction-auth/offline-signing) 항목에서 확인할 수 있다.
 
-ZkLogin signature 관련 내용은 [zkLogin](../zklogin.mdx)을 참고한다.
+ZkLogin signature 관련 내용은 [zkLogin](/sui-stack/zklogin-integration)을 참고한다.
 
 Passkey signature에 대한 자세한 내용은 [SIP-8](https://github.com/sui-foundation/sips/blob/main/sips/sip-9.md)을 참고한다.
 
@@ -91,7 +91,7 @@ Sui의 Authority(validator 집합)는 각기 다른 세 가지 키 쌍을 보유
 
 BLS scheme과 마찬가지로, 독립적인 서명들을 집계하여 단일 BLS 서명 payload를 생성할 수 있다. Sui는 또한 어떤 validator가 서명했는지를 나타내는 bitmap과 함께, 집계된 서명을 함께 제공한다. 이는 실질적으로 검증 권한자의 서명 크기를 (2f + 1) × `BLS_sig` 크기에서 단 하나의 `BLS_sig` payload로 줄이며, 그 결과 validator 집합의 크기와 관계없이 transaction certificate가 압축되어 네트워크 비용 측면에서 상당한 이점을 가져온다.
 
-BLS12381 방식의 집계된 서명에 대한 잠재적인 rogue key 공격을 방지하기 위해, 권한 주체 등록 시 비밀 키의 지식 증명(KOSK, proof of knowledge of the secret key)이 사용된다. 권한 주체가 validator 집합에 추가되기를 요청할 때, 소유증명이 제출되어 검증된다. 소유 증명 생성 방법에 대한 내용은 [Intent Signing](../transaction-auth/intent-signing.mdx)을 참고한다. 대부분의 표준과 달리, Sui의 proof of knowledge scheme은 address에도 커밋하며, 이를 통해 다른 악의적인 validator가 validator의 BLS 키를 재사용하는 공격에 대해 추가적인 보호를 제공한다.
+BLS12381 방식의 집계된 서명에 대한 잠재적인 rogue key 공격을 방지하기 위해, 권한 주체 등록 시 비밀 키의 지식 증명(KOSK, proof of knowledge of the secret key)이 사용된다. 권한 주체가 validator 집합에 추가되기를 요청할 때, 소유증명이 제출되어 검증된다. 소유 증명 생성 방법에 대한 내용은 [Intent Signing](/develop/transactions/transaction-auth/intent-signing)을 참고한다. 대부분의 표준과 달리, Sui의 proof of knowledge scheme은 address에도 커밋하며, 이를 통해 다른 악의적인 validator가 validator의 BLS 키를 재사용하는 공격에 대해 추가적인 보호를 제공한다.
 
 ### Account key pair {#account-pair}
 

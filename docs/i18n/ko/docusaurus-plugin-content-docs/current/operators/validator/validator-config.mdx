@@ -1,0 +1,150 @@
+---
+title: validator 배포 및 구성
+description: Sui validator 노드를 설정하고, 구성하고, 관리하는 방법을 알아본다.
+keywords: [ sui validator node, validator nodes, validator node configuration, configure validator node, set up validator node, manage validator ]
+sidebar_label: validator 배포 및 구성
+---
+
+
+Sui의 validators는 풀 노드보다 더 많은 작업을 수행할 수 있는 특수한 validator 노드를 실행한다. Validators는 stake/staking, gas price reference, tallying rules에 사용된다.
+
+## Validator requirements
+
+Sui validator를 실행하려면 Sui validator 노드를 설정하고 구성해야 한다. 수행해야 하는 구체적인 단계는 다음과 같다:
+
+1. Sui를 설치하고 구성한다.
+2. port와 protocol 설정을 구성한다.
+3. key management를 구성한다.
+4. storage를 구성한다.
+5. software를 업데이트한다.
+6. network와 상호작용하기 위한 on-chain commands를 실행한다.
+7. 가스 가격 조사를 업데이트한다.
+8. 다른 validators에 보고한다.
+
+### Hardware requirements
+
+Sui validator 노드를 실행하기 위한 권장 최소 하드웨어 사양은 다음과 같다:
+
+- CPU: 물리 코어 24개(또는 가상 코어 48개)
+- Memory: 128 GB
+- Storage: 4 TB NVME
+- Network: 1 Gbps
+
+<ImportContent source="staking-pool-reqs" mode="snippet" />
+
+validator 노드에서 stake/staking을 설정하려면 다음을 수행한다:
+
+1. 후보가 되기 위해 `request_add_validator_candidate`를 호출한다. 이 호출은 on-chain validator 정보를 생성하고 delegators가 기여할 수 있는 staking pool을 초기화한다.
+
+2. 이전 단계에서 생성한 validator staking pool에 staking하여 30M SUI를 확보한다. validator의 address로 `request_add_stake`를 호출한다(이 값은 staking pool ID와 동일하지 않다).
+
+3. validator가 pending validator가 되도록 `request_add_validator`를 호출한다. 다음 epoch에 validator set에 합류한다. 다음 epoch 전에 validator를 세워 두어야 epoch가 바뀔 때 네트워크에 참여할 수 있다.
+
+[validator 노드 보상](./validator-rewards)을 참조한다.
+
+## Deployment
+
+Sui node는 여러 방식으로 배포할 수 있다.
+
+1. [Docker Hub](https://hub.docker.com/r/mysten/sui-node/tags)에서 제공하는 사전 빌드된 container images를 사용한다.
+
+2. 다음 방법 중 하나로 가져올 수 있는 S3의 사전 빌드된 `linux/amd64` binaries를 사용한다:
+
+```sh
+$ wget https://releases.sui.io/$SUI_SHA/sui-node
+```
+
+```sh
+$ curl https://releases.sui.io/$SUI_SHA/sui-node -o sui-node
+```
+
+또는 source에서 직접 build하려면 다음을 사용한다:
+
+```sh
+$ git clone https://github.com/MystenLabs/sui.git && cd sui
+$ git checkout [SHA|BRANCH|TAG]
+$ cargo build --release --bin sui-node
+```
+
+validator 배포에 대한 자세한 내용은 [Sui for Node Operators](https://github.com/MystenLabs/sui/blob/main/nre/sui_for_node_operators.md) 가이드를 참고한다.
+
+## Configuration
+
+다음 배포 옵션에 대한 configuration guides가 제공된다:
+
+- [Systemd](https://github.com/MystenLabs/sui/blob/main/nre/systemd/README.md)
+- [Ansible](https://github.com/MystenLabs/sui/blob/main/nre/ansible/README.md)
+- [Docker Compose](https://github.com/MystenLabs/sui/blob/main/nre/docker/README.md)
+
+`sui-node`는 예를 들어 다음과 같이 인수로 전달되는 단일 configuration file로 실행된다:
+
+```sh
+$ ./sui-node --config-path /opt/sui/config/validator.yaml
+```
+
+validator 구성에 대한 자세한 내용은 [Sui for Node Operators](https://github.com/MystenLabs/sui/blob/main/nre/sui_for_node_operators.md) 가이드를 참고한다.
+
+configuration templates는 [Validator](https://github.com/MystenLabs/sui/blob/main/nre/config/validator.yaml)를 참고한다.
+
+## Connectivity
+
+`sui-node`는 기본적으로 다음 ports를 사용한다:
+
+| protocol/port | reachability     | purpose                           |
+| ------------- | ---------------- | --------------------------------- |
+| TCP/8080      | Inbound          | Validator/transaction interface   |
+| TCP/8081      | Inbound/outbound | Consensus interface               |
+| UDP/8084      | Inbound/outbound | Peer-to-peer state sync interface |
+| TCP/8443      | Outbound         | Metrics pushing                   |
+| TCP/9184      | Localhost        | Metrics scraping                  |
+
+validator를 성공적으로 실행하려면 특정 protocol(TCP/UDP)을 포함해 8080-8084 ports가 설명한 대로 열려 있는 것이 중요하다.
+
+## Network buffer
+
+Sui validator networks에 대한 load testing 결과 Linux의 기본 network buffer 크기는 너무 작을 수 있다.
+다음 두 방법 중 하나를 사용해 이를 늘릴 것을 권장한다.
+
+### Option 1: With `/etc/sysctl.d/`
+
+`sui-node` 전용 새 `sysctl` file에 이 설정을 추가하거나 기존 file에 덧붙인다. 이렇게 수정하면 system 재시작 후에도 유지된다.
+
+`sui-node`용 새 `sysctl` file을 생성한다:
+
+```sh
+$ sudo nano /etc/sysctl.d/100-sui-node.conf
+```
+
+필요하다면 기존 설정을 덮어쓰면서 다음 줄을 file에 추가한다:
+
+```sh
+net.core.rmem_max = 104857600
+net.core.wmem_max = 104857600
+net.ipv4.tcp_rmem = 8192 262144 104857600
+net.ipv4.tcp_wmem = 8192 262144 104857600
+```
+
+다음 재시작 전에 즉시 설정을 적용한다:
+
+```sh
+$ sudo sysctl --system
+```
+
+### Option 2: With `sysctl` command
+
+이 수정은 system 재시작 후 유지되지 않는다. 따라서 host가 재시작할 때마다 명령을 다시 실행해야 한다.
+
+```sh
+$ sudo sysctl -w net.core.wmem_max=104857600
+$ sudo sysctl -w net.core.rmem_max=104857600
+$ sudo sysctl -w net.ipv4.tcp_rmem="8192 262144 104857600"
+$ sudo sysctl -w net.ipv4.tcp_wmem="8192 262144 104857600"
+```
+
+### Verification
+
+system 설정이 성공적으로 업데이트되었는지 확인하려면 다음 명령의 출력을 확인한다:
+
+```sh
+$ sudo sysctl -a | egrep [rw]mem
+```

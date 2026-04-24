@@ -1,0 +1,235 @@
+---
+title: 마진 풀
+description: margin pool과 leveraged trading을 위한 liquidity를 제공하는 방식을 설명한다.
+keywords:
+  [
+    margin pool,
+    marginpool,
+    liquidity pool,
+    lending pool,
+    supply,
+    borrow,
+    interest rate,
+    utilization rate,
+    deepbook margin,
+  ]
+---
+
+
+`MarginPool`은 특정 asset에 대한 liquidity를 관리하는 shared object로, lender가 asset을 공급하고 margin trader가 이를 차입할 수 있게 한다. 각 margin pool은 supply와 borrow position을 추적하고, 시간이 지남에 따라 interest를 누적하며, 시스템 건전성을 유지하기 위해 risk parameter를 강제한다.
+
+margin pool은 supplier가 전체 supply에서 자신의 비중을 나타내는 share를 받는 shares 기반 accounting 시스템을 사용한다. interest는 연속적으로 누적되어 시간이 지남에 따라 이러한 share의 가치를 증가시킨다. borrower는 자신이 사용하는 특정 DeepBook trading pool이 활성화된 pool에서만 차입할 수 있다.
+
+## API
+
+다음은 `MarginPool`이 노출하는 서로 다른 public 함수이다.
+
+<details>
+<summary>Mint a `SupplierCap`</summary>
+
+margin pool에서 supply와 withdraw에 사용할 수 있는 새 `SupplierCap`을 생성한다. 하나의 `SupplierCap`은 여러 margin pool에서 사용할 수 있다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="mint_supplier_cap"
+/>
+
+</details>
+
+<details>
+<summary>Supply liquidity</summary>
+
+interest를 얻기 위해 margin pool에 asset을 공급한다. 이 작업 이후 supplier가 소유한 총 supply share를 반환한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="supply"
+/>
+
+</details>
+
+<details>
+<summary>Withdraw liquidity</summary>
+
+margin pool에서 공급된 asset을 인출한다. 정확한 amount를 지정하거나 사용 가능한 모든 share를 인출할 수 있다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="withdraw"
+/>
+
+</details>
+
+<details>
+<summary>Read endpoints</summary>
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	fun="id,deepbook_pool_allowed,total_supply,supply_shares,total_borrow,borrow_shares,last_update_timestamp,supply_cap,protocol_fees,max_utilization_rate,protocol_spread,min_borrow,interest_rate,user_supply_shares,user_supply_amount"
+/>
+
+</details>
+
+## Events
+
+<details>
+<summary>`MarginPoolCreated`</summary>
+
+새 margin pool이 생성될 때 발생한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="MarginPoolCreated"
+/>
+
+</details>
+
+<details>
+<summary>`DeepbookPoolUpdated`</summary>
+
+DeepBook pool이 lending에 대해 활성화 또는 비활성화될 때 발생한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="DeepbookPoolUpdated"
+/>
+
+</details>
+
+<details>
+<summary>`InterestParamsUpdated`</summary>
+
+interest rate parameter가 업데이트될 때 발생한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="InterestParamsUpdated"
+/>
+
+</details>
+
+<details>
+<summary>`MarginPoolConfigUpdated`</summary>
+
+margin pool 구성이 업데이트될 때 발생한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="MarginPoolConfigUpdated"
+/>
+
+</details>
+
+<details>
+<summary>`SupplierCapMinted`</summary>
+
+새 supplier cap이 mint될 때 발생한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="SupplierCapMinted"
+/>
+
+</details>
+
+<details>
+<summary>`AssetSupplied`</summary>
+
+asset이 margin pool에 supply될 때 발생한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="AssetSupplied"
+/>
+
+</details>
+
+<details>
+<summary>`AssetWithdrawn`</summary>
+
+asset이 margin pool에서 인출될 때 발생한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="AssetWithdrawn"
+/>
+
+</details>
+
+<details>
+<summary>`MaintainerFeesWithdrawn`</summary>
+
+maintainer fee가 인출될 때 발생한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="MaintainerFeesWithdrawn"
+/>
+
+</details>
+
+<details>
+<summary>`ProtocolFeesWithdrawn`</summary>
+
+protocol fee가 인출될 때 발생한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="ProtocolFeesWithdrawn"
+/>
+
+</details>
+
+<details>
+<summary>`ProtocolFeesIncreased`</summary>
+
+interest payment로부터 protocol fee가 누적될 때 발생한다.
+
+<ImportContent
+	source="packages/deepbook_margin/sources/margin_pool/protocol_fees.move"
+	mode="code"
+	org="MystenLabs"
+	repo="deepbookv3"
+	struct="ProtocolFeesIncreasedEvent"
+/>
+
+</details>

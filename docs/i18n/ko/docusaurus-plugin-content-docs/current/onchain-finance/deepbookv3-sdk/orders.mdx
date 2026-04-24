@@ -1,0 +1,257 @@
+---
+title: 주문 SDK
+sidebar_label: 주문 SDK
+description: DeepBookV3 SDK를 사용해 pool에 대해 order를 leverage하는 방법을 설명한다.
+keywords:
+  [
+    limit orders,
+    market orders,
+    modify orders,
+    cancel orders,
+    balancemanager,
+    deepbookv3,
+    pay_with_deep,
+    DEEP token,
+    reduce order size,
+    lower expiration time,
+    order options,
+    self-matching options,
+    orderinfo,
+    orderdeepprice,
+    fill,
+    events,
+    place market order,
+    withdraw amount,
+    withdraw settled amount,
+  ]
+---
+
+
+order 배치는 모든 DeepBook 통합의 주요 기능이다. 하지만 order를 배치하기 전에 먼저 balance manager를 설정해야 한다. balance manager 설정에 대한 정보는 [DeepBookV3 SDK](/onchain-finance/deepbookv3-sdk)를 참조한다.
+
+## Order functions
+
+DeepBookV3 SDK는 pool에 대해 order를 leverage하기 위한 다음 함수를 제공한다.
+
+### placeLimitOrder
+
+limit order를 배치하려면 `placeLimitOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `params`: swap의 parameter를 나타내는 `SwapParams` object이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/deepbook.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="placeLimitOrder" signatureOnly/>
+
+### placeMarketOrder
+
+market order를 배치하려면 `placeMarketOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `params`: swap의 parameter를 나타내는 `SwapParams` object이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/deepbook.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="placeMarketOrder" signatureOnly/>
+
+### cancelOrder
+
+`orderId`로 식별되는 기존 order를 취소하려면 `cancelOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+:::warning
+`orderId`는 order 배치 중 생성되는 프로토콜 `orderId`이며, client `orderId`와는 다르다.
+:::
+
+**Parameters**
+
+- `poolKey`: borrow할 pool을 식별하는 String이다.
+- `balanceManagerKey`: `BalanceManager`를 식별하는 String이다.
+- `orderId`: 취소할 order를 식별하는 프로토콜 order ID의 String이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/deepbook.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="cancelOrder" signatureOnly/>
+
+### cancelOrders
+
+order ID array를 제공하여 여러 order를 atomic하게 취소하려면 `cancelOrders`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `poolKey`: pool을 식별하는 String이다.
+- `balanceManagerKey`: `BalanceManager`를 식별하는 String이다.
+- `orderIds`: 취소할 프로토콜 order ID를 나타내는 String의 Array이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/deepbook.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="cancelOrders" signatureOnly/>
+
+### cancelAllOrders
+
+제공한 key에 해당하는 balance manager에 대해 모든 order를 취소하려면 `cancelAllOrders`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `poolKey`: borrow할 pool을 식별하는 String이다.
+- `balanceManagerKey`: `BalanceManager`를 식별하는 String이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/deepbook.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="cancelAllOrders" signatureOnly/>
+
+### `modifyOrder`
+
+quantity를 변경하여 기존 order를 수정하려면 `modifyOrder`를 사용한다. 새 quantity는 원래 quantity보다 작고 filled quantity보다 커야 한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `poolKey`: pool을 식별하는 String이다.
+- `balanceManagerKey`: `BalanceManager`를 식별하는 String이다.
+- `orderId`: 수정할 프로토콜 order ID의 String이다.
+- `newQuantity`: order의 새 quantity를 나타내는 Number이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/deepbook.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="modifyOrder" signatureOnly/>
+
+### `withdrawSettledAmounts`
+
+특정 pool에서 balance manager에 대한 모든 settled amount를 인출하려면 `withdrawSettledAmounts`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `poolKey`: pool을 식별하는 String이다.
+- `balanceManagerKey`: `BalanceManager`를 식별하는 String이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/deepbook.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="withdrawSettledAmounts" signatureOnly/>
+
+### `withdrawSettledAmountsPermissionless`
+
+어떤 balance manager에 대해서도 settled amount를 permissionless하게 인출하려면 `withdrawSettledAmountsPermissionless`를 사용한다. 누구나 호출할 수 있으며 trade proof가 필요하지 않다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `poolKey`: pool을 식별하는 String이다.
+- `balanceManagerKey`: `BalanceManager`를 식별하는 String이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/deepbook.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="withdrawSettledAmountsPermissionless" signatureOnly/>
+
+## Examples
+
+다음 예시는 DeepBookV3 order에 대한 일부 custom 함수를 시연한다.
+
+### Limit orders
+
+서로 다른 order type과 self matching option에 대해서는 [주문](../deepbookv3/contract-information/orders)를 참조한다.
+
+```tsx
+// limit order용 params
+interface PlaceLimitOrderParams {
+	poolKey: string;
+	balanceManagerKey: string;
+	clientOrderId: string;
+	price: number;
+	quantity: number;
+	isBid: boolean;
+	expiration?: number | bigint; // 기본값: 만료 없음
+	orderType?: OrderType; // 기본값: 제한 없음
+	selfMatchingOption?: SelfMatchingOptions; // 기본값: self matching 허용
+	payWithDeep?: boolean; // 기본값: true
+}
+
+/**
+ * @description limit order를 넣는다
+ * @param {PlaceLimitOrderParams} params limit order를 넣기 위한 parameters
+ * @returns Transaction object를 받는 함수를 반환한다
+ */
+placeLimitOrder = (params: PlaceLimitOrderParams) => (tx: Transaction) => {};
+
+// DeepBookMarketMaker class에서 사용하는 예시
+// $0.1에 DEEP 10의 bid를 넣는다
+customPlaceLimitOrder = (tx: Transaction) => {
+	const poolKey = 'DEEP_DBUSDC'; // Pool key이며, 자세한 내용은 constants.ts를 확인한다
+	const managerKey = 'MANAGER_1'; // Balance manager key이며, user가 client 생성 중에 초기화한다
+	tx.add(
+		this.deepBook.placeLimitOrder({
+			poolKey: poolKey,
+			balanceManagerKey: managerKey,
+			clientOrderId: '1',
+			price: 0.1,
+			quantity: 10,
+			isBid: true,
+			payWithDeep: true,
+		}),
+	);
+};
+```
+
+### Place market order
+
+market order를 배치하는 예시이다.
+
+```tsx
+// market order용 params
+interface PlaceMarketOrderParams {
+	poolKey: string;
+	balanceManagerKey: string;
+	clientOrderId: string;
+	quantity: number;
+	isBid: boolean;
+	selfMatchingOption?: SelfMatchingOptions;
+	payWithDeep?: boolean;
+}
+
+// DeepBookMarketMaker class에서 사용하는 예시
+// SUI_DBUSDC pool에서 SUI 10의 market sell order를 넣는다
+customPlaceMarketOrder = (tx: Transaction) => {
+	const poolKey = 'SUI_DBUSDC'; // Pool key이며, 자세한 내용은 constants.ts를 확인한다
+	const managerKey = 'MANAGER_1'; // Balance manager key이며, user가 client 생성 중에 초기화한다
+	tx.add(
+		this.deepBook.placeMarketOrder({
+			poolKey: poolKey,
+			balanceManagerKey: managerKey,
+			clientOrderId: '2',
+			quantity: 10,
+			isBid: true,
+			payWithDeep: true,
+		}),
+	);
+};
+```
+
+### Cancel an order
+
+balance manager에 대해 pool에서 단일 order를 취소하는 예시이다.
+
+```tsx
+/**
+ * @description 기존 order를 취소한다
+ * @param {string} poolKey pool을 식별하는 키
+ * @param {string} balanceManagerKey BalanceManager를 식별하는 키
+ * @param {number} orderId 취소할 order ID
+ * @returns Transaction object를 받는 함수를 반환한다
+ */
+cancelOrder =
+	(poolKey: string, balanceManagerKey: string, orderId: number) => (tx: Transaction) => {};
+
+// DeepBookMarketMaker class에서 사용하는 예시
+// SUI_DBUSDC pool에서 order 12345678을 취소한다
+cancelOrder = (tx: Transaction) => {
+	const poolKey = 'SUI_DBUSDC'; // Pool key이며, 자세한 내용은 constants.ts를 확인한다
+	const managerKey = 'MANAGER_1'; // Balance manager key이며, user가 client 생성 중에 초기화한다
+	tx.add(this.deepBook.cancelOrder(poolKey, managerKey, 12345678));
+};
+```
+
+### Cancel all orders
+
+balance manager에 대해 pool에서 모든 order를 취소하는 예시이다.
+
+```tsx
+/**
+ * @description balance manager의 모든 open order를 취소한다
+ * @param {string} poolKey pool을 식별하는 키
+ * @param {string} balanceManagerKey BalanceManager를 식별하는 키
+ * @returns Transaction object를 받는 함수를 반환한다
+ */
+cancelAllOrders = (poolKey: string, balanceManagerKey: string) => (tx: Transaction) => {};
+
+// DeepBookMarketMaker class에서 사용하는 예시
+// SUI_DBUSDC pool에서 order 12345678을 취소한다
+cancelOrder = (tx: Transaction) => {
+	const poolKey = 'SUI_DBUSDC'; // Pool key이며, 자세한 내용은 constants.ts를 확인한다
+	const managerKey = 'MANAGER_1'; // Balance manager key이며, user가 client 생성 중에 초기화한다
+	tx.add(this.deepBook.cancelAllOrders(poolKey, managerKey));
+};
+```

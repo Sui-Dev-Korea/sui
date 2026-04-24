@@ -4,14 +4,15 @@ description: VS Code에서 Debug Move execution traces를 직접 사용해 코�
 keywords: [ move trace debugger, debug move execution traces, debug move traces, move execution traces, vs code, debug in vs code, visual studio code, move extension, vs code extension, move vs code extension, debugging, debug interface, replay ]
 ---
 
-Visual Studio Code용 [Move Trace Debugger](https://marketplace.visualstudio.com/items?itemName=mysten.move-trace-debug) extension은 Move 단위 테스트와 온체인 transaction, 그리고 [PTB](/guides/developer/transactions/ptbs/prog-txn-blocks) debugging 지원을 위한 익숙한 [debugging interface](https://code.visualstudio.com/docs/debugtest/debugging)를 제공하며, PTB command의 상태를 검사하고, code 실행을 단계별로 진행하고, 지역 변수 값을 추적하고, 단위 테스트 또는 온체인 Move call에서 Move code에 줄 breakpoint를 설정할 수 있게 해준다.
+
+Visual Studio Code용 [Move Trace Debugger](https://marketplace.visualstudio.com/items?itemName=mysten.move-trace-debug) extension은 Move 단위 테스트와 온체인 transaction, 그리고 [PTB](/develop/transactions/ptbs/prog-txn-blocks) debugging 지원을 위한 익숙한 [debugging interface](https://code.visualstudio.com/docs/debugtest/debugging)를 제공하며, PTB command의 상태를 검사하고, code 실행을 단계별로 진행하고, 지역 변수 값을 추적하고, 단위 테스트 또는 온체인 Move call에서 Move code에 줄 breakpoint를 설정할 수 있게 해준다.
 
 Debugging은 trace 생성으로 활성화되며, trace는 [unit test execution](#debugging-unit-tests) 중 또는 온체인 [transaction replay](#debugging-on-chain-transactions) 중에 생성할 수 있다.
 
 ## Install
 
 :::info
-디버거는 [Move Analyzer VS Code 확장 프로그램](./move.mdx)을 설치해 사용하며, 이 extension에는 Move Trace Debugger extension이 포함되어 있으므로 별도로 설치할 필요가 없지만, 경우에 따라 별도 설치가 필요할 수 있어 설치 지침을 포함한다.
+디버거는 [Move Analyzer VS Code 확장 프로그램](./move)을 설치해 사용하며, 이 extension에는 Move Trace Debugger extension이 포함되어 있으므로 별도로 설치할 필요가 없지만, 경우에 따라 별도 설치가 필요할 수 있어 설치 지침을 포함한다.
 :::
 
 Move Trace Debugger extension은 Visual Studio Code Marketplace에서 사용할 수 있다.
@@ -24,7 +25,7 @@ Move Trace Debugger extension은 Visual Studio Code Marketplace에서 사용할 
 
 release tarball, Homebrew, 그리고 Chocolatey 설치에 포함된 `sui` 바이너리에는 이 기능이 활성화되어 있다.
 
-자세한 내용은 [Sui 설치](/guides/developer/getting-started/sui-install)를 참고한다.
+자세한 내용은 [Sui 설치](/getting-started/onboarding/sui-install)를 참고한다.
 
 ## Features
 
@@ -127,7 +128,7 @@ native command를 "통과하며" step하는 기능은 없다.
 
 ## Usage
 
-디버거를 사용해 [replay tool](/references/cli/replay)을 통해 단위 테스트와 기존 온체인 transaction을 debugging하며, 여기에는 [PTB](/guides/developer/transactions/ptbs/prog-txn-blocks) debugging 지원도 포함된다.
+디버거를 사용해 [replay tool](/references/cli/replay)을 통해 단위 테스트와 기존 온체인 transaction을 debugging하며, 여기에는 [PTB](/develop/transactions/ptbs/prog-txn-blocks) debugging 지원도 포함된다.
 
 ### Debugging unit tests
 
@@ -194,7 +195,7 @@ sui replay --trace --digest 0x42
 
 이 command는 transaction을 로컬에서 다시 실행하고, 실행 trace를 생성하고, 이 transaction을 debugging하는 데 필요한 모든 데이터를 다운로드한다.
 
-데이터는 replay tool 출력 디렉터리의 하위 디렉터리에 저장되며, 기본값은 `.replay`지만 위치는 [configurable](../../references/cli/replay.mdx#usage)하다.
+데이터는 replay tool 출력 디렉터리의 하위 디렉터리에 저장되며, 기본값은 `.replay`지만 위치는 [configurable](../../references/cli/replay#usage)하다.
 
 이 하위 디렉터리 이름은 transaction digest를 따른다.
 

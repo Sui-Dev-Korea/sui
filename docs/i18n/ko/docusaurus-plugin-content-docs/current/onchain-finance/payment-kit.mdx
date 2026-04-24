@@ -1,0 +1,526 @@
+---
+title: Payment Kit 표준
+description: Sui Payment Kit은 Sui blockchain에서 구축된 application을 위해 안전한 payment verification, receipt management, 그리고 duplicate prevention을 제공하는 견고한 open-source payment processing toolkit이다.
+sidebar_label: Payment Kit 표준
+keywords:
+  [
+    payment processing,
+    payment verification,
+    payment receipts,
+    duplicate prevention,
+    payment registry,
+    ephemeral payments,
+    multi-coin support,
+    payment kit,
+    payment standard,
+    sui payments,
+  ]
+pagination_prev: null
+---
+
+
+Sui Payment Kit은 Sui에서 안전하고 유연한 payment processing을 위한 framework이다. 이는 persistent 및 ephemeral payment option, event-driven architecture, 그리고 built-in duplicate prevention을 제공한다.
+
+Payment Kit은 Sui에서 payment processing을 표준화하여, developer가 common payment verification 및 receipt management 로직을 다시 구현하지 않고도 견고한 payment flow를 구축할 수 있게 한다. Payment Kit을 사용하는 application은 battle-tested security pattern과 ecosystem 전반에서 일관된 payment handling의 이점을 누린다.
+
+## Key features
+
+Payment Kit은 다음의 핵심 capability를 제공한다:
+
+- **Secure payment processing**: payment amount를 검증하고 coin을 안전하게 전송한다.
+- **Payment registries**: duplicate detection이 포함된 payment receipt를 위한 optional persistent storage이다.
+- **Flexible receipt management**: payment tracking 및 verification을 위한 receipt를 생성한다.
+- **Event-driven architecture**: off-chain tracking 및 integration을 위한 event를 emit한다.
+- **Multi-coin support**: 어떤 Sui coin type과도 함께 동작한다.
+- **Transaction URIs**: user friendly payment flow를 위한 encoded link를 생성할 수 있도록 표준화된 URI format이다.
+
+## Architecture components
+
+Payment Kit은 다음의 주요 component로 구성된다:
+
+### Payment processing core
+
+coin transfer, payment validation, 그리고 receipt generation을 처리한다. core는 다음을 검증한다:
+
+- payment amount가 expected value와 일치한다
+- coin이 충분한 balance를 가진다
+- transfer가 성공적으로 완료된다
+- receipt에 정확한 payment 정보가 포함된다
+
+### Registry system
+
+payment history를 추적하고 duplicate payment를 방지하는 optional persistent storage이다. registry는 다음을 제공한다:
+
+- composite key를 사용한 payment record storage
+- payment record를 위한 configurable expiration policy
+- 누적된 fund에 대한 withdrawal capability
+- capability를 통한 administrative control
+
+## Core concepts
+
+### Payment modes
+
+Payment Kit은 두 가지 payment processing mode를 지원한다:
+
+**1. Registry payments**: duplicate prevention과 persistent receipt가 포함된 `PaymentRegistry`를 통해 payment를 처리한다. 다음의 경우 이 mode를 사용한다:
+
+- duplicate payment를 방지해야 한다
+- payment history를 추적해야 한다
+- compliance 또는 auditing에 payment record가 필요하다
+- fund가 관리되는 registry에 누적되어야 한다
+
+**2. Ephemeral payments**: persistent storage 없이 one-time payment를 처리한다. 다음의 경우 이 mode를 사용한다:
+
+- duplicate prevention이 강제되지 않는다
+
+### Duplicate prevention
+
+duplicate prevention은 `PaymentRegistry`를 통해 payment를 처리할 때 강제된다. 시스템은 다음으로부터 derived된 composite `PaymentKey`를 사용한다:
+
+- **Nonce**: 각 payment에 대한 unique identifier이다 `(UUIDv4)`.
+- **Amount**: coin unit으로 나타낸 payment value이다.
+- **Coin type**: 특정 coin type이다.
+- **Receiver address**: payment destination address이다.
+
+이 composite key는 amount 또는 receiver와 같은 개별 구성 요소가 서로 다른 payment에서 재사용되더라도, 동일한 payment가 두 번 처리될 수 없도록 보장한다.
+
+### Payment receipts
+
+처리된 모든 payment는 다음을 포함하는 `PaymentReceipt` object를 생성한다:
+
+- reference를 위한 payment nonce
+- 지급된 amount
+- 사용된 coin type
+- receiver address
+- payment timestamp
+- registry 정보(registry payment에만 해당하며 ephemeral payment에는 적용되지 않는다)
+
+receipt는 payment proof 역할을 하며, off-chain verification, accounting, 또는 다른 시스템과의 integration에 사용할 수 있다.
+
+### Payment records
+
+payment가 `PaymentRegistry`를 통해 처리되면, 시스템은 payment history를 추적하고 duplicate prevention을 가능하게 하기 위해 내부적으로 `PaymentRecord` object를 생성하고 저장한다.
+
+payment record는 핵심적인 측면에서 payment receipt와 다르다:
+
+**PaymentRecords vs PaymentReceipts:**
+
+- **`PaymentRecords`**: duplicate detection을 위해 payment metadata를 지속하는 internal registry storage structure이다. 이는 registry의 internal table에 저장되며 object로 직접 접근할 수 없다.
+- **`PaymentReceipts`**: payment processing 후 반환되는 user-facing object로, payment proof 역할을 한다. 이는 저장, 전송, 또는 off-chain verification에 사용할 수 있다.
+
+**`PaymentRecord` lifecycle:**
+
+1. **Creation**: `process_registry_payment`가 호출되면, composite `PaymentKey`를 사용해 registry에 `PaymentRecord`가 생성되고 저장된다.
+2. **Storage**: record는 unique payment key로 index된 registry internal table에 지속된다.
+3. **Expiration**: record는 registry에 구성된 `epoch_expiration_duration`이 지난 후 deletion 대상이 된다.
+4. **Deletion**: expired record는 `delete_payment_record`를 사용해 제거하여 storage를 회수하고 gas cost를 줄일 수 있다.
+
+**`PaymentRecord` expiration:**
+
+`PaymentRecord`에는 payment 생성 시점에 계산된 expiration epoch가 포함된다. 이 expiration 메커니즘은 다음을 가능하게 한다:
+
+- registry에서 storage가 무기한 증가하는 것을 방지한다
+- 과거 payment 데이터의 eventual cleanup을 허용한다
+- storage 효율성과 duplicate prevention 요구 사이의 균형을 맞춘다
+- `set_config_epoch_expiration_duration`을 통해 registry별로 구성할 수 있다
+
+`PaymentRecord`는 expiration epoch 이전에는 삭제할 수 없어, duplicate detection을 위한 최소 retention period를 보장한다. expiration 이후에는 administrator 또는 user가 storage를 해제하기 위해 record를 삭제할 수 있지만, 삭제는 optional이다.
+
+## Working with payment registries
+
+### Creating a registry
+
+새 payment registry를 생성하려면, registry address를 derive하는 데 사용되는 ASCII-based string인 `name`을 제공해야 한다. `name` 외에도 package `Namespace` object도 제공해야 한다. `Namespace`는 여러 payment registry를 관리하기 위한 higher-order organizational structure를 제공한다.
+
+```move
+module sui::payment_kit;
+
+public fun create_registry(
+    namespace: &mut Namespace,
+    name: String,
+    ctx: &mut TxContext
+)
+```
+
+이 함수는 administrative control을 위한 `PaymentRegistry`와 `RegistryAdminCap`을 생성한다. `RegistryAdminCap`은 초기에 creator가 소유하며, 필요에 따라 공유하거나 전송할 수 있다.
+
+#### Namespace objects
+
+```
+mainnet: 0xccd3e4c7802921991cd9ce488c4ca0b51334ba75483702744242284ccf3ae7c2
+```
+
+```
+testnet: 0xa5016862fdccba7cc576b56cc5a391eda6775200aaa03a6b3c97d512312878db
+```
+
+### Processing registry payments
+
+duplicate prevention이 포함된 registry를 통해 payment를 처리한다:
+
+```move
+module sui::payment_kit;
+
+public fun process_registry_payment<T>(
+    registry: &mut PaymentRegistry,
+    nonce: String,
+    payment_amount: u64,
+    coin: Coin<T>,
+    receiver: Option<address>,
+    clock: &Clock,
+    ctx: &mut TxContext
+)
+```
+
+**Parameters:**
+
+- `registry`: payment registry에 대한 mutable reference이다.
+- `nonce`: unique payment identifier이다(duplicate를 방지한다).
+- `payment_amount`: coin unit으로 나타낸 expected payment amount이다.
+- `coin`: payment coin object이다.
+- `receiver`: optional receiver address이다(`None`이면 fund는 registry에 남는다).
+- `clock`: timestamping을 위한 Sui clock object이다.
+- `ctx`: transaction context이다.
+
+이 함수는 다음을 수행한다:
+
+1. payment amount가 coin value와 일치하는지 검증한다
+2. composite key를 사용해 duplicate payment를 확인한다
+3. registry에 payment를 기록한다
+4. configuration에 따라 `receiver` 또는 registry로 fund를 전송한다
+5. `PaymentReceipt`를 생성하고 반환한다
+6. payment event를 emit한다
+
+**Error conditions:**
+
+- `EDuplicatePayment`: 동일한 composite key를 가진 payment가 이미 존재한다.
+- `EPaymentAmountMismatch`: coin value가 expected amount와 일치하지 않는다.
+
+### Managing payment records
+
+storage를 회수하기 위해 expired `PaymentRecord`를 삭제한다:
+
+```move
+module sui::payment_kit;
+
+public fun delete_payment_record<T>(
+    registry: &mut PaymentRegistry,
+    payment_key: PaymentKey<T>,
+    ctx: &mut TxContext
+)
+```
+
+record는 registry에 구성된 expiration duration에 따라 expire된 이후에만 삭제할 수 있다. 원래 payment parameter로 `create_payment_key` 함수를 사용해 `PaymentKey`를 생성한다.
+
+### Configuring registries
+
+registry administrator는 `RegistryAdminCap`을 사용해 configuration setting을 업데이트할 수 있다:
+
+**Set expiration duration:**
+
+```move
+module sui::payment_kit;
+
+public fun set_config_epoch_expiration_duration(
+    registry: &mut PaymentRegistry,
+    cap: &RegistryAdminCap,
+    epoch_expiration_duration: u64,
+    ctx: &mut TxContext
+)
+```
+
+**Set `PaymentRegistry` to receive funds:**
+
+```move
+module sui::payment_kit;
+
+public fun set_config_registry_managed_funds(
+    registry: &mut PaymentRegistry,
+    cap: &RegistryAdminCap,
+    registry_managed_funds: bool,
+    ctx: &mut TxContext
+)
+```
+
+`registry_managed_funds`가 `true`이면, payment는 나중에 withdraw하기 위해 registry에 누적된다. `false`이면, payment는 receiver에게 즉시 전송된다.
+
+### Withdrawing from a registry
+
+`PaymentRegistry`가 fund를 관리하도록 설정된 경우, administrator는 누적된 fund를 인출할 수 있다:
+
+```move
+module sui::payment_kit;
+
+public fun withdraw_from_registry<T>(
+    registry: &mut PaymentRegistry,
+    cap: &RegistryAdminCap,
+    ctx: &mut TxContext
+)
+```
+
+이 함수는 `RegistryAdminCap`을 요구하며, registry에서 타입 `T`의 누적된 모든 coin을 반환한다. registry가 fund를 유지하도록 구성된 경우에만 이를 사용한다(`registry_managed_funds` configuration setting이 이를 제어한다).
+
+## Processing ephemeral payments
+
+duplicate prevention 또는 persistent record가 필요하지 않은 시나리오에서는 ephemeral payment를 사용한다:
+
+```move
+module sui::payment_kit;
+
+public fun process_ephemeral_payment<T>(
+    nonce: String,
+    payment_amount: u64,
+    coin: Coin<T>,
+    receiver: address,
+    clock: &Clock,
+    ctx: &mut TxContext
+)
+```
+
+ephemeral payment는 다음과 같다:
+
+- duplicate를 확인하지 않는다
+- on-chain에 payment record를 저장하지 않는다
+- fund를 receiver로 즉시 전송한다
+- transaction에 대한 receipt를 생성한다
+- off-chain tracking을 위한 payment event를 emit한다
+- registry payment보다 gas cost가 낮다
+
+이 mode는 다음의 경우에 적합하다:
+
+- duplicate prevention이 필요하지 않다
+- application이 external payment tracking system을 사용한다
+
+## Transaction URIs
+
+Payment Kit은 payment request를 encoding하기 위한 표준 URI format을 정의한다. Transaction URI를 사용하면 application이 wallet과 다른 client가 parse하고 실행할 수 있는 payment link를 생성할 수 있다.
+
+### URI format
+
+Payment Kit Transaction URI는 다음 format을 사용한다:
+
+```
+sui:pay?receiver=<receiverAddress>
+    &amount=<amount>
+    &coinType=<coinType>
+    &nonce=<nonce>
+    &label=<label>
+    &iconUrl=<iconUrl>
+    &message=<message>
+    &registry=<registry>
+```
+
+### URI parameters
+
+#### `receiver`
+
+payment fund를 수신하는 destination address이다. 유효한 Sui address여야 한다.
+
+#### `amount`
+
+`amount` field는 required query parameter이다. value는 positive `u64`여야 한다. 이 field는 지정된 coin type의 native amount를 나타낸다(예를 들어, 100000000 MISTS는 0.1 SUI를 나타낸다).
+
+#### `nonce`
+
+`nonce` field는 required query parameter이다. 이는 이 payment에 대한 unique ASCII-based identifier를 나타낸다. duplicate payment를 방지하기 위해 registry 내에서 unique해야 한다. 권장 format은 `UUIDv4`이다. 36자를 초과할 수 없다.
+
+#### `coinType`
+
+`coinType` field는 required query parameter이다. 전송할 coin의 full type identifier이다(예를 들어, `0x2::sui::SUI` 또는 `0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI`).
+
+#### `label`
+
+payment를 수신하는 merchant 또는 application에 대한 human-readable name이다.
+
+#### `iconUrl`
+
+merchant 또는 application을 위한 icon image를 가리키는 URL이다. payment confirmation 중 user에게 표시될 수 있다.
+
+#### `message`
+
+payment에 대한 description 또는 context이다. purpose를 설명하기 위해 user에게 표시될 수 있다.
+
+#### `registry`
+
+payment processing에 사용할 `PaymentRegistry`의 object ID 또는 ASCII-represented `name`이다. 제공되면, payment는 duplicate prevention이 포함된 registry를 통해 처리된다. 생략되면, payment는 ephemeral payment로 처리된다.
+
+### Example URIs
+
+**Basic SUI payment:**
+
+```
+sui:pay?receiver=0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+    &amount=1000000000
+    &coinType=0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI
+    &nonce=550e8400-e29b-41d4-a716-446655440000
+```
+
+**Payment with display metadata:**
+
+```
+sui:pay?receiver=0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+    &amount=1000000000
+    &coinType=0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI
+    &nonce=550e8400-e29b-41d4-a716-446655440000
+    &label=Coffee%20Shop
+    &iconUrl=https://example.com/icon.png
+    &message=Espresso%20and%20croissant
+```
+
+**Registry-based payment (registry object ID):**
+
+```
+sui:pay?receiver=0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+    &amount=1000000000
+    &coinType=0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI
+    &nonce=550e8400-e29b-41d4-a716-446655440000
+    &registry=0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890
+```
+
+**Registry-based payment (registry ASCII name):**
+
+```
+sui:pay?receiver=0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+    &amount=1000000000
+    &coinType=0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI
+    &nonce=550e8400-e29b-41d4-a716-446655440000
+    &registry=default-payment-registry
+```
+
+### URI encoding
+
+모든 parameter value는 RFC 3986에 따라 적절히 URL-encoded되어야 한다. parameter value의 special character(예: space, colon, slash)는 percent-encoded되어야 한다. 예시는 다음과 같다:
+
+- Space: `%20`
+- Colon: `%3A`
+- Slash: `%2F`
+- Double colon (`::`): `%3A%3A`
+
+### Implementation notes
+
+transaction URI support를 구현할 때:
+
+1. **Validate all parameters**: address가 유효한 Sui address인지, amount가 positive `u64` value인지, nonce가 36자를 초과하지 않는지, 그리고 coin type이 올바른 format을 따르는지 확인한다.
+2. **Generate unique nonces**: accidental duplicate를 방지하기 위해 UUIDv4 또는 다른 cryptographically secure random identifier를 사용한다.
+3. **Display metadata to users**: context 제공을 위해 payment confirmation 중 `label`, `iconUrl`, 그리고 `message` parameter를 user에게 표시한다.
+4. **Route to correct payment function**: `registry`가 제공되면 `process_registry_payment`를 사용하고, 그렇지 않으면 `process_ephemeral_payment`를 사용한다.
+
+## Key structures
+
+### `Namespace`
+
+payment registry를 organization하기 위한 higher-order namespace를 나타낸다:
+
+```move
+public struct Namespace has key, store {
+    id: UID,
+}
+```
+
+### `PaymentRegistry`
+
+duplicate prevention을 포함하여 payment와 receipt를 추적한다:
+
+```move
+public struct PaymentRegistry has key {
+    id: UID,
+    cap_id: ID,
+    config: VecMap<String, Value>,
+    version: u16,
+}
+```
+
+### `RegistryAdminCap`
+
+특정 registry에 대한 administrative capability를 제공한다:
+
+```move
+public struct RegistryAdminCap has key, store {
+    id: UID,
+    registry_id: ID,
+}
+```
+
+### `PaymentType`
+
+payment type을 나타내는 enum이다: Ephemeral(one-time) 또는 Registry(registry에서 추적됨)이다.
+
+```move
+public enum PaymentType has copy, drop, store {
+    Ephemeral,
+    Registry(ID),
+}
+```
+
+### `PaymentReceipt`
+
+처리된 payment의 detail을 포함한다:
+
+```move
+public struct PaymentReceipt has key, store {
+    payment_type: PaymentType,
+    nonce: String,
+    payment_amount: u64,
+    receiver: address,
+    coin_type: String,
+    timestamp_ms: u64,
+}
+```
+
+### `PaymentKey`
+
+payment record를 식별하기 위한 unique key이다:
+
+```move
+public struct PaymentKey<phantom T> has copy, drop, store {
+    nonce: String,
+    payment_amount: u64,
+    receiver: address,
+}
+```
+
+### `PaymentRecord`
+
+payment record 정보를 저장하는 internal structure이다:
+
+```move
+public struct PaymentRecord has store {
+    epoch_at_time_of_record: u64,
+}
+```
+
+## Events
+
+Payment Kit은 off-chain tracking 및 integration을 위한 event를 emit한다. payment processing 함수는 다음을 포함하는 event를 emit한다:
+
+- Payment nonce
+- Payment amount
+- Coin type
+- Receiver address
+- Timestamp
+- Registry information (for registry payments)
+
+이 event를 사용하여 다음을 수행한다:
+
+- off-chain으로 payment history를 추적한다
+- external workflow를 trigger한다
+- application state를 업데이트한다
+- report 및 analytics를 생성한다
+- accounting system과 통합한다
+
+## Error codes
+
+Payment Kit은 다음 error condition을 정의한다:
+
+- **Duplicate payment detection**: 동일한 composite key를 가진 payment가 이미 처리되었다.
+- **Payment amount mismatch**: coin value가 expected payment amount와 일치하지 않는다.
+- **Payment record not found**: 존재하지 않는 payment record에 액세스하려고 했다.
+- **Payment record not expired**: expiration 전에 record를 삭제하려고 했다.
+- **Unauthorized admin**: 작업에 `RegistryAdminCap`이 필요하다.
+- **Registry already exists**: namespace에 duplicate registry를 생성하려고 했다.
+- **Invalid registry name**: registry name이 requirement를 충족하지 않는다.
+
+## Source code
+
+- [Move Package](https://github.com/MystenLabs/sui-payment-kit)
+- [SDK](https://github.com/MystenLabs/ts-sdks/tree/main/packages/payment-kit)

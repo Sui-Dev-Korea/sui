@@ -1,0 +1,118 @@
+---
+title: EWMA 가스 가격 페널티
+description: DeepBook EWMA (Exponentially Weighted Moving Average) gas price penalty system에 대해 학습한다.
+keywords:
+  [
+    ewma,
+    gas price,
+    taker fee,
+    penalty,
+    volatility,
+    z-score,
+    exponentially weighted moving average,
+    toxic takers,
+    deepbookv3,
+  ]
+---
+
+
+DeepBook은 네트워크 gas price에 따라 taker fee를 동적으로 조정하기 위해 exponentially weighted moving average (EWMA) system을 구현한다. 이 기능은 toxic taker가 높은 gas price를 사용해 자신의 transaction을 우선 처리하고 stale maker order를 먼저 체결하는 것을 방지하는 데 도움이 된다.
+
+## Overview
+
+이 system은 시간에 따라 gas price를 추적하고 현재 gas price가 최근 이력에 비해 비정상적으로 높을 때 taker에 penalty fee를 적용한다. 이는 toxic taker가 frontrun하거나 stale order를 악용하려 할 수 있는 비정상적인 네트워크 활동 기간 동안 maker의 order가 체결되는 것을 방지한다.
+
+## How it works
+
+EWMA system은 최근 gas price의 smoothed average와 variance를 계산한 다음 현재 gas price를 이 historical baseline과 비교한다. 현재 gas price가 유의미하게 상승하면(standard deviation으로 측정한 threshold를 초과하면) 추가 taker fee penalty가 적용된다.
+
+### Key components
+
+- **Mean (μ):** 최근 gas price의 smoothed average이다.
+- **Variance (σ²):** gas price volatility의 측정치이다.
+- **Standard Deviation (σ):** variance의 제곱근이며 z-score 계산에 사용된다.
+- **Z-Score:** 현재 gas price가 mean에서 몇 standard deviation 떨어져 있는지를 나타낸다.
+- **Z-Score Threshold:** penalty 적용을 트리거하는 지점이다.
+
+### The formula
+
+```sh
+z_score = (current_gas_price - mean) / standard_deviation
+
+if z_score > z_score_threshold:
+    apply additional_taker_fee
+```
+
+## Configuration parameters
+
+다음 표는 EWMA system의 sample configuration parameter를 보여준다:
+
+| Parameter            | Value           | Meaning                                |
+| -------------------- | --------------- | -------------------------------------- |
+| Alpha                | 0.1 (100000000) | 10% weight on new data, 90% on history |
+| Mean                 | 1,478           | Average gas price (smoothed)           |
+| Variance             | 43,270,831      | Volatility measure                     |
+| Std deviation        | 6,578           | Calculated: √variance                  |
+| Z-score threshold    | 3.0             | Trigger: 3 standard deviations         |
+| Additional taker fee | 0.1% (1000000)  | Penalty fee added                      |
+
+## When does the penalty apply?
+
+penalty는 다음 조건이 **모두** 충족될 때만 적용된다:
+
+1. pool에 대해 EWMA가 활성화되어 있어야 한다.
+1. 현재 gas price ≥ mean이어야 한다(평균보다 높아야 한다).
+1. Z-Score > threshold이어야 한다(3.0 standard deviation을 초과해야 한다).
+
+### Penalty threshold calculation
+
+```sh
+Penalty Threshold = Mean + (Z-Score Threshold × Std Dev)
+Penalty Threshold = 1,478 + (3.0 × 6,578)
+Penalty Threshold = 1,478 + 19,734
+Penalty Threshold ≈ 21,212
+```
+
+## Practical examples
+
+### Example 1: Normal conditions (current)
+
+- **Gas price:** 1,000
+- **Calculation:** (1,000 - 1,478) / 6,578 = -0.073
+- **Z-score:** 음수이며 mean보다 낮다
+- **Result:** penalty 없음 - base taker fee만 적용
+
+### Example 2: Slightly elevated
+
+- **Gas price:** 5,000
+- **Calculation:** (5,000 - 1,478) / 6,578 = 0.54
+- **Z-score:** 0.54
+- **Result:** penalty 없음 - 3.0 threshold보다 낮다
+
+### Example 3: High spike
+
+- **Gas price:** 15,000
+- **Calculation:** (15,000 - 1,478) / 6,578 = 2.06
+- **Z-score:** 2.06
+- **Result:** penalty 없음 - 여전히 3.0 threshold보다 낮다
+
+### Example 4: Extreme spike (penalty triggered)
+
+- **Gas price:** 25,000
+- **Calculation:** (25,000 - 1,478) / 6,578 = 3.58
+- **Z-score:** 3.58
+- **Result:** **Penalty applied** - 추가 0.1% fee가 더해진다
+
+## Benefits
+
+- **Maker protection:** 네트워크 혼잡 시 taker가 stale maker order를 먼저 체결하는 것을 억제한다.
+- **Dynamic adjustment:** 시간이 지나면서 변하는 gas price pattern에 자동으로 적응한다.
+- **Fair pricing:** 극단적인 조건(3 standard deviation)에서만 penalty를 적용한다.
+- **Statistical rigor:** outlier를 식별하기 위해 잘 알려진 통계 기법을 사용한다.
+
+## Technical notes
+
+- **Update frequency:** EWMA는 order가 제출될 때 업데이트된다. timestamp가 다를 때만 집계되며(같은 transaction 내의 여러 order는 한 번만 집계된다).
+- **Alpha value:** 0.1은 historical context를 유지하면서도 새로운 가격 수준에 비교적 빠르게 적응한다는 뜻이다.
+- **3-sigma threshold:** 통계적으로 normal distribution에서 관측치의 약 0.3%만 3 standard deviation을 초과한다(3 standard deviation 초과는 약 0.15%).
+- **Pool-specific:** 각 pool은 독립적으로 추적되는 자체 EWMA state를 가진다.

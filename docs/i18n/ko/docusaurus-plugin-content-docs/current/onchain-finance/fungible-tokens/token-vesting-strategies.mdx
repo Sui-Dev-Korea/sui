@@ -1,0 +1,212 @@
+---
+title: 토큰 베스팅 전략
+description: Sui에서 토큰을 출시할 계획이라면, 토큰의 장기적인 전망을 강화하기 위해 베스팅 전략을 구현하는 것을 고려할 수 있다.
+keywords:
+  - vesting strategies
+  - token vesting strategies
+  - designing a token launch
+  - designing token vesting
+  - how to design token vesting
+  - vesting options
+  - token vest strategies
+  - how to vest tokens
+  - how to design token vest
+---
+
+
+Sui에서 토큰을 출시할 계획이라면, 토큰의 장기적 전망을 강화하기 위해 베스팅 전략을 구현하는 것을 고려할 수 있다. 베스팅 전략은 일반적으로 토큰을 한 번에 전부 배포하는 대신, 팀 구성원, 투자자 또는 기타 초기 이해관계자에게 시간을 두고 순차적으로 토큰을 배포한다.
+
+베스팅 전략을 구현하고 그 세부 사항을 공개하는 것은 다음과 같은 효과가 있다:
+
+- 토큰에 대한 장기적인 참여를 보장한다.
+- 시장 덤핑을 방지한다.
+- 대량의 초기 토큰을 즉시 인출하여 토큰 가치를 떨어뜨리는 러그 풀(토큰 가치를 해치는 초기 토큰의 대량 즉시 인출)에 대한 우려를 완화한다.
+- 이해관계자의 인센티브를 프로젝트의 성공과 정렬시킨다.
+
+## Vesting options
+
+토큰 출시 시 사용할 수 있는 다양한 베스팅 전략이 있다. 프로젝트에 가장 적합한 옵션은 프로젝트와 그 목표에 고유한 여러 요소에 따라 달라진다.
+
+다음 섹션에서는 Sui 네트워크에서 토큰을 출시할 때 고려할 수 있는 몇 가지 옵션을 설명한다.
+
+### Cliff vesting
+
+클리프 베스팅은 전체 토큰 또는 자산이 일정 기간(“cliff”)이 지난 후 한 번에 사용 가능해지는 상황을 의미한다. 클리프 기간이 충족되기 전까지는 어떠한 토큰도 릴리스되지 않는다.
+
+:::info Example scenario
+
+한 프로젝트의 10명 직원 각각은 1년 클리프 조건으로 1,000개의 토큰을 부여받는다. 1년이 지나면 이들은 1,000개의 토큰 전체를 받는다. 1년이 지나기 전에는 이 토큰에 접근할 수 없다.
+
+:::
+
+다음 스마트 계약은 토큰 릴리스를 위한 클리프 베스팅 일정을 구현한다. 이 모듈에는 베스팅할 코인의 총합과 클리프 날짜를 타임스탬프로 전달하는 `new_wallet` 함수가 포함되어 있다. 그 후 클리프 날짜가 과거 시점이면 `claim` 함수를 호출해 지갑에서 토큰을 가져올 수 있다.
+
+위 예시 시나리오를 고려하면, 각 직원마다 별도의 지갑이 존재하도록 `new_wallet`을 10번 호출하면 된다. 각 호출에는 필요한 자금을 지갑에 채우기 위해 1,000개의 토큰을 포함한다. 관련 지갑을 사용하는 이후의 `claim` 호출은 클리프 시간(`Wallet` object의 `cliff_time`)을 현재 시간과 비교해 클리프 시간이 현재 시간보다 이후이면 지갑에서 토큰을 반환한다.
+
+<details>
+
+<summary>
+
+`cliff.move`
+
+</summary>
+
+<ImportContent source="examples/vesting/sources/cliff.move" mode="code" />
+
+</details>
+
+### Graded vesting
+
+점진적 베스팅은 베스팅 기간 동안 토큰이 점진적으로, 종종 동일한 비율로 릴리스되도록 한다.
+
+:::info Example scenario
+
+한 직원이 1,200개의 토큰을 받으며, 4년에 걸쳐 매년 300개의 토큰이 베스팅된다. 매년 말마다 300개의 토큰이 사용 가능해진다.
+
+:::
+
+다음 [Hybrid vesting](#hybrid-vesting) 섹션에는 점진적 베스팅을 수행하는 방법을 보여 주는 스마트 계약이 포함되어 있다.
+
+### Hybrid vesting
+
+하이브리드 베스팅은 클리프 베스팅과 단계적 베스팅과 같은 서로 다른 베스팅 모델을 결합한다. 이를 통해 토큰이 시간에 따라 어떻게 풀릴지에 대한 유연성을 제공한다.
+
+:::info Example scenario
+
+전체 토큰의 50%는 1년 클리프 이후에 풀리고, 나머지는 이후 3년에 걸쳐 선형적으로 분배된다.
+
+:::
+
+다음 스마트 계약은 하이브리드 베스팅 모델을 생성한다. 클리프 베스팅 스마트 계약과 마찬가지로, 하이브리드 모델은 각 이해관계자의 모든 토큰을 보관할 `Wallet` struct를 정의한다. 그러나 이 지갑은 실제로 서로 다른 베스팅 규칙을 따르는 두 개의 서로 다른 지갑을 포함한다. 이 계약의 `new_wallet` 메서드를 호출할 때는 클리프 컷오프 타임스탬프, 선형 스케줄이 시작되는 시점의 타임스탬프, 선형 베스팅이 끝나야 하는 시점의 타임스탬프를 제공한다. 이후 `claim` 호출은 해당 매개변수 범위에 속하는 토큰의 합계를 반환한다.
+
+<details>
+
+<summary>
+
+`hybrid.move`
+
+</summary>
+
+<ImportContent source="examples/vesting/sources/hybrid.move" mode="code" />
+
+</details>
+
+### Backloaded vesting
+
+Backloaded vesting은 시간에 걸쳐 균등하게 분배하기보다는 베스팅 기간 말에 대부분의 토큰을 분배한다. 이 접근 방식은 다량의 토큰이 언락되기 전에 생태계가 더 성숙해지도록 돕는다. 팀 구성원과 이해관계자는 초기에도 보상을 받을 수 있지만, 프로젝트와 더 오랜 기간을 함께한 사람일수록 가장 큰 보상이 주어진다.
+
+:::info Example scenario
+
+한 직원의 토큰은 다음 스케줄에 따라 릴리스된다:
+
+- 첫 3년 동안 10%
+- 4년 차에 90%
+
+:::
+
+Backloaded vesting을 위한 스마트 계약은 베스팅할 모든 토큰을 담고 있는 부모 지갑 안에 두 개의 `Wallet` object를 생성한다. 각 자식 지갑은 자체 베스팅 스케줄을 담당한다. `new_wallet`을 호출할 때는 베스팅할 코인과 `start_front`, `start_back`, `duration`, `back_percentage` 값을 전달한다. 제공하는 값에 따라, 계약은 지갑 소유자가 `claim` 함수를 호출할 때 얼마나 많은 토큰을 반환할지 결정한다.
+
+예시 시나리오에서는 frontload의 시작 타임스탬프와 backload의 시작 타임스탬프(frontload 시작 후 3년)를 전달할 수 있다. 또한 4년의 기간(`126230400000`)과 `back_percentage` 값으로 `90`을 전달한다.
+
+<details>
+
+<summary>
+
+`backloaded.move`
+
+</summary>
+
+<ImportContent source="examples/vesting/sources/backloaded.move" mode="code" />
+
+</details>
+
+### Milestone- or performance-based vesting {#milestone}
+
+성과 기반 베스팅에서는 매출 목표 달성이나 프로젝트 단계 진행과 같이 특정 목표나 지표를 달성할 때 베스팅 이벤트가 발생한다.
+
+:::info Example scenario
+
+한 팀의 토큰은 월간 활성 사용자(MAU) 수에 비례해 베스팅된다. 플랫폼이 1,000만 MAU 목표를 달성하면 모든 토큰이 베스팅된다.
+
+:::
+
+마찬가지로 마일스톤 기반 베스팅은 시간 기반 조건이 아니라 특정 프로젝트 또는 개인 마일스톤이 달성될 때 베스팅 이벤트를 생성한다.
+
+:::info Example scenario
+
+블록체인 프로젝트의 Mainnet이 출시될 때 토큰이 언락된다.
+
+:::
+
+다른 예와 마찬가지로, 다음 스마트 계약은 분배할 코인을 보관할 지갑을 생성한다. 그러나 다른 예와 달리 이 `Wallet` object에는 마일스톤 진행 상황을 업데이트할 권한이 있는 계정의 address로 설정하는 `milestone_controller` 필드가 포함된다. 무결성 검사로 지갑이 마일스톤 업데이트 권한이 있는 엔티티와 동일한 address를 가지면 `new_wallet` 함수 호출은 오류와 함께 중단된다.
+
+마일스톤 업데이트 권한은 `update_milestone_percentage`를 호출해 완료 비율 값을 업데이트할 수 있다. 베스팅된 토큰 지갑의 소유자는 현재 완료 비율 값을 기준으로 잠금 해제된 토큰을 가져오기 위해 `claim`을 호출할 수 있다. 첫 번째 예시 시나리오를 고려하면 프로젝트가 달성하는 MAU 백만 명마다 마일스톤 값을 10퍼센트씩 업데이트할 수 있다. 두 번째 시나리오에서도 동일한 계약을 사용해 Mainnet 출시 후 한 번만 백분율을 100으로 업데이트할 수 있다.
+
+<details>
+
+<summary>
+
+`milestone.move`
+
+</summary>
+
+<ImportContent source="examples/vesting/sources/milestone.move" mode="code" />
+
+</details>
+
+### Linear vesting
+
+선형 베스팅에서는 미리 정해진 기간에 걸쳐 토큰이 점진적으로 풀린다.
+
+:::info Example scenario
+
+한 직원이 1년에 걸쳐 점진적으로 릴리스될 1,000개의 토큰을 부여받는다.
+
+:::
+
+선형 베스팅 스마트 계약은 `start`와 `duration` 필드를 가진 `Wallet` object를 생성한다. 계약은 해당 값과 현재 시간을 함께 사용해 베스팅된 토큰 수를 결정한다. 이 경우 현재 시간은 지갑 소유자가 `claim` 함수를 호출하는 시점의 시간이다.
+
+예시 시나리오에서는 1,000개의 토큰, 직원 시작일의 타임스탬프, 그리고 기간으로 1년(`31557600000`)을 사용해 지갑(`new_wallet` 호출)을 생성한다.
+
+<details>
+
+<summary>
+
+`linear.move`
+
+</summary>
+
+<ImportContent source="examples/vesting/sources/linear.move" mode="code" />
+
+</details>
+
+### Immediate vesting
+
+즉시 베스팅에서는 모든 토큰이 할당되는 즉시 베스팅되며, 곧바로 전량이 사용 가능해진다.
+
+:::info Example scenario
+
+초기 투자자는 구매 시점에 할당된 토큰 전량을 받는다.
+
+:::
+
+즉시 베스팅에서는 언제든지 토큰을 address로 전송할 수도 있다. 그러나 스마트 계약 접근 방식을 선택하면 수동 전송보다 여러 가지 이점을 제공한다.
+
+- 관심 있는 당사자가 transaction을 검증할 수 있도록 온체인에 저장되므로 투명성과 책임성이 향상된다. 스마트 계약 로직은 transaction의 정확한 목적을 식별한다.
+- 특정 조건을 강제할 수 있다. 예를 들어 agreement의 조건 수락과 같은 일부 조건이 충족된 후에만 100% 완료로 업데이트하는 [milestone-based vesting](#milestone) 계약을 생성할 수 있다.
+- 규정 준수 및 보고를 위한 감사 가능한 기록을 제공한다.
+- agreement 조건이 변경될 때 claim 전에 다른 토큰으로 전환하는 것과 같은 다른 작업을 수행할 유연성을 제공한다.
+
+다음 테스트는 [linear vesting](#linear-vesting) 스마트 계약 예시를 활용해 다른 베스팅 전략 스마트 계약 중 하나를 사용하여 즉시 베스팅을 지원하는 방법을 보여 준다. 이 테스트는 `vesting::linear`의 `Wallet` object와 `new_wallet` 함수를 사용해 즉시 베스팅 시나리오를 수행한다. 이 테스트는 `duration` 값을 0으로 설정해 이를 수행한다.
+
+<details>
+
+<summary>
+
+`immediate_tests.move`
+
+</summary>
+
+<ImportContent source="examples/vesting/tests/immediate_tests.move" mode="code" />
+
+</details>
