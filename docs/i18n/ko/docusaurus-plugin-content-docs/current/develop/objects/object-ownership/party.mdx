@@ -1,0 +1,46 @@
+---
+title: Party 객체
+description: Party object는 전송 시 지정된 party가 소유하며, consensus에 의해 버전이 관리된다. 이러한 object를 생성하고 접근하는 방법을 설명한다.
+---
+
+
+Party object는 `sui::transfer::party_transfer` 또는 `sui::transfer::public_party_transfer` 함수를 사용하여 전송되는 object이다. 이 object는 전송 받은 대상인 `Party`만 접근할 수 있다.
+
+Party object는 address-owned object와 shared object의 일부 속성을 결합한다. Address-owned object처럼 단일 address가 소유할 수 있다. Shared object처럼 consensus에 의해 버전이 관리된다. 그러나 shared object와 달리, 다른 소유권 유형으로 전환되거나 wrapped 될 수 있다.
+
+:::info
+
+현재 party object는 단일 소유권만 지원한다. 다중 소유자 또는 더 세분화된 권한이 추가될 경우 이 항목은 업데이트 될 예정이다.
+
+:::
+
+## Creating party objects
+
+다음 ([transfer module](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/transfer.move)에 정의된) 함수들 중 하나를 사용하여 party object를 생성한다:
+
+```move
+public fun party_transfer<T: key>(obj: T, party: sui::party::Party)
+public fun public_party_transfer<T: key + store>(obj: T, party: sui::party::Party)
+```
+
+object에 대해 [custom transfer policy](/develop/objects/transfers/custom-rules) 를 정의하는 경우 `sui::transfer::party_transfer` 함수를 사용한다. Object가 `store` capability를 가지고 있다면 `sui::transfer::public_party_transfer` 함수를 사용한다.
+
+Party object의 소유권은 생애 동안 변경될 수 있다. 예를 들어, dynamic object field로 추가하거나, 다른 address로 전송하거나 또는 다른 소유권 유형으로 전환하거나, immutable로 만드는 방식으로 변경할 수 있다. 한 가지 예외: object를 생성하고 소유권을 설정한 이후에는 해당 object를 공유할 수 없다.
+
+## Accessing party objects
+
+Party object는 shared object와 동일한 방식으로 transaction의 입력으로 지정할 수 있다. Sui validator는 transaction의 송신자가 해당 object에 접근할 수 있도록 보장한다. 입력된 party object의 소유자가 이전의 충돌하는 transaction으로 인해 변경된 경우, validator는 실행 시점에서 해당 transaction을 중단할 수 있다.
+
+소유 address가 object ID에 해당하는 party object는 [transfer to object](../transfers/transfer-to-object) 메커니즘을 통한 접근이 지원되지 않는다.
+
+## When to use party objects
+
+운영상의 편의를 위해 object가 consensus에 의해 버전 관리되도록 하고 싶을 때 party object를 사용한다. Object가 다른 party object나 shared object와만 함께 사용된다면, 이를 party object로 변환해도 추가적인 성능 비용이 발생하지 않는다.
+
+Party object는 동시에 진행 중인 여러 개의 transaction에서 사용될 수 있다. 이는 하나의 transaction 진행만 허용하는 address-owned object와 대조된다. 동일한 party object에 대한 여러 Transaction을 파이프라인으로 처리할 수 있다는 것은 많은 애플리케이션에게 유용하다.
+
+:::info
+
+`Coin<SUI>`을 포함하여, `Coin`은 party object가 될 수 있다. 그러나 party object인 `Coin<SUI>`는 gas 결제에 사용할 수 없다. party object인 `Coin<SUI>`를 gas로 사용하려면, 먼저 address-owned로 다시 전환해야 한다.
+
+:::

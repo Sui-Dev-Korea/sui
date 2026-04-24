@@ -1,0 +1,1264 @@
+---
+title: Coin Flip
+description: Sui Move module을 구축하고 이를 React Sui 앱에 연결하는 전체 end-to-end 흐름을 다루는 coin flip 앱을 통해 Sui를 배운다.
+keywords: [ react app, react app, react example, verifiable random functions, vrfs, randomness, shared objects, one-time witness, assets, address-owned objects, events, storage rebates, mev attack protection, mev attacks, example app, example app ] 
+---
+
+이 예시는 Sui Move module을 구축하고 이를 React Sui 앱에 연결하는 전체 end-to-end 흐름을 다루면서 Coin Flip 앱을 구축하는 과정을 안내한다.
+이 Coin Flip 앱은 VRF를 활용해 Sui 블록체인에서 공정한 동전 던지기 게임을 만든다.
+사용자(인간)는 house(module)를 상대로 앞면 또는 뒷면에 베팅한다.
+그런 다음 사용자는 게임 결과에 따라 자신의 베팅액의 두 배를 받거나 아무것도 받지 못한다.
+
+이 가이드는 두 부분으로 나뉜다:
+
+1. [Smart Contracts](#smart-contracts): coin flip 로직을 설정하는 Move 코드이다.
+1. [Frontend](#frontend): 플레이어가 베팅하고 수익을 가져가며 admin이 house를 관리할 수 있게 하는 UI이다.
+
+<ImportContent source="prerequisites" mode="snippet" />
+
+:::tip Additional resources
+
+smart contract와 frontend의 source code 위치는 다음과 같다:
+- [Move package repository](https://github.com/MystenLabs/satoshi-coin-flip)
+- [Frontend repository](https://github.com/sui-foundation/satoshi-coin-flip-frontend-example)
+
+:::
+
+## What the guide teaches
+
+- **Shared objects:** 이 가이드는 [shared objects](/develop/objects/object-ownership/shared)를 사용하는 방법을 설명하며, 이 예시에서는 전역에서 접근 가능한 `HouseData` object를 생성하는 데 사용한다.
+- **One-time witnesses:** 이 가이드는 [one-time witnesses](/develop/write-move/sui-move-concepts)를 사용하는 방법을 설명하며, 이를 통해 `HouseData` object의 단일 인스턴스만 존재하도록 보장한다.
+- **Asserts:** 이 가이드는 특정 조건이 충족되지 않을 때 함수를 중단시키기 위해 [asserts](https://move-book.com/move-basics/assert-and-abort.html?highlight=asserts#assert)를 사용하는 방법을 설명한다.
+- **Address-owned objects:** 이 가이드는 필요할 때 [address-owned objects](/develop/objects/object-ownership/address-owned)를 사용하는 방법을 설명한다.
+- **Events:** 이 가이드는 contract에서 이벤트를 발생시키는 방법을 설명하며, 이를 통해 온체인 활동을 추적할 수 있다. 이벤트에 대해 더 알아보려면 Sui에서 이벤트를 실제로 사용하는 방법을 다룬 [이벤트 사용하기](/develop/accessing-data/using-events)와 이벤트 구조 및 Move에서 이벤트를 발생시키는 방법을 설명하는 [Events in The Move Book](https://move-book.com/programmability/events.html)을 참조한다.
+- **스토리지 리베이트:** 이 가이드는 [storage fee rebates](/develop/sui-architecture/tokenomics-overview)에 관한 모범 사례를 보여준다.
+- **MEV attack protection:** 이 가이드는 [MEV attacks](https://github.com/MystenLabs/satoshi-coin-flip?tab=readme-ov-file#mev-attack-resistant-single-player-satoshi-smart-contract-flow), contract를 MEV 저항적으로 만드는 방법, 그리고 보호 수준과 사용자 경험 사이의 trade-off를 소개한다.
+
+
+## Smart contracts {#smart-contracts}
+
+이 가이드의 이 부분에서는 house를 관리하고 coin-flip 로직을 설정하는 Move contract를 작성한다.
+첫 번째 단계는 Move module을 저장할 [set up a Move package](/getting-started/onboarding/hello-world)이다.
+
+:::info
+
+이 가이드를 따라 하려면 새 Move package의 이름을 `satoshi_flip`으로 설정한다.
+
+:::
+
+### `house_data` module
+
+이 예시는 여러 module을 사용해 Satoshi Coin Flip 게임용 package를 만든다.
+첫 번째 module은 `house_data.move`이다.
+게임 데이터를 어딘가에 저장해야 하며, 이 module에서는 모든 house 데이터를 위한 [shared object](/develop/objects/object-ownership/shared)를 생성한다.
+
+`sources` 디렉터리에 `house_data.move`라는 이름으로 새 파일을 만들고 다음 코드로 파일을 채운다:
+
+```move title='house_data.move'
+module satoshi_flip::house_data {
+
+  use sui::balance::{Self, Balance};
+  use sui::sui::SUI;
+  use sui::coin::{Self, Coin};
+  use sui::package::{Self};
+
+  // 오류 코드
+  const ECallerNotHouse: u64 = 0;
+  const EInsufficientBalance: u64 = 1;
+
+```
+
+이 코드에서 주목해야 할 세부 사항은 몇 가지가 있다:
+
+1. 첫 번째 줄은 package `satoshi_flip` 안에서 module 이름을 `house_data`로 선언한다.
+1. 일곱 줄은 `use` 키워드로 시작하며, 이를 통해 이 module은 다른 module에 선언된 타입과 함수를 사용할 수 있다(이 경우 모두 Sui standard library에서 온다).
+1. 두 개의 오류 코드가 있다. 이 코드들은 assertion과 unit test에서 프로그램이 의도한 대로 실행되는지 보장하는 데 사용된다.
+
+다음으로, 이 module에 코드를 조금 더 추가한다:
+
+```move title='house_data.move'
+  /// house가 관리하는 configuration 및 Treasury object이다.
+  public struct HouseData has key {
+    id: UID,
+    balance: Balance<SUI>,
+    house: address,
+    public_key: vector<u8>,
+    max_stake: u64,
+    min_stake: u64,
+    fees: Balance<SUI>,
+    base_fee_in_bp: u16
+  }
+
+  /// house data를 초기화하기 위한 일회용 capability이며,
+  /// initializer에서 생성되어 sender에게 전송된다.
+  public struct HouseCap has key {
+    id: UID
+  }
+
+  /// publisher를 생성하기 위한 one time witness로 사용된다.
+  public struct HOUSE_DATA has drop {}
+
+  fun init(otw: HOUSE_DATA, ctx: &mut TxContext) {
+    // Publisher object를 생성하여 sender에게 전송한다.
+    package::claim_and_keep(otw, ctx);
+
+    // HouseCap object를 생성하여 sender에게 전송한다.
+    let house_cap = HouseCap {
+      id: object::new(ctx)
+    };
+
+    transfer::transfer(house_cap, ctx.sender());
+  }
+```
+
+- 첫 번째 struct인 `HouseData`는 게임과 관련된 가장 핵심적인 정보를 저장한다.
+- 두 번째 struct인 `HouseCap`은 house data를 초기화하는 capability이다.
+- 세 번째 struct인 `HOUSE_DATA`는 이 `HouseData`의 단일 인스턴스만 존재하도록 보장하는 one-time witness이다.
+- `init` 함수는 `Publisher`와 `HouseCap` object를 생성해 sender에게 전송한다. 자세한 내용은 The Move Book의 [Module Initializer](https://move-book.com/programmability/module-initializer.html)를 참조한다.
+
+지금까지 module 안의 데이터 구조를 설정했다.
+이제 house data를 초기화하고 `HouseData` object를 공유하는 함수를 만든다:
+
+```move title='house_data.move'
+  public fun initialize_house_data(house_cap: HouseCap, coin: Coin<SUI>, public_key: vector<u8>, ctx: &mut TxContext) {
+    assert!(coin.value() > 0, EInsufficientBalance);
+
+    let house_data = HouseData {
+      id: object::new(ctx),
+      balance: coin.into_balance(),
+      house: ctx.sender(),
+      public_key,
+      max_stake: 50_000_000_000, // 50 SUI, 1 SUI = 10^9.
+      min_stake: 1_000_000_000, // 1 SUI.
+      fees: balance::zero(),
+      base_fee_in_bp: 100 // basis point 기준 1%.
+    };
+
+    let HouseCap { id } = house_cap;
+    object::delete(id);
+
+    transfer::share_object(house_data);
+  }
+```
+
+house data를 초기화했으므로, 이제 house가 수행해야 하는 중요한 관리 작업을 가능하게 하는 함수도 추가해야 한다:
+
+```move title='house_data.move'
+  public fun top_up(house_data: &mut HouseData, coin: Coin<SUI>, _: &mut TxContext) {
+    coin::put(&mut house_data.balance, coin)
+  }
+
+  public fun withdraw(house_data: &mut HouseData, ctx: &mut TxContext) {
+    // 오직 house address만 자금을 출금할 수 있다.
+    assert!(ctx.sender() == house_data.house(), ECallerNotHouse);
+
+    let total_balance = balance(house_data);
+    let coin = coin::take(&mut house_data.balance, total_balance, ctx);
+    transfer::public_transfer(coin, house_data.house());
+  }
+
+  public fun claim_fees(house_data: &mut HouseData, ctx: &mut TxContext) {
+    // 오직 house address만 수수료 자금을 출금할 수 있다.
+    assert!(ctx.sender() == house_data.house(), ECallerNotHouse);
+
+    let total_fees = fees(house_data);
+    let coin = coin::take(&mut house_data.fees, total_fees, ctx);
+    transfer::public_transfer(coin, house_data.house());
+  }
+
+  public fun update_max_stake(house_data: &mut HouseData, max_stake: u64, ctx: &mut TxContext) {
+    // 오직 house address만 기본 수수료를 업데이트할 수 있다.
+    assert!(ctx.sender() == house_data.house(), ECallerNotHouse);
+
+    house_data.max_stake = max_stake;
+  }
+
+  public fun update_min_stake(house_data: &mut HouseData, min_stake: u64, ctx: &mut TxContext) {
+    // 오직 house address만 최소 stake를 업데이트할 수 있다.
+    assert!(ctx.sender() == house_data.house(), ECallerNotHouse);
+
+    house_data.min_stake = min_stake;
+  }
+```
+
+이 함수들은 모두 `assert!` 호출을 포함하며, 오직 house만 이들을 호출할 수 있도록 보장한다:
+
+- `top_up`: 이후 게임을 위해 충분한 SUI가 있도록 house의 잔액에 자금을 추가한다.
+- `withdraw`: house object의 전체 잔액을 출금한다.
+- `claim_fees`: house object에 누적된 수수료를 출금한다.
+- `update_max_stake`, `update_min_stake`: 각각 게임에서 허용되는 최대 및 최소 stake를 업데이트한다.
+
+이 module의 데이터 구조는 설정했지만, 적절한 함수가 없으면 이 데이터에 접근할 수 없다.
+이제 mutable reference, read-only reference, test-only 함수를 반환하는 helper 함수를 추가한다:
+
+```move title='house_data.move'
+  // --------------- Mutable References ---------------
+
+  public(package) fun borrow_balance_mut(house_data: &mut HouseData): &mut Balance<SUI> {
+    &mut house_data.balance
+  }
+
+  public(package) fun borrow_fees_mut(house_data: &mut HouseData): &mut Balance<SUI> {
+    &mut house_data.fees
+  }
+
+  public(package) fun borrow_mut(house_data: &mut HouseData): &mut UID {
+    &mut house_data.id
+  }
+
+  // --------------- Read-only References ---------------
+
+  /// house id에 대한 reference를 반환한다.
+  public(package) fun borrow(house_data: &HouseData): &UID {
+    &house_data.id
+  }
+
+  /// house의 잔액을 반환한다.
+  public fun balance(house_data: &HouseData): u64 {
+    house_data.balance.value()
+  }
+
+  /// house의 address를 반환한다.
+  public fun house(house_data: &HouseData): address {
+    house_data.house
+  }
+
+  /// house의 공개 키를 반환한다.
+  public fun public_key(house_data: &HouseData): vector<u8> {
+    house_data.public_key
+  }
+
+  /// house의 최대 stake를 반환한다.
+  public fun max_stake(house_data: &HouseData): u64 {
+    house_data.max_stake
+  }
+
+  /// house의 최소 stake를 반환한다.
+  public fun min_stake(house_data: &HouseData): u64 {
+    house_data.min_stake
+  }
+
+  /// house의 수수료를 반환한다.
+  public fun fees(house_data: &HouseData): u64 {
+    house_data.fees.value()
+  }
+
+  /// 기본 수수료를 반환한다.
+  public fun base_fee_in_bp(house_data: &HouseData): u16 {
+    house_data.base_fee_in_bp
+  }
+
+  // --------------- Test-only Functions ---------------
+
+  #[test_only]
+  public fun init_for_testing(ctx: &mut TxContext) {
+    init(HOUSE_DATA {}, ctx);
+  }
+}
+```
+
+이것으로 `house_data.move` 코드는 완성되었다.
+
+### `counter_nft` module
+
+이제 같은 `sources` 디렉터리에 `counter_nft.move`라는 파일을 만든다.
+`Counter` object는 플레이어가 하는 모든 게임에서 VRF 입력으로 사용된다.
+먼저, 파일을 다음 내용으로 채운다:
+
+```move title='counter_nft.move'
+module satoshi_flip::counter_nft {
+
+  use sui::bcs::{Self};
+
+  public struct Counter has key {
+    id: UID,
+    count: u64,
+  }
+
+  entry fun burn(self: Counter) {
+    let Counter { id, count: _ } = self;
+    object::delete(id);
+  }
+
+  public fun mint(ctx: &mut TxContext): Counter {
+    Counter {
+      id: object::new(ctx),
+      count: 0
+    }
+  }
+
+  public fun transfer_to_sender(counter: Counter, ctx: &mut TxContext) {
+    transfer::transfer(counter, tx_context::sender(ctx));
+  }
+```
+
+이 코드는 house module과 비슷해 보일 수 있다.
+module 이름을 설정하고, standard library에서 함수를 가져오고, `Counter` object를 초기화한다.
+`Counter` object는 `key` ability를 가지지만 `store`는 가지지 않으며, 이 때문에 이 object는 전송 가능하지 않다.
+
+또한 게임이 설정될 때 `Counter` object를 만들고(초기 count는 `0`) transaction의 sender에게 object를 전송하는 `mint` 및 `transfer_to_sender` 함수를 만든다.
+마지막으로 `Counter`를 삭제할 수 있도록 `burn` 함수를 만든다.
+
+이제 `Counter` object와 object를 초기화하고 burn하는 함수는 있지만, counter를 증가시키는 방법이 필요하다.
+module에 다음 코드를 추가한다:
+
+```move title='counter_nft.move'
+  public fun get_vrf_input_and_increment(self: &mut Counter): vector<u8> {
+    let mut vrf_input = object::id_bytes(self);
+    let count_to_bytes = bcs::to_bytes(&count(self));
+    vrf_input.append(count_to_bytes);
+    self.increment();
+    vrf_input
+  }
+
+  public fun count(self: &Counter): u64 {
+    self.count
+  }
+
+  fun increment(self: &mut Counter) {
+    self.count = self.count + 1;
+  }
+
+  #[test_only]
+  public fun burn_for_testing(self: Counter) {
+    self.burn();
+  }
+}
+```
+
+`get_vrf_input_and_increment` 함수는 이 module의 핵심이다.
+이 함수는 `mint` 함수가 생성한 `Counter` object에 대한 mutable reference를 받고, `Counter` object의 현재 count를 ID에 덧붙인 다음 그 결과를 `vector<u8>`로 반환한다.
+그런 다음 함수는 내부 `increment` 함수를 호출해 count를 1 증가시킨다.
+
+이 코드는 현재 count를 반환하는 `count` 함수와 `burn` 함수를 호출하는 test-only 함수도 추가한다.
+
+### `single_player_satoshi` module
+
+마지막으로 새 게임을 만들고, 게임 후 자금을 분배하며, 필요하다면 게임을 취소할 수 있는 게임 module과 object가 필요하다.
+이것은 1인용 게임이므로 [shared object](/develop/objects/object-ownership/shared)가 아니라 [address-owned object](/develop/objects/object-ownership/address-owned) 를 만든다.
+
+게임 module을 만든다.
+`sources` 디렉터리에 `single_player_satoshi.move`라는 새 파일을 만들고 다음 내용으로 채운다:
+
+```move title='single_player_satoshi.move'
+module satoshi_flip::single_player_satoshi {
+  use std::string::String;
+
+  use sui::coin::{Self, Coin};
+  use sui::balance::Balance;
+  use sui::sui::SUI;
+  use sui::bls12381::bls12381_min_pk_verify;
+  use sui::event::emit;
+  use sui::hash::{blake2b256};
+  use sui::dynamic_object_field::{Self as dof};
+
+  use satoshi_flip::counter_nft::Counter;
+  use satoshi_flip::house_data::HouseData;
+
+  const EPOCHS_CANCEL_AFTER: u64 = 7;
+  const GAME_RETURN: u8 = 2;
+  const PLAYER_WON_STATE: u8 = 1;
+  const HOUSE_WON_STATE: u8 = 2;
+  const CHALLENGED_STATE: u8 = 3;
+  const HEADS: vector<u8> = b"H";
+  const TAILS: vector<u8> = b"T";
+
+  const EStakeTooLow: u64 = 0;
+  const EStakeTooHigh: u64 = 1;
+  const EInvalidBlsSig: u64 = 2;
+  const ECanNotChallengeYet: u64 = 3;
+  const EInvalidGuess: u64 = 4;
+  const EInsufficientHouseBalance: u64 = 5;
+  const EGameDoesNotExist: u64 = 6;
+
+  public struct NewGame has copy, drop {
+    game_id: ID,
+    player: address,
+    vrf_input: vector<u8>,
+    guess: String,
+    user_stake: u64,
+    fee_bp: u16
+  }
+
+  public struct Outcome has copy, drop {
+    game_id: ID,
+    status: u8
+  }
+```
+
+이 코드는 다른 module과 같은 패턴을 따른다.
+먼저 관련 import를 포함하는데, 이번에는 standard library뿐 아니라 이 예시에서 앞서 만든 module도 포함한다.
+또한 여러 상수(대문자)를 만들고, 오류에 사용하는 상수(Pascal case 앞에 `E`가 붙음)도 만든다.
+
+마지막으로 이 섹션에서는 발생시킬 두 이벤트용 struct도 만든다.
+Indexers는 발생한 이벤트를 소비하며, 이를 통해 API 서비스 또는 자체 indexer를 통해 이 이벤트를 추적할 수 있다.
+이 경우 이벤트는 새 게임이 시작될 때의 `NewGame`과 게임이 끝났을 때의 결과를 나타내는 `Outcome`이다.
+
+module에 struct를 추가한다:
+
+```move title='single_player_satoshi.move'
+  public struct Game has key, store {
+    id: UID,
+    guess_placed_epoch: u64,
+    total_stake: Balance<SUI>,
+    guess: String,
+    player: address,
+    vrf_input: vector<u8>,
+    fee_bp: u16
+  }
+```
+
+`Game` struct는 단일 게임과 그 모든 정보를 나타내며, 플레이어가 베팅을 둔 epoch(`guess_placed_epoch`), 베팅액(`total_stake`), `guess`, `player`의 address, `vrf_input`, 그리고 house가 수집하는 수수료(`fee_bp`)를 포함한다.
+
+이제 이 게임의 핵심 함수인 `finish_game`을 살펴본다:
+
+```move title='single_player_satoshi.move'
+  public fun finish_game(game_id: ID, bls_sig: vector<u8>, house_data: &mut HouseData, ctx: &mut TxContext) {
+    // 게임이 존재하는지 확인한다.
+    assert!(game_exists(house_data, game_id), EGameDoesNotExist);
+
+    let Game {
+      id,
+      guess_placed_epoch: _,
+      mut total_stake,
+      guess,
+      player,
+      vrf_input,
+      fee_bp
+    } = dof::remove<ID, Game>(house_data.borrow_mut(), game_id);
+
+    object::delete(id);
+
+    // 1단계: BLS 서명을 확인하고, 유효하지 않으면 중단한다.
+    let is_sig_valid = bls12381_min_pk_verify(&bls_sig, &house_data.public_key(), &vrf_input);
+    assert!(is_sig_valid, EInvalidBlsSig);
+
+    // 첫 번째 바이트를 취하기 전에 beacon을 해시한다.
+    let hashed_beacon = blake2b256(&bls_sig);
+    // 2단계: 승자를 결정한다.
+    let first_byte = hashed_beacon[0];
+    let player_won = map_guess(guess) == (first_byte % 2);
+
+    // 3단계: 결과에 따라 자금을 분배한다.
+    let status = if (player_won) {
+      // 3.a 단계: 플레이어가 이기면 게임 잔액을 코인으로 플레이어에게 전송한다.
+      // 수수료를 계산해 house로 전송한다.
+      let stake_amount = total_stake.value();
+      let fee_amount = fee_amount(stake_amount, fee_bp);
+      let fees = total_stake.split(fee_amount);
+      house_data.borrow_fees_mut().join(fees);
+
+      // 보상을 계산하고 game stake에서 가져온다.
+      transfer::public_transfer(total_stake.into_coin(ctx), player);
+      PLAYER_WON_STATE
+    } else {
+      // 3.b 단계: house가 이기면 game stake를 house_data.house_balance에 더한다(수수료는 가져가지 않는다).
+      house_data.borrow_balance_mut().join(total_stake);
+      HOUSE_WON_STATE
+    };
+
+    emit(Outcome {
+      game_id,
+      status
+    });
+  }
+```
+
+- 먼저 함수는 `Game` object가 존재하는지 확인하고, 게임이 끝난 뒤에는 metadata가 더 이상 필요하지 않으므로 이를 삭제한다. 불필요한 storage를 해제하는 것은 권장될 뿐 아니라 [storage fee rebates](/develop/sui-architecture/tokenomics-overview)를 통해 장려된다.
+- 1단계에서 함수는 BLS 서명이 유효한지 확인한다. 이는 게임이 실제로 무작위임을 보장하기 위한 것이다.
+- 2단계에서 함수는 플레이어의 추측이 앞면(`0`)인지 뒷면(`1`)인지가 house의 결과와 같은지 확인한다. 이는 randomize된 vector의 첫 번째 바이트를 취해 2로 나누어 떨어지는지를 확인하는 방식으로 수행되며, 나누어 떨어지면 앞면이고 그렇지 않으면 뒷면이다.
+- 3단계에서 플레이어가 이겼다는 것은 플레이어의 추측이 house의 결과와 일치한다는 뜻이며, 이 경우 로직은 stake에서 수수료를 house로 옮긴 다음 원금 나머지와 house 잔액에서 같은 금액을 더해 플레이어에게 분배한다. 플레이어가 지면 로직은 전체 stake를 house로 전송하고 수수료는 가져가지 않는다.
+- 마지막으로 게임은 결과를 이벤트로 발생시킨다.
+
+이제 게임 분쟁을 처리하는 함수를 추가한다:
+
+```move title='single_player_satoshi.move'
+  public fun dispute_and_win(house_data: &mut HouseData, game_id: ID, ctx: &mut TxContext) {
+    // 게임이 존재하는지 확인한다.
+    assert!(game_exists(house_data, game_id), EGameDoesNotExist);
+
+    let Game {
+      id,
+      guess_placed_epoch,
+      total_stake,
+      guess: _,
+      player,
+      vrf_input: _,
+      fee_bp: _
+    } = dof::remove(house_data.borrow_mut(), game_id);
+
+    object::delete(id);
+
+    let caller_epoch = ctx.epoch();
+    let cancel_epoch = guess_placed_epoch + EPOCHS_CANCEL_AFTER;
+    // 사용자가 취소할 수 있기 전에 최소 epoch가 지났는지 확인한다.
+    assert!(cancel_epoch <= caller_epoch, ECanNotChallengeYet);
+
+    transfer::public_transfer(total_stake.into_coin(ctx), player);
+
+    emit(Outcome {
+      game_id,
+      status: CHALLENGED_STATE
+    });
+  }
+```
+
+이 `dispute_and_win` 함수는 어떤 베팅도 “purgatory” 상태로 남지 않도록 보장한다.
+일정 시간이 지나면 플레이어는 이 함수를 호출해 자신의 자금을 모두 돌려받을 수 있다.
+
+나머지 함수들은 값을 조회하고, 값의 존재 여부를 확인하고, 게임을 초기화하는 등에 사용하는 accessor와 helper 함수들이다:
+
+```move title='single_player_satoshi.move'
+  // --------------- Read-only References ---------------
+
+  public fun guess_placed_epoch(game: &Game): u64 {
+    game.guess_placed_epoch
+  }
+
+  public fun stake(game: &Game): u64 {
+    game.total_stake.value()
+  }
+
+  public fun guess(game: &Game): u8 {
+    map_guess(game.guess)
+  }
+
+  public fun player(game: &Game): address {
+    game.player
+  }
+
+  public fun vrf_input(game: &Game): vector<u8> {
+    game.vrf_input
+  }
+
+  public fun fee_in_bp(game: &Game): u16 {
+    game.fee_bp
+  }
+
+  // --------------- Helper functions ---------------
+
+  /// 지불해야 할 수수료 금액을 계산하는 공개 helper 함수이다.
+  public fun fee_amount(game_stake: u64, fee_in_bp: u16): u64 {
+    ((((game_stake / (GAME_RETURN as u64)) as u128) * (fee_in_bp as u128) / 10_000) as u64)
+  }
+
+  /// 게임이 존재하는지 확인하는 helper 함수이다.
+  public fun game_exists(house_data: &HouseData, game_id: ID): bool {
+    dof::exists_(house_data.borrow(), game_id)
+  }
+
+  /// 게임이 존재하는지 확인하고 game Object에 대한 reference를 반환하는 helper 함수이다.
+  /// 원하는 game 필드를 가져오기 위해 어떤 accessor와도 함께 사용할 수 있다.
+  public fun borrow_game(game_id: ID, house_data: &HouseData): &Game {
+    assert!(game_exists(house_data, game_id), EGameDoesNotExist);
+    dof::borrow(house_data.borrow(), game_id)
+  }
+
+  /// 새 게임을 생성하는 데 사용하는 내부 helper 함수이다.
+  fun internal_start_game(guess: String, counter: &mut Counter, coin: Coin<SUI>, house_data: &mut HouseData, fee_bp: u16, ctx: &mut TxContext): (ID, Game) {
+    // 추측이 유효한지 확인한다.
+    map_guess(guess);
+    let user_stake = coin.value();
+    // stake가 최대 stake보다 높지 않은지 확인한다.
+    assert!(user_stake <= house_data.max_stake(), EStakeTooHigh);
+    // stake가 최소 stake보다 낮지 않은지 확인한다.
+    assert!(user_stake >= house_data.min_stake(), EStakeTooLow);
+    // house가 이 게임을 진행하기에 충분한 잔액을 가지고 있는지 확인한다.
+    assert!(house_data.balance() >= user_stake, EInsufficientHouseBalance);
+
+    // house의 stake를 가져온다.
+    let mut total_stake = house_data.borrow_balance_mut().split(user_stake);
+    coin::put(&mut total_stake, coin);
+
+    let vrf_input = counter.get_vrf_input_and_increment();
+
+    let id = object::new(ctx);
+    let game_id = object::uid_to_inner(&id);
+
+    let new_game = Game {
+      id,
+      guess_placed_epoch: ctx.epoch(),
+      total_stake,
+      guess,
+      player: ctx.sender(),
+      vrf_input,
+      fee_bp
+    };
+
+    emit(NewGame {
+      game_id,
+      player: ctx.sender(),
+      vrf_input,
+      guess,
+      user_stake,
+      fee_bp
+    });
+
+    (game_id, new_game)
+  }
+
+  /// (H)EADS와 (T)AILS를 각각 0과 1로 매핑하는 helper 함수이다.
+  /// H = 0
+  /// T = 1
+  fun map_guess(guess: String): u8 {
+    let heads = HEADS;
+    let tails = TAILS;
+    assert!(guess.bytes() == heads || guess.bytes() == tails, EInvalidGuess);
+
+    if (guess.bytes() == heads) {
+      0
+    } else {
+      1
+    }
+  }
+}
+```
+
+## Finished package
+
+이것은 Move로 만든 coin flip backend의 기본 예시를 나타낸다.
+게임 module인 `single_player_satoshi`는 MEV 공격에 취약하지만 플레이어의 사용자 경험은 간소화된다.
+MEV 저항성을 가진 또 다른 예시 게임 module인 `mev_attack_resistant_single_player_satoshi`도 존재하지만, 사용자 경험은 약간 낮아진다(게임당 플레이어 transaction이 두 번 필요하다).
+
+게임의 두 version에 대해 더 읽고 모든 module의 전체 source code를 보려면 [Satoshi Coin Flip repository](https://github.com/MystenLabs/satoshi-coin-flip)를 참조한다.
+
+이제 contract를 작성했으므로, 이를 배포할 차례이다.
+
+### Deployment {#deployment}
+
+<ImportContent source="initialize-sui-client-cli" mode="snippet" />
+
+다음으로 Sui CLI도 활성 환경으로 `testnet`을 사용하도록 구성한다.
+아직 `testnet` 환경을 설정하지 않았다면 terminal 또는 console에서 다음 명령을 실행해 설정한다:
+
+```sh
+$ sui client new-env --alias testnet --rpc https://fullnode.testnet.sui.io:443
+```
+
+다음 명령을 실행해 `testnet` 환경을 활성화한다:
+
+```sh
+$ sui client switch --env testnet
+```
+
+<ImportContent source="publish-to-devnet-with-coins" mode="snippet" />
+
+이 명령의 출력에는 package를 사용하는 데 필요한 `packageID` 값이 포함되어 있으므로 저장해야 한다.
+
+CLI 배포 출력의 일부 예시는 다음과 같다.
+
+```sh
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Object Changes                                                                                           │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Created Objects:                                                                                         │
+│  ┌──                                                                                                     │
+│  │ ObjectID: 0x17e9468127384cfff5523940586f5617a75fac8fd93f143601983523ae9c9f31                          │
+│  │ Sender: 0x8e8cae7791a93778800b88b6a274de5c32a86484593568d38619c7ea71999654                            │
+│  │ Owner: Account Address ( 0x8e8cae7791a93778800b88b6a274de5c32a86484593568d38619c7ea71999654 )         │
+│  │ ObjectType: 0x2::package::UpgradeCap                                                                  │
+│  │ Version: 75261540                                                                                     │
+│  │ Digest: 9ahkhuGYTNYi5GucCqmUHyBuWoV2R3rRqBu553KBPVv8                                                  │
+│  └──                                                                                                     │
+│  ┌──                                                                                                     │
+│  │ ObjectID: 0xa01d8d5ba121e7771547e749a787b4dd9ff8cc32e341c898bab5d12c46412a23                          │
+│  │ Sender: 0x8e8cae7791a93778800b88b6a274de5c32a86484593568d38619c7ea71999654                            │
+│  │ Owner: Account Address ( 0x8e8cae7791a93778800b88b6a274de5c32a86484593568d38619c7ea71999654 )         │
+│  │ ObjectType: 0x2::package::Publisher                                                                   │
+│  │ Version: 75261540                                                                                     │
+│  │ Digest: Ba9VU2dUqg3NHkwQ4t5AKDLJQuiFZnnxvty2xREQKWm9                                                  │
+│  └──                                                                                                     │
+│  ┌──                                                                                                     │
+│  │ ObjectID: 0xfa1f6edad697afca055749fedbdee420b6cdba3edc2f7fd4927ed42f98a7e63a                          │
+│  │ Sender: 0x8e8cae7791a93778800b88b6a274de5c32a86484593568d38619c7ea71999654                            │
+│  │ Owner: Account Address ( 0x8e8cae7791a93778800b88b6a274de5c32a86484593568d38619c7ea71999654 )         │
+│  │ ObjectType: 0x4120b39e5d94845aa539d4b830743a7433fd8511bdcf3841f98080080f327ca8::house_data::HouseCap  │
+│  │ Version: 75261540                                                                                     │
+│  │ Digest: 5326hf6zWgdiNgr63wvwKkhUNtnTFkp82e9vfS5QHy3n                                                  │
+│  └──                                                                                                     │
+│ Mutated Objects:                                                                                         │
+│  ┌──                                                                                                     │
+│  │ ObjectID: 0x0e4eb516f8899e116a26f927c8aaddae8466c8cdc3822f05c15159e3a8ff8006                          │
+│  │ Sender: 0x8e8cae7791a93778800b88b6a274de5c32a86484593568d38619c7ea71999654                            │
+│  │ Owner: Account Address ( 0x8e8cae7791a93778800b88b6a274de5c32a86484593568d38619c7ea71999654 )         │
+│  │ ObjectType: 0x2::coin::Coin<0x2::sui::SUI>                                                            │
+│  │ Version: 75261540                                                                                     │
+│  │ Digest: Ezmi94kWCfjRzgGTwnXehv9ipPvYQ7T6Z4wefPLRQPPY                                                  │
+│  └──                                                                                                     │
+│ Published Objects:                                                                                       │
+│  ┌──                                                                                                     │
+│  │ PackageID: 0x4120b39e5d94845aa539d4b830743a7433fd8511bdcf3841f98080080f327ca8                         │
+│  │ Version: 1                                                                                            │
+│  │ Digest: 5XbJkgx8RSccxaHoP3xinY2fMMhwKJ7qoWfp349cmZBg                                                  │
+│  │ Modules: counter_nft, house_data, single_player_satoshi                                               │
+│  └──                                                                                                     │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+[connect to your frontend](#connecting-your-package)에 사용하기 위해 자신이 받은 응답에서 `PackageID`와 `HouseCap` object의 `ObjectID`를 저장한다.
+
+이 경우 `PackageID`는 `0x4120b39e5d94845aa539d4b830743a7433fd8511bdcf3841f98080080f327ca8`이고 `HouseCap` ID는 `0xfa1f6edad697afca055749fedbdee420b6cdba3edc2f7fd4927ed42f98a7e63a`이다.
+
+### Next steps
+
+잘했다.
+이제 Move package를 작성하고 배포했다. 🎉
+
+이를 완전한 앱으로 만들려면 [create a frontend](#frontend)가 필요하다.
+
+## Frontend {#frontend}
+
+앱 예시의 마지막 부분에서는 최종 사용자가 베팅하고 수익을 가져갈 수 있으며, admin이 house를 관리할 수 있는 frontend(UI)를 구축한다.
+
+:::info
+
+frontend 구축을 건너뛰고 새로 배포한 package를 시험해 보려면 제공된 [Satoshi Coin Flip Frontend Example repository](https://github.com/sui-foundation/satoshi-coin-flip-frontend-example)를 사용하고 예시의 `README.md` 파일 지침을 따른다
+
+:::
+
+<Tabs className="tabsHeadingCentered--small">
+<TabItem value="prereq" label="Prerequisites">
+
+- [x] [Install the latest version of Sui](/getting-started/onboarding/sui-install).
+
+- [x] [Deploy the complete `satoshi_flip` Move package](#smart-contracts)하고 그 설계를 이해한다.
+
+- [x] package manager로 사용할 [`pnpm`](https://pnpm.io/installation) 또는 [`yarn`](https://classic.yarnpkg.com/lang/en/docs/install/#mac-stable)을 설치한다.
+
+</TabItem>
+</Tabs>
+
+
+:::tip Additional resources
+
+- TypeScript를 사용해 Sui와 상호작용하는 기본 사용법은 [Sui TypeScript SDK](https://sdk.mystenlabs.com/typescript)를 참조한다.
+- React.js와 함께 Sui ecosystem에서 앱을 개발하기 위한 기본 building block을 배우려면 [Sui dApp Kit](https://sdk.mystenlabs.com/dapp-kit)를 참조한다.
+- 이 프로젝트 안에서 React 기반 Sui 앱을 빠르게 scaffold하기 위해 사용한 [`@mysten/dapp`](https://sdk.mystenlabs.com/dapp-kit/create-dapp)을 참조한다.
+
+:::
+
+### Overview
+
+이 예시의 UI는 production-grade 제품 역할을 하기보다 dApp Kit 사용 방법을 보여주기 위한 것이므로, 과정을 단순화하기 위해 Player 기능과 House 기능을 같은 UI에 넣는다.
+production 환경의 솔루션에서는 frontend가 Player 전용 기능만 포함하고, backend service가 smart contract의 House 함수와 상호작용을 수행하게 된다.
+
+UI는 두 개의 column으로 구성된다:
+
+- 첫 번째 column은 Player 전용이며, 모든 Player 관련 기능이 그곳에 있다
+- 두 번째 column은 House 전용이며, 모든 House 관련 기능이 그곳에 있다
+
+### Scaffold a new app
+
+첫 번째 단계는 client app을 설정하는 것이다.
+다음 명령을 실행해 새 앱을 scaffold한다.
+
+```sh
+$ pnpm create @mysten/dapp --template react-client-dapp
+```
+
+또는
+
+```sh
+$ yarn create @mysten/dapp --template react-client-dapp
+```
+
+### Project folder structure
+
+UI 레이아웃에 맞게 project folder 구조를 잡아서, 모든 Player 관련 React component는 `containers/Player` folder에 두고 모든 House 관련 React component는 `containers/House` folder에 둔다.
+
+### Connecting your deployed package {#connecting-your-package}
+
+[deploying your package](#deployment)에서 저장한 `packageId` 값을 project의 새 `src/constants.ts` 파일에 추가한다:
+
+```ts
+export const PACKAGE_ID =
+  "0x4120b39e5d94845aa539d4b830743a7433fd8511bdcf3841f98080080f327ca8";
+export const HOUSECAP_ID =
+  "0xfa1f6edad697afca055749fedbdee420b6cdba3edc2f7fd4927ed42f98a7e63a";
+```
+
+### Exploring the code
+
+이 UI는 게임의 [Single Player smart contract](/guides/developer/app-examples/coin-flip) 변형과 상호작용한다.
+이 절에서는 smart contract 흐름의 각 단계와 그에 대응하는 frontend 코드를 차례대로 설명한다.
+
+:::info
+
+다음 frontend code snippet은 가장 관련성이 높은 섹션만 포함한다.
+전체 source code는 [Satoshi Coin Flip Frontend Example repository](https://github.com/sui-foundation/satoshi-coin-flip-frontend-example)를 참조한다.
+
+:::
+
+다른 React project와 마찬가지로 바깥 레이아웃은 `App.tsx`에서 구현한다:
+
+```typescript title='App.tsx'
+import { ConnectButton, useCurrentAccount } from '@mysten/dapp-kit-react';
+import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { Box, Callout, Container, Flex, Grid, Heading } from '@radix-ui/themes';
+
+import { HOUSECAP_ID, PACKAGE_ID } from './constants';
+import { HouseSesh } from './containers/House/HouseSesh';
+import { PlayerSesh } from './containers/Player/PlayerSesh';
+
+function App() {
+  const account = useCurrentAccount();
+  return (
+    <>
+      <Flex
+        position="sticky"
+        px="4"
+        py="2"
+        justify="between"
+        style={{
+          borderBottom: '1px solid var(--gray-a2)',
+        }}
+      >
+        <Box>
+          <Heading>Satoshi Coin Flip Single Player</Heading>
+        </Box>
+
+        <Box>
+          <ConnectButton />
+        </Box>
+      </Flex>
+      <Container>
+        <Heading size="4" m={'2'}>
+          Package ID: {PACKAGE_ID}
+        </Heading>
+        <Heading size="4" m={'2'}>
+          HouseCap ID: {HOUSECAP_ID}
+        </Heading>
+
+        <Callout.Root mb="2">
+          <Callout.Icon>
+            <InfoCircledIcon />
+          </Callout.Icon>
+          <Callout.Text>
+            You need to connect to wallet that publish the smart contract package
+          </Callout.Text>
+        </Callout.Root>
+
+        {!account ? (
+          <Heading size="4" align="center">
+            Please connect wallet to continue
+          </Heading>
+        ) : (
+          <Grid columns="2" gap={'3'} width={'auto'}>
+            <PlayerSesh />
+            <HouseSesh />
+          </Grid>
+        )}
+      </Container>
+    </>
+  );
+}
+
+export default App;
+```
+
+다른 앱과 마찬가지로 사용자 지갑 연결을 가능하게 하려면 "connect wallet" 버튼이 필요하다.
+dApp Kit에는 사용자의 온보딩을 돕기 위해 재사용할 수 있는 미리 준비된 `ConnectButton` React component가 들어 있다.
+
+`useCurrentAccount()`는 현재 연결된 wallet을 조회하기 위해 dApp Kit이 제공하는 React hook이며, wallet connection이 없으면 `null`을 반환한다.
+이 동작을 활용해 사용자가 아직 지갑을 연결하지 않았다면 더 진행하지 못하게 막는다.
+
+사용자가 wallet을 연결했는지 확인한 뒤에는 이전 절에서 설명한 두 column인 `PlayerSesh`와 `HouseSesh` component를 표시할 수 있다.
+
+프로젝트 개요를 파악하기에는 여기까지면 충분하다.
+이제 `HouseData` object 초기화로 넘어갈 차례이다.
+이를 호출하는 frontend 로직은 모두 `HouseInitialize.tsx` component에 있다.
+이 component는 UI 코드도 포함하지만, transaction을 실행하는 로직은 다음과 같다:
+
+```typescript title='containers/House/HouseInitialize.tsx'
+<form
+  onSubmit={(e) => {
+    e.preventDefault();
+
+    // 새 transaction 생성
+    const txb = new Transaction();
+    // gas coin을 house stake coin으로 분할한다
+    // SDK가 선행 coin 선택을 추상화하여 처리해 준다
+    const [houseStakeCoin] = txb.splitCoins(txb.gas, [
+      MIST_PER_SUI * BigInt(houseStake),
+    ]);
+    // smart contract 함수 호출
+    txb.moveCall({
+      target: `${PACKAGE_ID}::house_data::initialize_house_data`,
+      arguments: [
+        txb.object(HOUSECAP_ID),
+        houseStakeCoin,
+        // 이 인자는 온체인 object가 아니므로 `bcs`를 사용해 직렬화해야 한다
+        // https://sdk.mystenlabs.com/typescript/transaction-building/basics#pure-values
+        txb.pure(
+          bcs
+            .vector(bcs.U8)
+            .serialize(curveUtils.hexToBytes(getHousePubHex())),
+        ),
+      ],
+    });
+
+    execInitializeHouse(
+      {
+        transaction: txb,
+        options: {
+          showObjectChanges: true,
+        },
+      },
+      {
+        onError: (err) => {
+          toast.error(err.message);
+        },
+        onSuccess: (result: SuiTransactionBlockResponse) => {
+          let houseDataObjId;
+
+
+          result.objectChanges?.some((objCh) => {
+            if (
+              objCh.type === "created" &&
+              objCh.objectType === `${PACKAGE_ID}::house_data::HouseData`
+            ) {
+              houseDataObjId = objCh.objectId;
+              return true;
+            }
+          });
+
+          setHouseDataId(houseDataObjId!);
+
+          toast.success(`Digest: ${result.digest}`);
+        },
+      },
+    );
+  }}
+```
+
+Sui에서 [프로그래머블 트랜잭션 블록 (PTB)](/develop/transactions/ptbs/prog-txn-blocks)을 사용하려면 `Transaction`을 생성한다.
+Move 호출을 시작하려면 smart contract에 있는 공개 함수의 전역 식별자를 알아야 한다.
+전역 식별자는 보통 다음 형태를 가진다:
+
+```
+${PACKAGE_ID}::${MODULE_NAME}::${FUNCTION_NAME}
+```
+
+이 예시에서는 다음과 같다:
+
+```
+${PACKAGE_ID}::house_data::initialize_house_data
+```
+
+`initialize_house_data()` Move 함수에 전달해야 할 parameter는 몇 가지가 있는데, `HouseCap` ID, House stake, 그리고 House BLS 공개 키이다:
+
+- 이전 절에서 설정한 `constants.ts`에서 `HouseCap` ID를 import한다.
+- House stake에는 `Transaction::splitCoin`을 사용해 Gas Coin `txb.gas`에서 정의된 금액만큼 분할한 새 코인을 만든다. gas coin은 계정에서 가스 결제에 사용할 수 있는 하나의 단일 코인으로 생각할 수 있으며(계정의 전체 잔액 대부분을 포함할 수도 있다), 이것은 Sui 결제에 유용하다. Move 호출에 맞는 금액의 코인을 만들기 위해 가스 결제용 코인을 수동으로 고르거나 직접 분할/병합할 필요 없이, gas coin이 단일 진입점 역할을 하며 나머지 복잡한 작업은 SDK가 내부에서 처리한다.
+- BLS 공개 키는 bytes `vector<u8>`로 전달한다. 온체인 object가 아닌 입력을 제공할 때는 `@mysten/sui/bcs`에서 import한 `txb.pure`와 `bcs` 조합을 사용해 BCS로 직렬화한다.
+
+이제 transaction에 서명하고 실행한다.
+dApp Kit은 이 과정을 단순화하기 위해 dAppKit 인스턴스에서(`useDAppKit()`을 통해 접근) `signAndExecuteTransaction` 메서드를 제공한다.
+이 메서드를 호출하면 UI가 승인, 서명, 실행을 진행하도록 프롬프트를 표시한다.
+`HouseData` object는 이후 Move 호출의 입력으로 사용하므로 ID를 어딘가에 저장한다.
+
+좋다, 이제 `HouseData` shared object를 초기화하는 방법을 알게 되었다.
+다음 함수 호출로 넘어간다.
+
+이 게임에서는 사용자가 게임을 시작하기 위해 `Counter` object를 생성해야 한다.
+따라서 Player column UI에는 플레이어가 선택할 수 있도록 기존 `Counter` object 정보를 나열하는 위치가 있어야 한다.
+UI의 여러 위치에서 `Counter` object를 가져오는 로직을 재사용할 가능성이 높으므로, 이 로직을 React hook으로 분리하는 것이 좋은 방법이며, 이 hook을 `useFetchCounterNft.ts` 안의 `useFetchCounterNft()`라고 부른다:
+
+```typescript title='containers/Player/useFetchCounterNft.ts'
+import { useCurrentAccount, useCurrentClient } from '@mysten/dapp-kit-react';
+import { useQuery } from '@tanstack/react-query';
+
+import { PACKAGE_ID } from '../../constants';
+
+// 연결된 wallet이 소유한 CounterNFT를 가져오는 React hook
+// 이 hook은 `@mysten/dapp-kit-react` hook을 TanStack Query와 함께 사용하는 방법을 보여준다
+export function useFetchCounterNft() {
+  const account = useCurrentAccount();
+  const client = useCurrentClient();
+
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ['CounterNFT', account?.address],
+    queryFn: () => client.core.listOwnedObjects({
+      owner: account!.address,
+      limit: 1,
+      type: `${PACKAGE_ID}::counter_nft::Counter`,
+    }),
+    enabled: !!account,
+  });
+
+  if (!account) {
+    return { data: [] };
+  }
+
+  return {
+    data: data && data.objects.length > 0 ? data.objects : [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  };
+}
+```
+
+이 hook 로직은 매우 기본적이다.
+현재 연결된 wallet이 없으면 빈 데이터를 반환하고, 그렇지 않으면 `Counter` object를 가져와 반환한다.
+Sui client를 가져오기 위해 `useCurrentClient` hook을 사용하고, TanStack Query의 `useQuery` hook과 결합해 데이터를 조회한다.
+서로 다른 client method는 서로 다른 parameter를 요구한다.
+알려진 address가 소유한 object를 가져오려면 `listOwnedObjects` method를 사용한다.
+
+이제 연결된 wallet의 address와 함께 `Counter`의 전역 타입 식별자를 전달한다.
+이 식별자는 함수 호출의 전역 식별자 타입과 비슷한 형식이다:
+
+`${PACKAGE_ID}::counter_nft::Counter`
+
+여기까지 마쳤다면, 이제 hook을 `PlayerListCounterNft.tsx` UI component에 넣고 데이터를 표시한다:
+
+```typescript title='containers/Player/PlayerListCounterNft.tsx'
+export function PlayerListCounterNft() {
+  const { data, isLoading, error, refetch } = useFetchCounterNft();
+  const dAppKit = useDAppKit();
+
+  return (
+    <Container mb={'4'}>
+      <Heading size="3" mb="2">
+        Counter NFTs
+      </Heading>
+
+      {error && <Text>Error: {error.message}</Text>}
+
+      <Box mb="3">
+        {data.length > 0 ? (
+          data.map((it) => {
+            return (
+              <Box key={it.objectId}>
+                <Text as="div" weight="bold">
+                  Object ID:
+                </Text>
+                <Text as="div">{it.objectId}</Text>
+                <Text as="div" weight="bold">
+                  Object Type:
+                </Text>
+                <Text as="div">{it.type}</Text>
+              </Box>
+            );
+          })
+        ) : (
+          <Text>No CounterNFT Owned</Text>
+        )}
+      </Box>
+    </Container>
+```
+
+기존 `Counter` object가 없는 경우에는 연결된 wallet을 위해 새 `Counter`를 민트한다.
+또한 사용자가 버튼을 클릭할 때 동작하도록 minting 로직도 `PlayerListCounterNft.tsx`에 추가한다.
+앞서 `Transaction`과 `initialize_house_data()`를 이용해 Move 호출을 만들고 실행하는 방법을 이미 살펴봤으므로, 여기서도 비슷한 호출을 구현할 수 있다.
+
+`Transaction`에서 기억할 수 있듯이, transaction의 출력은 다음 transaction의 입력이 될 수 있다.
+새로 생성된 `Counter` object를 반환하는 `counter_nft::mint()`를 호출하고, 이를 입력으로 사용해 `counter_nft::transfer_to_sender()`를 호출하여 `Counter` object를 caller wallet으로 전송한다:
+
+```typescript title='containers/Player/PlayerListCounterNft.tsx'
+const txb = new Transaction();
+const [counterNft] = txb.moveCall({
+  target: `${PACKAGE_ID}::counter_nft::mint`,
+});
+txb.moveCall({
+  target: `${PACKAGE_ID}::counter_nft::transfer_to_sender`,
+  arguments: [counterNft],
+});
+
+try {
+  const result = await dAppKit.signAndExecuteTransaction({
+    transaction: txb,
+  });
+
+  if (result.$kind === 'FailedTransaction') {
+    toast.error('Transaction failed');
+  } else {
+    toast.success(`Digest: ${result.Transaction?.digest}`);
+    refetch?.();
+  }
+} catch (err: any) {
+  toast.error(err.message);
+}
+```
+
+좋다, 이제 생성한 `Counter` object로 게임을 만들 수 있다.
+게임 생성 로직은 `PlayerCreateGame.tsx`로 분리한다.
+여기서 한 가지 더 기억해야 할 점은 입력을 온체인 object로 표시하려면 해당 object ID와 함께 `txb.object()`를 사용해야 한다는 것이다.
+
+```typescript title='containers/Player/PlayerCreateGame.tsx'
+const dAppKit = useDAppKit();
+
+// 새 transaction 생성
+const txb = new Transaction();
+
+// 플레이어 stake
+const [stakeCoin] = txb.splitCoins(txb.gas, [MIST_PER_SUI * BigInt(stake)]);
+
+// CounterNFT로 게임 생성
+txb.moveCall({
+  target: `${PACKAGE_ID}::single_player_satoshi::start_game`,
+  arguments: [
+    txb.pure.string(guess),
+    txb.object(counterNFTData[0]?.objectId!),
+    stakeCoin,
+    txb.object(houseDataId),
+  ],
+});
+
+try {
+  const result = await dAppKit.signAndExecuteTransaction({
+    transaction: txb,
+  });
+
+  if (result.$kind === 'FailedTransaction') {
+    toast.error('Transaction failed');
+  } else {
+    toast.success(`Digest: ${result.Transaction?.digest}`);
+  }
+} catch (err: any) {
+  toast.error(err.message);
+}
+```
+
+이제 마지막 단계만 남았다.
+게임을 정산하려면 GraphQL API를 사용해 새로운 `NewGame` 이벤트를 폴링하고, 각 새 게임에 대해 `single_player_satoshi::finish_game()`을 자동으로 호출한다.
+
+:::info
+
+dApp에서 이벤트를 다루는 방법에 대해 더 알아보려면 [이벤트 사용하기](/develop/accessing-data/using-events)를 참조한다.
+
+:::
+
+이 로직은 모두 GraphQL API에서 새 게임 이벤트를 폴링하는 `HouseFinishGame.tsx`에 들어 있다:
+
+```typescript title='containers/House/HouseFinishGame.tsx'
+export function HouseFinishGame() {
+  const dAppKit = useDAppKit();
+
+  const [housePrivHex] = useContext(HouseKeypairContext);
+  const [houseDataId] = useContext(HouseDataContext);
+
+  useEffect(() => {
+    const gqlClient = new SuiGraphQLClient({
+      url: 'https://graphql.mainnet.sui.io/graphql',
+      network: 'mainnet',
+    });
+
+    const queryNewGames = graphql(`
+      query NewGames($eventType: String!, $after: String) {
+        events(filter: { eventType: $eventType }, after: $after) {
+          nodes {
+            contents { json }
+          }
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+        }
+      }
+    `);
+
+    const queryCursor = graphql(`
+      query LatestCursor($eventType: String!) {
+        events(filter: { eventType: $eventType }, last: 1) {
+          pageInfo {
+            endCursor
+          }
+        }
+      }
+    `);
+
+    let cursor: string | null = null;
+    let cancelled = false;
+
+    async function pollForGames() {
+      // 새 게임만 처리하도록 현재 end cursor를 캡처한다
+      const initial = await gqlClient.query({
+        query: queryCursor,
+        variables: {
+          eventType: `${PACKAGE_ID}::single_player_satoshi::NewGame`,
+        },
+      });
+      cursor = initial.data?.events?.pageInfo.endCursor ?? null;
+
+      while (!cancelled) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+
+        try {
+          const result = await gqlClient.query({
+            query: queryNewGames,
+            variables: {
+              eventType: `${PACKAGE_ID}::single_player_satoshi::NewGame`,
+              after: cursor,
+            },
+          });
+
+          const events = result.data?.events;
+          if (events?.pageInfo.endCursor) {
+            cursor = events.pageInfo.endCursor;
+          }
+
+          for (const node of events?.nodes ?? []) {
+            const { game_id, vrf_input } = node.contents?.json as {
+              game_id: string;
+              vrf_input: number[];
+            };
+
+            toast.info(`NewGame started ID: ${game_id}`);
+
+            try {
+              const houseSignedInput = bls.sign(
+                new Uint8Array(vrf_input),
+                curveUtils.hexToBytes(housePrivHex),
+              );
+
+              const txb = new Transaction();
+              txb.moveCall({
+                target: `${PACKAGE_ID}::single_player_satoshi::finish_game`,
+                arguments: [
+                  txb.pure.id(game_id),
+                  txb.pure(bcs.vector(bcs.U8).serialize(houseSignedInput)),
+                  txb.object(houseDataId),
+                ],
+              });
+
+              const result = await dAppKit.signAndExecuteTransaction({
+                transaction: txb,
+              });
+
+              if (result.$kind === 'FailedTransaction') {
+                toast.error('Transaction failed');
+              } else {
+                toast.success(`Digest: ${result.Transaction?.digest}`);
+              }
+            } catch (err: any) {
+              console.error(err);
+              toast.error(err.message);
+            }
+          }
+        } catch (err: any) {
+          console.error('Polling error:', err);
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+    }
+
+    pollForGames();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [housePrivHex, houseDataId, dAppKit]);
+
+  return null;
+}
+```
+
+이 component는 `SuiGraphQLClient`를 사용해 5초마다 `NewGame` 이벤트를 폴링하고, cursor를 추적해 새 이벤트만 처리한다.
+새 게임이 감지되면 BLS 개인 키로 VRF 입력에 서명하고 `single_player_satoshi::finish_game()`을 호출해 게임을 정산한다.
+
+cleanup 함수는 component가 unmount될 때 폴링을 중지하기 위해 `cancelled = true`를 설정한다.
+
+축하한다, 이제 frontend를 완성했다.
+dApp Kit을 사용해 다음 Sui 프로젝트를 구축할 때 여기서 배운 교훈을 활용할 수 있다.

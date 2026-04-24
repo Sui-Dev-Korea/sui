@@ -1,0 +1,143 @@
+---
+title: 스토리지
+description: 과거 데이터와 스토리지 가격은 Sui 네트워크에서의 운영 비용에 대한 통찰을 제공한다.
+keywords: [ storage, storage architecture, storage fund, storage rebates, storage fees, validators, full nodes, checkpoints ]
+---
+
+
+모든 블록체인에서의 운영 비용은 두 가지 주요 구성 요소로 이루어진다: **compute**는 로직(transaction)을 처리하는 데 필요한 연산 능력이고, **storage**는 데이터와 transaction 결과를 저장하는 데 필요한 디지털 공간이다.
+
+## Storage architecture
+
+다음 표는 주요 스토리지 구성 요소를 요약한다:
+
+| Storage category | Storage type | Usage description | Mainnet storage needs (2025년 11월 기준) |
+| --- | --- | --- | --- |
+| Validators | RocksDB, SSD storage | Validators는 최신 consensus 데이터를 고성능 NVMe 디스크에 저장한다. | ~250-400GB |
+| Pruning full nodes | RocksDB, SSD storage | Pruning full nodes는 효율적인 쿼리를 위해 pruning되지 않은 RocksDB 인덱스를 유지한다. | 2.5TB |
+| Unpruned full nodes | RocksDB, SSD storage | Unpruned full nodes는 완전한 아카이브를 위해 전체 object와 transaction 이력을 유지한다. | 16TB |
+| Full node snapshots | Cloud storage | Full node 데이터의 snapshots은 validator 또는 full node 백업 및 복구를 위해 cloud storage에 저장된다. | ~1.6TB |
+| Checkpoints bucket | Cloud storage | pruning되었을 수 있는 과거 object의 동기화를 지원하기 위해 블록체인 상태 데이터를 cloud storage에 저장한다. | ~30TB |
+
+### Validators
+
+Validators는 데이터베이스 증가를 제한하기 위해 pruning을 활성화해야 한다.
+
+Transaction-per-second (TPS) 비율이 증가에 영향을 미치지만, 전체 transaction과 object 이력을 저장하는 것이 주요 요인이다.
+
+Transaction 유형도 데이터 증가에 영향을 준다.
+
+### Pruning full nodes
+
+Pruning full nodes는 pruning 설정이 동일하기 때문에 디스크 사용량 면에서 validators와 유사하다.
+
+두 가지 예외가 있다:
+
+- Full nodes는 validator 디스크 사용량의 약 절반을 차지하는 `consensus_db`를 유지한다.
+
+- 노드가 RPC 쿼리를 제공하면 Mainnet의 `indexes/` 디렉터리가 상당한 공간을 소비한다. 현재 `indexes/`는 1.5TB이며 TPS와 함께 증가한다.
+
+인덱스가 있는 pruning된 full node의 총 디스크 사용량은 2.5TB이다.
+
+이는 단일 epoch의 데이터베이스 snapshot 크기이다.
+
+### Unpruned full nodes
+
+Unpruned full nodes는 드물며 몇 가지 사용 사례에 적용된다:
+
+1. 하나의 머신에서 전체 체인 상태가 필요하다.
+
+2. cloud archival fallback을 사용하지 않고 state-sync를 활성화하려고 한다. Unpruned node를 피어로 사용하면 archival bucket을 구성하지 않아도 된다.
+
+Growth examples:
+
+- ~18 TPS인 90일 기간 동안 사용량은 3.4TB에서 4.34TB로 증가했다(일일 약 10GB).
+
+- ~183 TPS인 2주 기간 동안 사용량은 4.34TB에서 4.92TB로 증가했다(일일 약 40GB).
+
+### Full node snapshots
+
+[snapshots](/operators/snapshots)에는 두 가지 유형이 있다:
+
+- **Database snapshots:** 이를 생성한 full node의 데이터베이스와 크기가 같다(1:1 복사본이다).
+
+- **Formal snapshots:** 경량이며 최근 Mainnet epoch의 경우 약 30GB이다.
+
+### Checkpoints bucket
+
+Checkpoints bucket은 full node 또는 ingestion daemon이 기록한 블록체인 상태 데이터를 cloud storage bucket에 저장한다.
+
+Growth examples:
+
+- 90일 기간 동안 사용량은 867GB에서 1.18TB로 증가했다(일일 약 3GB).
+
+- 2주 기간 동안 사용량은 1.18TB에서 1.32TB로 증가했다(일일 약 10GB).
+
+## Cost of storage
+
+object를 생성하거나 수정하는 모든 transaction에는 스토리지 수수료가 발생한다.
+
+Sui에서 compute는 비교적 고정되어 있으며 수백 개의 validator가 24코어, 128GB RAM 머신을 실행한다.
+
+그러나 Sui는 다른 블록체인과 비교해 높은 처리량을 달성하므로 스토리지 비용은 크게 달라질 수 있다.
+
+주기적으로 네트워크의 governance proposal이 스토리지 수수료를 설정하지만 데이터 스토리지 측정에 기여하는 몇 가지 기본 요인이 있다.
+
+현재 스토리지 수수료는 스토리지 unit당 76 MIST 또는 0.000000076 SUI이다.
+
+:::tip
+
+다음 GraphQL query를 사용하면 네트워크의 현재 스토리지 수수료를 확인할 수 있다:
+```
+{
+  protocolConfigs {
+    config(key: "storage_gas_price") {
+      value
+    }
+  }
+}
+```
+
+이 쿼리는 브라우저에서 https://graphql.mainnet.sui.io/graphql 로 실행할 수 있다.
+
+:::
+
+transaction의 총 스토리지 수수료는 transaction의 총 가스 수수료의 일부로 청구된다.
+
+### Storage fund
+
+transaction의 총 스토리지 비용은 transaction에서 사용한 각 스토리지 unit을 기준으로 한다.
+
+데이터 1바이트는 100 storage units와 같다.
+
+참고로 1킬로바이트는 100,000 storage units와 같다.
+
+transaction에 1킬로바이트 object가 포함되면 스토리지 수수료는 760만 MIST 또는 0.0076 SUI가 된다.
+
+이 수수료는 두 부분으로 나뉜다:
+
+1. **Refundable deposit:** object가 존재하는 동안 _스토리지 기금_ 에 잠긴다. object가 삭제되거나 크기가 줄어들면 이 예치금의 일부가 _스토리지 리베이트_ 로 반환된다.
+
+2. **Non-refundable fee:** 스토리지 기금에 영구적으로 잠기며 해당 SUI를 영구히 유통에서 제거한다.
+
+스토리지 기금은 네트워크의 현재 validator가 데이터를 처리하고 저장하는 한편 미래의 validator도 이를 유지하도록 인센티브를 받게 하도록 설계되어 있다.
+
+사용자가 온체인에 데이터를 저장할 때만 비용을 지불한다면 미래의 validator는 보상 없이 스토리지 비용을 선지출하게 된다.
+
+스토리지 기금은 데이터가 처음 저장될 때 수수료를 징수한 뒤 데이터가 존재하는 전체 기간에 걸쳐 이를 validator에게 재분배함으로써 이 문제를 해결한다.
+
+스토리지 기금은 활성 validator를 보상하기 위해 매 epoch 잠기고 stake된다.
+
+스토리지 기금이 얻는 초과 staking 보상은 다시 스토리지 기금에 재투자되어 validator를 보상하는 데 필요한 역량을 스토리지 기금이 갖추도록 보장한다.
+
+### Storage rebates
+
+스토리지 기금의 설계는 데이터를 저장하는 비용이 이를 온체인에 유지하는 가치보다 크다면 사용자가 데이터를 삭제하도록 장려한다.
+
+시스템은 스토리지 수수료에 대한 리베이트를 제공함으로써 사용자가 공간을 비우도록 유도한다.
+
+데이터가 Sui에서 삭제되면 더 이상 스토리지 리소스를 사용하지 않게 되며 현재 99%로 설정된 원래 스토리지 수수료의 일부가 리베이트로 가스 수수료 지불자에게 반환된다.
+
+스토리지 수수료의 환불 불가 부분(1%)은 절대 반환되지 않는다.
+
+immutable object는 삭제하거나 수정할 수 없으므로 스토리지 수수료가 영구히 잠기며 리베이트도 받을 수 없다.

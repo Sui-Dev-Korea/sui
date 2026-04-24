@@ -1,0 +1,264 @@
+---
+title: 메인터이너 SDK
+sidebar_label: 메인터이너 SDK
+description: DeepBook Margin SDK를 사용해 margin pool과 시스템 구성을 관리하는 방법을 설명한다.
+keywords:
+  [
+    maintainer,
+    margin pool admin,
+    pool configuration,
+    interest rates,
+    protocol config,
+    deepbook margin sdk,
+  ]
+---
+
+
+Maintainer SDK는 margin pool을 관리하고, interest rate를 구성하며, 어떤 DeepBook pool이 margin lending에 액세스할 수 있는지 제어하기 위한 administrative 함수를 제공한다. 이 함수들은 적절한 capability를 가진 maintainer로 제한된다.
+
+## Maintainer functions
+
+DeepBook Margin SDK는 pool administration과 configuration을 위한 다음 함수를 제공한다.
+
+### `createMarginPool`
+
+특정 asset에 대한 새 margin pool을 생성하려면 `createMarginPool`을 사용한다. maintainer capability가 필요하다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `coinKey`: asset 타입을 식별하는 String이다.
+- `poolConfig`: protocol configuration을 나타내는 `TransactionArgument`이다.
+
+<ImportContent source="/packages/deepbook-v3/src/transactions/marginMaintainer.ts" mode="code" fun="createMarginPool" org="MystenLabs" repo="ts-sdks" signatureOnly />
+
+### `newProtocolConfig`
+
+margin pool setting과 interest parameter를 결합한 새 protocol configuration object를 생성하려면 `newProtocolConfig`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `coinKey`: asset 타입을 식별하는 String이다.
+- `marginPoolConfig`: pool setting을 포함하는 `MarginPoolConfigParams` object이다.
+- `interestConfig`: interest rate parameter를 포함하는 `InterestConfigParams` object이다.
+
+<ImportContent source="/packages/deepbook-v3/src/transactions/marginMaintainer.ts" mode="code" fun="newProtocolConfig" org="MystenLabs" repo="ts-sdks" signatureOnly />
+
+### `newMarginPoolConfig`
+
+margin pool configuration object를 생성하려면 `newMarginPoolConfig`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `coinKey`: asset 타입을 식별하는 String이다.
+- `marginPoolConfig`: 다음을 포함하는 `MarginPoolConfigParams` object이다:
+  - `supplyCap`: 허용되는 최대 supply를 나타내는 Number이다
+  - `maxUtilizationRate`: 최대 utilization을 나타내는 Number이다(예: 80%는 0.8이다)
+  - `referralSpread`: protocol spread percentage를 나타내는 Number이다
+  - `minBorrow`: 최소 borrow amount를 나타내는 Number이다
+
+<ImportContent source="/packages/deepbook-v3/src/transactions/marginMaintainer.ts" mode="code" fun="newMarginPoolConfig" org="MystenLabs" repo="ts-sdks" signatureOnly />
+
+### `newInterestConfig`
+
+interest configuration object를 생성하려면 `newInterestConfig`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `interestConfig`: 다음을 포함하는 `InterestConfigParams` object이다:
+  - `baseRate`: base interest rate를 나타내는 Number이다
+  - `baseSlope`: kink 이전의 interest rate slope를 나타내는 Number이다
+  - `optimalUtilization`: kink point를 나타내는 Number이다(예: 0.8)
+  - `excessSlope`: kink 이후의 interest rate slope를 나타내는 Number이다
+
+<ImportContent source="/packages/deepbook-v3/src/transactions/marginMaintainer.ts" mode="code" fun="newInterestConfig" org="MystenLabs" repo="ts-sdks" signatureOnly />
+
+### `enableDeepbookPoolForLoan`, `disableDeepbookPoolForLoan`
+
+이 함수들을 사용해 어떤 DeepBook pool이 margin pool에서 차입할 수 있는지 제어한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `deepbookPoolKey`: DeepBook pool을 식별하는 String이다.
+- `coinKey`: margin pool asset을 식별하는 String이다.
+- `marginPoolCap`: margin pool capability ID를 나타내는 String이다.
+
+<ImportContent source="/packages/deepbook-v3/src/transactions/marginMaintainer.ts" mode="code" fun="enableDeepbookPoolForLoan,disableDeepbookPoolForLoan" org="MystenLabs" repo="ts-sdks" signatureOnly />
+
+### `updateInterestParams`
+
+margin pool의 interest rate parameter를 업데이트하려면 `updateInterestParams`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `coinKey`: margin pool asset을 식별하는 String이다.
+- `marginPoolCap`: margin pool capability ID를 나타내는 String이다.
+- `interestConfig`: 새 interest parameter를 포함하는 `InterestConfigParams` object이다.
+
+<ImportContent source="/packages/deepbook-v3/src/transactions/marginMaintainer.ts" mode="code" fun="updateInterestParams" org="MystenLabs" repo="ts-sdks" signatureOnly />
+
+### `updateMarginPoolConfig`
+
+margin pool의 configuration setting을 업데이트하려면 `updateMarginPoolConfig`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `coinKey`: margin pool asset을 식별하는 String이다.
+- `marginPoolCap`: margin pool capability ID를 나타내는 String이다.
+- `marginPoolConfig`: 새 pool setting을 포함하는 `MarginPoolConfigParams` object이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/marginMaintainer.ts" mode="code" fun="updateMarginPoolConfig" org="MystenLabs" repo="ts-sdks" signatureOnly />
+
+### `withdrawMaintainerFees`
+
+margin pool에서 누적된 maintainer fee를 인출하려면 `withdrawMaintainerFees`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `coinKey`: margin pool asset을 식별하는 String이다.
+- `marginPoolCap`: margin pool capability ID를 나타내는 String이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/marginMaintainer.ts" mode="code" fun="withdrawMaintainerFees" org="MystenLabs" repo="ts-sdks" signatureOnly />
+
+### `withdrawProtocolFees`
+
+margin pool에서 누적된 protocol fee를 인출하려면 `withdrawProtocolFees`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `coinKey`: margin pool asset을 식별하는 String이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/marginMaintainer.ts" mode="code" fun="withdrawProtocolFees" org="MystenLabs" repo="ts-sdks" signatureOnly />
+
+### `adminWithdrawDefaultReferralFees`
+
+margin pool에서 default referral fee를 인출하려면 `adminWithdrawDefaultReferralFees`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `coinKey`: margin pool asset을 식별하는 String이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/marginMaintainer.ts" mode="code" fun="adminWithdrawDefaultReferralFees" org="MystenLabs" repo="ts-sdks" signatureOnly />
+
+## Examples
+
+다음 예시는 일반적인 maintainer operation을 시연한다.
+
+### Create a margin pool
+
+```tsx
+// 예시: USDC margin pool을 생성한다
+createUsdcMarginPool = (tx: Transaction) => {
+	const coinKey = 'USDC';
+
+	// pool configuration을 생성한다
+	const poolConfig = tx.add(
+		this.maintainerContract.newProtocolConfig(
+			coinKey,
+			{
+				supplyCap: 10_000_000, // USDC 10M 한도
+				maxUtilizationRate: 0.8, // 80%
+				referralSpread: 0.1, // protocol spread는 10%
+				minBorrow: 100, // 최소 USDC 100
+			},
+			{
+				baseRate: 0.02, // base rate는 2%
+				baseSlope: 0.1, // kink 이전 slope 10%
+				optimalUtilization: 0.8, // kink point는 80%
+				excessSlope: 1.0, // kink 이후 slope 100%
+			},
+		),
+	);
+
+	// pool을 생성한다
+	tx.add(this.maintainerContract.createMarginPool(coinKey, poolConfig));
+};
+```
+
+### Enable a DeepBook pool for borrowing
+
+```tsx
+// 예시: SUI/USDC pool이 USDC margin pool에서 차입하도록 허용한다
+enablePoolForBorrowing = (tx: Transaction) => {
+	const deepbookPoolKey = 'SUI_DBUSDC';
+	const coinKey = 'USDC';
+	const marginPoolCapId = '0x...'; // margin pool cap의 ID
+
+	tx.add(
+		this.maintainerContract.enableDeepbookPoolForLoan(deepbookPoolKey, coinKey, marginPoolCapId),
+	);
+};
+```
+
+### Update interest rate parameters
+
+```tsx
+// 예시: USDC margin pool 금리를 업데이트한다
+updateInterestRates = (tx: Transaction) => {
+	const coinKey = 'USDC';
+	const marginPoolCapId = '0x...';
+
+	tx.add(
+		this.maintainerContract.updateInterestParams(coinKey, marginPoolCapId, {
+			baseRate: 0.03, // base rate를 3%로 높인다
+			baseSlope: 0.12, // slope를 높인다
+			optimalUtilization: 0.75, // kink를 75%로 낮춘다
+			excessSlope: 1.5, // excess slope를 더 가파르게 한다
+		}),
+	);
+};
+```
+
+### Update margin pool configuration
+
+```tsx
+// 예시: USDC margin pool 한도를 업데이트한다
+updatePoolConfig = (tx: Transaction) => {
+	const coinKey = 'USDC';
+	const marginPoolCapId = '0x...';
+
+	tx.add(
+		this.maintainerContract.updateMarginPoolConfig(coinKey, marginPoolCapId, {
+			supplyCap: 20_000_000, // USDC 20M으로 늘린다
+			maxUtilizationRate: 0.85, // utilization 85%를 허용한다
+			referralSpread: 0.12, // protocol spread를 늘린다
+			minBorrow: 50, // 최소값을 USDC 50으로 낮춘다
+		}),
+	);
+};
+```
+
+### Complete pool setup workflow
+
+```tsx
+// 예시: 새 margin pool 설정 workflow를 완료한다
+setupNewMarginPool = (tx: Transaction) => {
+	const coinKey = 'SUI';
+
+	// Step 1: protocol config를 생성한다
+	const poolConfig = tx.add(
+		this.maintainerContract.newProtocolConfig(
+			coinKey,
+			{
+				supplyCap: 1_000_000, // SUI 1M 한도
+				maxUtilizationRate: 0.75,
+				referralSpread: 0.1,
+				minBorrow: 10,
+			},
+			{
+				baseRate: 0.01,
+				baseSlope: 0.08,
+				optimalUtilization: 0.8,
+				excessSlope: 0.8,
+			},
+		),
+	);
+
+	// Step 2: margin pool을 생성한다
+	tx.add(this.maintainerContract.createMarginPool(coinKey, poolConfig));
+
+	// Step 3: 차입용으로 특정 DeepBook pools를 활성화한다
+	const marginPoolCapId = '0x...'; // pool 생성 event에서 가져온다
+	tx.add(this.maintainerContract.enableDeepbookPoolForLoan('SUI_DBUSDC', coinKey, marginPoolCapId));
+	tx.add(this.maintainerContract.enableDeepbookPoolForLoan('SUI_USDT', coinKey, marginPoolCapId));
+};
+```

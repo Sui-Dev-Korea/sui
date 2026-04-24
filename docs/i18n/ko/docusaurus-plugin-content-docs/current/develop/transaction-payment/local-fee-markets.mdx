@@ -1,0 +1,65 @@
+---
+title: 객체 기반 로컬 수수료 시장
+description: Object-based local fee market는 단일 shared object에 쓰는 transaction의 비율을 제한하여, 실행에 너무 오래 걸리는 checkpoint로 network가 과부하되지 않도록 한다.
+---
+
+
+Object-based local fee market는 단일 shared object에 쓰는 transaction의 비율을 제한하여, 실행에 너무 오래 걸리는 checkpoint로 network가 과부하되지 않도록 한다.
+
+Sui network의 object-based architecture는 서로 다른 많은 user transaction을 병렬로 처리할 수 있게 한다.
+하지만 여러 transaction이 모두 같은 shared object에 쓰고 있다면, 그것들은 순차적인 순서로 실행되어야 한다.
+network가 하나의 특정 object를 건드리는 transaction을 처리할 수 있는 수에는 한계가 있다.
+`ExecutionCancelledDueToSharedObjectCongestion` error와 함께 transaction이 실패하는 것을 본다면, Object-based local fee market가 작동하는 모습을 보고 있는 것이다. 
+
+Sui의 local fee market algorithm은 consensus에서 새로 순서가 정해진 transaction batch를 받을 때마다 실행된다.
+이 algorithm이 실행되면 다음을 수행한다:
+
+1. 모든 transaction을 gas price가 높은 것부터 낮은 것 순으로 정렬한다.
+
+1. [`ExecutionTimeEstimate`](https://github.com/MystenLabs/sui/blob/main/crates/sui-core/src/authority/execution_time_estimator.rs) heuristic을 사용해 각 transaction의 실행 cost를 추정한다.
+
+1. [`SharedObjectCongestionTracker`](https://github.com/MystenLabs/sui/blob/main/crates/sui-core/src/authority/shared_object_congestion_tracker.rs)를 사용해 object별 혼잡 budget이 얼마나 사용되었는지 계속 집계한다. transaction이 사용하는 모든 shared object에 budget이 충분히 남아 있으면 그 transaction은 스케줄된다. 이 경우 transaction은 자신이 사용하는 shared object의 budget을 소비한다. immutable shared object는 shared object의 immutable 사용 여러 개가 병렬로 실행될 수 있으므로 어떤 budget도 소비하지 않는다. transaction을 스케줄할 수 없으면 다음 commit까지 연기된다.
+
+### Priority ordering of transactions
+
+Transaction priority는 오직 gas price로만 결정된다.
+같은 consensus commit 안에서 자신의 transaction이 다른 것보다 shared object에 먼저 접근하도록 배정받고 싶다면, 다른 것들보다 더 높은 gas price를 지불해야 한다.
+이것이 priority access를 얻는 유일한 방법이다.
+
+reference gas price의 최소 5배인 gas price를 사용하면 해당 transaction이 가능한 한 가장 이른 consensus commit에 포함될 가능성이 높아진다.
+자세한 내용은 [SIP-45](https://github.com/sui-foundation/sips/blob/main/sips/sip-45.md)를 참조한다.
+
+### Cost estimation of transactions
+
+Sui는 각 shared object의 commit당 실행 capacity를 제한한다.
+shared object를 건드리는 transaction의 추정 실행 시간이 낮으면 더 많은 transaction이 들어갈 수 있다.
+추정 실행 시간이 높으면 더 적은 transaction만 들어갈 수 있다.  
+
+Transaction 실행 시간은 PTB에서 호출된 각 top-level Move function별로 따로 추정된다.
+실제 실행 시간 측정값은 validator 사이에 공유되며, 스케줄링에 사용되는 cost estimate는 과거 호출 측정값의 stake-weighted median이다.
+혼잡한 입력으로 호출되지 않는 대부분의 함수에는 낮은 기본 estimate가 사용된다.
+
+### Transaction deferral
+
+혼잡한 shared object를 사용하려고 하고 남은 공간이 없어 network가 transaction을 스케줄할 수 없으면, 그 transaction은 연기된다.
+이는 validator가 transaction을 보관하고 다음 commit에서 다시 스케줄하려 시도하며, 매번 대기 중인 모든 transaction을 gas price로 우선순위화한다는 뜻이다.
+
+transaction이 여러 commit 동안 연기되었는데도 성공적으로 스케줄되지 않으면, 취소되고 `ExecutionCancelledDueToSharedObjectCongestion` error를 반환한다.
+이 경우 더 높은 gas price로 다시 시도하거나, 의존하는 shared object의 혼잡이 덜한 시점에 다시 시도해야 한다.
+
+### Determining total per-object capacity
+
+protocol 수준에서 Sui는 각 shared object에 대해 commit당 목표 utilization과 burst capacity로 설정된다.
+평균적으로 shared object의 activity는 commit당 한계를 넘을 수 없다.
+하지만 짧은 traffic burst는 일시적으로 한계를 초과할 수 있다.
+
+특정 shared object의 총 실행 capacity를 늘릴 방법은 없다.
+network는 validator, full node, indexer가 모두 checkpoint를 합리적인 시간 안에 실행할 수 있도록 그 한계를 설정한다.
+
+## Best practices
+
+- 혼잡한 shared object에 대한 priority access가 필요하면 더 높은 gas price를 설정한다.
+
+- Move package를 설계할 때는 가능하면 단일 shared object 사용을 피한다. 예를 들어 통화 쌍마다 dynamic field를 가진 하나의 주 shared object를 사용하는 DEX application은, 통화 쌍마다 별도 object를 두는 경우보다 훨씬 더 큰 혼잡을 겪는다.
+
+- object `O`가 혼잡하다면, 해당 object에 접근할 때 일반적으로 사용되는 함수의 실행 시간을 최적화한다. 예를 들어 object에 대한 모든 접근이 Move function `f`를 통해 발생한다면, `f`의 실행 시간을 절반으로 줄이는 것은 하나의 commit에서 `O`를 건드릴 수 있는 transaction 수를 사실상 두 배로 늘리는 것이다.

@@ -1,0 +1,128 @@
+---
+title: 리스크 비율
+description: DeepBook Margin에서 risk ratio를 이해하고, risk ratio가 leverage limit, collateral requirement, 그리고 liquidation threshold를 어떻게 결정하는지 설명한다.
+keywords:
+  [
+    risk ratio,
+    leverage,
+    liquidation,
+    collateral,
+    margin trading,
+    borrow ratio,
+    withdraw ratio,
+    deepbook margin,
+  ]
+---
+
+
+Risk ratio는 DeepBook Margin에서 leverage limit과 position 안전성을 제어하는 핵심 메커니즘이다. 이러한 ratio를 이해하는 것은 margin position을 효과적으로 관리하는 데 필수적이다.
+
+## What is a risk ratio?
+
+**risk ratio**는 다음과 같이 정의된다:
+
+```
+risk_ratio = total_assets / total_debts
+```
+
+여기서 asset과 debt는 oracle price를 사용해 공통 단위로 평가된다. risk ratio가 높을수록 debt 대비 더 많은 collateral을 보유하는 더 안전한 position을 의미한다.
+
+- **Risk ratio = 2.0**: debt 1 단위당 asset 2 단위를 보유한다(50% LTV)
+- **Risk ratio = 1.25**: debt 1 단위당 asset 1.25 단위를 보유한다(80% LTV)
+- **Risk ratio = 1.0**: asset이 debt와 정확히 같다(100% LTV, insolvent)
+
+## Risk ratio thresholds
+
+각 trading pair에는 서로 다른 작업을 제어하는 네 가지 risk ratio threshold가 있다:
+
+### Min Withdraw Risk Ratio
+
+담보를 인출한 **이후**에 필요한 최소 risk ratio이다.
+
+- 인출로 인해 position의 risk ratio가 이 임계값 아래로 떨어지게 되면, 인출은 거부된다
+- 이는 사용자가 담보를 과도하게 인출해 위험한 position을 남겨 두는 것을 방지한다
+- 일반적으로 2.0(50% LTV)으로 설정되며, 이는 인출하려면 debt 1 단위당 asset을 최소 2 단위 유지해야 함을 의미한다
+
+### Min Borrow Risk Ratio
+
+추가 자금을 차입한 **이후**에 필요한 최소 risk ratio이다.
+
+- 차입으로 인해 position의 risk ratio가 이 임계값 아래로 떨어지게 되면, 차입은 거부된다
+- 이는 해당 trading pair에 대해 사용 가능한 최대 leverage를 결정한다
+- min borrow ratio가 1.25이면 약 5x leverage를 허용한다
+- min borrow ratio가 1.5이면 약 3x leverage를 허용한다
+
+### Liquidation Risk Ratio
+
+position이 **liquidation eligible** 상태가 되는 risk ratio 임계값이다.
+
+- position의 risk ratio가 이 값 이하로 떨어지면, 누구나 position을 liquidation할 수 있다
+- 이는 "danger zone"이다 - 가격이 불리하게 움직여 ratio가 이 수준에 도달하면 liquidation될 수 있다
+- 일반적으로 asset 변동성에 따라 1.1과 1.2 사이로 설정된다
+
+### Target Liquidation Risk Ratio
+
+liquidation이 position을 복원하려는 목표 risk ratio이다.
+
+- liquidation은 이 ratio에서 position이 건강한 상태가 되도록 충분한 debt를 상환한다
+- 이는 liquidation 이후 position이 안전하도록 보장하며, liquidation threshold를 간신히 넘는 수준이 되도록 하는 것이 아니다
+- 일반적으로 Min Borrow Risk Ratio와 같다
+
+## How leverage is determined
+
+trading pair의 최대 leverage는 Min Borrow Risk Ratio에 의해 결정된다:
+
+$$\text{Max Leverage} \approx \frac{1}{1 - \frac{1}{\text{Min Borrow Risk Ratio}}}$$
+
+| Min Borrow Risk Ratio | Approximate Max Leverage |
+|-----------------------|--------------------------|
+| 1.25 | 5x |
+| 1.5 | 3x |
+| 2.0 | 2x |
+
+## Example: SUI/USDC position lifecycle
+
+다음 risk parameter를 갖는 SUI/USDC position을 가정한다:
+- Min Withdraw Risk Ratio: 2.0
+- Min Borrow Risk Ratio: 1.25
+- Liquidation Risk Ratio: 1.1
+- Target Liquidation Risk Ratio: 1.25
+
+**Opening a position:**
+1. 담보로 100 USDC를 deposit한다
+2. 400 USDC 상당의 SUI를 차입한다
+3. Total assets = 100 USDC collateral + 400 USDC worth of SUI = 500 USDC
+4. Total debt = 400 USDC
+5. Risk ratio = 500/400 = 1.25 (at the minimum borrow ratio)
+6. 이제 SUI에 대한 5x leveraged exposure를 갖는다
+
+**Price moves in your favor:**
+1. SUI 가격이 10% 상승하면, SUI 가치는 이제 440 USDC이다
+2. Total assets = 100 + 440 = 540 USDC이며, debt는 여전히 400 USDC이다
+3. Risk ratio = 540/400 = 1.35 (safer position)
+4. ratio가 2.0 이상으로 유지되는 한, 일부 이익을 인출할 수 있다
+
+**Price moves against you:**
+1. SUI 가격이 10% 하락하면, SUI 가치는 이제 360 USDC이다
+2. Total assets = 100 + 360 = 460 USDC이며, debt는 여전히 400 USDC이다
+3. Risk ratio = 460/400 = 1.15 (approaching liquidation)
+4. SUI가 추가로 340 USDC까지 하락하면, ratio = (100 + 340)/400 = 1.1 (liquidation threshold)이다
+5. 이제 누구나 position을 liquidation할 수 있다
+6. liquidator는 debt의 일부를 상환하고 담보와 보상을 받는다
+7. liquidation 후 남은 position의 risk ratio는 1.25이다
+
+## Liquidation rewards
+
+position이 liquidation될 때:
+
+- **User Liquidation Reward**: liquidator에 대한 인센티브로 liquidate된 금액의 일정 비율을 지급한다(일반적으로 2%)
+- **Pool Liquidation Reward**: 잠재적 bad debt를 커버하기 위해 margin pool에 일정 비율을 지급한다(일반적으로 3%)
+
+이러한 보상은 liquidator가 시스템 건전성을 유지하도록 인센티브를 제공하고, 프로토콜이 default에 대비한 준비금을 보유하도록 보장한다.
+
+## Risk management best practices
+
+1. **Monitor your risk ratio**: 특히 변동성이 큰 시장에서 position의 상태를 추적한다
+2. **Maintain a buffer**: 최대치까지 차입하지 않는다 - 가격 변동을 위한 여유를 남겨 둔다
+3. **Set stop losses**: liquidation 전에 position을 자동으로 닫기 위해 [이익 실현 및 손실 제한](./tpsl)을 사용한다
+4. **Understand the assets**: 변동성이 높은 asset은 일반적으로 더 엄격한 risk parameter(더 낮은 leverage)를 갖는다

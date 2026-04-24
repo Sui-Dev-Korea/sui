@@ -1,0 +1,104 @@
+---
+title: 스왑
+description: DeepBookV3 SDK를 사용하여 swap-like interface와 상호작용하는 방법을 설명한다.
+keywords: [ automatic market makers, amms, swap_exact_amount, balancemanager, base_in, quote_in, deep_in, swaps, swap base quantity, deep quantity, DEEP, swap exact quantity, deepbook, deepbookv3  ]
+---
+
+
+DeepBookV3는 automatic market maker (AMM)에서 흔히 볼 수 있는 swap-like interface를 제공한다. DeepBookV3 SDK는 이 interface의 기능을 활용하는 함수를 제공한다. 자세한 내용은 API 섹션의 [스왑](../deepbookv3/contract-information/swaps)를 참조하라.
+
+## Swap functions
+
+SDK는 base asset과 quote asset 사이의 swap을 수행하기 위한 다음 함수를 제공한다.
+
+### swapExactBaseForQuote
+
+`swapExactBaseForQuote`를 사용하여 정확한 base amount를 quote amount로 swap한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `params`: swap parameter를 나타내는 `SwapParams` object이다.
+
+```tsx
+swapExactBaseForQuote({ params: SwapParams });
+```
+
+### swapExactQuoteForBase
+
+`swapExactQuoteForBase`를 사용하여 정확한 quote amount를 base amount로 swap한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `params`: swap parameter를 나타내는 `SwapParams` object이다.
+
+```tsx
+swapExactQuoteForBase({ params: SwapParams });
+```
+
+### `swapExactQuantity`
+
+`swapExactQuantity`를 사용하여 balance manager를 사용하지 않고 어느 방향으로든(base to quote 또는 quote to base) 정확한 quantity를 swap한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `params`: 다음을 포함하는 `SwapParams & { isBaseToCoin: boolean }` object이다:
+  - `poolKey`: pool을 식별하는 String이다.
+  - `amount`: swap할 amount를 나타내는 Number이다.
+  - `deepAmount`: 수수료에 사용할 DEEP amount를 나타내는 Number이다.
+  - `minOut`: 최소 output amount를 나타내는 Number이다.
+  - `isBaseToCoin`: swap 방향을 나타내는 Boolean이다(`true` = base to quote).
+  - `baseCoin`: base coin input을 위한 optional `TransactionArgument`이다.
+  - `quoteCoin`: quote coin input을 위한 optional `TransactionArgument`이다.
+  - `deepCoin`: DEEP coin input을 위한 optional `TransactionArgument`이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/deepbook.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="swapExactQuantity" signatureOnly/>
+
+### swapExactQuantityWithManager
+
+`swapExactQuantityWithManager`를 사용하여 balance manager로 정확한 quantity를 swap한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `params`: 다음을 포함하는 `SwapWithManagerParams & { isBaseToCoin: boolean }` object이다:
+  - `poolKey`: pool을 식별하는 String이다.
+  - `balanceManagerKey`: balance manager를 식별하는 String이다.
+  - `amount`: swap할 amount를 나타내는 Number이다.
+  - `minOut`: 최소 output amount를 나타내는 Number이다.
+  - `isBaseToCoin`: swap 방향을 나타내는 Boolean이다(`true` = base to quote).
+  - `tradeCap`: trade capability를 위한 optional `TransactionArgument`이다.
+  - `depositCap`: deposit capability를 위한 optional `TransactionArgument`이다.
+  - `withdrawCap`: withdraw capability를 위한 optional `TransactionArgument`이다.
+  - `baseCoin`: base coin input을 위한 optional `TransactionArgument`이다.
+  - `quoteCoin`: quote coin input을 위한 optional `TransactionArgument`이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/deepbook.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="swapExactQuantityWithManager" signatureOnly/>
+
+### Examples
+
+다음 예시는 `DeepBookMarketMaker` class에 넣을 수 있는 custom swap 함수를 보여준다. Base coin, quote coin, deep coin은 인자로 명시적으로 전달하지 않는 한 사용자 address에서 사용 가능한 coin을 기준으로 자동 결정된다. 사용자는 출력 coin을 자신의 address로 전송하거나 그 출력을 사용해 다른 작업을 실행할 수 있다.
+
+```tsx
+swapExactBaseForQuote = (tx: Transaction) => {
+  const [baseOut, quoteOut, deepOut] = this.deepBook.swapExactBaseForQuote({
+    poolKey: 'SUI_DBUSDC',
+    amount: 1, // swap할 SUI 수량
+    deepAmount: 1, // fee로 지불할 DEEP 수량이며 초과분은 반환된다
+    minOut: 0.1, // 수신할 최소 DBUSDC 수량이며 그렇지 않으면 transaction이 실패한다
+  })(tx);
+
+  // 받은 coin을 자신의 address로 전송한다
+  tx.transferObjects([baseOut, quoteOut, deepOut], this.getActiveAddress());
+};
+
+swapExactQuoteForBase = (tx: Transaction) => {
+  const [baseOut, quoteOut, deepOut] = this.deepBook.swapExactQuoteForBase({
+    poolKey: 'SUI_DBUSDC',
+    amount: 1, // swap할 DBUSDC 수량
+    deepAmount: 1, // fee로 지불할 DEEP 수량이며 초과분은 반환된다
+    minOut: 0.1, // 수신할 최소 SUI 수량이며 그렇지 않으면 transaction이 실패한다
+  })(tx);
+
+  // 받은 coin을 자신의 address로 전송한다
+  tx.transferObjects([baseOut, quoteOut, deepOut], this.getActiveAddress());
+};
+```

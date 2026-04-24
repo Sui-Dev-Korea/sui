@@ -1,0 +1,197 @@
+---
+title: 데이터 관리
+description: Sui network의 data management를 상위 수준에서 설명하며, 이를 사용해 Sui 풀 노드 구성을 최적화할 수 있다.
+keywords: [ data management, run data management, what is data management, full node data, full node data management, rpc, pruning, data pruning, pruning policies, object pruning, object history ]
+---
+
+
+Sui 풀 노드의 data를 관리하는 일은 건전한 Sui network를 유지하는 데 중요하다. 이 주제는 풀 노드 구성을 최적화하는 데 사용할 수 있는 Sui 풀 노드의 data management를 상위 수준에서 설명한다. pruning policies와 archival settings 같은 Sui 풀 노드 관련 자세한 내용은 [Sui 풀 노드 구성](/operators/full-node/sui-full-node)를 참고한다.
+
+## Basic Sui full node functionality
+
+최소 기능의 Sui 풀 노드는 Sui validators가 commit하는 모든 transactions를 실행한다. Sui 풀 노드는 시스템에 새 transactions를 제출하는 일도 orchestrate한다:
+
+![Sui 풀 노드의 기본 기능](../images/fn-basic-functionality.png "기본 Sui 풀 노드의 동작을 보여주는 다이어그램.")
+
+앞의 이미지는 data가 풀 노드를 통해 어떻게 흐르는지 보여준다:
+
+1. **`State sync` protocol:** Sui 풀 노드는 state synchronization을 달성하기 위해 다음을 수행한다:
+   - p2p gossip-like protocol을 통해 commit된 checkpoints에 대한 정보를 가져온다.
+   - effects가 validator quorum이 인증한 effects와 일치하는지 검증하기 위해 transactions를 로컬에서 실행한다.
+   - 그에 따라 최신 object 값으로 로컬 state를 업데이트한다.
+2. **RPCs:** Sui 풀 노드는 시스템의 최신 state를 query하기 위한 Sui RPC endpoints를 노출하며, 여기에는 최신 state metadata(예: `sui_getProtocolConfig`)와 최신 state object data (`sui_getObject`)가 모두 포함된다.
+3. **Transaction submission:** 각 Sui 풀 노드는 Sui validators quorum에 대한 transaction submission을 orchestrate하고, 설정된 경우 선택적으로 확정된 transactions를 로컬에서 실행하는데(이를 fast path execution이라고 한다), 이렇게 하면 checkpoint synchronization을 기다리지 않아도 된다.
+
+## Sui full node data and RPC types
+
+Sui 풀 노드는 영구 store에 여러 범주의 data를 저장한다.
+
+:::info
+
+per-epoch Sui store는 이 주제의 범위를 벗어난다. Sui는 authority 및 consensus 작업을 위해 per-epoch store를 내부적으로 사용한다. 이 store는 각 epoch 시작 시 재설정된다.
+
+:::
+
+Sui 풀 노드는 다음 유형의 data를 저장한다:
+
+1. **Transactions with associated effects and events:** Sui는 고유한 transaction digest를 사용해 transaction, 그 effects, 그리고 발생한 events에 대한 정보를 조회한다. 기본적인 풀 노드 작업에는 과거 transaction 정보가 필요하지 않다. drive space를 절약하려면 pruning을 활성화해 이 과거 data를 제거할 수 있다.
+2. **Checkpoints:** Sui는 commit된 transactions를 checkpoints로 묶은 다음, 그 checkpoints를 사용해 state synchronization을 달성한다. Checkpoints는 추가 integrity metadata를 포함하는 transaction digests를 유지한다. Sui 풀 노드는 transactions를 실행하고 제출하는 데 checkpoints의 data가 필요하지 않으므로, 이 data에도 pruning을 구성할 수 있다.
+3. **Objects:** objects를 변경하는 transactions는 새로운 object versions를 만든다. 각 object는 object를 식별하는 데 사용되는 고유한 `(objectId, version)` 쌍을 가진다. Sui 풀 노드는 transactions를 실행하고 제출하는 데 과거 object versions가 필요하지 않으므로, 풀 노드가 이 data도 pruning하도록 구성할 수 있다.
+4. **Indexing information:** 풀 노드의 기본 구성은 commit된 transactions를 후처리하는 것이다. 즉, 효율적인 aggregation 및 filtering queries를 가능하게 하도록 commit된 정보를 indexing한다. 예를 들어, indexing은 특정 sender의 과거 transactions를 모두 가져오거나 address가 소유한 모든 objects를 찾는 데 유용할 수 있다.
+
+Sui 풀 노드는 40개가 넘는 RPC types를 지원하며, 여기에는 다음 범주가 포함된다:
+
+* **General metadata**, 예: `sui_getProtocolConfig`, `sui_getChainIdentifier`. 이러한 requests는 추가 indexing에 의존하지 않으며, 처리에 과거 data가 필요하지 않다.
+* **Direct lookups**, 예: `sui_getObject`, `sui_getEvents`. 이러한 requests는 추가 indexing에 의존하지 않지만, `sui_tryGetPastObject`와 `sui_getTransactionBlock` 같은 경우에는 과거 data가 필요하다.
+* **Accumulation and filtering queries**, 예: `suix_getOwnedObjects`, `suix_getCoins`. 이러한 requests는 추가 indexing에 의존하며, `suix_queryTransactionBlocks` 같은 경우에는 과거 data가 필요하다.
+
+:::info
+
+<ImportContent source="data-serving-msg" mode="snippet" />
+
+:::
+
+## Sui archival data
+
+Sui archive 인스턴스는 genesis 이후의 전체 Sui transaction history를 database-agnostic 형식으로 저장한다. 여기에는 transactions(클라이언트 인증 포함), effects, events, checkpoints에 대한 정보가 포함된다. 따라서 archival storage는 data auditing과 과거 transactions 재실행에 사용할 수 있다.
+
+처음부터 시작하는 풀 노드는 아카이브를 저장하는 cloud bucket을 가리키도록 `fullnode.yaml` configuration file에서 [configuring archival fallback](/operators/data-management/archives#set-up-archival-fallback)을 설정해, 주어진 archive에서 Sui genesis 이후 발생한 transactions를 replay하고(따라서 다시 검증하고) 시작할 수 있다.
+
+피어로부터 state sync protocol을 통해 checkpoints를 가져오지 못하는 Sui 풀 노드는 미리 구성한 archive에서 누락된 checkpoints를 다운로드하는 방식으로 폴백한다. 이 폴백을 통해 풀 노드는 peers의 pruning policies와 관계없이 시스템의 나머지 부분을 따라잡을 수 있다.
+
+## Sui node pruning policies
+
+앞서 설명했듯이, 지속 가능한 disk usage를 위해서는 Sui nodes(validators와 풀 노드)가 과거 object versions 정보와 해당 effects 및 events를 포함한 과거 transactions 정보, 그리고 오래된 checkpoint data를 pruning해야 한다.
+
+transaction pruner와 object pruner는 모두 백그라운드에서 실행된다. RocksDB에서 entries를 논리적으로 삭제하면 결국 disk상의 데이터에 대한 물리적 compaction이 촉발되며, 이는 RocksDB background jobs가 제어한다. 따라서 pruning이 disk usage에 미치는 효과는 즉각적이지 않으며 며칠이 걸릴 수 있다.
+
+object pruning policies에 대해 더 알아보려면 [Object pruning](#object-pruning)을 참고한다. pruner는 두 가지 모드로 구성할 수 있다:
+* **aggressive pruning** (`num-epochs-to-retain: 0`): Sui는 오래된 object versions를 가능한 한 빨리 pruning한다. 이 모드는 node가 read queries를 제공하지 않을 때만 사용해야 한다.
+* **epoch-based pruning** (`num-epochs-to-retain: X`): Sui는 X epochs 이후에 오래된 object versions를 pruning한다.
+
+:::tip
+일부 history(5 epochs)를 유지하면 remote storage보다 local disk에서 더 많은 lookups가 가능해져 풀 노드의 RPC 성능이 더 좋아진다.
+:::
+
+transaction pruning policies에 대해 더 알아보려면 [Transaction pruning](#transaction-pruning)을 참고한다. transaction pruning을 구성하려면 `num-epochs-to-retain-for-checkpoints: X` config 옵션을 지정한다. transactions, effects, events를 포함한 checkpoints는 X epochs 전까지 pruning된다. transaction pruning은 2 epochs로 설정하는 것을 권장한다.
+
+## Object pruning {#object-pruning}
+
+Sui는 transaction execution의 일부로 database에 새로운 object versions를 추가한다. 이로 인해 이전 versions는 garbage collection 대상이 된다. 하지만 pruning이 없으면 database 성능이 저하될 수 있고 많은 storage space가 필요하다. Sui는 각 checkpoint에서 pruning 대상 object를 식별한 다음 백그라운드에서 pruning을 수행한다.
+
+Sui node에서 pruning을 활성화하려면 `fullnode.yaml` 파일에 `authority-store-pruning-config` config를 추가한다:
+```yaml
+authority-store-pruning-config:
+  # 유지할 epoch db 수
+  # object pruning과는 관련이 없다
+  num-latest-epoch-dbs-to-retain: 3
+  # object pruning task를 실행하는 간격(초)
+  # object pruning과는 관련이 없다
+  epoch-db-pruning-period-secs: 3600
+  # object pruning을 수행하기 전에 대기할 epoch 수.
+  # 0으로 설정하면 Sui는 가능한 한 빨리 오래된 object versions를 pruning한다.
+  # 이를 *aggressive pruning*이라고도 하며, 가능한 가장 낮은 disk usage로
+  # 가장 효과적인 garbage collection 방식을 제공한다.
+  # 이 설정은 오래된 object versions가 transactions를 실행하는 데 필요하지 않은
+  # Sui Validator nodes에 권장된다.
+  # 1로 설정하면 Sui는 현재 epoch 이전의 transaction checkpoints에 있는
+  # object versions만 pruning한다. 일반적으로 N(N >= 1)으로 설정하면 Sui는
+  # `current - N` epoch까지의 checkpoints에서 나온 object versions만 pruning한다.
+  # 따라서 database에 object의 여러 versions가 존재할 수 있다.
+  # 이 설정은 Sui 풀 노드에 권장되는데, 이러한 노드는 ID와 Version으로
+  # object를 조회해야 하는 RPC requests를 처리해야 할 수 있기 때문이다
+  # (최신 version만이 아니라).
+  # 하지만 풀 노드가 RPC requests를 처리하지 않는다면 aggressive pruning도
+  # 활성화해야 한다.
+  num-epochs-to-retain: 1
+  # 고급 설정: 한 batch에서 pruning할 최대 checkpoint 수.
+  # 기본 설정은 대부분의 사용 사례에 적합하다.
+  max-checkpoints-in-batch: 10
+  # 고급 설정: 한 번의 pruning run batch에서 처리할 최대 transaction 수.
+  # 기본 설정은 대부분의 사용 사례에 적합하다.
+  max-transactions-in-batch: 1000
+```
+## Transaction pruning {#transaction-pruning}
+
+transaction pruning은 이전 transactions와 effects를 database에서 제거한다. Sui는 주기적으로 checkpoints를 생성한다. 각 checkpoint에는 해당 checkpoint 동안 발생한 transactions와 그에 연결된 effects가 포함된다.
+
+Sui는 checkpoints가 완료된 뒤 백그라운드에서 transaction pruning을 수행한다.
+
+풀 노드 또는 validator node에서 transaction pruning을 활성화하려면 node의 `authority-store-pruning-config` config에 `num-epochs-to-retain-for-checkpoints`를 추가한다:
+
+```yaml
+authority-store-pruning-config:
+  num-latest-epoch-dbs-to-retain: 3
+  epoch-db-pruning-period-secs: 3600
+  num-epochs-to-retain: 0
+  max-checkpoints-in-batch: 10
+  max-transactions-in-batch: 1000
+  # transaction pruning을 수행하기 전에 대기할 epoch 수.
+  # N(N >= 2)이면 Sui는 `current - N` epoch까지의 checkpoints에서
+  # transactions와 effects를 pruning한다. Sui는 현재 epoch와
+  # 바로 이전 epoch의 transactions와 effects는 절대 pruning하지 않는다.
+  # N = 2는 RPC requests를 제공하지 않는 Sui Validator nodes와
+  # Sui 풀 노드에 권장되는 설정이다.
+  num-epochs-to-retain-for-checkpoints: 2
+  # 개별 database files가 주기적으로 compaction process를 거치도록 보장한다.
+  # 이렇게 하면 disk space를 회수하고 fragmentation 문제를 피하는 데 도움이 된다
+  periodic-compaction-threshold-days: 1
+```
+
+:::info
+
+transactions를 pruning하더라도 archival nodes는 뒤처진 peer nodes가 어떤 정보도 잃지 않도록 도울 수 있다. 자세한 내용은 [Sui 아카이브](/operators/data-management/archives)를 참고한다.
+
+:::
+
+
+## Pruning policy examples
+
+이 섹션의 예시를 사용해 Sui 풀 노드를 구성한다. 예시를 그대로 복사한 다음, 필요하다면 환경에 맞게 값을 수정할 수 있다.
+
+### Validator and State Sync full node
+
+이 구성은 disk usage를 최소화한다. read traffic을 제공하지 않는 validators와 state sync 풀 노드에 적합하다. 이 구성을 사용하는 풀 노드는 indexing이나 과거 data가 필요한 queries에 응답할 수 없다.
+
+```yaml
+# node에서 Sui data의 indexing을 생성하거나 유지하지 않는다
+enable-index-processing: false
+
+authority-store-pruning-config:
+  # 오래된 object versions를 즉시 pruning한다.
+  num-epochs-to-retain: 0
+  # 지난 epochs의 과거 transactions를 pruning한다
+  num-epochs-to-retain-for-checkpoints: 2
+```
+
+### Full node with indexing but limited object history
+
+이 설정은 최신 state에 더해 secondary indexing도 관리하지만, 몇 epoch가 지나면 과거 data는 pruning한다. 이 구성을 사용하는 풀 노드는 다음을 수행한다:
+
+- `suix_getBalance()` 같은 indexing이 필요한 RPC queries에 응답한다.
+- 과거 transactions가 필요한 RPC queries는 remote key-value store에서 data를 가져오는 폴백을 통해 응답한다: `sui_getTransactionBlock()`.
+
+```yaml
+authority-store-pruning-config:
+  # 더 나은 RPC 성능을 위해 object versions 5 epochs를 유지한다
+  num-epochs-to-retain: 5
+  # 지난 epochs의 과거 transactions를 pruning한다
+  num-epochs-to-retain-for-checkpoints: 2
+```
+
+### Full node with full object history but pruned transaction history
+
+이 구성은 전체 object history를 관리하면서도 과거 transaction history는 계속 pruning한다. 이 구성을 사용하는 풀 노드는 transaction data에 대해서는 transaction query fallback을 사용해, `sui_getTransactionBlock()`의 `showBalanceChanges` filter처럼 과거 objects가 필요한 queries를 포함한 모든 과거 및 indexing queries에 응답할 수 있다.
+
+가장 큰 주의점은 현재 설정에서는 **transaction pruner**가 **object pruner**보다 앞서 진행된다는 점이다. 이미 pruning된 transactions가 수정한 objects를 **object pruner**가 제대로 정리하지 못할 수 있다. 이 구성을 사용하는 풀 노드에서는 disk space 증가를 면밀히 모니터링해야 한다.
+
+일반적인(pruned) snapshots에 더해, Mysten Labs는 이 구성을 사용하는 operators가 이용할 수 있도록 object versions의 전체 history를 포함하는 특별한 RocksDB snapshots도 유지한다.
+
+```yaml
+authority-store-pruning-config:
+  # num of epochs에 u64::max를 사용해 object versions를 pruning하지 않는다.
+  # object history를 더 작게 하려면 더 낮은 값을 설정한다.
+  num-epochs-to-retain: 18446744073709551615
+  # 지난 epochs의 과거 transactions를 pruning한다
+  num-epochs-to-retain-for-checkpoints: 2
+```

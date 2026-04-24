@@ -1,0 +1,70 @@
+---
+title: Move 개념
+description: Move는 온체인 objects를 조작하는 안전한 packages를 작성하기 위한 오픈 소스 언어이다.
+keywords: [ move on sui, move language, what is move, move objects, move smart contracts, move objects, move packages, move, move concepts ]
+---
+
+
+<ImportContent source="move-summary" mode="snippet" />
+
+Move를 사용하여 자산과 스마트 계약을 나타내는 프로그래밍 가능한 Sui objects를 정의하고, 생성하고, 관리할 수 있다. Sui의 [object system](/develop/sui-architecture/object-model)은 Move에 새 기능을 추가하는 동시에 추가 제약을 부과하여 구현된다.
+
+Sui의 Move는 다른 블록체인의 Move와 몇 가지 중요한 차이점이 있다. Sui는 Move의 보안성과 유연성을 활용하면서 처리량을 크게 개선하고, 확정성 지연을 줄이고, Move 프로그래밍을 더 쉽게 만드는 기능으로 이를 강화한다. 전체 내용은 [Sui Smart Contracts Platform](/doc/sui.pdf) 백서를 참조하라.
+
+:::tip
+
+Sui 문서에서 Move language를 언급하는 경우 해당 콘텐츠는 Sui blockchain의 특정 Move 구현을 문서화한다. 관련이 있는 경우 문서는 Move language의 원래 사용 사례를 Move on Diem으로 명시적으로 언급한다.
+
+:::
+
+## Key differences {#differences}
+
+Sui의 Move 주요 차이점은 다음을 포함한다:
+
+- Sui는 자체 [object-centric global storage](#global-storage)를 사용한다
+
+- Addresses는 [object IDs](#object-ids)를 나타낸다
+
+- Sui objects는 [globally unique IDs](#global-unique)를 가진다
+
+- Sui에는 [module initializers (`init`)](#module-initializers)가 있다
+
+- Sui에는 [`entry` keyword](#entry-functions)에 대한 고유한 사용 사례가 있다
+
+### Object-centric global storage {#global-storage}
+
+Move on Diem에서는 global storage가 프로그래밍 모델의 일부이다. 리소스와 modules는 address를 가진 account가 소유하는 global storage에 보관된다. Transactions는 `move_to` 및 `move_from` 같은 특수 연산을 사용해 실행 시 global storage의 어떤 account에서든 자유롭게 리소스에 접근할 수 있다.
+
+이 접근 방식은 어떤 transactions가 동일한 리소스를 두고 경쟁하는지 아닌지를 정적으로 판단할 수 없기 때문에 확장성 문제를 유발한다. 이는 스마트 계약이 일반적으로 큰 내부 mappings에 account 정보를 저장하여 처리량을 제한하는 다른 블록체인의 확장성 문제와 유사하다.
+
+Sui의 Move는 global storage와 관련 연산을 없앰으로써 이 확장성 문제를 해결한다. Sui에 objects(리소스와 대조됨)와 packages(modules 집합)가 저장될 때 이들 각각에는 고유 식별자가 부여된다. 트랜잭션의 모든 inputs는 이러한 고유 식별자를 사용해 미리 명시적으로 지정되어 네트워크가 겹치지 않는 inputs를 가진 transactions를 병렬로 스케줄링할 수 있게 한다.
+
+### Addresses represent object IDs {#object-ids}
+
+Move on Diem에는 global storage의 account addresses를 나타내는 데 사용되는 16 byte `address` 타입이 있다. 16 byte address는 Move on Diem의 보안 모델에 충분하다.
+
+Sui에는 global storage가 없으므로 `address`는 objects와 accounts 모두에 사용되는 32 byte 식별자로 재사용된다. 각 transaction은 transaction context에서 접근할 수 있는 account(송신자)가 서명하고 각 object는 `id: UID` 필드에 래핑된 `address`를 저장한다.
+
+Addresses에 대한 개요는 The Move Book의 [address section](https://move-book.com/reference/primitive-types/address.html)을 참조하고 구현 세부 사항은 Sui framework의 <UnsafeLink href="/references/framework/sui_sui/object">object.move</UnsafeLink>를 참조하라.
+
+### Object with key ability, globally unique IDs {#global-unique}
+
+Move on Diem에서 `key` ability는 해당 타입이 리소스임을 나타내며 이는 account address와 함께 global storage의 key로 사용할 수 있음을 의미한다.
+
+Sui에서 `key` ability는 struct가 object type임을 나타내며 struct의 첫 번째 필드가 온체인 object의 고유 address를 담는 `id: UID` 시그니처를 가져야 한다는 추가 요구 사항이 있다. Sui의 bytecode verifier는 새 objects에 항상 새로운 `UID`가 할당되도록 보장한다. 식별자는 절대 재사용되지 않는다.
+
+### Module initializers {#module-initializers}
+
+[object-centric global storage](#global-storage)에서 설명했듯이 Move modules를 Sui storage에 게시한다. Sui runtime은 module publication 시점에 한 번만 module별 데이터를 사전 초기화하기 위해 모듈에 선택적으로 정의하는 특수 initializer 함수를 실행하는데, 예를 들어 singleton objects를 생성할 때 사용한다. 자세한 내용은 The Move Book의 [module initializer section](https://move-book.com/programmability/module-initializer.html)을 참조하라.
+
+### Entry functions {#entry-functions}
+
+`entry` keyword는 Sui의 Move에서 특정 사용 사례를 가진다. 어떤 기능을 온체인 누구나 사용할 수 있게 하되 다른 Move 로직으로 래핑되지는 않게 하고 싶을 때 `entry`를 사용한다. 즉 함수는 [programmable transaction blocks (PTBs)](/develop/transactions/ptbs/prog-txn-blocks)에서는 호출할 수 있지만 다른 Sui packages에서는 호출할 수 없다. 예를 들어 이는 Sui의 온체인 randomness 표준을 사용할 때 다른 스마트 계약 엔지니어가 randomness 생성을 사실상 프런트런 또는 백런하는 로직을 만들지 못하게 하는 데 활용된다. 자세한 내용은 [온체인 랜덤니스](/sui-stack/on-chain-primitives/randomness-onchain#use-non-public-entry-functions)에서 확인하라.
+
+함수를 private로 만들고(`public` visibility keyword를 추가하지 않는다) `entry fun example_function`과 같이 `entry` keyword로 표시하라.
+
+이 Sui 고유 사용 사례 외에도 `entry` functions에는 다음과 같은 다른 규칙과 제한이 있다:
+
+- `entry` functions는 `drop` ability를 가진 타입만 반환할 수 있다.
+
+- `entry` functions는 같은 PTB의 비-`entry` functions에서 inputs로 사용되지 않은 objects만 inputs로 받을 수 있다.

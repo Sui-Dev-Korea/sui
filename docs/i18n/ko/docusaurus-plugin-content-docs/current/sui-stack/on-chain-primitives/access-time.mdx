@@ -1,0 +1,71 @@
+---
+title: 온체인 시간 접근하기
+description: "트랜잭션에 네트워크 기반 시간을 사용한다. Sui는 Sui 패키지에서 near-real time 또는 epoch time을 포착하는 `Clock` module을 제공한다."
+keywords: [ network-based time, on-chain time, on-chain time, sui::clock::Clock, clock module, sui::clock::timestamp_ms, epoch timestamps, timestamps, use time in transactions, sui::tx_context ]
+---
+
+
+애플리케이션에 near real-time 측정값(수초 이내)이 필요하다면 Move의 `Clock` module이 제공하는 immutable time reference를 사용한다.
+이 module의 reference 값은 network checkpoint가 생길 때마다 갱신된다.
+현재 시간이 필요하지 않다면 `epoch_timestamp_ms` 함수를 사용해 현재 epoch가 시작된 시점의 timestamp를 참조한다.
+
+## The `sui::clock::Clock` module
+
+현재 timestamp에 접근하려면 transaction의 entry function parameter로 `sui::clock::Clock`에 대한 read-only reference를 전달해야 한다.
+Sui는 address `0x6`에 `Clock` instance를 제공한다.
+새 instance를 만들 수는 없다.
+
+`sui::clock` module의 `timestamp_ms` 함수를 사용해 밀리초 단위의 Unix timestamp를 추출한다.
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/clock.move" mode="code" fun="timestamp_ms" noComments />
+
+아래 예시는 `sui::clock::Clock`의 timestamp를 담은 event를 발생시키는 entry function을 보여준다:
+
+<ImportContent source="examples/move/basics/sources/clock.move" mode="code" noComments />
+
+이전 entry function은 `Clock` parameter의 address로 `0x6`을 전달하여 다음 형식으로 호출한다:
+
+<ImportContent source="info-gas-budget" mode="snippet" />
+
+```sh
+$ sui client call --package <EXAMPLE> --module 'clock' --function 'access' --args '0x6' --gas-budget <GAS-AMOUNT>
+```
+
+`sui::clock::Clock` timestamp는 network가 checkpoint를 생성하는 속도에 맞춰 변하며, 이는 대략 1/4초마다 한 번이다.
+현재 network checkpoint 속도는 [public dashboard](https://metrics.sui.io/public-dashboards/4ceb11cc210d4025b122294586961169)에서 확인한다.
+
+같은 transaction 안에서 `sui::clock::timestamp_ms`를 성공적으로 호출하면 transaction이 즉시 효력을 가지므로 항상 같은 결과가 나오지만, `sui::clock::Clock`의 timestamp는 같은 shared object를 건드리는 transaction 사이에서는 그 외에는 monotonic하다.
+성공한 transaction은 선행 transaction보다 크거나 같은 timestamp를 본다.
+
+`sui::clock::Clock`에 접근해야 하는 transaction은 사용 가능한 유일한 instance가 shared object이므로 반드시 consensus를 거쳐야 한다.
+그 결과 이 기법은 single-owner fastpath를 사용해야 하는 transaction에는 적합하지 않다.
+single-owner와 호환되는 timestamp source는 [Epoch timestamps](#epoch-timestamps)를 참조한다.
+
+이 workflow를 사용하는 transaction은 이를 mutable reference나 value가 아니라 immutable reference로 받아야 한다.
+이렇게 해야 contention을 방지할 수 있는데, `sui::clock::Clock`에 접근하는 transaction은 읽기만 할 수 있으므로 서로에 대해 순서를 정할 필요가 없기 때문이다.
+validator는 이 요구 사항을 충족하지 않는 transaction에 서명하지 않는다.
+`sui::clock::Clock` 또는 `&mut Clock`을 받는 entry function을 포함한 package는 publish에 실패한다.
+
+다음 함수는 `Clock` object를 수동으로 만들고 timestamp를 조작해 `sui::clock::Clock` 의존 코드를 테스트한다.
+이것은 test code에서만 가능하다:
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/clock.move" mode="code" fun="create_for_testing,share_for_testing,increment_for_testing,set_for_testing,destroy_for_testing" noComments />
+
+다음 예시는 `Clock` object를 만들고 이를 증가시킨 다음 값을 검사하는 기본 test를 보여준다:
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/tests/clock_tests.move" mode="code" noComments />
+
+## Epoch timestamps
+
+consensus를 거치지 않는 transaction을 포함한 모든 transaction에 대해 현재 epoch 시작 timestamp에 접근하려면 `sui::tx_context` module의 다음 함수를 사용한다:
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/tx_context.move" mode="code" fun="epoch_timestamp_ms" noComments />
+
+이 함수는 현재 epoch가 시작된 시점을 `u64`의 밀리초 정밀도 Unix timestamp로 반환한다.
+이 값은 epoch가 바뀔 때 대략 24시간마다 한 번 바뀐다.
+
+`sui::test_scenario` 기반 test는 `later_epoch`를 사용해 `epoch_timestamp_ms`를 사용하는 time-sensitive code를 시험할 수 있다:
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/test/test_scenario.move" mode="code" fun="later_epoch" noComments />
+
+`later_epoch`는 test scenario에서 현재 transaction과 epoch를 종료한다는 점에서는 `sui::test_scenario::next_epoch`처럼 동작하지만, 시간의 경과를 시뮬레이션하기 위해 timestamp를 `delta_ms` millisecond만큼 증가시키기도 한다.

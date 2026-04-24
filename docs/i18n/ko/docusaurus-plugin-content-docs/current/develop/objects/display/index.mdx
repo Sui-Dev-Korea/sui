@@ -1,0 +1,24 @@
+---
+title: Object Display
+description: Sui Object Display 표준은 타입의 오프체인 표현(display)을 온체인에서 관리할 수 있게 하는 템플릿 엔진이다.
+keywords: [ Object Display, object, display, display properties, object properties, sui::display, Sui utility objects, Unique objects with dynamic representation, objects with unique static content ]
+pagination_prev: null
+---
+
+:::caution
+
+Object Display V2는 Sui v1.68에서 사용할 수 있게 된다. v1.68을 Devnet, Testnet, Mainnet에서 사용할 수 있는 시점을 확인하려면 [release schedule](https://www.sui.io/networkinfo)을 확인한다.
+
+Sui Object Display V2는 Object Display V1을 대체한다. [자세히 알아보기](/develop/objects/display/display-overview).
+
+Object Display V1은 이미 이를 지원하던 RPC(JSON-RPC, GraphQL)에서 **7월 말**까지 계속 지원된다. 이후에는 온체인 Object Display V1 코드가 제거되고 abort되기 시작한다.
+
+**권장 사항:** Move 코드에서 display를 만들 때는 `sui::display_registry` API를 사용한다. 중간 단계에서는 `migrate_v1_to_v2` 함수를 사용해 legacy display를 마이그레이션하고 V2 `Display<T>`와 `DisplayCap<T>`를 받는다.
+
+기존 V1 display는 모두 **system snapshot migration**으로 V2에 마이그레이션된다. 사전에 해야 할 일은 없다. 스냅샷 이후 준비가 되면 capability를 claim할 수 있다([V2로 마이그레이션](/develop/objects/display/using-display#migrating-to-v2) 참조).
+
+:::
+
+import DocCardList from '@theme/DocCardList';
+
+<DocCardList />

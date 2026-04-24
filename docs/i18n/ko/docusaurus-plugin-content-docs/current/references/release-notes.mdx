@@ -1,8 +1,9 @@
 ---
-sidebar_position: 999
 sidebar_label: '릴리스 노트'
 title: '릴리스 노트'
+sidebar_position: 999
 ---
+
 
 # Release Notes
 
@@ -613,7 +614,7 @@ command `1`에서 생성된 `Coin`이 command `0`의 flash loan에 직접 관여
 
 즉 정적인 규칙 집합은 보통 동적인 규칙 집합보다 설명하고 따르기가 더 쉽다.
 
-하지만 [party objects](https://docs.sui.io/guides/developer/objects/object-ownership/party)는 shared object보다 더 좁은 경우에만 이 제한을 받게 될 것이다.
+하지만 [party objects](https://docs.sui.io/develop/objects/object-ownership/party)는 shared object보다 더 좁은 경우에만 이 제한을 받게 될 것이다.
 
 따라서 우리는 정적 시스템의 명확성을 희생하지 않고도 장기적으로 이 제한이 수용 가능하다고 본다.
 
@@ -1005,7 +1006,7 @@ Migration guidance:
 
 [#21877](https://github.com/MystenLabs/sui/pull/21877): validator gRPC interface에 연결하려면 이제 TLS가 필요하다.
 
-[#22540](https://github.com/MystenLabs/sui/pull/22540): state sync archive fallback의 기본 bucket이 이제 requester pays policy를 사용하며, [docs](https://docs.sui.io/guides/operator/archives)에 따라 sui node의 `state-archive-read-config` section을 갱신해야 한다.
+[#22540](https://github.com/MystenLabs/sui/pull/22540): state sync archive fallback의 기본 bucket이 이제 requester pays policy를 사용하며, [docs](https://docs.sui.io/operators/data-management/archives)에 따라 sui node의 `state-archive-read-config` section을 갱신해야 한다.
 
 #### gRPC
 
@@ -1051,7 +1052,7 @@ Co-authored-by: Brandon Williams &lt;brandon@mystenlabs.com&gt;
 
 [#21877](https://github.com/MystenLabs/sui/pull/21877): validator gRPC interface에 연결하려면 이제 TLS가 필요하다.
 
-[#22540](https://github.com/MystenLabs/sui/pull/22540): state sync archive fallback의 기본 bucket이 이제 requester pays policy를 사용하며, [docs](https://docs.sui.io/guides/operator/archives)에 따라 sui node의 `state-archive-read-config` section을 갱신해야 한다.
+[#22540](https://github.com/MystenLabs/sui/pull/22540): state sync archive fallback의 기본 bucket이 이제 requester pays policy를 사용하며, [docs](https://docs.sui.io/operators/data-management/archives)에 따라 sui node의 `state-archive-read-config` section을 갱신해야 한다.
 
 #### gRPC
 
@@ -1139,7 +1140,7 @@ transaction의 sender를 특정 address로 설정하기 위한 새 `--sender` �
 
 #### Nodes (Validators and Full nodes)
 
-[#21955](https://github.com/MystenLabs/sui/pull/21955): state sync용 Sui archive 메커니즘을 기존 형식에서 checkpoint data ingestion bucket으로 전환하며, full node config의 `state-archive-read-config` section은 `ingestion-url` field를 포함하도록 갱신해야 하고, 가능한 bucket 옵션은 https://docs.sui.io/guides/developer/advanced/custom-indexer#remote-reader 를 참고한다.
+[#21955](https://github.com/MystenLabs/sui/pull/21955): state sync용 Sui archive 메커니즘을 기존 형식에서 checkpoint data ingestion bucket으로 전환하며, full node config의 `state-archive-read-config` section은 `ingestion-url` field를 포함하도록 갱신해야 하고, 가능한 bucket 옵션은 https://docs.sui.io/develop/accessing-data/custom-indexer/build#remote-reader 를 참고한다.
 
 #### CLI
 

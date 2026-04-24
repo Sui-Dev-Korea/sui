@@ -1,0 +1,38 @@
+---
+title: Marlin에 Docker 기반 Nautilus 앱 배포하기
+description: Marlin Oyster는 Nautilus 프레임워크와 통합되어 enclave infrastructure 관리의 운영 오버헤드를 제거한다.
+keywords: [PCR verification, Marlin Oyster, Nautilus, TEE, trusted execution environment, confidential compute, Nitro Enclave, attestation]
+---
+
+
+Nautilus를 사용하려면 AWS Nitro Enclaves를 직접 관리하거나 Marlin Oyster를 사용할 수 있다. enclave를 직접 관리하는 경우 AWS account, networking configuration, enclave image, attestation infrastructure를 직접 관리해야 한다.
+
+Marlin Oyster는 Nautilus 프레임워크와 통합되어 enclave infrastructure 관리의 운영 오버헤드를 제거한다. 이는 deterministic enclave build, provisioning, attestation을 처리한다. 개발자는 Docker image, Oyster CLI, Sui만으로 enclave 기반 앱을 배포하며, AWS와 직접 상호작용할 필요가 없다. Marlin Oyster는 hardware-backed Nitro security, 재현 가능한 enclave measurement(PCR), trust-minimized execution을 포함한 모든 암호학적 보장을 유지한다.
+
+이는 TEE access를 투명하고 탈중앙화된 marketplace로 바꾼다. Sui Move contract를 사용하면 개발자가 job을 제출하고, stablecoin으로 비용을 지불하고, workload를 Oyster operator에게 노출할 수 있다. build는 deterministic하므로 enclave의 무결성과 identity를 완전히 검증할 수 있다.
+
+[Marlin blog](https://blog.marlin.org/scaling-confidential-compute-on-sui-nautilus-and-marlin-oyster-integration)에서 Marlin Oyster와 Nautilus에 대해 더 알아볼 수 있고, [Marlin documentation](https://docs.marlin.org/oyster/introduction-to-marlin/)에서 Marlin에 대해 더 알아볼 수 있다.
+
+## How it works
+
+Marlin Oyster는 다음 workflow를 사용한다:
+
+1. 개발자가 애플리케이션을 빌드하고 이를 Docker image로 패키징한다.
+
+1. 애플리케이션을 실행하려면 Docker image를 Oyster marketplace에서 job으로 배포한다. 개발자는 stablecoin으로 job 비용을 지불한다.
+
+1. Oyster operator가 job submission을 claim하고, Nitro Enclave를 provision하며, 애플리케이션 workload를 실행한다. Oyster operator는 애플리케이션 logic을 변경할 수 없다.
+
+1. enclave는 애플리케이션 code에 대한 암호학적 검증 역할을 하는 PCR measurement를 생성한다. Sui Move contract는 이 PCR measurement를 온체인에서 검증할 수 있다.
+
+이 workflow는 자체 관리되는 Nautilus deployment와 동일한 암호학적 보장을 제공한다.
+
+## Custom PCR verification
+
+Sui는 custom Platform Configuration Register(PCR) verification을 지원한다. PCR verification은 AWS Nitro Enclaves가 격리된 환경에서 실행 중인 code가 진짜이고 수정되지 않았는지 확인하는 데 사용한다. Nautilus는 trust assumption 없는 검증 가능한 confidential compute의 한 형태를 제공하고, confidential app이 자신의 code가 trusted execution environment (TEE)에서 실행 중이며 변조되지 않았음을 증명할 수 있는 사용 사례를 가능하게 하기 위해 custom PCR verification을 사용한다.
+
+## Example
+
+[Sui Oyster demo application](https://github.com/marlinprotocol/sui-oyster-demo)을 reference implementation으로 사용해 빌드를 시작할 수 있다. 이 예제 애플리케이션은 Oyster enclave를 사용해 탈중앙화 price oracle을 생성하고 배포한다. 예제에서 데이터는 안전하게 가져오고, Nitro Enclave로 서명하고, PCR attestation을 사용하여 온체인에서 signature로 검증한다.
+
+프로젝트의 [README](https://github.com/marlinprotocol/sui-oyster-demo)에서 더 알아볼 수 있다.

@@ -1,0 +1,185 @@
+---
+title: 불변 객체
+description: Immutable objects는 변경, 전송, 삭제가 불가능하다. Immutable object는 소유자를 가질 수 없으며 누구나 사용할 수 있다.
+keywords:
+  - immutable objects
+  - objects immutable
+  - create immutable object
+  - convert object
+  - use immutable object
+  - test immutable object
+---
+
+
+Sui의 object는 서로 다른 소유권 유형을 가지며, 주요 범주는 두 가지이다: immutable object와 mutable object. Immutable object는 변경, 전송, 삭제가 불가능하다. 이러한 object는 owner가 없으며 모든 사용자가 자유롭게 접근할 수 있다.
+
+## Create immutable object
+
+Object를 immutable하게 만들기 위해서는 [transfer module](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/transfer.move) 에서 <code>public_freeze_object</code> 함수를 호출해야 한다:
+
+```move
+public native fun public_freeze_object<T: key>(obj: T);
+```
+
+이 함수는 object를 영구적으로 immutable 상태로 만든다. 이 작업은 되돌릴 수 없다. 수정이 필요하지 않다는 것이 확실할 때에만 object를 freeze해야 한다.
+
+이 함수의 사용 예시는 [color_object example module tests](https://github.com/MystenLabs/sui/blob/main/examples/move/color_object/sources/example.move) 중 하나에서 확인할 수 있다. 이 테스트는 새로운 (owned) `ColorObject`를 생성한 후 `public_freeze_object` 를 호출하여 immutable object로 변환한다.
+
+```move
+{
+    ts.next_tx(alice);
+    // Create a new ColorObject
+    let c = new(255, 0, 255, ts.ctx());
+    // Make it immutable.
+    transfer::public_freeze_object(c);
+};
+```
+
+이 테스트에서는 처음에 `ColorObject`를 소유하고 있어야 한다. Object를 freeze한 이후에는 immutable 상태가 되며, owner가 사라진다.
+
+`transfer::public_freeze_object` 함수는 object를 값으로 전달해야 한다. 만약 object를 mutable reference로 전달할 수 있다면, `transfer::public_freeze_object` 호출 이후에도 object를 변경할 수 있게 되어 immutable 상태가 되어야 한다는 원칙과 모순된다.
+
+대안으로는 생성 시점에 immutable object를 만드는 API를 제공할 수 있다:
+
+```move
+public fun create_immutable(red: u8, green: u8, blue: u8, ctx: &mut TxContext) {
+    let color_object = new(red, green, blue, ctx);
+    transfer::public_freeze_object(color_object)
+}
+```
+
+이 함수는 새로운 `ColorObject`를 생성하고, owner가 생기기 전에 즉시 immutable 상태로 만든다.
+
+## Use immutable object
+
+Object가 immutable 상태가 되면, Sui Move에서 이 object를 사용할 수 있는 규칙이 달라진다: immutable object는 `&T` 형태의 읽기 전용(immutable) reference로만 Sui Move entry 함수에 전달할 수 있다.
+
+모든 네트워크 참여자는 immutable object에 접근할 수 있다.
+
+이제 한 object의 값을 다른 object로 복사하는 함수를 살펴보자:
+
+```move
+public fun copy_into(from: &ColorObject, into: &mut ColorObject);
+```
+
+이 함수에서는 누구나 첫 번째 인자인 `from`으로 immutable object를 전달할 수 있지만, 두 번째 인자로는 전달할 수 없다. Immutable object는 변경할 수 없기 때문에, 여러 transaction이 동시에 동일한 immutable object를 사용하더라도 data race가 발생하지 않는다. 따라서 immutable object의 존재는 consensus에 어떤 요구 사항도 부과하지 않는다.
+
+## Test immutable object
+
+Unit test에서 immutable object와 상호작용하기 위해서는 `test_scenario::take_immutable<T>`를 사용하여 global storage에서 immutable object wrapper를 가져오고, `test_scenario::return_immutable` 을 사용하여 wrapper를 global storage로 다시 반환한다.
+
+Immutable object는 오직 read-only reference를 통해서만 접근할 수 있기 때문에 `test_scenario::take_immutable<T>` 함수가 필요하다. `test_scenario` runtime은 이 immutable object의 사용을 추적한다. Compiler가 다음 transaction이 시작되기 전 `test_scenario::return_immutable`을 통해 object를 반환하지 않으면 테스트가 중단된다.
+
+이는 다음 예시에서 확인할 수 있다:
+
+```move
+let sender1 = @0x1;
+let scenario_val = test_scenario::begin(sender1);
+let scenario = &mut scenario_val;
+{
+    let ctx = test_scenario::ctx(scenario);
+    color_object::create_immutable(255, 0, 255, ctx);
+};
+scenario.next_tx(sender1);
+{
+    // has_most_recent_for_sender returns false for immutable objects.
+    assert!(!test_scenario::has_most_recent_for_sender<ColorObject>(scenario))
+};
+```
+
+해당 테스트는 `sender1` transaction을 제출하며, immutable object를 생성하려고 시도한다.
+
+`has_most_recent_for_sender<ColorObject>` 함수는 해당 object가 더 이상 소유되지 않기 때문에 더 이상 `true`를 반환하지 않는다. 해당 object를 다시 소유하기 위해서는:
+
+```move
+// Any sender can work.
+let sender2 = @0x2;
+scenario.next_tx(sender2);
+{
+    let object = test_scenario::take_immutable<ColorObject>(scenario);
+    let (red, green, blue) = color_object::get_color(object);
+    assert!(red == 255 && green == 0 && blue == 255)
+    test_scenario::return_immutable(object);
+};
+```
+
+이 object가 실제로 누구에게도 소유되지 않았음을 보여주기 위해, 다음 transaction을`sender2`로 시작한다. `take_immutable`이 사용되었으며 성공했다는 점에 주목해야 한다. 이는 모든 sender가 immutable object를 가져올 수 있음을 의미한다. Object를 반환하려면 `return_immutable` 함수를 호출한다.
+
+객체의 변경 불가능함을 검증하기 위해서는 `ColorObject`를 수정하려는 함수를 생성한다:
+
+```move
+public fun update(
+    object: &mut ColorObject,
+    red: u8, green: u8, blue: u8,
+) {
+    object.red = red;
+    object.green = green;
+    object.blue = blue;
+}
+```
+
+앞서 배운 것처럼, `ColorObject`는 immutable 상태일 경우 실패한다.
+
+## On-chain interactions
+
+먼저 자신이 소유한 object를 확인한다:
+
+```sh
+$ export ADDR=`sui client active-address`
+```
+
+```sh
+$ sui client objects $ADDR
+```
+
+Sui Client CLI를 사용하여 `ColorObject` 코드를 on-chain에 publish한다:
+
+<ImportContent source="info-gas-budget" mode="snippet" />
+
+```sh
+$ sui client publish $ROOT/examples/move/color_object --gas-budget <GAS-AMOUNT>
+```
+
+`$PACKAGE` 환경 변수가 설정되어 있다면, package object ID를 해당 변수에 할당한다. 이후 새로운 `ColorObject`를 생성한다:
+
+```sh
+$ sui client call --gas-budget <GAS-AMOUNT> --package $PACKAGE --module "color_object" --function "create" --args 0 255 0
+```
+
+새로 생성된 object ID를 `$OBJECT`에 저장한다. 현재 활성화된 주소에 있는 object 목록을 확인한다:
+
+```sh
+$ sui client objects $ADDR
+```
+
+`$OBJECT`로 사용한 ID를 가진 object가 표시되어야 한다. Immutable object로 변환하기 위해서는:
+
+```sh
+$ sui client call --gas-budget <GAS-AMOUNT> --package $PACKAGE --module "color_object" --function "freeze_object" --args \"$OBJECT\"
+```
+
+다시 object 목록을 확인한다:
+
+```sh
+$ sui client objects $ADDR
+```
+
+`$OBJECT`는 더 이상 목록에 표시되지 않는다. 다음 명령어를 사용해 object 정보를 조회하면 immutable 상태임을 확인할 수 있다:
+
+```sh
+$ sui client object $OBJECT
+```
+
+출력 결과에는 다음과 같은 정보가 포함된다:
+
+```sh
+Owner: Immutable  // This field shows the object's immutable status
+```
+
+이 object를 변경하려 시도할 경우, 다음과 같은 결과가 나타난다:
+
+```sh
+$ sui client call --gas-budget <GAS-AMOUNT> --package $PACKAGE --module "color_object" --function "update" --args \"$OBJECT\" 0 0 0
+```
+
+출력 결과는 immutable object를 mutable argument로 전달할 수 없음을 나타낸다.

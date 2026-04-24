@@ -1,0 +1,690 @@
+---
+title: 패키지 업그레이드
+description: Sui는 변경 불가능한 속성을 유지하면서 패키지를 업그레이드하는 방법을 제공한다.
+keywords:
+  - upgrading packages
+  - upgrade considerations
+  - how to upgrade a package
+  - how to upgrade
+  - update package
+  - update
+  - how to update
+---
+
+
+Sui smart contracts는 Move 모듈의 컬렉션으로 구성된 변경 불가능한 패키지 object이다. 패키지가 변경 불가능하기 때문에 transaction은 전체 합의 없이도 smart contract에 안전하게 접근할 수 있다(fastpath transactions). 만약 누군가 이러한 패키지를 변경할 수 있다면, 이는 [shared objects](/develop/objects/object-ownership/shared#shared)가 되어 transaction을 완료하기 전에 전체 합의가 필요하다.
+
+그러나 패키지 object를 변경할 수 없다는 점은 코드 개발의 반복적인 특성을 고려할 때 문제가 된다. 빌더는 fastpath transactions의 이점을 계속 누리면서도 자신의 코드를 업데이트하고 다른 개발자의 변경 사항을 가져올 수 있는 능력이 필요하다. 다행히도 Sui 네트워크는 변경 불가능한 속성을 유지하면서 패키지를 업그레이드할 수 있는 메커니즘을 제공한다.
+
+## Upgrade considerations
+
+패키지를 업그레이드하기 전에 고려해야 할 프로세스의 몇 가지 세부 사항이 있다.
+
+예를 들어, 모듈 초기화 함수는 패키지 업그레이드 시 다시 실행되지 않는다. 초기 패키지를 게시할 때 Move는 게시 이벤트 시점에 패키지에 대해 정의한 `init` 함수를 한 번(그리고 오직 한 번만) 실행한다. 패키지의 이후 버전에 포함할 수 있는 모든 `init` 함수는 무시된다. 자세한 내용은 The Move Book의 [Module Initializer](https://move-book.com/programmability/module-initializer.html)를 참조한다.
+
+앞서 언급했듯이 Sui 네트워크의 모든 패키지는 변경 불가능하다. 이것으로 인해 체인에서 오래된 패키지를 삭제할 수 없다. 그 결과, 다른 패키지가 업그레이드된 패키지의 이전 버전에 정의된 메서드와 타입에 접근하는 것을 막을 수 있는 것은 없다. 기본적으로 사용자는 패키지의 이전 버전을 계속 사용하는 것을 선택할 수도 있다. 패키지 개발자로서 이러한 가능성을 인지하고 이를 고려해야 한다.
+
+예를 들어, 원래 패키지에 `increment` 함수를 정의할 수 있다:
+
+```move
+public fun increment(c: &mut Counter) {
+    c.value = c.value + 1;
+}
+```
+
+그 다음 패키지 업그레이드에서는 `increment` 함수에 이벤트 발생을 추가할 수 있다:
+
+```move
+public struct Progress has copy, drop {
+    reached: u64
+}
+
+public fun increment(c: &mut Counter) {
+    c.value = c.value + 1;
+
+    if (c.value % 100 == 0) {
+        event::emit(Progress { reached: c.value });
+    }
+}
+```
+
+이전 버전과 업그레이드된 `increment` 함수를 호출하는 호출자가 혼재되어 있으면, 이전 함수는 `Progress` 이벤트를 인지하지 못하므로 프로세스가 실패한다.
+
+함수 정의 불일치와 유사하게, 구조체의 원래 필드와 동기화된 상태로 유지되어야 하는 dynamic fields를 유지 관리하는 과정에서도 문제에 직면할 수 있다. 이러한 문제를 해결하기 위해 업그레이드의 일부로 새로운 타입을 도입하고 사용자를 해당 타입으로 이전하여 하위 호환성을 깨뜨릴 수 있다. 예를 들어 소유권 증명과 같은 증명을 보여주기 위해 owned object를 사용하고 있고, 문제가 있는 코드를 해결하기 위해 패키지의 새 버전을 개발하는 경우 업그레이드된 패키지에 새로운 타입을 도입할 수 있다. 그런 다음 이전 object를 새로운 object로 교환하는 함수를 패키지에 추가할 수 있다. 로직이 새로운 타입을 가진 object만 인식하므로 사용자가 사실상 업그레이드하도록 강제하게 된다.
+
+사용자가 최신 패키지로 업데이트하도록 하는 또 다른 예로는 패키지에 장부 관리를 위한 shared object가 있는데, 해당 로직에 결함이 있어 기대한 대로 동작하지 않는 경우가 있다. 이전 예와 마찬가지로, 올바른 로직을 가진 업그레이드된 패키지에 정의된 object만 사용자가 사용하도록 하려면 패키지 업그레이드에 새로운 타입과 마이그레이션 함수를 추가한다. 이 프로세스에는 두 개의 transaction이 필요하며, 하나는 업그레이드를 위한 것이고 다른 하나는 기존 shared object를 대체하는 새로운 shared object를 설정하기 위해 업그레이드된 패키지에서 호출하는 것이다. 설정 함수를 보호하기 위해 패키지의 일부로 `AdminCap` object 또는 이와 유사한 것을 생성하여 패키지 소유자인 본인만 해당 함수를 시작할 수 있는 권한을 갖도록 해야 한다. 아마도 더 유용한 방법으로는 shared object에 플래그를 포함시켜 패키지 소유자인 본인이 해당 shared object의 활성화 상태를 전환할 수 있도록 할 수 있다. 마이그레이션을 수행하는 동안 온체인 public에서 해당 object에 대한 접근을 방지하기 위해 활성화 상태를 확인하는 검사를 추가할 수 있다. 물론 이러한 플래그는 로직에 결함이 있는 object를 의도적으로 개발하기 때문이 아니라, 향후 어느 시점에 이와 같은 마이그레이션을 수행할 가능성이 있다고 예상되는 경우에만 생성할 것이다.
+
+### Versioned shared objects
+
+shared object를 포함하는 패키지를 생성할 때는 **패키지의 모든 이전 버전이 온체인에 계속 존재한다**는 점을 고려하여 처음부터 업그레이드와 버저닝을 염두에 두어야 한다. 유용한 패턴은 shared object에 버저닝을 도입하고 버전 검사를 사용하여 패키지의 함수에 대한 접근을 보호하는 것으로, 이를 통해 패키지의 최신 버전에만 shared object에 대한 접근을 제한할 수 있다.
+
+앞서 살펴본 `counter` 예제는, 처음에는 다음과 같은 형태로 시작했을수도 있다:
+
+```move
+module example::counter;
+
+public struct Counter has key {
+    id: UID,
+    value: u64,
+}
+
+fun init(ctx: &mut TxContext) {
+    transfer::share_object(Counter {
+        id: object::new(ctx),
+        value: 0,
+    })
+}
+
+public fun increment(c: &mut Counter) {
+    c.value = c.value + 1;
+}
+```
+
+이 패키지에 대한 업그레이드가 shared object에 대한 접근을 패키지의 최신 버전으로 제한할 수 있도록 하려면 다음을 수행해야 한다:
+
+1. 상수 `VERSION`에 모듈의 현재 버전을 추적한다.
+2. 새로운 `version` 필드에서 shared object인 `Counter`의 현재 버전을 추적한다.
+3. 권한이 필요한 호출을 보호하기 위해 `AdminCap`를 도입하고, 새로운 필드를 통해 `Counter`를 해당 `AdminCap`와 연결한다(이미 shared object 관리를 위한 유사한 타입이 있다면 이를 재사용할 수 있다). 이 cap은 shared object를 버전 간에 마이그레이션하는 호출을 보호하는 데 사용된다.
+4. shared object에 접근하는 모든 함수의 엔트리를 해당 `version`이 패키지 `VERSION`과 일치하는지 확인하는 검사로 보호한다.
+
+이러한 모든 아이디어를 통합한 업그레이드 인식 `counter` 모듈은 다음과 같다:
+
+```move
+module example::counter;
+
+/// 이 카운터에 대한 올바른 관리자가 아님
+const ENotAdmin: u64 = 0;
+
+/// 잘못된 패키지 버전에서 함수 호출
+const EWrongVersion: u64 = 1;
+
+// 1. 모듈의 현재 버전을 추적
+const VERSION: u64 = 1;
+
+public struct Counter has key {
+    id: UID,
+    // 2. shared object의 현재 버전을 추적
+    version: u64,
+    // 3. `Counter`를 해당 `AdminCap`과 연결
+    admin: ID,
+    value: u64,
+}
+
+public struct AdminCap has key {
+    id: UID,
+}
+
+fun init(ctx: &mut TxContext) {
+    let admin = AdminCap { id: object::new(ctx) };
+
+    transfer::share_object(Counter {
+        id: object::new(ctx),
+        version: VERSION,
+        admin: object::id(&admin),
+        value: 0,
+    });
+
+    transfer::transfer(admin, ctx.sender());
+}
+
+public fun increment(c: &mut Counter) {
+    // 4. shared object에 접근하는 모든 함수의 엔트리를 보호
+    //    버전 검사를 통해 보호
+    assert!(c.version == VERSION, EWrongVersion);
+    c.value = c.value + 1;
+}
+```
+
+이 패턴을 사용하여 모듈을 업그레이드하려면 업그레이드에 필요한 구현 변경 사항 외에도 두 가지 추가 변경을 수행해야 한다:
+
+1. 패키지의 `VERSION`을 증가시킨다.
+2. shared object를 업그레이드하기 위해 `migrate` 함수를 도입한다.
+
+다음 모듈은 앞서 논의한 대로 `Progress` 이벤트를 발생시키는 업그레이드된 `counter`이며, 관리자(`AdminCap` 보유자)가 이전 패키지 버전에서 카운터에 접근하는 것을 방지할 수 있는 도구도 제공한다:
+
+```move
+module example::counter;
+
+use sui::event;
+
+/// 이 카운터에 대한 올바른 관리자가 아님
+const ENotAdmin: u64 = 0;
+
+/// 마이그레이션은 업그레이드가 아님
+const ENotUpgrade: u64 = 1;
+
+/// 잘못된 패키지 버전에서 함수 호출
+const EWrongVersion: u64 = 2;
+
+// 1. 패키지의 `VERSION`을 증가
+const VERSION: u64 = 2;
+
+public struct Counter has key {
+    id: UID,
+    version: u64,
+    admin: ID,
+    value: u64,
+}
+
+public struct AdminCap has key {
+    id: UID,
+}
+
+public struct Progress has copy, drop {
+    reached: u64,
+}
+
+fun init(ctx: &mut TxContext) {
+    let admin = AdminCap {
+        id: object::new(ctx),
+    };
+
+    transfer::share_object(Counter {
+        id: object::new(ctx),
+        version: VERSION,
+        admin: object::id(&admin),
+        value: 0,
+    });
+
+    transfer::transfer(admin, ctx.sender());
+}
+
+public fun increment(c: &mut Counter) {
+    assert!(c.version == VERSION, EWrongVersion);
+    c.value = c.value + 1;
+
+    if (c.value % 100 == 0) {
+        event::emit(Progress { reached: c.value })
+    }
+}
+
+// 2. migrate 함수 도입
+entry fun migrate(c: &mut Counter, a: &AdminCap) {
+    assert!(c.admin == object::id(a), ENotAdmin);
+    assert!(c.version < VERSION, ENotUpgrade);
+    c.version = VERSION;
+}
+```
+
+이 버전의 패키지로 업그레이드하려면 패키지 업그레이드를 수행한 다음 후속 transaction에서 `migrate` 함수를 호출해야 한다. `migrate` 함수는 다음과 같은 점에 유의해야 한다:
+
+- `entry` 함수이며 **`public`이 아니다**. 이는 이후 업그레이드에서 해당 함수를 완전히 변경하거나(시그니처 변경 포함) 아예 제거하는 것을 가능하게 한다.
+- `AdminCap`을 인자로 받아 해당 ID가 마이그레이션되는 카운터의 ID와 일치하는지 확인함으로써 이를 권한이 필요한 작업으로 만든다.
+- 모듈의 버전이 실제로 해당 object에 대한 업그레이드인지 확인하는 정상성 검사를 포함한다. 이는 업그레이드 전에 모듈 버전을 증가시키지 못하는 것과 같은 오류를 발견하는 데 도움이 된다.
+
+업그레이드가 성공적으로 완료된 이후에는 이전 버전의 패키지에서 `increment`를 호출하면 버전 검사에서 중단되고, 이후 버전에서의 호출은 성공해야 한다.
+
+### Extensions
+
+이 패턴은 shared object를 포함하는 업그레이드 가능한 패키지의 기초를 이루지만, 패키지의 요구 사항에 따라 여러 방식으로 확장할 수 있다:
+
+- 버전 제약 조건은 더 표현력 있게 만들 수 있다:
+    - 단일 `u64`를 사용하는 대신, 버전을 `String`으로 지정하거나 상한과 하한의 쌍으로 지정할 수 있다.
+    - shared object에 dynamic fields로 마커 타입을 추가하거나 제거함으로써 특정 함수 또는 함수 집합에 대한 접근을 제어할 수 있다.
+- `migrate` 함수는 더 정교하게 만들 수 있으며(shared object의 다른 필드를 수정하거나, dynamic fields를 추가 또는 제거하거나, 여러 shared object를 동시에 마이그레이션하는 등).
+- 여러 transaction에 걸쳐 실행되어야 하는 대규모 마이그레이션은 세 단계 설정으로 구현할 수 있다:
+    - `AdminCap`으로 보호된 호출을 사용하여 shared object의 버전을 센티널 값(예: `U64_MAX`)으로 설정함으로써 일반적인 접근을 비활성화한다.
+    - 여러 transaction에 걸쳐 마이그레이션을 실행한다(예: 많은 양의 object를 이동해야 하는 경우 transaction 한도에 도달하는 것을 피하기 위해 배치로 수행하는 것이 가장 좋다).
+    - shared object의 버전을 다시 사용 가능한 값으로 설정한다.
+
+## Upgrade requirements
+
+패키지를 업그레이드하려면 패키지가 다음 요구 사항을 충족해야 한다:
+
+- 업그레이드하려는 패키지에 대한 `UpgradeTicket`을 보유해야 한다. Sui 네트워크는 패키지를 게시할 때 `UpgradeCap`을 발급하며, 해당 `UpgradeCap`의 소유자는 `UpgradeTicket`을 발급할 수 있다. Sui Client CLI는 이 요구 사항을 자동으로 처리한다.
+- 변경 사항은 이전 버전과 레이아웃 호환성이 있어야 한다.
+    - 기존 `public` 함수 시그니처는 동일하게 유지되어야 한다.
+    - 기존 struct 레이아웃(struct ability 포함)은 동일하게 유지되어야 한다.
+    - 새로운 struct와 함수를 추가할 수 있다.
+    - 기존 함수(public 여부와 무관)의 제네릭 타입 제약을 제거할 수 있다.
+    - 함수 구현을 변경할 수 있다.
+    - `public`이 아닌 함수의 시그니처(`friend` 및 `entry` 함수 시그니처 포함)를 변경할 수 있다.
+
+:::info
+
+의존성이 있는 패키지를 보유하고 있고 해당 의존성이 업그레이드되더라도, 패키지는 자동으로 새로운 버전에 의존하지 않는다. 새로운 의존성을 가리키도록 하려면 자신의 패키지를 명시적으로 업그레이드해야 한다.
+
+:::
+
+## Upgrading
+
+이전 요구 사항을 충족하는 패키지를 업그레이드하려면 다음 플래그에 대한 값을 제공하여 `sui client upgrade` 명령을 사용한다:
+
+<ImportContent source="info-gas-budget" mode="snippet" />
+
+- `--gas-budget`: 네트워크가 transaction을 취소하기 전에 소모될 수 있는 gas 단위의 최대 수이다.
+- `--cap`: `UpgradeCap`의 ID이다. 이 ID는 publish 명령의 반환값으로 제공된다.
+
+Move 코드를 사용하여 패키지를 업그레이드하는 개발자는 사용자 정의 업그레이드 정책을 정의하기 위한 타입과 함수에 접근할 수 있다. 예를 들어 Move 개발자는 현재 패키지 소유자와 관계없이 패키지 업그레이드를 허용하지 않기를 원할 수 있다. 이러한 동작을 생성하기 위해 [`make_immutable` function](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/package.md#0x2_package_make_immutable)를 사용할 수 있다. `UpgradeTicket` 및 `Upgrade Receipt`와 같은 사용 가능한 타입을 활용하는 더 고급 정책도 가능하며, 예시는 GitHub의 [custom upgrade policy](https://github.com/MystenLabs/sui/issues/2045#:~:text=Implement%20a%20custom%20upgrade%20policy)를 참조한다.
+
+Sui Client CLI를 사용할 때 `upgrade` 명령은 업그레이드 다이제스트 생성, `UpgradeCap`을 사용한 업그레이드 승인으로 `UpgradeTicket` 획득, 그리고 업그레이드 성공 후 `UpgradeReceipt`로 `UpgradeCap`을 업데이트하는 작업을 처리한다. 이러한 프로세스에 대해 더 알아보려면 [package module](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/package.md)에 대한 Move 문서를 참조한다.
+
+## Example
+
+`sui_package`라는 이름의 패키지를 개발한다고 가정한다. 해당 매니페스트는 다음과 같다:
+
+```toml
+[package]
+name = "sui_package"
+version = "0.0.0"
+
+[addresses]
+sui_package = "0x0"
+```
+
+패키지가 준비되면 이를 게시한다:
+
+```sh
+$ sui client publish
+```
+
+<details> <summary>출력</summary> </details>
+
+```sh
+INCLUDING DEPENDENCY Sui
+INCLUDING DEPENDENCY MoveStdlib
+BUILDING my_first_package
+Successfully verified dependencies on-chain against source.
+Transaction Digest: GPSpH264CjQPaXQPpMHpkzyGidZnQFvd1yUH5s9ncesi
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Transaction Data                                                                                             │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Sender: PUBLISHER-ID                                                                                         │
+│ Gas Owner: PUBLISHER-ID                                                                                      │
+│ Gas Budget: 12298000 MIST                                                                                    │
+│ Gas Price: 1000 MIST                                                                                         │
+│ Gas Payment:                                                                                                 │
+│  ┌──                                                                                                         │
+│  │ ID: GAS-COIN-ID                                                                                           │
+│  │ Version: 2                                                                                                │
+│  │ Digest: QDssxM4QKnhutWCYijiWWmYPtKWnHB9xVaLqPsDHiep                                                       │
+│  └──                                                                                                         │
+│                                                                                                              │
+│ Transaction Kind: Programmable                                                                               │
+│ ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │
+│ │ Input Objects                                                                                            │ │
+│ ├──────────────────────────────────────────────────────────────────────────────────────────────────────────┤ │
+│ │ 0   Pure Arg: Type: address, Value: "PUBLISHER-ID"                                                       │ │
+│ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
+│ ╭─────────────────────────────────────────────────────────────────────────╮                                  │
+│ │ Commands                                                                │                                  │
+│ ├─────────────────────────────────────────────────────────────────────────┤                                  │
+│ │ 0  Publish:                                                             │                                  │
+│ │  ┌                                                                      │                                  │
+│ │  │ Dependencies:                                                        │                                  │
+│ │  │   0x0000000000000000000000000000000000000000000000000000000000000001 │                                  │
+│ │  │   0x0000000000000000000000000000000000000000000000000000000000000002 │                                  │
+│ │  └                                                                      │                                  │
+│ │                                                                         │                                  │
+│ │ 1  TransferObjects:                                                     │                                  │
+│ │  ┌                                                                      │                                  │
+│ │  │ Arguments:                                                           │                                  │
+│ │  │   Result 0                                                           │                                  │
+│ │  │ Address: Input  0                                                    │                                  │
+│ │  └                                                                      │                                  │
+│ ╰─────────────────────────────────────────────────────────────────────────╯                                  │
+│                                                                                                              │
+│ Signatures:                                                                                                  │
+│    4NqP6CL1/LN1Ekr9NeL82PFGgVdEjrwsP82l/0mFvCd9TYO94CKBQAm8C/D6DsAuBrwu4cogQ3Mbh1huGc0yCg==                  │
+│                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭───────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Transaction Effects                                                                               │
+├───────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Digest: GPSpH264CjQPaXQPpMHpkzyGidZnQFvd1yUH5s9ncesi                                              │
+│ Status: Success                                                                                   │
+│ Executed Epoch: 285                                                                               │
+│                                                                                                   │
+│ Created Objects:                                                                                  │
+│  ┌──                                                                                              │
+│  │ ID: ORIGINAL-PACKAGE-ID                                                                        │
+│  │ Owner: Immutable                                                                               │
+│  │ Version: 1                                                                                     │
+│  │ Digest: 4ZvhnDgehkRmzo3mtHjCc6aQkEz1SA87rDpDS6pGarFR                                           │
+│  └──                                                                                              │
+│  ┌──                                                                                              │
+│  │ ID: 0xaa06f409af7a36c20a552e729eb985a9979149ae9ada5ce3ed413836fd12ed16                         │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                        │
+│  │ Version: 3                                                                                     │
+│  │ Digest: 71G4PuCUoqx1KDTnt8zGMYUf6Qpf4CWgZsDxYN1d7mXE                                           │
+│  └──                                                                                              │
+│  ┌──                                                                                              │
+│  │ ID: UPGRADE-CAP-ID                                                                             │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                        │
+│  │ Version: 3                                                                                     │
+│  │ Digest: FNxdiGCk1fwXByda6Q2sx8RjuwUQBFYQk7C4Zr2H4qVw                                           │
+│  └──                                                                                              │
+│ Mutated Objects:                                                                                  │
+│  ┌──                                                                                              │
+│  │ ID: GAS-COIN-ID                                                                                │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                        │
+│  │ Version: 3                                                                                     │
+│  │ Digest: 9Fet6LPSBsjYjVMEQxkB4LRHfAJDFCQQ2iUAiUQ5eygF                                           │
+│  └──                                                                                              │
+│ Gas Object:                                                                                       │
+│  ┌──                                                                                              │
+│  │ ID: GAS-COIN-ID                                                                                │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                        │
+│  │ Version: 3                                                                                     │
+│  │ Digest: 9Fet6LPSBsjYjVMEQxkB4LRHfAJDFCQQ2iUAiUQ5eygF                                           │
+│  └──                                                                                              │
+│ Gas Cost Summary:                                                                                 │
+│    Storage Cost: 10298000 MIST                                                                    │
+│    Computation Cost: 1000000 MIST                                                                 │
+│    Storage Rebate: 978120 MIST                                                                    │
+│    Non-refundable Storage Fee: 9880 MIST                                                          │
+│                                                                                                   │
+│ Transaction Dependencies:                                                                         │
+│    3eHwwq6p2xQwBtXDE9KKNQwZFdHUGEKiJsR5LDmv4o7b                                                   │
+│    7KAuWTJHCZmh2rMSAqobkhU5cuRBoVicwae78i9woDUK                                                   │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─────────────────────────────╮
+│ No transaction block events │
+╰─────────────────────────────╯
+
+╭────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Object Changes                                                                                     │
+├────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Created Objects:                                                                                   │
+│  ┌──                                                                                               │
+│  │ ObjectID: 0xaa06f409af7a36c20a552e729eb985a9979149ae9ada5ce3ed413836fd12ed16                    │
+│  │ Sender: PUBLISHER-ID                                                                            │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                         │
+│  │ ObjectType: ORIGINAL-PACKAGE-ID::module::TYPE                                                   │
+│  │ Version: 3                                                                                      │
+│  │ Digest: 71G4PuCUoqx1KDTnt8zGMYUf6Qpf4CWgZsDxYN1d7mXE                                            │
+│  └──                                                                                               │
+│  ┌──                                                                                               │
+│  │ ObjectID: UPGRADE-CAP-ID                                                                        │
+│  │ Sender: PUBLISHER-ID                                                                            │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                         │
+│  │ ObjectType: 0x2::package::UpgradeCap                                                            │
+│  │ Version: 3                                                                                      │
+│  │ Digest: FNxdiGCk1fwXByda6Q2sx8RjuwUQBFYQk7C4Zr2H4qVw                                            │
+│  └──                                                                                               │
+│ Mutated Objects:                                                                                   │
+│  ┌──                                                                                               │
+│  │ ObjectID: GAS-COIN-ID                                                                           │
+│  │ Sender: PUBLISHER-ID                                                                            │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                         │
+│  │ ObjectType: 0x2::coin::Coin<0x2::sui::SUI>                                                      │
+│  │ Version: 3                                                                                      │
+│  │ Digest: 9Fet6LPSBsjYjVMEQxkB4LRHfAJDFCQQ2iUAiUQ5eygF                                            │
+│  └──                                                                                               │
+│ Published Objects:                                                                                 │
+│  ┌──                                                                                               │
+│  │ PackageID: ORIGINAL-PACKAGE-ID                                                                  │
+│  │ Version: 1                                                                                      │
+│  │ Digest: 4ZvhnDgehkRmzo3mtHjCc6aQkEz1SA87rDpDS6pGarFR                                            │
+│  │ Modules: example                                                                                │
+│  └──                                                                                               │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭───────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Balance Changes                                                                                   │
+├───────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  ┌──                                                                                              │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                        │
+│  │ CoinType: 0x2::sui::SUI                                                                        │
+│  │ Amount: -10319880                                                                              │
+│  └──                                                                                              │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+
+
+결과에는 업그레이드에 필요한 두 가지 정보인 `UpgradeCap` ID와 패키지 ID를 포함한 **Object changes** 섹션이 포함된다.
+
+응답에서 `Object.objectType` 값을 사용하여 서로 다른 object를 식별할 수 있다. `UpgradeCap` 항목은 `String("0x2::package::UpgradeCap")` 값을 가지며, 패키지에 대한 `objectType`은 `String("<PACKAGE-ID>::sui_package::<MODULE-NAME>")`로 표시된다.
+
+<Tabs>
+
+<TabItem value="automated-address-management" label="Automated Addresses">
+
+:::info
+
+Sui `v1.29.0` 릴리스부터 게시된 주소는 `Move.lock` 파일에서 자동으로 관리되며, 추가로 수행해야 할 작업은 없다.
+
+패키지가 `v1.29.0` 이전의 Sui 버전으로 게시되거나 업그레이드된 경우, [the guide for adopting automated address management](/develop/manage-packages/automated-address-management)를 따를 수 있다. 또는 추가 단계에 대해서는 위의 `Manual Addresses` 탭을 참조한다.
+
+:::
+
+시간이 지난 후 요청된 일부 기능을 포함하기 위해 `sui_package`를 업그레이드하기로 결정한다.
+
+</TabItem>
+
+<TabItem value="manual-address-management" label="Manual Addresses">
+
+패키지가 [adopted automated address management](/develop/manage-packages/automated-address-management)을 아직 하지 않았다면 다음과 같은 수동 단계를 수행해야 한다.
+
+다른 패키지가 이 패키지를 의존성으로 사용할 수 있도록 하려면 패키지의 `Move.toml` 매니페스트 파일을 업데이트하여 게시된 정보를 포함해야 한다.
+
+온체인 ID 값으로 가리키도록 별칭 주소를 업데이트하고 `[package]` 섹션에 새로운 `published-at` 항목을 추가한다:
+
+```toml
+[package]
+name = "sui_package"
+version = "0.0.0"
+published-at = "<ORIGINAL-PACKAGE-ID>"
+
+[addresses]
+sui_package = "<ORIGINAL-PACKAGE-ID>"
+```
+
+시간이 지난 후 요청된 일부 기능을 포함하기 위해 `sui_package`를 업그레이드하기로 결정한다. `upgrade` 명령을 실행하기 전에 매니페스트를 다시 편집해야 한다.
+
+`[addresses]` 섹션에서 업그레이드 패키지에 대해 validator가 새로운 주소를 발급하도록 `sui_package` 주소 값을 다시 `0x0`으로 업데이트한다. `published-at` 값은 종속 패키지를 게시할 때만 툴체인이 이를 읽기 때문에 동일하게 유지해도 된다. 저장된 매니페스트는 이제 다음과 유사한 형태가 된다:
+
+```toml
+[package]
+name = "sui_package"
+version = "0.0.1"
+published-at = "<ORIGINAL-PACKAGE-ID>"
+
+[addresses]
+sui_package = "0x0"
+```
+
+새로운 매니페스트와 코드가 준비되면 진행할 수 있다.
+
+</TabItem>
+
+</Tabs>
+패키지를 업그레이드하려면 `sui client upgrade` 명령을 실행한다. 예시의 `<UPGRADE-CAP-ID>` 값인 `UpgradeCap` ID를 `--upgrade-capability` 플래그에 전달한다.
+
+```sh
+$ sui client upgrade --upgrade-capability <UPGRADE-CAP-ID>
+```
+
+새 패키지가 [요구 사항](#requirements)을 충족하지 않으면 콘솔이 이를 알리며, 그렇지 않으면 컴파일러가 업그레이드된 패키지를 네트워크에 게시하고 그 결과를 반환한다.
+
+<details>
+<summary>출력</summary>
+
+```sh
+Transaction Digest: 3NnJGryz2k2BJzjpndDVqVcdZmmefNMB8SJ9bCEQct22
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Transaction Data                                                                                                                                             │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Sender: PUBLISHER-ID                                                                                                                                         │
+│ Gas Owner: PUBLISHER-ID                                                                                                                                      │
+│ Gas Budget: 9684740 MIST                                                                                                                                     │
+│ Gas Price: 1000 MIST                                                                                                                                         │
+│ Gas Payment:                                                                                                                                                 │
+│  ┌──                                                                                                                                                         │
+│  │ ID: GAS-COIN-ID                                                                                                                                           │
+│  │ Version: 3                                                                                                                                                │
+│  │ Digest: D2rpccs7eSw8gtb4T1K2bSVzF5eApC68xiHDtNGQEcEb                                                                                                      │
+│  └──                                                                                                                                                         │
+│                                                                                                                                                              │
+│ Transaction Kind: Programmable                                                                                                                               │
+│ ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮ │
+│ │ Input Objects                                                                                                                                            │ │
+│ ├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤ │
+│ │ 0   Imm/Owned Object ID: UPGRAD-CAP-ID                                                                                                                   │ │
+│ │ 1   Pure Arg: Type: u8, Value: 0                                                                                                                         │ │
+│ │ 2   Pure Arg: Type: vector<u8>, Value: [49,208,61,255,107,134,136,221,231,35,60,2,248,17,234,236,64,76,71,188,57,104,46,113,67,94,232,236,64,59,144,112] │ │
+│ ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
+│ ╭───────────────────────────────────────────────────────────────────────────────────────────╮                                                                │
+│ │ Commands                                                                                  │                                                                │
+│ ├───────────────────────────────────────────────────────────────────────────────────────────┤                                                                │
+│ │ 0  MoveCall:                                                                              │                                                                │
+│ │  ┌                                                                                        │                                                                │
+│ │  │ Function:  authorize_upgrade                                                           │                                                                │
+│ │  │ Module:    package                                                                     │                                                                │
+│ │  │ Package:   0x0000000000000000000000000000000000000000000000000000000000000002          │                                                                │
+│ │  │ Arguments:                                                                             │                                                                │
+│ │  │   Input  0                                                                             │                                                                │
+│ │  │   Input  1                                                                             │                                                                │
+│ │  │   Input  2                                                                             │                                                                │
+│ │  └                                                                                        │                                                                │
+│ │                                                                                           │                                                                │
+│ │ 1  Upgrade:                                                                               │                                                                │
+│ │  ┌                                                                                        │                                                                │
+│ │  │ Dependencies:                                                                          │                                                                │
+│ │  │   0x0000000000000000000000000000000000000000000000000000000000000001                   │                                                                │
+│ │  │   0x0000000000000000000000000000000000000000000000000000000000000002                   │                                                                │
+│ │  │ Current Package ID: ORIGINAL-PACKAGE-ID                                                │                                                                │
+│ │  │ Ticket: Result 0                                                                       │                                                                │
+│ │  └                                                                                        │                                                                │
+│ │                                                                                           │                                                                │
+│ │ 2  MoveCall:                                                                              │                                                                │
+│ │  ┌                                                                                        │                                                                │
+│ │  │ Function:  commit_upgrade                                                              │                                                                │
+│ │  │ Module:    package                                                                     │                                                                │
+│ │  │ Package:   0x0000000000000000000000000000000000000000000000000000000000000002          │                                                                │
+│ │  │ Arguments:                                                                             │                                                                │
+│ │  │   Input  0                                                                             │                                                                │
+│ │  │   Result 1                                                                             │                                                                │
+│ │  └                                                                                        │                                                                │
+│ ╰───────────────────────────────────────────────────────────────────────────────────────────╯                                                                │
+│                                                                                                                                                              │
+│ Signatures:                                                                                                                                                  │
+│    nNJ8AiSAeV+NB3ayRTwcfaJHx3AzFHlZysbwda5e2jFBz5W9Z5EnzXV09xZMQYctUtW33jWpUFdK8hOJ9hZzDg==                                                                  │
+│                                                                                                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭───────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Transaction Effects                                                                               │
+├───────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Digest: 3NnJGryz2k2BJzjpndDVqVcdZmmefNMB8SJ9bCEQct22                                              │
+│ Status: Success                                                                                   │
+│ Executed Epoch: 1                                                                                 │
+│                                                                                                   │
+│ Created Objects:                                                                                  │
+│  ┌──                                                                                              │
+│  │ ID: 0x5d49966433ebb423f5b40bfcd0ecfdc67f1527e3b9e3a433c4ec87ae63d54ed4                         │
+│  │ Owner: Immutable                                                                               │
+│  │ Version: 2                                                                                     │
+│  │ Digest: 6GmLYmCszFxbaLRLTyZdxTTfXG99iq8uVabfi2NaB5fQ                                           │
+│  └──                                                                                              │
+│ Mutated Objects:                                                                                  │
+│  ┌──                                                                                              │
+│  │ ID: GAS-COIN-ID                                                                                │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                        │
+│  │ Version: 4                                                                                     │
+│  │ Digest: G5PBJjLKJWL2J3rb8ZR4uLNgFPpyJNNXfXNoh3FDo1zK                                           │
+│  └──                                                                                              │
+│  ┌──                                                                                              │
+│  │ ID: 0x562408a381f3f2fce9c5ea27da42953e001760aa35dbadb273dca24166657516                         │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                        │
+│  │ Version: 4                                                                                     │
+│  │ Digest: 6B4pA1EcYek2pvrRoBv9jKhPmUGxhH1zZD3UcqPmxwDM                                           │
+│  └──                                                                                              │
+│ Gas Object:                                                                                       │
+│  ┌──                                                                                              │
+│  │ ID: GAS-COIN-ID                                                                                │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                        │
+│  │ Version: 4                                                                                     │
+│  │ Digest: G5PBJjLKJWL2J3rb8ZR4uLNgFPpyJNNXfXNoh3FDo1zK                                           │
+│  └──                                                                                              │
+│ Gas Cost Summary:                                                                                 │
+│    Storage Cost: 9302400 MIST                                                                     │
+│    Computation Cost: 1000000 MIST                                                                 │
+│    Storage Rebate: 2595780 MIST                                                                   │
+│    Non-refundable Storage Fee: 26220 MIST                                                         │
+│                                                                                                   │
+│ Transaction Dependencies:                                                                         │
+│    7MdLdLYBhP6LKGf6gvuona2EQJZ1W7k3kRisrapmzQ5m                                                   │
+│    8etH8jq78aKDHwL9ZnmAMhra62Q9vcPfyAcKJyXNPWvi                                                   │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─────────────────────────────╮
+│ No transaction block events │
+╰─────────────────────────────╯
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Object Changes                                                                                   │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Mutated Objects:                                                                                 │
+│  ┌──                                                                                             │
+│  │ ObjectID: GAS-COIN-ID                                                                         │
+│  │ Sender: PUBLISHER-ID                                                                          │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                       │
+│  │ ObjectType: 0x2::coin::Coin<0x2::sui::SUI>                                                    │
+│  │ Version: 4                                                                                    │
+│  │ Digest: G5PBJjLKJWL2J3rb8ZR4uLNgFPpyJNNXfXNoh3FDo1zK                                          │
+│  └──                                                                                             │
+│  ┌──                                                                                             │
+│  │ ObjectID: 0x562408a381f3f2fce9c5ea27da42953e001760aa35dbadb273dca24166657516                  │
+│  │ Sender: PUBLISHER-ID                                                                          │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                       │
+│  │ ObjectType: 0x2::package::UpgradeCap                                                          │
+│  │ Version: 4                                                                                    │
+│  │ Digest: 6B4pA1EcYek2pvrRoBv9jKhPmUGxhH1zZD3UcqPmxwDM                                          │
+│  └──                                                                                             │
+│ Published Objects:                                                                               │
+│  ┌──                                                                                             │
+│  │ PackageID: 0x5d49966433ebb423f5b40bfcd0ecfdc67f1527e3b9e3a433c4ec87ae63d54ed4                 │
+│  │ Version: 2                                                                                    │
+│  │ Digest: 6GmLYmCszFxbaLRLTyZdxTTfXG99iq8uVabfi2NaB5fQ                                          │
+│  │ Modules: example                                                                              │
+│  └──                                                                                             │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭───────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Balance Changes                                                                                   │
+├───────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  ┌──                                                                                              │
+│  │ Owner: Account Address ( PUBLISHER-ID )                                                        │
+│  │ CoinType: 0x2::sui::SUI                                                                        │
+│  │ Amount: -7706620                                                                               │
+│  └──                                                                                              │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+</details>
+
+결과는 업그레이드된 패키지에 대한 새로운 ID를 제공한다.
+
+<Tabs>
+
+<TabItem value="automated-address-management" label="Automated Addresses">
+
+:::info
+
+Sui `v1.29.0` 릴리스부터 업그레이드된 주소는 `Move.lock` 파일에서 자동으로 관리되며, 추가로 수행해야 할 작업은 없다.
+
+패키지가 `v1.29.0` 이전의 Sui 버전으로 게시되거나 업그레이드된 경우, [자동 주소 관리 채택을 위한 가이드](/develop/manage-packages/automated-address-management)를 따를 수 있다. 또는 추가 단계에 대해서는 위의 `Manual Addresses` 탭을 참조한다.
+
+:::
+
+</TabItem>
+
+<TabItem value="manual-address-management" label="Manual Addresses">
+
+`sui_package`에 의존하는 패키지가 검증을 위해 온체인 바이트코드를 어디에서 찾을 수 있는지 알 수 있도록 매니페스트를 다시 편집한다. 업그레이드된 패키지 ID를 `published-at` 값으로 제공하고, `[addresses]` 섹션에는 원래의 `sui_package` ID 값을 다시 설정한다:
+
+```toml
+[package]
+name = "sui_package"
+version = "0.0.1"
+published-at = "<UPGRADED-PACKAGE-ID>"
+
+[addresses]
+sui_package = "<ORIGINAL-PACKAGE-ID>"
+```
+
+`published-at` 값은 업그레이드마다 변경되며, 각 업그레이드 후에 업데이트해야 한다는 점에 유의한다.
+
+`[addresses]` 섹션에 있는 `sui_package`의 ID는 업그레이드 후에도 항상 원래 패키지 ID를 가리킨다. 그러나 validator가 업그레이드에 대해 새로운 ID를 생성하도록 하려면 `upgrade` 명령을 실행하기 전에 해당 값을 항상 `0x0`으로 되돌려야 한다.
+
+</TabItem>
+
+</Tabs>

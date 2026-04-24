@@ -1,0 +1,50 @@
+---
+title: 가스 스매싱
+description: Sui는 가스 수수료를 지불하기 위해 여러 코인을 하나의 객체로 결합하여 코인 관리를 최적화한다.
+keywords: [ gas smashing, smash gas, combine coins, combine coins into one object, create ptb for coins, create coin ptb, group coins together, group coins into ptb, create ptb with multiple coins, coin management, multiple coin management ]
+---
+
+:::info
+
+address balances feature를 사용한다면 gas smashing을 사용할 필요가 없다. Address balance gas payment는 gas coin을 선택하거나 병합해야 할 필요를 완전히 제거한다.
+
+:::
+
+Sui의 모든 transaction은 성공적으로 실행되려면 gas fee를 지불해야 한다. Gas smashing을 사용하면 이 수수료를 단일 코인이 아니라 여러 코인으로 지불할 수 있다. 작은 denomination coin이 많거나 account의 coin 수를 줄이고 싶을 때 유용하다. Gas smashing은 `GasCoin` [programmable transaction block (PTB)](/develop/transactions/ptbs/prog-txn-blocks) argument와 함께 사용할 때 가장 강력하다.
+
+transaction에 gas fee 지불용으로 여러 coin을 제공하면 gas smashing이 자동으로 발생한다. Sui가 transaction을 실행할 때 network는 제공된 모든 coin을 하나의 coin으로 결합하거나 smash한다. Smashing은 transaction에 제공된 coin amount나 gas budget과 무관하게, minimum 및 maximum gas budget 범위 안에 있으면 발생한다. Sui는 transaction의 execution status와 무관하게 단일 coin에서 gas fee를 차감한다. 즉, execution error 같은 이유로 transaction이 실행에 실패하더라도 제공된 gas coin은 transaction 실행 후에도 smashed된 상태로 남는다.
+
+이 설계는 하나의 PTB에서 많은 작은 coin을 결합하면서 동시에 관련 없는 operation을 실행할 수 있으므로, gas smashing을 coin 관리와 gas 지불을 같은 transaction에서 처리하는 실용적인 방법으로 만든다.
+
+하나의 PTB에서 최대 256개 coin을 smash할 수 있다. gas coin이 256개를 넘는 transaction은 실패한다.
+
+## Rebates
+
+첫 번째 coin을 제외한 모든 coin은 삭제되며, 이 과정에서 storage rebate가 생성되는 경우가 많다. Rebate는 같은 transaction에서 gas 지불에 적용할 수 없다. 대신 execution이 완료된 뒤 rebate와 gas 차감 후 남은 balance가 첫 번째 coin에 적립된다.
+
+### Running out of gas with a refund
+
+smashing은 항상 발생하므로, storage rebate 때문에 transaction이 gas를 모두 소진하면서도 net refund를 만드는 특이한 결과가 생길 수 있다.
+
+다음 scenario를 생각해 본다:
+
+- Transaction `T`의 gas budget은 `5000`이다.
+
+- 다음 balance를 가진 5개 coin을 제공한다: `C1 = 1000`, `C2 = 2000`, `C3 = 3000`, `C4 = 4000`, `C5 = 5000`.
+
+- coin당 storage rebate는 `2000`이다.
+
+- gas cost가 `5000` budget을 초과하면 `T`는 `OutOfGas`로 실패한다.
+
+하지만 smashing과 rebate 이후에는 다음과 같다:
+
+```
+Final balance in C1 =
+  (1000 + 2000 + 3000 + 4000 + 5000)   // 모든 coin balance
+  - 5000                               // gas cost
+  + (2000 * 4)                         // 삭제된 coin의 rebate
+= 15000 - 5000 + 8000
+= 18000
+```
+
+이 경우 `T`는 실패하지만 여전히 `3000`의 net refund를 받는다.

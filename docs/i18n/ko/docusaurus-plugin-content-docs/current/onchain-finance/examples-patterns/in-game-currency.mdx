@@ -1,0 +1,73 @@
+---
+title: 인게임 통화
+description: Sui Closed-Loop Token standard를 사용해 게임 애플리케이션 안에서 currency로 사용할 수 있는 token을 생성한다.
+keywords: [ closed-loop tokens, closed-loop, closed loop, in-game tokens, in-game currency, game currency, token example, create a token, how to create token, SUI token standards ]
+---
+
+
+Sui [Closed-Loop Token](/onchain-finance/closed-loop-token/index) standard를 사용하면, 플레이어의 행동에 대해 지급하거나 구매할 수 있게 만들 수 있는 in-game currency(모바일 게임의 gem이나 diamond와 같은)를 생성할 수 있다.
+이 token은 Sui에서 mint하지만, 플레이어는 그 token을 게임 자체의 경제 안에서만 사용할 수 있다.
+이러한 type의 token은 보통 transferable하지 않으며, 일반적으로 희소성과 게임 밸런스를 유지하기 위해 미리 정한 수량으로 mint한다.
+
+다음 예시는 일정량의 SUI를 나타내는 GEM이라는 in-game currency를 만든다.
+이 예시에서 사용자는 SUI를 사용해 대체 가능한 GEM을 구매할 수 있으며, 이후 이를 게임 내 currency로 사용할 수 있다.
+예시의 로직은 code comment를 따라가면 된다.
+
+## Example 
+
+Sui repo에는 in-game currency를 생성하는 기본 예시가 있다.
+예시의 경제를 만드는 Move module은 `gems.move` source file 안에 있다.
+
+### Module `examples::sword`
+
+`examples::sword` module은 in-game value를 가진 object 중 하나인 `sword`를 만든다.
+이 module은 sword에 GEM 단위의 value를 할당한다(다른 가치 있는 in-game item).
+이 module은 또한 sword를 받기 위해 GEM을 거래하는 로직도 제공한다. 
+
+<ImportContent source="examples/move/token/sources/gems.move" mode="code" module="examples::sword" noComments />
+
+### Module `examples::gem`
+
+`examples::gem` module은 in-game currency인 GEM을 만든다.
+사용자는 SUI를 사용해 GEM을 구매하고, 그다음 이를 sword와 거래할 수 있다.
+이 module은 서로 다른 in-game value를 나타내는 3개의 GEM 그룹(small, medium, large)을 정의한다.
+constant는 각 package의 value와 각 그룹이 실제로 포함하는 GEM 수를 모두 보관한다. 
+
+module의 `init` 함수는 `coin::create_currency`를 사용해 GEM을 만든다.
+module이 게시될 때만 실행되는 `init` 함수는 in-game currency에 대한 policy를 설정하고, coin의 metadata를 freeze하며, policy capability를 package publisher에게 transfer하기도 한다. 
+
+<ImportContent source="examples/move/token/sources/gems.move" mode="code" fun="init" noComments />
+
+module은 `buy_gems` 함수로 GEM 구매를 처리한다. 
+
+<ImportContent source="examples/move/token/sources/gems.move" mode="code" fun="buy_gems" noComments />
+
+complete module의 표시를 제어하려면 다음 toggle을 사용한다. 
+
+<details>
+
+<summary>
+
+`examples::gem` module in `gems.move`
+
+</summary>
+
+<ImportContent source="examples/move/token/sources/gems.move" mode="code" module="examples::gem" noComments />
+
+</details>
+
+### Complete code 
+
+comment를 포함한 이 예시의 complete source를 표시하려면 toggle을 사용하거나, GitHub에서 project source를 보려면 [Related links](#related-links) 섹션의 링크를 사용한다.
+
+<details>
+
+<summary>
+
+`gems.move`
+
+</summary>
+
+<ImportContent source="examples/move/token/sources/gems.move" mode="code" />
+
+</details>

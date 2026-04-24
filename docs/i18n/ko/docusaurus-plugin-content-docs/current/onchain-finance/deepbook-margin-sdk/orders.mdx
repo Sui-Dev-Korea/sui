@@ -1,0 +1,293 @@
+---
+title: 주문 SDK
+sidebar_label: 주문 SDK
+description: DeepBook Margin SDK를 사용해 margin manager로 order를 배치하고 관리하는 방법을 설명한다.
+keywords:
+  [
+    margin orders,
+    limit orders,
+    market orders,
+    reduce only,
+    cancel orders,
+    modify orders,
+    staking,
+    governance,
+    deepbook margin sdk,
+  ]
+---
+
+
+margin manager를 통해 order를 배치하고 관리하면 DeepBook에서 leveraged trading을 수행할 수 있다. Orders SDK는 limit order와 market order를 배치하고, position을 관리하며, governance에 참여하기 위한 함수를 제공한다.
+
+## Order functions
+
+DeepBook Margin SDK는 margin manager를 통해 order를 관리하기 위한 다음 함수를 제공한다.
+
+### `placeLimitOrder`
+
+margin manager를 통해 limit order를 배치하려면 `placeLimitOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `params`: 다음을 포함하는 `PlaceMarginLimitOrderParams` object이다:
+  - `poolKey`: DeepBook pool을 식별하는 String이다
+  - `marginManagerKey`: margin manager를 식별하는 String이다
+  - `clientOrderId`: client-side order ID를 위한 String이다
+  - `price`: order price를 나타내는 Number이다
+  - `quantity`: order quantity를 나타내는 Number이다
+  - `isBid`: buy order인지 여부를 나타내는 Boolean이다
+  - `expiration`: order expiration timestamp를 위한 optional Number이다
+  - `orderType`: optional `OrderType` enum이다
+  - `selfMatchingOption`: optional `SelfMatchingOptions` enum이다
+  - `payWithDeep`: DEEP token으로 fee를 지불하는지 여부를 나타내는 optional boolean이다
+
+<ImportContent source="packages/deepbook-v3/src/transactions/poolProxy.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="placeLimitOrder" signatureOnly />
+
+### `placeMarketOrder`
+
+margin manager를 통해 market order를 배치하려면 `placeMarketOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `params`: limit order와 유사한 parameter를 포함하는 `PlaceMarginMarketOrderParams` object이다(price 및 expiration은 제외한다).
+
+<ImportContent source="packages/deepbook-v3/src/transactions/poolProxy.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="placeMarketOrder" signatureOnly />
+
+### `placeReduceOnlyLimitOrder`
+
+기존 debt position만 줄일 수 있는 limit order를 배치하려면 `placeReduceOnlyLimitOrder`를 사용한다. margin trading이 비활성화되어 있고 position을 종료해야 할 때 유용하다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `params`: `PlaceMarginLimitOrderParams` object이다(`placeLimitOrder`와 같다).
+
+<ImportContent source="packages/deepbook-v3/src/transactions/poolProxy.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="placeReduceOnlyLimitOrder" signatureOnly />
+
+### `placeReduceOnlyMarketOrder`
+
+기존 debt position만 줄일 수 있는 market order를 배치하려면 `placeReduceOnlyMarketOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `params`: `PlaceMarginMarketOrderParams` object이다(`placeMarketOrder`와 같다).
+
+<ImportContent source="packages/deepbook-v3/src/transactions/poolProxy.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="placeReduceOnlyMarketOrder" signatureOnly />
+
+### `modifyOrder`
+
+기존 order의 quantity를 수정하려면 `modifyOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+:::warning
+`orderId`는 order 배치 중 생성되는 프로토콜 `orderId`이며, client `orderId`와는 다르다.
+:::
+
+**Parameters**
+
+- `marginManagerKey`: margin manager를 식별하는 String이다.
+- `orderId`: 프로토콜 order ID의 String이다.
+- `newQuantity`: 새 order quantity를 나타내는 Number이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/poolProxy.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="modifyOrder" signatureOnly />
+
+### `cancelOrder`, `cancelOrders`, `cancelAllOrders`
+
+이 함수를 사용해 margin manager의 order를 취소한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `marginManagerKey`: margin manager를 식별하는 String이다.
+- `orderId` (cancelOrder only): 프로토콜 order ID의 String이다.
+- `orderIds` (cancelOrders only): 프로토콜 order ID의 Array이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/poolProxy.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="cancelOrder,cancelOrders,cancelAllOrders" signatureOnly />
+
+### `withdrawSettledAmounts`
+
+완료된 trade에서 settled amount를 인출하려면 `withdrawSettledAmounts`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `marginManagerKey`: margin manager를 식별하는 String이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/poolProxy.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="withdrawSettledAmounts" signatureOnly />
+
+### `stake`, `unstake`
+
+이 함수를 사용해 trading fee 혜택을 위해 margin manager를 통해 DEEP token을 stake 및 unstake한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `marginManagerKey`: margin manager를 식별하는 String이다.
+- `stakeAmount` (stake only): stake할 amount를 나타내는 Number이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/poolProxy.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="stake,unstake" signatureOnly />
+
+### `submitProposal`, `vote`
+
+이 함수를 사용해 margin manager를 통해 pool governance에 참여한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `marginManagerKey`: margin manager를 식별하는 String이다.
+- `params` (submitProposal): `takerFee`, `makerFee`, 그리고 `stakeRequired`가 포함된 `MarginProposalParams` object이다.
+- `proposalId` (vote): proposal ID를 나타내는 String이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/poolProxy.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="submitProposal,vote" signatureOnly />
+
+### `claimRebate`
+
+margin manager를 통해 획득한 trading rebate를 claim하려면 `claimRebate`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `marginManagerKey`: margin manager를 식별하는 String이다.
+
+<ImportContent source="packages/deepbook-v3/src/transactions/poolProxy.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="claimRebate" signatureOnly />
+
+## Examples
+
+다음 예시는 일반적인 margin order operation을 시연한다.
+
+### Place a limit order
+
+```tsx
+// limit order용 params
+interface PlaceMarginLimitOrderParams {
+	poolKey: string;
+	marginManagerKey: string;
+	clientOrderId: string;
+	price: number;
+	quantity: number;
+	isBid: boolean;
+	expiration?: number | bigint;
+	orderType?: OrderType;
+	selfMatchingOption?: SelfMatchingOptions;
+	payWithDeep?: boolean;
+}
+
+// 예시: $2.50에 SUI 10의 매수 limit order를 넣는다
+placeLimitOrder = (tx: Transaction) => {
+	const poolKey = 'SUI_DBUSDC';
+	const managerKey = 'MARGIN_MANAGER_1';
+	tx.add(
+		this.poolProxyContract.placeLimitOrder({
+			poolKey,
+			marginManagerKey: managerKey,
+			clientOrderId: '12345',
+			price: 2.5,
+			quantity: 10,
+			isBid: true,
+			payWithDeep: true,
+		}),
+	);
+};
+```
+
+### Place a market order
+
+```tsx
+// 예시: SUI 5의 market sell order를 넣는다
+placeMarketOrder = (tx: Transaction) => {
+	const poolKey = 'SUI_DBUSDC';
+	const managerKey = 'MARGIN_MANAGER_1';
+	tx.add(
+		this.poolProxyContract.placeMarketOrder({
+			poolKey,
+			marginManagerKey: managerKey,
+			clientOrderId: '12346',
+			quantity: 5,
+			isBid: false,
+			payWithDeep: true,
+		}),
+	);
+};
+```
+
+### Place a reduce-only order
+
+```tsx
+// 예시: position을 닫기 위한 reduce-only limit order를 넣는다
+placeReduceOnly = (tx: Transaction) => {
+	const poolKey = 'SUI_DBUSDC';
+	const managerKey = 'MARGIN_MANAGER_1';
+	tx.add(
+		this.poolProxyContract.placeReduceOnlyLimitOrder({
+			poolKey,
+			marginManagerKey: managerKey,
+			clientOrderId: '12347',
+			price: 2.6,
+			quantity: 10,
+			isBid: true, // short position을 줄이기 위해 다시 매수한다
+			payWithDeep: true,
+		}),
+	);
+};
+```
+
+### Modify and cancel orders
+
+```tsx
+// 예시: order 수량을 수정한다
+modifyExistingOrder = (tx: Transaction) => {
+	const managerKey = 'MARGIN_MANAGER_1';
+	const orderId = '123456789'; // protocol order의 ID
+	const newQuantity = 8; // 10에서 8로 줄인다
+	tx.add(this.poolProxyContract.modifyOrder(managerKey, orderId, newQuantity));
+};
+
+// 예시: 단일 order를 취소한다
+cancelSingleOrder = (tx: Transaction) => {
+	const managerKey = 'MARGIN_MANAGER_1';
+	const orderId = '123456789';
+	tx.add(this.poolProxyContract.cancelOrder(managerKey, orderId));
+};
+
+// 예시: 여러 order를 취소한다
+cancelMultipleOrders = (tx: Transaction) => {
+	const managerKey = 'MARGIN_MANAGER_1';
+	const orderIds = ['123456789', '987654321'];
+	tx.add(this.poolProxyContract.cancelOrders(managerKey, orderIds));
+};
+
+// 예시: 모든 order를 취소한다
+cancelAll = (tx: Transaction) => {
+	const managerKey = 'MARGIN_MANAGER_1';
+	tx.add(this.poolProxyContract.cancelAllOrders(managerKey));
+};
+```
+
+### Stake and participate in governance
+
+```tsx
+// 예시: DEEP tokens을 stake한다
+stakeDeep = (tx: Transaction) => {
+	const managerKey = 'MARGIN_MANAGER_1';
+	const stakeAmount = 1000; // DEEP 1000을 stake한다
+	tx.add(this.poolProxyContract.stake(managerKey, stakeAmount));
+};
+
+// 예시: 거버넌스 proposal을 제출한다
+submitGovernanceProposal = (tx: Transaction) => {
+	const managerKey = 'MARGIN_MANAGER_1';
+	tx.add(
+		this.poolProxyContract.submitProposal(managerKey, {
+			takerFee: 0.0005, // 수수료 5 bps
+			makerFee: 0.0002, // 수수료 2 bps
+			stakeRequired: 1000,
+		}),
+	);
+};
+
+// 예시: proposal에 투표한다
+voteOnProposal = (tx: Transaction) => {
+	const managerKey = 'MARGIN_MANAGER_1';
+	const proposalId = '0x...';
+	tx.add(this.poolProxyContract.vote(managerKey, proposalId));
+};
+
+// 예시: trading rebates를 수령한다
+claimTradingRebate = (tx: Transaction) => {
+	const managerKey = 'MARGIN_MANAGER_1';
+	tx.add(this.poolProxyContract.claimRebate(managerKey));
+};
+```

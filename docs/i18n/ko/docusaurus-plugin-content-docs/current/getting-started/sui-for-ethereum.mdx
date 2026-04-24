@@ -1,0 +1,111 @@
+---
+title: Ethereum에서 Sui로
+description: EVM 경험이 있다면 Sui에서 첫 앱을 구축한다
+keywords: [ ethereum, solidity, EVM,  ]
+pagination_prev: null
+---
+
+
+이전에 Ethereum Virtual Machine(EVM)으로 작업해 본 적이 있다면 Sui에서 개발할 때 가장 큰 차이점은 프로그래밍 언어이다. Sui는 **Move**를 사용하고 EVM은 **Solidity**를 사용한다.
+
+| Topic | Solidity | Move |
+|------|------|---------|
+| Account vs object-centric models | 일반적으로 _mappings_를 사용해 contracts 내에 작성한 커스텀 소유권 로직이다. Ethereum 코인만 전역 APIs를 가지는 일급 시민이다. 모든 소유권 APIs는 contract별로 다르다. | 소유권은 Sui에 내재되어 있으며 objects는 일급 시민이고 Sui에서 _owned_ 되는 모든 것을 포괄한다. |
+| Data storage | 데이터는 스마트 계약에 저장된다. | 데이터는 Move objects에 저장된다. |
+| Inheritance | 다형성을 포함한 다중 상속을 지원한다. | interfaces와 polymorphism이 없다. 그러나 Move에는 `Type<T>`와 같은 generics가 있다. |
+| Dynamic dispatch | 허용된다 | 허용되지 않는다 |
+| Asset/Token accessibility | 스마트 계약에 묶인다. | 누구나 shared objects에 접근할 수 있다. Owned objects는 object owner만 접근할 수 있다. |
+| Access control | `Ownable` 및 `AccessControl` contract를 통한 identity/role 기반 access control이다. | 주로 owned objects를 통한 [capability based access control](https://move-book.com/programmability/capability.html)이다. Identity/role 기반 access control도 가능하다. |
+| Contract upgrades | Proxy contract가 사용자 transactions를 전달한다. | 새 contracts는 이전 것과 [layout-compatible](/develop/publish-upgrade-packages/upgrade#upgrade-requirements)해야 한다. Shared objects의 버전 관리도 고려해야 한다. |
+| Development environment | Hardhat, Foundry | [Move VSCode extension](https://marketplace.visualstudio.com/items?itemName=mysten.move). |
+| Mutate contract state | 컴파일 시 ABI 인터페이스를 통해 transactions를 전송한다. | 런타임 [프로그래머블 트랜잭션 블록 (PTB)](/develop/transactions/ptbs/prog-txn-blocks) 구성을 통해 transaction을 전송한다. |
+
+## Object model
+
+Objects는 Move에서 데이터를 저장하며 Move의 모든 것은 object이다. 여기에는 스마트 계약(Move packages), 온체인 addresses, coins, NFTs가 포함된다.
+
+단순하게 생각하면 objects를 _assets_ 또는 NFTs로 볼 수 있다. Objects는 ownerships를 가진다.
+
+## Ownership
+
+Object ownership에는 몇 가지 뉘앙스가 있지만 핵심 유형은 다음을 포함한다:
+
+- **Address-owned objects:** 이 objects는 하나의 address가 소유한다. 스마트 계약과 상호작용하지 않고도 이 objects를 전송하거나 받을 수 있다. 예를 들면 currency, NFTs, 또는 특정 functions 접근을 제한하는 토큰이 있다.
+- **Shared objects:** 누구나 사용할 수 있는 공개 접근 objects이다. 이 objects에 저장된 데이터를 변경하려면 일반적으로 스마트 계약에서 규칙을 정의해야 한다.
+
+Sui의 모든 ownership 유형은 [객체 소유권 유형](/develop/objects/object-ownership)을 참조하라.
+
+## Access control
+
+Identity 또는 role 기반 access control은 Solidity의 OpenZeppelin `Ownable` 및 `AccessControl` contracts를 통해 널리 사용된다.
+
+Object ownership은 Sui에 내재되어 있으므로 contract functions에 대한 접근은 일반적으로 [capability object](https://move-book.com/programmability/capability/)를 통해 제한된다.
+
+이 objects는 사용자에게 발급되므로 특정 functions를 호출할 권한을 부여한다. 사용자가 함수가 기대하는 object를 소유하지 않으면 함수 호출은 실패한다.
+
+여전히 address 기반 검사를 구현할 수 있다. 그러나 더 나은 보안을 위해 가능한 한 capability objects를 사용하는 것이 권장된다.
+
+[The Move Book](https://move-book.com/programmability/capability/#address-check-vs-capability)에서 더 자세히 읽을 수 있다.
+
+이 예시에서는 함수 호출 시 `AdminCap` object를 제시해야만 새 사용자를 생성할 수 있다.
+
+```Move
+/// Grants the owner the right to create new users in the system.
+public struct AdminCap {}
+
+/// Creates a new user in the system. Requires the `AdminCap` capability to be
+/// passed as the first argument.
+public fun new(_: &AdminCap, ctx: &mut TxContext): User {
+    User { id: object::new(ctx) }
+}
+```
+
+## Mutating objects
+
+Solidity에서는 `Mapping`과 같은 데이터 구조를 contract에 정의하고 저장한다. 데이터 변경은 서명자가 데이터를 소유하는지 여부와 관계없이 transaction 서명을 포함한다.
+
+Move에서는 데이터를 변경하는 로직이 contract에 정의되지만 데이터는 Move objects에 저장된다.
+
+데이터를 변경하려면 objects의 소유자가 PTB를 사용해 contract functions를 호출해야 한다. 소유권 검사는 프로토콜 수준에서 수행되므로 서명자가 참조된 objects에 접근할 수 없으면 transactions는 실패한다.
+
+## Programmable transaction blocks
+
+Solidity에서 여러 contract 호출의 결과를 함께 연결하거나 서로 다른 contracts를 가로질러 연결하는 작업을 하려면 다른 함수 호출을 조합하는 함수를 스마트 계약에 두어야 한다. 원자성 보장을 갖는 함수 호출 체이닝은 클라이언트 측에서 사용할 수 없다.
+
+Move에서는 PTB가 이 문제를 해결한다. PTB는 빌더에게 런타임에 원자성 보장을 유지하면서 contract 호출을 함께 연결할 수 있는 능력을 제공한다. Sui PTB에는 최대 1,024개의 서로 다른 contract 호출 또는 다른 actions를 포함할 수 있다. PTB는 사실상 간단하면서도 표현력이 높고 강력하며 안전한 제한된 스크립팅 언어를 제공한다.
+
+Sui의 빌더는 PTB를 활용해 그렇지 않으면 다루기 어려운 경험을 제공한다. 좋은 예는 최적의 가격으로 여러 DeFi 프로토콜에 걸쳐 토큰 스왑을 라우팅하는 DeFi aggregator이다. Sui에서 aggregator는 표시된 가격으로 transaction이 실행되거나 완전히 revert된다는 보장을 가진 단일 PTB를 사용한다. PTB는 가장 강력한 Sui 기능 중 하나이다. 경험상 Sui에서 가장 성공적인 빌더는 이 기능을 단지 transactions를 배치하는 방법으로 취급하지 않고 초기에 자주 활용하는 빌더이다.
+
+PTB에 대한 자세한 내용은 [프로그래머블 트랜잭션 블록 (PTB)](/develop/transactions/ptbs/prog-txn-blocks)를 참조하라.
+
+## More comparison
+
+| Topic | Sui | Ethereum |
+|-------|-----|----------|
+| Digital signature algorithm | `Ed25519`, `secp256k1`, `secp256r1` | `secp256k1` |
+| Consensus mechanism | DPoS | PoS |
+| VM and its languages | MoveVM, Move Lang | EVM, Solidity, Vyper |
+| Chain data structure | DAG | 블록 |
+| Common standards (coin, token, NFT, and so on) | Currency Standard, Closed-Loop Token | ERC-20, ERC-721, ERC-1155 |
+| Coin names, name of the smallest unit | SUI, MIST | ETH, Wei |
+| Available frameworks for development | Sui CLI | Foundry, Hardhat |
+| L1/L2 | L2가 없으며 빠른 L1에 의존한다 | 많은 L2가 있다 |
+| Governance | 온체인 governance | EIP + Node Operator consensus |
+| Bridges | 지원된다 | 지원된다 |
+| Network security (stake required for control) | 전체 stake의 66% | 전체 stake의 51% |
+| Smart contract auditing | 더 적은 감사를 필요로 하며 언어가 일부 역할을 수행한다(object model). | Solidity는 더 적은 보호를 제공하므로 더 많은 감사를 요구한다. |
+| Private transactions | 설계상 공개이다. | 설계상 공개이며 L2와 third party가 private transactions를 지원한다. |
+| TVL | ~1 billion | ~46 billion |
+| Implementation languages for clients | Rust, TypeScript | 많다 |
+| Eventing | sender, object ID, type, timestamp로 인덱싱된다. | topic으로 인덱싱된다. |
+| Indexing | 상위 수준 transaction 데이터 + objects, coins 등. | 상위 수준 transaction 데이터. |
+| Oracles | third party | third party |
+| Network upgrade strategy | 프로토콜 플래그와 framework 업그레이드를 validators가 투표한 뒤 활성화한다. | EIPs + Hardforking이며 온체인 메커니즘이 없다. |
+| IDE | VSCode | 많다 |
+| Transaction lifecycle | 클라이언트에서 validators로 두 번 왕복해 transaction certificate(실행을 보장함)를 생성하고 shared objects의 순서를 보장하기 위해 한 번 더 왕복한다. 지연 시간이 매우 낮다. | Transaction이 네트워크에 전파되고 검증되어 mempool에 추가되며 validators가 mempool에서 transactions를 선택한다. 임의의 validator가 블록을 제안하고 다른 validators가 블록에 yes 또는 no로 투표한다. 충분한 수의 블록이 지난 뒤 transaction은 final로 간주된다. 확정성을 위해 블록 높이 요구 사항이 있어 지연 시간이 높다. |
+| Parallel execution vs Ethereum serial execution, fast path | 병렬 실행할 수 있는 transactions는 병렬로 실행된다. | 모든 transaction이 순차적으로 실행된다. |
+| Storage fees, storage rebates, storage accounts to pay for fees over time | 낮고 objects를 파기하면 rebates가 있다. | 높고 rebates가 없다. |
+| Contract immutability | upgrade capabilities를 사용해 native mutable 및 immutable 지원을 제공한다. | native가 아니며 배포된 Solidity 코드를 감사해야 한다. 일부 operation codes로 식별할 수 있다. |
+| Contract upgrading | native이며 upgrade capability가 중개한다. | calls를 위임하는 proxy pattern을 사용해 달성한다. Upgrades는 calls가 향하는 위치를 바꾼다. |
+| Composability | PTB를 사용해 하나의 transaction 안에서 임의의 수의 functions를 호출한다. 한 contract 호출의 출력을 받아 다른 호출의 입력으로 넘겨 조합한다. 원자적 실행을 보장한다. | 각 호출은 개별적으로 처리되고 체인에서 직렬화되어야 하는 별도의 transaction이다. 실행을 보장하려면 신중한 게시가 필요하다. 원자적이지 않다. |
+| Token royalties | 체인에 의해 강제된다. | 마켓플레이스만 강제할 수 있다. |

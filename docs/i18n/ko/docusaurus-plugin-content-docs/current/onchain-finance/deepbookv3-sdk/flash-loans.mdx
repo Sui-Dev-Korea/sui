@@ -1,0 +1,130 @@
+---
+title: 플래시 론 SDK
+sidebar_label: 플래시 론 SDK
+description: DeepBookV3 SDK를 사용하여 flash loan 관련 함수를 실행하는 방법을 설명한다.
+keywords: [ uncollaterized, flash loans, loans, uncollaterized loans, programmable transaction blocks, ptbs, borrow flash loan base, borrow flash loan quote, retrieve flash loan base, retrieve flash loan quote ]
+---
+
+
+Flash loan은 pool에서의 대출과 상환이 하나의 programmable transaction block 안에서 수행되는 대출이다. SDK는 이 기능을 구현할 수 있는 함수를 제공한다. API에 대한 자세한 내용은 [플래시 론](../deepbookv3/contract-information/flash-loans)를 참조하라.
+
+## Flash loan functions
+
+DeepBookV3 SDK는 다음 flash loan 관련 함수를 제공한다.
+
+### borrowBaseAsset
+
+`borrowBaseAsset`를 사용하여 제공한 `poolKey` 값으로 식별되는 pool에서 base asset을 빌린다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `poolKey`: 빌릴 pool을 식별하는 String이다.
+- `borrowAmount`: pool에서 빌릴 양을 나타내는 Number이다.
+
+```tsx
+borrowBaseAsset(poolKey: string, borrowAmount: number);
+```
+
+### returnBaseAsset
+
+`returnBaseAsset`를 사용하여 제공한 `poolKey` 값으로 식별되는 pool에 base asset을 반환한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `poolKey`: 빌릴 pool을 식별하는 String이다.
+- `borrowAmount`: pool에서 빌릴 양을 나타내는 Number이다.
+- `baseCoinInput`: 반환할 base asset을 나타내는 Coin object이다.
+- `flashLoan`: 정산할 대출을 나타내는 Flash loan object이다.
+
+```tsx
+returnBaseAsset(
+  {
+    poolKey: string,
+    borrowAmount: number,
+    baseCoinInput: TransactionObjectArgument,
+    flashLoan: TransactionObjectArgument,
+  }
+)
+```
+
+### borrowQuoteAsset
+
+`borrowQuoteAsset`를 사용하여 제공한 `poolKey` 값으로 식별되는 pool에서 quote asset을 빌린다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `poolKey`: 빌릴 pool을 식별하는 String이다.
+- `borrowAmount`: pool에서 빌릴 양을 나타내는 Number이다.
+
+```tsx
+borrowQuoteAsset(poolKey: string, borrowAmount: number);
+```
+
+### returnQuoteAsset
+
+`returnQuoteAsset`를 사용하여 제공한 `poolKey`로 식별되는 pool에 quote asset을 반환한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+
+**Parameters**
+
+- `poolKey`: 빌릴 pool을 식별하는 String이다.
+- `borrowAmount`: pool에서 빌릴 양을 나타내는 Number이다.
+- `baseCoinInput`: 반환할 quote asset을 나타내는 Coin object이다.
+- `flashLoan`: 정산할 대출을 나타내는 Flash loan object이다.
+
+```tsx
+returnQuoteAsset(
+  poolKey: string,
+  borrowAmount: number,
+  quoteCoinInput: TransactionObjectArgument,
+  flashLoan: TransactionObjectArgument,
+);
+```
+
+## Flash loan example
+
+다음 예시는 `DeepBookMarketMaker` class에서 flash loan을 사용하는 예를 보여준다.
+
+```tsx
+// flash loan transaction 예시
+// DEEP_SUI pool에서 DEEP 1을 차입한다
+// SUI_DBUSDC pool에서 DBUSDC 0.5를 SUI로 swap하고 차입한 DEEP로 지불한다
+// SUI를 다시 DEEP로 swap한다
+// DEEP_SUI pool에 DEEP 1을 반환한다
+flashLoanExample = async (tx: Transaction) => {
+  const borrowAmount = 1;
+  const [deepCoin, flashLoan] = tx.add(this.flashLoans.borrowBaseAsset('DEEP_SUI', borrowAmount));
+
+  // 차입한 DEEP를 사용해 거래를 실행한다
+  const [baseOut, quoteOut, deepOut] = tx.add(
+    this.deepBook.swapExactQuoteForBase({
+      poolKey: 'SUI_DBUSDC',
+      amount: 0.5,
+      deepAmount: 1,
+      minOut: 0,
+      deepCoin: deepCoin,
+    }),
+  );
+
+  tx.transferObjects([baseOut, quoteOut, deepOut], this.getActiveAddress());
+
+  // 상환용 DEEP를 되찾기 위해 두 번째 거래를 실행한다
+  const [baseOut2, quoteOut2, deepOut2] = tx.add(
+    this.deepBook.swapExactQuoteForBase({
+      poolKey: 'DEEP_SUI',
+      amount: 10,
+      deepAmount: 0,
+      minOut: 0,
+    }),
+  );
+
+  tx.transferObjects([quoteOut2, deepOut2], this.getActiveAddress());
+
+  // 차입한 DEEP를 반환한다
+  const loanRemain = tx.add(
+    this.flashLoans.returnBaseAsset('DEEP_SUI', borrowAmount, baseOut2, flashLoan),
+  );
+  
+  // 남은 coin을 사용자의 address로 전송한다
+  tx.transferObjects([loanRemain], this.getActiveAddress());
+};
+```

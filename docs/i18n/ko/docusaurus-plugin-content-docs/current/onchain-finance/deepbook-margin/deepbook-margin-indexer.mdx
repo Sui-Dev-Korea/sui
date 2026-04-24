@@ -1,0 +1,842 @@
+---
+title: DeepBook Margin 인덱서
+sidebar_label: DeepBook Margin 인덱서
+description: DeepBook Margin Indexer는 loan, liquidation, margin pool operation을 포함한 margin trading event에 대한 액세스를 제공한다.
+keywords: [DeepBook Margin Indexer, margin manager, margin pool, liquidation, loan, borrow, repay, supply, withdraw, collateral]
+---
+
+
+DeepBook Margin 인덱서는 margin trading 데이터용 엔드포인트를 통해 DeepBookV3 인덱서를 확장한다. 이러한 엔드포인트는 margin manager 이벤트, margin pool operation, 그리고 liquidation monitoring에 대한 액세스를 제공한다.
+
+## Public endpoints
+
+margin 엔드포인트는 DeepBookV3와 동일한 public 인덱서를 통해 사용할 수 있다.
+
+- **Mainnet**: `https://deepbook-indexer.mainnet.mystenlabs.com/`
+
+- **Testnet**: `https://deepbook-indexer.testnet.mystenlabs.com/`
+
+## Common query parameters
+
+모든 margin 엔드포인트는 다음 공통 쿼리 파라미터를 지원한다:
+
+- `start_time`: Unix timestamp seconds로 표현된 시간 범위의 시작(기본값: 24시간 전)
+- `end_time`: Unix timestamp seconds로 표현된 시간 범위의 끝(기본값: 현재 시간)
+- `limit`: 반환할 결과의 최대 개수(기본값: 1)
+
+## Margin manager endpoints
+
+<details>
+<summary>Get margin manager creation events</summary>
+
+```http
+/margin_manager_created?margin_manager_id=<ID>
+```
+
+margin manager가 생성될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_manager_id": "0x1234...",
+        "balance_manager_id": "0x5678...",
+        "deepbook_pool_id": "0x9abc...",
+        "owner": "0xabcd...",
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get loan borrowed events</summary>
+
+```http
+/loan_borrowed?margin_manager_id=<ID>&margin_pool_id=<ID>
+```
+
+asset이 margin pool에서 borrow될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_manager_id": "0x1234...",
+        "margin_pool_id": "0x5678...",
+        "loan_amount": 1000000000,
+        "loan_shares": 1000000000,
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get loan repaid events</summary>
+
+```http
+/loan_repaid?margin_manager_id=<ID>&margin_pool_id=<ID>
+```
+
+borrow된 asset이 repay될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_manager_id": "0x1234...",
+        "margin_pool_id": "0x5678...",
+        "repay_amount": 1000000000,
+        "repay_shares": 1000000000,
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get liquidation events</summary>
+
+```http
+/liquidation?margin_manager_id=<ID>&margin_pool_id=<ID>
+```
+
+margin manager가 liquidation될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_manager_id": "0x1234...",
+        "margin_pool_id": "0x5678...",
+        "liquidation_amount": 1000000000,
+        "pool_reward": 10000000,
+        "pool_default": 0,
+        "risk_ratio": 800000000,
+        "onchain_timestamp": 1738000000000,
+        "remaining_base_asset": "500000000",
+        "remaining_quote_asset": "2000000000",
+        "remaining_base_debt": "0",
+        "remaining_quote_debt": "0",
+        "base_pyth_price": 100000000,
+        "base_pyth_decimals": 8,
+        "quote_pyth_price": 100000000,
+        "quote_pyth_decimals": 8
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get margin managers information</summary>
+
+```http
+/margin_managers_info
+```
+
+연관된 pool 및 asset 정보와 함께 모든 margin manager에 대한 집계 뷰를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "margin_manager_id": "0x1234...",
+        "deepbook_pool_id": "0x5678...",
+        "base_asset_id": "0xabcd...",
+        "base_asset_symbol": "SUI",
+        "quote_asset_id": "0xefgh...",
+        "quote_asset_symbol": "USDC",
+        "base_margin_pool_id": "0x1111...",
+        "quote_margin_pool_id": "0x2222..."
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get margin manager states</summary>
+
+```http
+/margin_manager_states?max_risk_ratio=<FLOAT>&deepbook_pool_id=<ID>
+```
+
+margin manager의 현재 상태를 반환한다. 이 엔드포인트는 liquidation 위험이 있을 수 있는 position을 모니터링하는 데 유용하다.
+
+- `max_risk_ratio`: 이 임계값보다 낮은 risk ratio를 가진 margin manager만 반환하도록 필터링한다; liquidation 기회를 찾는 데 유용하다
+- `deepbook_pool_id`: 특정 DeepBook pool로 필터링한다
+
+#### Response
+
+```json
+[
+    {
+        "id": 1,
+        "margin_manager_id": "0x1234...",
+        "deepbook_pool_id": "0x5678...",
+        "base_margin_pool_id": "0x1111...",
+        "quote_margin_pool_id": "0x2222...",
+        "base_asset_id": "0xabcd...",
+        "base_asset_symbol": "SUI",
+        "quote_asset_id": "0xefgh...",
+        "quote_asset_symbol": "USDC",
+        "risk_ratio": "1.5",
+        "base_asset": "1000000000",
+        "quote_asset": "5000000000",
+        "base_debt": "500000000",
+        "quote_debt": "2000000000",
+        "base_pyth_price": 100000000,
+        "base_pyth_decimals": 8,
+        "quote_pyth_price": 100000000,
+        "quote_pyth_decimals": 8,
+        "created_at": "2025-01-01 00:00:00",
+        "updated_at": "2025-01-01 12:00:00",
+        "current_price": "2.5",
+        "lowest_trigger_above_price": null,
+        "highest_trigger_below_price": null
+    }
+]
+```
+
+</details>
+
+## Margin pool endpoints
+
+<details>
+<summary>Get asset supplied events</summary>
+
+```http
+/asset_supplied?margin_pool_id=<ID>&supplier=<ADDRESS>
+```
+
+asset이 margin pool에 supply될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_pool_id": "0x1234...",
+        "asset_type": "0x2::sui::SUI",
+        "supplier": "0xabcd...",
+        "amount": 1000000000,
+        "shares": 1000000000,
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get asset withdrawn events</summary>
+
+```http
+/asset_withdrawn?margin_pool_id=<ID>&supplier=<ADDRESS>
+```
+
+asset이 margin pool에서 withdraw될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_pool_id": "0x1234...",
+        "asset_type": "0x2::sui::SUI",
+        "supplier": "0xabcd...",
+        "amount": 1000000000,
+        "shares": 1000000000,
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get margin pool creation events</summary>
+
+```http
+/margin_pool_created?margin_pool_id=<ID>
+```
+
+margin pool이 생성될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_pool_id": "0x1234...",
+        "maintainer_cap_id": "0x5678...",
+        "asset_type": "0x2::sui::SUI",
+        "config_json": {
+            "margin_pool_config": {
+                "supply_cap": 10000000000000,
+                "max_utilization_rate": 950000000,
+                "protocol_spread": 50000000,
+                "min_borrow": 1000000
+            },
+            "interest_config": {
+                "base_rate": 100000,
+                "base_slope": 200000,
+                "optimal_utilization": 800000000,
+                "excess_slope": 500000
+            }
+        },
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get DeepBook pool updated events</summary>
+
+```http
+/deepbook_pool_updated?margin_pool_id=<ID>&deepbook_pool_id=<ID>
+```
+
+DeepBook pool이 margin pool에 대해 활성화되거나 비활성화될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_pool_id": "0x1234...",
+        "deepbook_pool_id": "0x5678...",
+        "pool_cap_id": "0x9abc...",
+        "enabled": true,
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get interest parameter update events</summary>
+
+```http
+/interest_params_updated?margin_pool_id=<ID>
+```
+
+interest rate parameter가 업데이트될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_pool_id": "0x1234...",
+        "pool_cap_id": "0x5678...",
+        "config_json": {
+            "base_rate": 100000,
+            "base_slope": 200000,
+            "optimal_utilization": 800000000,
+            "excess_slope": 500000
+        },
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get margin pool configuration update events</summary>
+
+```http
+/margin_pool_config_updated?margin_pool_id=<ID>
+```
+
+margin pool configuration이 업데이트될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_pool_id": "0x1234...",
+        "pool_cap_id": "0x5678...",
+        "config_json": {
+            "supply_cap": 10000000000000,
+            "max_utilization_rate": 950000000,
+            "protocol_spread": 50000000,
+            "min_borrow": 1000000
+        },
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get supplier cap minted events</summary>
+
+```http
+/supplier_cap_minted?supplier_cap_id=<ID>
+```
+
+supplier capability가 mint될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "supplier_cap_id": "0x1234...",
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get supply referral minted events</summary>
+
+```http
+/supply_referral_minted?margin_pool_id=<ID>&owner=<ADDRESS>
+```
+
+supply referral이 mint될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_pool_id": "0x5678...",
+        "supply_referral_id": "0x1234...",
+        "owner": "0xabcd...",
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get protocol fees increased events</summary>
+
+```http
+/protocol_fees_increased?margin_pool_id=<ID>
+```
+
+protocol fee가 증가할 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_pool_id": "0x1234...",
+        "total_shares": 1000000000,
+        "referral_fees": 100000,
+        "maintainer_fees": 200000,
+        "protocol_fees": 300000,
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get referral fees claimed events</summary>
+
+```http
+/referral_fees_claimed?referral_id=<ID>&owner=<ADDRESS>
+```
+
+referral fee가 claim될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "referral_id": "0x1234...",
+        "owner": "0xabcd...",
+        "fees": 1000000,
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get collateral events</summary>
+
+```http
+/collateral_events?margin_manager_id=<ID>&type=<"Deposit" | "Withdraw">&is_base=<BOOLEAN>
+```
+
+collateral이 margin manager에 deposit되거나 withdraw될 때의 이벤트를 반환한다. 이 엔드포인트는 이벤트 시점의 Pyth price 데이터를 포함하여 모든 collateral movement에 대한 상세 추적을 제공한다.
+
+- `margin_manager_id`: 특정 margin manager로 필터링한다
+- `type`: 이벤트 타입(`Deposit` 또는 `Withdraw`)으로 필터링한다
+- `is_base`: collateral이 base asset(`true`)인지 quote asset(`false`)인지로 필터링한다
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "event_type": "Deposit",
+        "margin_manager_id": "0x1234...",
+        "amount": "1000000000",
+        "asset_type": "0x2::sui::SUI",
+        "pyth_decimals": 8,
+        "pyth_price": "100000000",
+        "withdraw_base_asset": null,
+        "base_pyth_decimals": 8,
+        "base_pyth_price": "100000000",
+        "quote_pyth_decimals": 8,
+        "quote_pyth_price": "100000000",
+        "remaining_base_asset": "500000000",
+        "remaining_quote_asset": "2000000000",
+        "remaining_base_debt": "0",
+        "remaining_quote_debt": "0",
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+## Admin and registry endpoints
+
+<details>
+<summary>Get maintainer cap updated events</summary>
+
+```http
+/maintainer_cap_updated?maintainer_cap_id=<ID>
+```
+
+maintainer capability가 업데이트될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "maintainer_cap_id": "0x1234...",
+        "allowed": true,
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get maintainer fees withdrawn events</summary>
+
+```http
+/maintainer_fees_withdrawn?margin_pool_id=<ID>
+```
+
+maintainer fee가 withdraw될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_pool_id": "0x1234...",
+        "margin_pool_cap_id": "0x5678...",
+        "maintainer_fees": 1000000,
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get protocol fees withdrawn events</summary>
+
+```http
+/protocol_fees_withdrawn?margin_pool_id=<ID>
+```
+
+protocol fee가 withdraw될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "margin_pool_id": "0x1234...",
+        "protocol_fees": 1000000,
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get pause cap updated events</summary>
+
+```http
+/pause_cap_updated?pause_cap_id=<ID>
+```
+
+pause capability가 업데이트될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "pause_cap_id": "0x1234...",
+        "allowed": true,
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get DeepBook pool registered events</summary>
+
+```http
+/deepbook_pool_registered?pool_id=<ID>
+```
+
+DeepBook pool이 margin registry에 등록될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "pool_id": "0x1234...",
+        "config_json": {
+            "base_margin_pool_id": "0x5678...",
+            "quote_margin_pool_id": "0x9abc...",
+            "risk_ratios": {
+                "min_withdraw_risk_ratio": 1200000000,
+                "min_borrow_risk_ratio": 1100000000,
+                "liquidation_risk_ratio": 1000000000,
+                "target_liquidation_risk_ratio": 1050000000
+            },
+            "user_liquidation_reward": 50000000,
+            "pool_liquidation_reward": 10000000,
+            "enabled": true
+        },
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get DeepBook pool registry updated events</summary>
+
+```http
+/deepbook_pool_updated_registry?pool_id=<ID>
+```
+
+DeepBook pool registry entry가 업데이트될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "pool_id": "0x1234...",
+        "enabled": true,
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>
+
+<details>
+<summary>Get DeepBook pool config updated events</summary>
+
+```http
+/deepbook_pool_config_updated?pool_id=<ID>
+```
+
+DeepBook pool configuration이 업데이트될 때의 이벤트를 반환한다.
+
+#### Response
+
+```json
+[
+    {
+        "event_digest": "0xabc123...",
+        "digest": "0xdef456...",
+        "sender": "0x1111...",
+        "checkpoint": 12345678,
+        "checkpoint_timestamp_ms": 1738000000000,
+        "package": "0x2222...",
+        "pool_id": "0x1234...",
+        "config_json": {
+            "base_margin_pool_id": "0x5678...",
+            "quote_margin_pool_id": "0x9abc...",
+            "risk_ratios": {
+                "min_withdraw_risk_ratio": 1200000000,
+                "min_borrow_risk_ratio": 1100000000,
+                "liquidation_risk_ratio": 1000000000,
+                "target_liquidation_risk_ratio": 1050000000
+            },
+            "user_liquidation_reward": 50000000,
+            "pool_liquidation_reward": 10000000,
+            "enabled": true
+        },
+        "onchain_timestamp": 1738000000000
+    }
+]
+```
+
+</details>

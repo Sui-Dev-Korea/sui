@@ -1,0 +1,211 @@
+---
+title: 규제 통화와 Deny List
+description: Coin Registry system을 사용하여 Sui에서 regulated currency를 생성할 수 있다. 이 coin에는 deny list를 사용해 access를 제어하는 기능이 포함된다.
+keywords: [ regulated coin list, regulated coins, regulate coin, allow list, deny list, stablecoins, token example, create a token, how to create token, SUI token standards, coin registry ]
+---
+
+
+stablecoin과 같은 regulated currency를 Sui에서 생성할 수 있다.
+이 coin은 SUI 같은 다른 coin과 비슷하지만, deny list를 사용해 currency에 대한 access를 제어하는 기능을 포함한다.
+
+Coin Registry system은 `sui::coin_registry` module을 통해 강화된 regulatory feature를 제공한다:
+
+1. **During initialization:** `finalize()`를 호출하기 전에 `CurrencyInitializer<T>`에 `make_regulated()` 함수를 사용한다.
+2. **Regulatory tracking:** registry가 `RegulatedState` enum에서 regulatory status를 자동으로 추적한다.
+3. **Enhanced compliance:** global pause 기능과 더 나은 ecosystem integration을 built-in으로 지원한다.
+
+이 regulatory feature의 장점은 다음과 같다:
+
+- **Centralized tracking:** regulatory status가 registry에 저장되어 쉽게 발견할 수 있다.
+- **Global pause support:** 긴급 상황을 위한 pause 또는 unpause 기능이 강화된다.
+- **Compliance tooling:** wallet, exchange, compliance system과 더 잘 통합된다.
+- **Migration support:** 레거시 규제된 코인에서 매끄럽게 마이그레이션할 수 있다.
+
+## `DenyList`
+
+`DenyList`는 `DenyCapV2` bearer가 접근하여 Sui core type을 사용할 수 없는 address 목록을 지정할 수 있는 singleton shared object이다.
+하지만 `DenyList`의 초기 사용 사례는 지정된 type의 coin에 대한 access를 제한하는 데 초점을 맞춘다.
+이는 transaction의 입력으로 사용하는 것을 특정 address에 대해 차단할 수 있어야 하는 Sui 규제된 코인(regulated coin)을 만들 때 유용하다.
+Sui의 규제된 코인은 알려진 악의적 행위자가 해당 coin에 접근하지 못하게 해야 한다는 규제를 충족한다.
+
+:::info
+
+`DenyList` object는 address가 `0x403`인 system object이다.
+직접 만들 수는 없다.
+
+:::
+
+사용 가능한 기능에 대해 알아보려면 [Currency Standard](/onchain-finance/fungible-tokens/currency) 문서와 Sui framework의 `coin_registry` module을 참조한다.
+
+## Regulated coin example
+
+규제된 코인 예시는 Sui repo의 `examples/regulated-coin` directory에 있다.
+이 예시는 Sui의 규제된 코인 기능 일부를 보여주는 온체인 package에 대해 TypeScript 및 Rust 기반 command line access를 모두 제공한다.
+
+<ImportContent source="prerequisites" mode="snippet" />
+
+이 주제는 Sui repo의 own fork에서 code에 접근하고 있다고 가정한다. 
+
+이 project를 사용하기 위해 Sui wallet이 반드시 필요한 것은 아니지만, 하나 있으면 결과를 시각화하는 데 도움이 될 수 있다.
+
+이 예시는 Sui에서 package를 publish하는 것과 Move language에 익숙하다고 가정한다.
+example app에 대한 더 자세한 가이드는 [앱 예시](/onchain-finance/examples-patterns)를 참조한다.
+Move language에 대한 자세한 내용은 [The Move Book](https://move-book.com/)을 참조한다.
+
+## Publishing to a network
+
+smart contract는 다른 package와 같은 방식으로 network에 publish한다.
+publish 과정에 대한 더 자세한 내용이 필요하다면 [Hello, World!](/getting-started/onboarding/hello-world)를 참조한다. 
+
+예시에는 publish를 자동화하기 위해 실행할 수 있는 `publish.sh` file이 포함되어 있다.
+script는 Testnet에 publish한다고 가정하므로, local network나 Devnet에서 실행할 계획이라면 실행 전에 반드시 업데이트해야 한다.
+
+publish script는 frontend folder 각각에 필요한 `.env` file도 생성한다.
+script를 사용하지 않는다면 `.env` file을 수동으로 만들고 frontend가 찾기를 기대하는 variable 값들을 제공해야 한다.
+script를 사용하더라도 `ADMIN_SECRET_KEY`와 그 값을 제공해야 한다.
+
+:::warning
+
+address의 secret key를 public에 노출하지 않도록 주의한다.
+
+:::
+
+| Constant name | Description |
+| --- | --- |
+| `PACKAGE_ID` | publish한 package의 object ID이다. 이 데이터는 publish 시 Sui가 제공하는 응답의 일부이다. |
+| `ADMIN_SECRET_KEY` | package를 publish하는 address의 secret key이다. `sui keytool export --key-identity <SUI-ADDRESS>` 또는 wallet UI를 사용해 값을 얻을 수 있다. 값을 public에 노출하지 않도록 주의한다. |
+| `ADMIN_ADDRESS` | contract를 publish하는 address이다. |
+| `DENY_CAP_ID` | deny capability object ID이다. 이 데이터는 publish 시 Sui가 제공하는 응답의 일부이다. |
+| `TREASURY_CAP_ID` | bearer가 새 coin을 mint할 수 있게 하는 treasury cap object ID이다. 이 데이터는 publish 시 Sui가 제공하는 응답의 일부이다. |
+| `MODULE_NAME` | publish하는 module의 이름이다. |
+| `COIN_NAME` | 규제된 코인의 이름이다.  |
+| `SUI_FULLNODE_URL` | transaction을 처리하는 full node network의 URL이다. Testnet에서 이 값은 `https://fullnode.testnet.sui.io:443`이다. |
+
+## Smart contract
+
+이 예시는 project의 smart contract를 생성하기 위해 단일 file(`regulated_coin.move`)을 사용한다.
+이 contract는 이를 network에 publish할 때 규제된 코인을 정의한다.
+treasury capability(`TreasuryCap`)와 deny capability(`DenyCapV2`)는 contract를 publish하는 address로 transfer된다.
+`TreasuryCap`은 bearer가 coin을 mint하거나 burn할 수 있게 하며(이 예시에서는 `REGULATED_COIN`), `DenyCapV2` bearer는 승인되지 않은 사용자 목록에 address를 추가하고 제거할 수 있다. 
+
+<details>
+
+<summary>
+
+`regulated_coin.move`
+
+</summary>
+
+<ImportContent source="examples/regulated-coin/move/sources/regulated_coin.move" mode="code" />
+
+</details>
+
+### Creating regulated coins
+
+Sui Currency Standard는 One-Time Witness를 사용해 currency를 생성하는 `new_currency_with_otw` 함수를 제공한다.
+currency를 regulated하게 만들기 위해 module은 regulated currency를 초기화하고 `DenyCapV2`를 반환하는 `make_regulated` 함수를 제공한다.
+`DenyCapV2` bearer는 coin에 대한 access를 제어하거나 규제하는 목록에 address를 추가하고 제거할 수 있다.
+이 ability는 stablecoin 같은 asset에 필요한 요구 사항이다.
+
+TypeScript client와 Rust client는 `coin` package의 `mint` 함수 호출을 처리한다.
+`coin` package에는 같은 작업을 수행하는 데 사용할 수 있는 `mint_and_transfer` 함수도 포함되어 있지만, 1개의 command에서 coin을 mint하고 다른 command에서 transfer하는 composability가 더 바람직하다.
+2개의 explicit command를 사용하면 coin을 mint하는 단계와 transfer 사이에 future logic을 구현할 수 있다.
+programmable transaction block의 구조 덕분에 여전히 network에서는 단일 transaction 하나를 만들고 비용을 지불하게 된다.
+
+<Tabs groupId="code-language">
+
+<TabItem label="TypeScript" value="typescript">
+
+<ImportContent source="examples/regulated-coin/ts-client/src/main.ts" mode="code" tag="mint" />
+
+</TabItem>
+
+<TabItem label="Rust" value="rust">
+
+<ImportContent source="examples/regulated-coin/rust-client/src/tx_run/coin.rs" mode="code" tag="mint" />
+
+</TabItem>
+
+</Tabs>
+
+사용 가능한 모든 `Coin` 함수는 Sui framework의 [`coin` module documentation](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/coin.md)를 참조한다.
+다음 함수가 가장 일반적이다. 
+
+<details>
+
+<summary>
+
+  `coin::mint<T>`
+
+</summary>
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/coin.move" mode="code" fun="mint" />
+
+</details>
+<details>
+
+<summary>
+
+  `coin::mint_balance<T>`
+
+</summary>
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/coin.move" mode="code" fun="mint_balance" />
+
+</details>
+
+<details>
+
+<summary>
+
+  `coin::mint_and_transfer<T>`
+
+</summary>
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/coin.move" mode="code" fun="mint_and_transfer" />
+
+</details>
+
+<details>
+
+<summary>
+
+  `coin::burn<T>`
+
+</summary>
+
+<ImportContent source="crates/sui-framework/packages/sui-framework/sources/coin.move" mode="code" fun="burn" />
+
+</details>
+
+### Manage deny list
+
+coin에 할당된 deny list address를 관리할 수 있도록 frontend code는 몇 가지 추가 함수를 제공한다.
+이 추가 함수는 `coin` module의 `deny_list_v2_add` 및 `deny_list_v2_remove` 함수를 호출한다.
+
+address를 deny list에 추가하면, 여전히 그 address로 token을 보낼 수 있다는 점을 알 수 있다.
+그렇다면 이는 해당 address가 함수를 호출한 epoch가 끝날 때까지는 여전히 coin을 받을 수 있기 때문이다.
+이제 차단된 address에서 규제된 코인을 보내려고 하면 시도는 error를 발생시킨다.
+다음 epoch가 시작된 뒤에는 그 address가 더 이상 coin을 받을 수도 없다.
+address를 제거하면 즉시 coin을 받을 수 있지만, 그 address가 coin을 transaction input으로 포함하려면 제거 후 다음 epoch까지 기다려야 한다.
+
+이 함수를 사용하려면 추가하거나 제거하려는 address를 전달한다.
+그다음 frontend 함수가 framework의 관련 move module을 호출하면서 `DenyList` object(`0x403`)와 여러분의 `DenyCapV2` object ID를 추가한다.
+`DenyCapV2` ID는 smart contract를 publish할 때 받는다.
+이 예시에서는 frontend 함수가 읽는 `.env` file에 그 값을 추가한다.
+
+<Tabs groupId="code-language">
+
+<TabItem label="TypeScript" value="typescript">
+
+<ImportContent source="examples/regulated-coin/ts-client/src/main.ts" mode="code" tag="deny" />
+
+</TabItem>
+
+<TabItem label="Rust" value="rust">
+
+<ImportContent source="examples/regulated-coin/rust-client/src/tx_run/deny.rs" mode="code" tag="deny" />
+
+</TabItem>
+
+</Tabs>

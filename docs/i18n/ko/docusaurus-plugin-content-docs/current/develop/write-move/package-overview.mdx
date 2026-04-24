@@ -1,0 +1,56 @@
+---
+title: Move 패키지란?
+description: Sui는 Move를 packages, modules, objects라는 세 가지 구성 요소를 통해 사용한다.
+keywords: [ move packages, move, packages, move smart contract, package overview ]
+---
+
+Move는 Sui가 온체인 로직을 정의하기 위해 사용하는 smart contract 언어이다.
+Move는 platform-agnostic하므로, 서로 다른 데이터 및 실행 모델을 가진 blockchain 전반에서 shared library, tooling, developer community를 가능하게 한다.
+
+Sui는 Move를 packages, modules, objects라는 세 가지 구성 요소를 통해 사용한다.
+
+Move package는 Sui network에 게시된 Move bytecode 집합이다.
+Packages는 immutable이다.
+package를 upgrade할 수는 있지만, upgrade는 이전 version을 모두 그대로 둔 채 온체인에 새 version을 만든다.
+한번 게시되면 다른 package가 해당 package의 module을 import하여 사용할 수 있고, 누구나 Sui Explorer를 사용해 그 내용을 검사하거나 로직을 추적할 수 있다.
+
+Move module은 package가 온체인 object와 상호작용하는 방식을 정의한다.
+각 module 이름은 해당 package 안에서 고유하다.
+
+Move object는 Move module이 관리하는 typed data이다.
+각 object는 integer와 address 같은 primitive type, 다른 object, 또는 object가 아닌 struct를 담을 수 있는 field를 가진 struct이다.
+
+## Packages are immutable
+
+package object를 network에 게시한 뒤에는 그 object가 그곳에 영구적으로 존재한다.
+온체인 package의 코드를 직접 변경할 수는 없다.
+한번 게시되면 다른 package가 그것이 제공하는 module을 import하여 사용할 수 있다.
+
+개발자가 게시 후 온체인 package를 수정할 수 있다면 downstream 동작이 예상치 못하게 바뀔 수 있다.
+예를 들어, 개발자가 놓친 bug를 수정하는 과정에서 의도치 않게 의존하는 모든 package의 실행을 변경할 수 있다.
+
+### Making packages immutable
+
+Move 함수 `sui::package::make_immutable`를 호출해 package의 `UpgradeCap`을 파기하고 package를 영구적으로 immutable하게 만들 수 있다.
+이렇게 하면 single-key risk는 제거되지만 향후의 모든 bug fix와 feature 추가도 불가능해진다.
+
+더 유연한 접근 방식을 원한다면 upgrade 능력을 포기하지 않으면서 `UpgradeCap` 접근을 보호할 수 있도록 [사용자 정의 업그레이드 정책](/develop/publish-upgrade-packages/custom-policies)를 사용한다.
+
+## Upgrading packages
+
+게시된 package를 직접 편집할 수는 없지만 이를 **upgrade**할 수는 있다.
+upgrade는 원래 package를 그대로 둔 채 온체인에 새로운 package object를 만든다.
+이렇게 하면 기존 dependency를 깨뜨리지 않고 feature를 추가하거나 문제를 수정할 수 있다.
+
+프로세스에 대한 자세한 내용은 [패키지 업그레이드](/develop/publish-upgrade-packages/upgrade)를 참조한다.
+
+## Using the Sui Client CLI
+
+[Sui Client CLI](/references/cli/client)는 package를 게시하고 upgrade하는 손쉬운 방법을 제공한다.
+Move package를 만들고 다루는 방법에 대한 정보는 [Move 패키지 관리](/develop/manage-packages/move-package-management)를 참조한다.
+
+CLI의 active address가 package의 `UpgradeCap`을 소유하고 있다면 `upgrade` 명령을 사용해 upgrade를 수행할 수 있다.
+이 workflow는 개발을 막 시작했거나 빠르게 반복 작업할 때 편리하다.
+하지만 단일 private key로 package upgrade를 보호하는 방식은 보안 위험을 초래한다:
+
+<ImportContent source="upgrade-single-key-risk" mode="snippet" />
