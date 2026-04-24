@@ -14,14 +14,24 @@ use move_core_types::{
     language_storage::{CORE_CODE_ADDRESS, ModuleId},
 };
 
-use move_vm_runtime::move_vm::MoveVM;
-use move_vm_test_utils::BlankStorage;
-use move_vm_types::gas::UnmeteredGasMeter;
-
+use move_vm_runtime::{
+    dev_utils::{
+        in_memory_test_adapter::InMemoryTestAdapter, storage::StoredPackage,
+        vm_test_adapter::VMTestAdapter,
+    },
+    natives::move_stdlib::stdlib_native_functions,
+};
+use move_vm_runtime::{runtime::MoveRuntime, shared::gas::UnmeteredGasMeter};
 use std::{
     path::PathBuf,
     sync::{Arc, LazyLock},
 };
+
+const BENCH_FUNCTION_PREFIX: &str = "bench_";
+const BENCH_ADDR: AccountAddress = AccountAddress::new([
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+]);
+const BENCH_ADDR_STR: &str = "0x2";
 
 static PRECOMPILED_MOVE_STDLIB: LazyLock<PreCompiledProgramInfo> = LazyLock::new(|| {
     let program_res = move_compiler::construct_pre_compiled_lib(
@@ -49,8 +59,9 @@ static PRECOMPILED_MOVE_STDLIB: LazyLock<PreCompiledProgramInfo> = LazyLock::new
 /// Entry point for the bench, provide a function name to invoke in Module Bench in bench.move.
 pub fn bench<M: Measurement + 'static>(c: &mut Criterion<M>, filename: &str) {
     let modules = compile_modules(filename);
-    let move_vm = create_vm();
-    execute(c, &move_vm, modules, filename);
+    let mut adapter = create_vm();
+    publish_stdlib(&mut adapter);
+    execute(c, &mut adapter, BENCH_ADDR, modules, filename);
 }
 
 fn make_path(file: &str) -> PathBuf {
@@ -66,70 +77,135 @@ pub fn compile_modules(filename: &str) -> Vec<CompiledModule> {
         edition: Edition::E2024_BETA,
         ..Default::default()
     };
-    let (_files, compiled_units) =
-        Compiler::from_files(None, src_files, vec![], move_stdlib::named_addresses())
-            .set_pre_compiled_program_opt(Some(Arc::new(PRECOMPILED_MOVE_STDLIB.clone())))
-            .set_default_config(pkg_config)
-            .build_and_report()
-            .expect("Error compiling...");
+    let mut named_addresses = move_stdlib::named_addresses();
+    named_addresses.insert(
+        "bench".to_string(),
+        move_core_types::parsing::address::NumericalAddress::parse_str(BENCH_ADDR_STR).unwrap(),
+    );
+    let (_files, compiled_units) = Compiler::from_files(None, src_files, vec![], named_addresses)
+        .set_pre_compiled_program_opt(Some(Arc::new(PRECOMPILED_MOVE_STDLIB.clone())))
+        .set_default_config(pkg_config)
+        .build_and_report()
+        .expect("Error compiling...");
     compiled_units
         .into_iter()
         .map(|annot_unit| annot_unit.named_module.module)
         .collect()
 }
 
-fn create_vm() -> MoveVM {
-    MoveVM::new(move_stdlib_natives::all_natives(
-        AccountAddress::from_hex_literal("0x1").unwrap(),
-        move_stdlib_natives::GasParameters::zeros(),
-        /* silent debug */ true,
+fn create_vm() -> InMemoryTestAdapter {
+    InMemoryTestAdapter::new_with_runtime(MoveRuntime::new_with_default_config(
+        stdlib_native_functions(
+            AccountAddress::from_hex_literal("0x1").unwrap(),
+            move_vm_runtime::natives::move_stdlib::GasParameters::zeros(),
+            /* silent debug */ true,
+        )
+        .unwrap(),
     ))
-    .unwrap()
+}
+
+fn publish_stdlib(adapter: &mut InMemoryTestAdapter) {
+    let stdlib_modules: Vec<CompiledModule> = PRECOMPILED_MOVE_STDLIB
+        .iter()
+        .filter_map(|(_, info)| {
+            info.compiled_unit
+                .as_ref()
+                .map(|unit| unit.named_module.module.clone())
+        })
+        .collect();
+    if stdlib_modules.is_empty() {
+        return;
+    }
+    let pkg = StoredPackage::from_modules_for_testing(CORE_CODE_ADDRESS, stdlib_modules).unwrap();
+    adapter.insert_package_into_storage(pkg);
+}
+
+// TODO: cross_module benchmark is broken — uses multi-address packages not supported by current setup
+// fn build_package(path: PathBuf) -> anyhow::Result<move_package::compilation::compiled_package::CompiledPackage> {
+//     let config = move_package::BuildConfig {
+//         dev_mode: true,
+//         test_mode: false,
+//         generate_docs: false,
+//         install_dir: Some(path.clone()),
+//         force_recompilation: false,
+//         ..Default::default()
+//     };
+//     config.compile_package(&path, &mut Vec::new())
+// }
+//
+// pub fn run_cross_module_tests<M: Measurement + 'static>(c: &mut Criterion<M>, path: PathBuf) {
+//     let modules_a1 = build_package(path).unwrap();
+//     let modules = modules_a1
+//         .all_modules()
+//         .map(|m| m.unit.module.clone())
+//         .collect::<Vec<_>>();
+//     let mut adapter = create_vm();
+//     publish_stdlib(&mut adapter);
+//     execute(c, &mut adapter, CORE_CODE_ADDRESS, modules, "cross_module/a1/sources/m.move");
+// }
+
+fn find_bench_functions(modules: &[CompiledModule]) -> Vec<(Identifier, ModuleId)> {
+    modules
+        .iter()
+        .flat_map(|module| {
+            module.function_defs().iter().filter_map(|def| {
+                let handle = module.function_handle_at(def.function);
+                let fn_name = module.identifier_at(handle.name);
+                if fn_name.as_str().starts_with(BENCH_FUNCTION_PREFIX) {
+                    Some((
+                        module.identifier_at(handle.name).to_owned(),
+                        module.self_id(),
+                    ))
+                } else {
+                    None
+                }
+            })
+        })
+        .collect()
 }
 
 // execute a given function in the Bench module
 fn execute<M: Measurement + 'static>(
     c: &mut Criterion<M>,
-    move_vm: &MoveVM,
+    adapter: &mut InMemoryTestAdapter,
+    sender: AccountAddress,
     modules: Vec<CompiledModule>,
     file: &str,
 ) {
-    // establish running context
-    let storage = BlankStorage::new();
-    let sender = CORE_CODE_ADDRESS;
-    let mut session = move_vm.new_session(&storage);
+    let fun_names_with_moduleid = find_bench_functions(&modules);
 
-    // TODO: we may want to use a real gas meter to make benchmarks more realistic.
+    let linkage = adapter
+        .generate_linkage_context(sender, sender, &modules)
+        .unwrap();
+    let pkg = StoredPackage::from_module_for_testing_with_linkage(sender, linkage.clone(), modules)
+        .unwrap();
+    adapter
+        .publish_package(sender, pkg.into_serialized_package())
+        .unwrap();
 
-    for module in modules {
-        let mut mod_blob = vec![];
-        module
-            .serialize_with_version(module.version, &mut mod_blob)
-            .expect("Module serialization error");
-        session
-            .publish_module(mod_blob, sender, &mut UnmeteredGasMeter)
-            .expect("Module must load");
-    }
-
-    // module and function to call
-    let module_id = ModuleId::new(sender, Identifier::new("bench").unwrap());
-    let fun_name = Identifier::new("bench").unwrap();
-
-    // benchmark
-    c.bench_function(file, |b| {
-        b.iter_with_large_drop(|| {
-            session
-                .execute_function_bypass_visibility(
-                    &module_id,
-                    &fun_name,
-                    vec![],
-                    Vec::<Vec<u8>>::new(),
-                    &mut UnmeteredGasMeter,
-                    None,
-                )
-                .unwrap_or_else(|err| {
-                    panic!("{:?}::bench in {file} failed with {:?}", &module_id, err)
+    fun_names_with_moduleid
+        .iter()
+        .for_each(|(fun_name, module_id)| {
+            // benchmark
+            // TODO: we may want to use a real gas meter to make benchmarks more realistic.
+            let bench_name = format!("{}::{}::{}", file, module_id.name().as_str(), fun_name);
+            c.bench_function(&bench_name, |b| {
+                b.iter_with_large_drop(|| {
+                    adapter
+                        .make_vm(linkage.clone())
+                        .unwrap()
+                        .execute_function_bypass_visibility(
+                            module_id,
+                            fun_name,
+                            vec![],
+                            vec![],
+                            &mut UnmeteredGasMeter,
+                            None,
+                        )
+                        .unwrap_or_else(|err| {
+                            panic!("{:?}::bench in {file} failed with {:?}", &module_id, err)
+                        })
                 })
-        })
-    });
+            });
+        });
 }

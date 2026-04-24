@@ -2,11 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::data_store::cached_package_store::CachedPackageStore;
-use crate::data_store::legacy::linkage_view::LinkageView;
-use crate::programmable_transactions::context::load_type_from_struct;
+use crate::data_store::transaction_package_store::TransactionPackageStore;
+use crate::static_programmable_transactions::linkage::config::{LinkageConfig, ResolutionConfig};
+use crate::static_programmable_transactions::linkage::resolved_linkage::ExecutableLinkage;
 use move_core_types::annotated_value as A;
 use move_core_types::language_storage::StructTag;
-use move_vm_runtime::move_vm::MoveVM;
+use move_vm_runtime::runtime::MoveRuntime;
+use sui_protocol_config::ProtocolConfig;
+use sui_types::TypeTag;
 use sui_types::base_types::ObjectID;
 use sui_types::error::{SuiErrorKind, SuiResult};
 use sui_types::execution::TypeLayoutStore;
@@ -14,23 +17,27 @@ use sui_types::storage::{BackingPackageStore, PackageObject};
 use sui_types::{error::SuiError, layout_resolver::LayoutResolver};
 
 /// Retrieve a `MoveStructLayout` from a `Type`.
-/// Invocation into the `Session` to leverage the `LinkageView` implementation
-/// common to the runtime.
-pub struct TypeLayoutResolver<'state, 'vm> {
-    vm: &'vm MoveVM,
-    linkage_view: LinkageView<'state>,
+pub struct TypeLayoutResolver<'state, 'runtime> {
+    vm: &'runtime MoveRuntime,
+    protocol_config: &'runtime ProtocolConfig,
+    state_view: Box<dyn TypeLayoutStore + 'state>,
 }
 
-/// Implements SuiResolver traits by providing null implementations for module and resource
+/// Implements SuiResolver traits by providing null implementations for module
 /// resolution and delegating backing package resolution to the trait object.
-struct NullSuiResolver<'state>(Box<dyn TypeLayoutStore + 'state>);
+struct NullSuiResolver<'a, 'state>(&'a (dyn TypeLayoutStore + 'state));
 
-impl<'state, 'vm> TypeLayoutResolver<'state, 'vm> {
-    pub fn new(vm: &'vm MoveVM, state_view: Box<dyn TypeLayoutStore + 'state>) -> Self {
-        let linkage_view = LinkageView::new(Box::new(CachedPackageStore::new(Box::new(
-            NullSuiResolver(state_view),
-        ))));
-        Self { vm, linkage_view }
+impl<'state, 'runtime> TypeLayoutResolver<'state, 'runtime> {
+    pub fn new(
+        vm: &'runtime MoveRuntime,
+        protocol_config: &'runtime ProtocolConfig,
+        state_view: Box<dyn TypeLayoutStore + 'state>,
+    ) -> Self {
+        Self {
+            vm,
+            protocol_config,
+            state_view,
+        }
     }
 }
 
@@ -39,14 +46,31 @@ impl LayoutResolver for TypeLayoutResolver<'_, '_> {
         &mut self,
         struct_tag: &StructTag,
     ) -> Result<A::MoveDatatypeLayout, SuiError> {
-        let Ok(ty) = load_type_from_struct(self.vm, &self.linkage_view, &[], struct_tag) else {
+        let ids = struct_tag.all_addresses().into_iter().map(ObjectID::from);
+        let null_resolver = NullSuiResolver(&self.state_view);
+        let resolver =
+            CachedPackageStore::new(self.vm, TransactionPackageStore::new(&null_resolver));
+        let config = ResolutionConfig::new(
+            LinkageConfig::new(
+                self.protocol_config
+                    .include_special_package_amendments_as_option()
+                    .clone(),
+                true,
+            ),
+            self.protocol_config.binary_config(None),
+        );
+        let tag_linkage = ExecutableLinkage::type_linkage(config, ids, &resolver)?;
+        let link_context = tag_linkage.linkage_context()?;
+        let data_store = TransactionPackageStore::new(&null_resolver);
+        let Ok(vm) = self.vm.make_vm(data_store, link_context) else {
             return Err(SuiErrorKind::FailObjectLayout {
                 st: format!("{}", struct_tag),
             }
             .into());
         };
-        let layout = self.vm.get_runtime().type_to_fully_annotated_layout(&ty);
-        match layout {
+
+        let type_tag = TypeTag::Struct(Box::new(struct_tag.clone()));
+        match vm.annotated_type_layout(&type_tag) {
             Ok(A::MoveTypeLayout::Struct(s)) => Ok(A::MoveDatatypeLayout::Struct(s)),
             Ok(A::MoveTypeLayout::Enum(e)) => Ok(A::MoveDatatypeLayout::Enum(e)),
             _ => Err(SuiErrorKind::FailObjectLayout {
@@ -57,7 +81,7 @@ impl LayoutResolver for TypeLayoutResolver<'_, '_> {
     }
 }
 
-impl BackingPackageStore for NullSuiResolver<'_> {
+impl BackingPackageStore for NullSuiResolver<'_, '_> {
     fn get_package_object(&self, package_id: &ObjectID) -> SuiResult<Option<PackageObject>> {
         self.0.get_package_object(package_id)
     }

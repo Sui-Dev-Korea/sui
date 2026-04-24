@@ -14,8 +14,10 @@ use tracing::info;
 
 use crate::Task;
 use crate::config::ConcurrencyConfig;
+use crate::ingestion::ingestion_client::CheckpointEnvelope;
 use crate::metrics::IndexerMetrics;
 use crate::pipeline::CommitterConfig;
+use crate::pipeline::IngestionConfig;
 use crate::pipeline::Processor;
 use crate::pipeline::WatermarkPart;
 use crate::pipeline::concurrent::collector::collector;
@@ -25,8 +27,8 @@ use crate::pipeline::concurrent::main_reader_lo::track_main_reader_lo;
 use crate::pipeline::concurrent::pruner::pruner;
 use crate::pipeline::concurrent::reader_watermark::reader_watermark;
 use crate::pipeline::processor::processor;
+use crate::store::ConcurrentStore;
 use crate::store::Store;
-use crate::types::full_checkpoint_content::Checkpoint;
 
 mod collector;
 mod commit_watermark;
@@ -65,7 +67,7 @@ pub enum BatchStatus {
 /// back to the ingestion service.
 #[async_trait]
 pub trait Handler: Processor {
-    type Store: Store;
+    type Store: ConcurrentStore;
     type Batch: Default + Send + Sync + 'static;
 
     /// If at least this many rows are pending, the committer will commit them eagerly.
@@ -117,6 +119,9 @@ pub trait Handler: Processor {
 pub struct ConcurrentConfig {
     /// Configuration for the writer, that makes forward progress.
     pub committer: CommitterConfig,
+
+    /// Per-pipeline ingestion overrides.
+    pub ingestion: IngestionConfig,
 
     /// Configuration for the pruner, that deletes old data.
     pub pruner: Option<PrunerConfig>,
@@ -232,13 +237,13 @@ impl Default for PrunerConfig {
 /// channels are created to communicate between its various components. The pipeline will shutdown
 /// if any of its input or output channels close, any of its independent tasks fail, or if it is
 /// signalled to shutdown through the returned service handle.
-pub(crate) fn pipeline<H: Handler + Send + Sync + 'static>(
+pub(crate) fn pipeline<H: Handler>(
     handler: H,
     next_checkpoint: u64,
     config: ConcurrentConfig,
     store: H::Store,
     task: Option<Task>,
-    checkpoint_rx: mpsc::Receiver<Arc<Checkpoint>>,
+    checkpoint_rx: mpsc::Receiver<Arc<CheckpointEnvelope>>,
     metrics: Arc<IndexerMetrics>,
 ) -> Service {
     info!(
@@ -248,6 +253,7 @@ pub(crate) fn pipeline<H: Handler + Send + Sync + 'static>(
 
     let ConcurrentConfig {
         committer: committer_config,
+        ingestion: _,
         pruner: pruner_config,
         fanout,
         min_eager_rows,
@@ -287,6 +293,7 @@ pub(crate) fn pipeline<H: Handler + Send + Sync + 'static>(
         processor_tx,
         metrics.clone(),
         concurrency,
+        store.clone(),
     );
 
     let s_collector = collector::<H>(
@@ -345,6 +352,7 @@ mod tests {
     use std::time::Duration;
 
     use prometheus::Registry;
+    use sui_types::digests::CheckpointDigest;
     use tokio::sync::mpsc;
     use tokio::time::timeout;
 
@@ -359,7 +367,7 @@ mod tests {
     use super::*;
 
     const TEST_TIMEOUT: Duration = Duration::from_secs(60);
-    const TEST_CHECKPOINT_BUFFER_SIZE: usize = 3; // Critical for back-pressure testing calculations
+    const TEST_SUBSCRIBER_CHANNEL_SIZE: usize = 3; // Critical for back-pressure testing calculations
 
     #[derive(Clone, Debug, FieldCount)]
     struct TestValue {
@@ -441,14 +449,14 @@ mod tests {
 
     struct TestSetup {
         store: MockStore,
-        checkpoint_tx: mpsc::Sender<Arc<Checkpoint>>,
+        checkpoint_tx: mpsc::Sender<Arc<CheckpointEnvelope>>,
         #[allow(unused)]
         pipeline: Service,
     }
 
     impl TestSetup {
         async fn new(config: ConcurrentConfig, store: MockStore, next_checkpoint: u64) -> Self {
-            let (checkpoint_tx, checkpoint_rx) = mpsc::channel(TEST_CHECKPOINT_BUFFER_SIZE);
+            let (checkpoint_tx, checkpoint_rx) = mpsc::channel(TEST_SUBSCRIBER_CHANNEL_SIZE);
             let metrics = IndexerMetrics::new(None, &Registry::default());
 
             let pipeline = pipeline(
@@ -469,14 +477,17 @@ mod tests {
         }
 
         async fn send_checkpoint(&self, checkpoint: u64) -> anyhow::Result<()> {
-            let checkpoint = Arc::new(
-                TestCheckpointBuilder::new(checkpoint)
-                    .with_epoch(1)
-                    .with_network_total_transactions(checkpoint * 2)
-                    .with_timestamp_ms(1000000000 + checkpoint * 1000)
-                    .build_checkpoint(),
-            );
-            self.checkpoint_tx.send(checkpoint).await?;
+            let checkpoint_envelope = Arc::new(CheckpointEnvelope {
+                checkpoint: Arc::new(
+                    TestCheckpointBuilder::new(checkpoint)
+                        .with_epoch(1)
+                        .with_network_total_transactions(checkpoint * 2)
+                        .with_timestamp_ms(1000000000 + checkpoint * 1000)
+                        .build_checkpoint(),
+                ),
+                chain_id: CheckpointDigest::new([1; 32]).into(),
+            });
+            self.checkpoint_tx.send(checkpoint_envelope).await?;
             Ok(())
         }
 
@@ -548,22 +559,32 @@ mod tests {
             assert_eq!(data, vec![i * 10 + 1, i * 10 + 2]);
         }
 
-        // Wait for pruning to occur (5s + delay + processing time)
-        tokio::time::sleep(Duration::from_millis(5_200)).await;
+        // Wait for pruning to occur. The pruner and reader_watermark tasks both run on
+        // the same interval, so poll until the pruner has caught up rather instead of using a
+        // fixed sleep.
+        let pruning_deadline = Duration::from_secs(15);
+        let start = tokio::time::Instant::now();
+        loop {
+            let pruned = {
+                let data = setup.store.data.get(DataPipeline::NAME).unwrap();
+                !data.contains_key(&0) && !data.contains_key(&1) && !data.contains_key(&2)
+            };
+            if pruned {
+                break;
+            }
+            assert!(
+                start.elapsed() < pruning_deadline,
+                "Timed out waiting for pruning to occur"
+            );
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
 
-        // Verify pruning has occurred
+        // Verify recent checkpoints are still available
         {
             let data = setup.store.data.get(DataPipeline::NAME).unwrap();
-
-            // Verify recent checkpoints are still available
             assert!(data.contains_key(&3));
             assert!(data.contains_key(&4));
             assert!(data.contains_key(&5));
-
-            // Verify old checkpoints are pruned
-            assert!(!data.contains_key(&0));
-            assert!(!data.contains_key(&1));
-            assert!(!data.contains_key(&2));
         };
     }
 
@@ -600,7 +621,7 @@ mod tests {
         }
 
         // Verify watermark progression
-        assert_eq!(watermark.checkpoint_hi_inclusive, 9);
+        assert_eq!(watermark.checkpoint_hi_inclusive, Some(9));
         assert_eq!(watermark.tx_hi, 18); // 9 * 2
         assert_eq!(watermark.timestamp_ms_hi_inclusive, 1000009000); // 1000000000 + 9 * 1000
 
@@ -662,7 +683,7 @@ mod tests {
 
         // Watermark should only progress to 1 (can't progress past the gap)
         let watermark = setup.store.watermark(DataPipeline::NAME).unwrap();
-        assert_eq!(watermark.checkpoint_hi_inclusive, 1);
+        assert_eq!(watermark.checkpoint_hi_inclusive, Some(1));
 
         // Now send the missing checkpoint 2
         setup
@@ -675,7 +696,7 @@ mod tests {
             .store
             .wait_for_watermark(DataPipeline::NAME, 4, TEST_TIMEOUT)
             .await;
-        assert_eq!(watermark.checkpoint_hi_inclusive, 4);
+        assert_eq!(watermark.checkpoint_hi_inclusive, Some(4));
     }
 
     // ==================== BACK-PRESSURE TESTING ====================
@@ -715,7 +736,7 @@ mod tests {
         // Configuration: MAX_PENDING_ROWS=4, fanout=2
         //
         // Channel and task breakdown:
-        // - Checkpoint->Processor channel: 3 slots (TEST_CHECKPOINT_BUFFER_SIZE)
+        // - Checkpoint->Processor channel: 3 slots (TEST_SUBSCRIBER_CHANNEL_SIZE)
         // - Processor tasks: 2 tasks (fanout=2)
         // - Processor->Collector channel: 7 slots (processor_channel_size=7)
         // - Collector pending: 2 checkpoints × 2 values = 4 values (hits MAX_PENDING_ROWS=4)
@@ -784,7 +805,7 @@ mod tests {
         // Configuration: fanout=2, write_concurrency=1
         //
         // Channel and task breakdown:
-        // - Checkpoint->Processor channel: 3 slots (TEST_CHECKPOINT_BUFFER_SIZE)
+        // - Checkpoint->Processor channel: 3 slots (TEST_SUBSCRIBER_CHANNEL_SIZE)
         // - Processor tasks: 2 tasks (fanout=2)
         // - Processor->Collector channel: 7 slots (processor_channel_size=7)
         // - Collector->Committer channel: 6 slots (collector_channel_size=6)

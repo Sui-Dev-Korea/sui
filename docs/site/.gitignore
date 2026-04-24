@@ -12,6 +12,7 @@ open-spec
 .docusaurus
 .cache-loader
 .generated
+.resolved
 
 # Misc
 .DS_Store
@@ -32,6 +33,9 @@ static/awesome-sui/
 src/static/awesome-sui/
 static/awesome-sui-gaming/
 src/static/awesome-sui-gaming/
+static/awesome-sui/
+
+scripts/.cache/
 
 ## Subtrees
 ../docs/subtree/

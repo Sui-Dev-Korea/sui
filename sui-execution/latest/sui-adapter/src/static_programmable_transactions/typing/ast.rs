@@ -1,12 +1,15 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::static_programmable_transactions::{
-    linkage::resolved_linkage::ResolvedLinkage, loading::ast as L, spanned::Spanned,
+use crate::{
+    gas_charger::GasPayment,
+    static_programmable_transactions::{
+        linkage::resolved_linkage::ResolvedLinkage, loading::ast as L, spanned::Spanned,
+    },
 };
 use indexmap::{IndexMap, IndexSet};
 use move_core_types::{account_address::AccountAddress, u256::U256};
-use move_vm_types::values::VectorSpecialization;
+use move_vm_runtime::execution::values::VectorSpecialization;
 use std::cell::OnceCell;
 use sui_types::base_types::{ObjectID, ObjectRef};
 
@@ -16,7 +19,7 @@ use sui_types::base_types::{ObjectID, ObjectRef};
 
 #[derive(Debug)]
 pub struct Transaction {
-    pub gas_coin: Option<ObjectID>,
+    pub gas_payment: Option<GasPayment>,
     /// Gathered BCS bytes from Pure inputs
     pub bytes: IndexSet<Vec<u8>>,
     // All input objects
@@ -28,6 +31,9 @@ pub struct Transaction {
     /// All receiving inputs
     pub receiving: Vec<ReceivingInput>,
     pub withdrawal_compatibility_conversions: IndexMap<Location, WithdrawalCompatibilityConversion>,
+    /// Original number of commands in the transaction. All Spanned indices in the AST should be
+    /// < `original_command_len`
+    pub original_command_len: usize,
     pub commands: Commands,
 }
 

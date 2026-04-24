@@ -26,7 +26,9 @@ mod leader_timeout;
 mod linearizer;
 mod metrics;
 mod network;
-mod proposed_block_handler;
+mod observer_service;
+mod observer_subscriber;
+mod proposer;
 mod round_prober;
 mod round_tracker;
 mod stake_aggregator;
@@ -35,7 +37,7 @@ mod subscriber;
 mod synchronizer;
 mod threshold_clock;
 mod transaction;
-mod transaction_certifier;
+mod transaction_vote_tracker;
 mod universal_committer;
 
 /// Consensus test utilities.
@@ -53,7 +55,7 @@ mod randomized_tests;
 
 /// Exported Consensus API.
 pub use authority_node::{ConsensusAuthority, NetworkType};
-pub use block::{BlockAPI, CertifiedBlock, CertifiedBlocksOutput};
+pub use block::BlockAPI;
 
 /// Exported API for testing and tools.
 pub use block::{TestBlock, Transaction, VerifiedBlock};
@@ -73,7 +75,7 @@ pub use dag_state::DagState;
 pub use linearizer::Linearizer;
 pub use storage::mem_store::MemStore;
 pub use test_dag_builder::DagBuilder;
-pub use transaction_certifier::TransactionCertifier;
+pub use transaction_vote_tracker::TransactionVoteTracker;
 
 // Exported API for simtests.
 #[cfg(msim)]

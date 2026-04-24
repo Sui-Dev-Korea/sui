@@ -3,16 +3,17 @@
 
 use crate::{
     execution_mode::ExecutionMode,
+    gas_charger::GasPayment,
     static_programmable_transactions::{
         env::Env,
-        linkage::resolved_linkage::RootedLinkage,
         loading::ast as L,
         metering::{self, translation_meter::TranslationMeter},
     },
 };
 use move_core_types::{account_address::AccountAddress, language_storage::StructTag, u256::U256};
+use mysten_common::ZipDebugEqIteratorExt;
 use sui_types::{
-    base_types::{ObjectID, TxContext},
+    base_types::TxContext,
     error::ExecutionError,
     object::Owner,
     transaction::{self as P, CallArg, FundsWithdrawalArg, ObjectArg, SharedObjectMutability},
@@ -25,7 +26,7 @@ pub fn transaction<Mode: ExecutionMode>(
     // which inputs are withdrawals that need to be converted to coins, must
     // be the same length as the inputs
     withdrawal_compatibility_inputs: Option<Vec<bool>>,
-    gas_coin: Option<ObjectID>,
+    gas_payment: Option<GasPayment>,
     pt: P::ProgrammableTransaction,
 ) -> Result<L::Transaction, ExecutionError> {
     metering::pre_translation::meter(meter, &pt)?;
@@ -46,19 +47,21 @@ pub fn transaction<Mode: ExecutionMode>(
     );
     let inputs = withdrawal_compatibility_inputs
         .into_iter()
-        .zip(inputs)
+        .zip_debug_eq(inputs)
         .map(|(is_withdrawal_compatibility_input, arg)| {
             input::<Mode>(env, tx_context, is_withdrawal_compatibility_input, arg)
         })
         .collect::<Result<Vec<_>, _>>()?;
+    let original_command_len = commands.len();
     let commands = commands
         .into_iter()
         .enumerate()
         .map(|(idx, cmd)| command(env, cmd).map_err(|e| e.with_command_index(idx)))
         .collect::<Result<Vec<_>, _>>()?;
     let loaded_tx = L::Transaction {
-        gas_coin,
+        gas_payment,
         inputs,
+        original_command_len,
         commands,
     };
     metering::loading::meter(meter, &loaded_tx)?;
@@ -113,7 +116,7 @@ fn input<Mode: ExecutionMode>(
         }) => {
             let obj = env.read_object(&id)?;
             let Some(ty) = obj.type_() else {
-                invariant_violation!("Object {:?} has does not have a Move type", id);
+                invariant_violation!("Object {:?} does not have a Move type", id);
             };
             let tag: StructTag = ty.clone().into();
             let ty = env.load_type_from_struct(&tag)?;
@@ -197,9 +200,6 @@ fn object_mutability(mutability: SharedObjectMutability) -> L::ObjectMutability 
 fn command(env: &Env, command: P::Command) -> Result<L::Command, ExecutionError> {
     Ok(match command {
         P::Command::MoveCall(pmc) => {
-            let resolved_linkage = env
-                .linkage_analysis
-                .compute_call_linkage(&pmc, env.linkable_store)?;
             let P::ProgrammableMoveCall {
                 package,
                 module,
@@ -207,13 +207,12 @@ fn command(env: &Env, command: P::Command) -> Result<L::Command, ExecutionError>
                 type_arguments: ptype_arguments,
                 arguments,
             } = *pmc;
-            let linkage = RootedLinkage::new(*package, resolved_linkage);
             let type_arguments = ptype_arguments
                 .into_iter()
                 .enumerate()
                 .map(|(idx, ty)| env.load_type_input(idx, ty))
                 .collect::<Result<Vec<_>, _>>()?;
-            let function = env.load_function(package, module, name, type_arguments, linkage)?;
+            let function = env.load_function(package, module, name, type_arguments)?;
             L::Command::MoveCall(Box::new(L::MoveCall {
                 function,
                 arguments,

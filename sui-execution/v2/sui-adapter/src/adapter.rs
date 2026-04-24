@@ -30,7 +30,7 @@ mod checked {
         base_types::*,
         error::{ExecutionError, SuiError},
         execution_status::ExecutionErrorKind,
-        metrics::LimitsMetrics,
+        metrics::ExecutionMetrics,
         storage::ChildObjectResolver,
     };
     use sui_verifier::verifier::sui_verify_module_metered_check_timeout_only;
@@ -62,6 +62,7 @@ mod checked {
                 variant_nodes: protocol_config.variant_nodes(),
                 deprecate_global_storage_ops_during_deserialization: protocol_config
                     .deprecate_global_storage_ops_during_deserialization(),
+                normalize_depth_formula: protocol_config.normalize_depth_formula(),
             },
         )
         .map_err(|_| SuiErrorKind::ExecutionInvariantViolation.into())
@@ -72,7 +73,7 @@ mod checked {
         input_objects: BTreeMap<ObjectID, object_runtime::InputObject>,
         is_metered: bool,
         protocol_config: &'r ProtocolConfig,
-        metrics: Arc<LimitsMetrics>,
+        metrics: Arc<ExecutionMetrics>,
         current_epoch_id: EpochId,
     ) -> NativeContextExtensions<'r> {
         let mut extensions = NativeContextExtensions::default();

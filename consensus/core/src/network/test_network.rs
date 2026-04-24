@@ -1,6 +1,8 @@
 // Copyright (c) Mysten Labs, Inc.
 // SPDX-License-Identifier: Apache-2.0
 
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use bytes::Bytes;
 use consensus_config::AuthorityIndex;
@@ -12,7 +14,11 @@ use crate::{
     block::VerifiedBlock,
     commit::{CommitRange, TrustedCommit},
     error::ConsensusResult,
-    network::{BlockStream, NetworkService},
+    network::{
+        BlockStream, NodeId, ObserverBlockStream, ObserverBlockStreamItem, ObserverNetworkService,
+        PeerId, ValidatorNetworkService,
+        observer::{StartBlockStream, block_stream_request::Command},
+    },
 };
 
 use super::ExtendedSerializedBlock;
@@ -22,7 +28,10 @@ pub(crate) struct TestService {
     pub(crate) handle_fetch_blocks: Vec<(AuthorityIndex, Vec<BlockRef>)>,
     pub(crate) handle_subscribe_blocks: Vec<(AuthorityIndex, Round)>,
     pub(crate) handle_fetch_commits: Vec<(AuthorityIndex, CommitRange)>,
+    pub(crate) handle_stream_blocks: Vec<NodeId>,
+    pub(crate) stream_commands_received: Arc<Mutex<Vec<Command>>>,
     pub(crate) own_blocks: Vec<ExtendedSerializedBlock>,
+    pub(crate) highest_commit_index: u64,
 }
 
 impl TestService {
@@ -32,7 +41,10 @@ impl TestService {
             handle_fetch_blocks: Vec::new(),
             handle_subscribe_blocks: Vec::new(),
             handle_fetch_commits: Vec::new(),
+            handle_stream_blocks: Vec::new(),
+            stream_commands_received: Arc::new(Mutex::new(Vec::new())),
             own_blocks: Vec::new(),
+            highest_commit_index: 0,
         }
     }
 
@@ -40,10 +52,15 @@ impl TestService {
     pub(crate) fn add_own_blocks(&mut self, blocks: Vec<ExtendedSerializedBlock>) {
         self.own_blocks.extend(blocks);
     }
+
+    #[cfg_attr(msim, allow(dead_code))]
+    pub(crate) fn set_highest_commit_index(&mut self, index: u64) {
+        self.highest_commit_index = index;
+    }
 }
 
 #[async_trait]
-impl NetworkService for Mutex<TestService> {
+impl ValidatorNetworkService for Mutex<TestService> {
     async fn handle_send_block(
         &self,
         peer: AuthorityIndex,
@@ -75,8 +92,8 @@ impl NetworkService for Mutex<TestService> {
         &self,
         peer: AuthorityIndex,
         block_refs: Vec<BlockRef>,
-        _highest_accepted_rounds: Vec<Round>,
-        _breadth_first: bool,
+        _fetch_after_rounds: Vec<Round>,
+        _fetch_missing_ancestors: bool,
     ) -> ConsensusResult<Vec<Bytes>> {
         self.lock().handle_fetch_blocks.push((peer, block_refs));
         Ok(vec![])
@@ -104,5 +121,78 @@ impl NetworkService for Mutex<TestService> {
         _peer: AuthorityIndex,
     ) -> ConsensusResult<(Vec<Round>, Vec<Round>)> {
         unimplemented!("Unimplemented")
+    }
+}
+
+#[async_trait]
+impl ObserverNetworkService for Mutex<TestService> {
+    async fn handle_block(
+        &self,
+        _peer: PeerId,
+        _block: ObserverBlockStreamItem,
+    ) -> ConsensusResult<()> {
+        unimplemented!("ObserverNetworkService handle_block not implemented for TestService")
+    }
+
+    async fn handle_stream_blocks(
+        &self,
+        peer: NodeId,
+        highest_round_per_authority: Vec<u64>,
+    ) -> ConsensusResult<ObserverBlockStream> {
+        use futures::stream;
+
+        {
+            let mut state = self.lock();
+            state.handle_stream_blocks.push(peer);
+            state
+                .stream_commands_received
+                .lock()
+                .push(Command::Start(StartBlockStream {
+                    highest_round_per_authority: highest_round_per_authority.clone(),
+                }));
+        }
+
+        let (blocks_to_send, highest_commit_index) = {
+            let state = self.lock();
+            let min_round = highest_round_per_authority
+                .iter()
+                .min()
+                .copied()
+                .unwrap_or(0);
+
+            let blocks = state
+                .own_blocks
+                .iter()
+                .skip(min_round as usize + 1)
+                .cloned()
+                .collect::<Vec<_>>();
+
+            (blocks, state.highest_commit_index)
+        };
+
+        let block_stream = stream::iter(blocks_to_send.into_iter().map(move |extended_block| {
+            ObserverBlockStreamItem {
+                block: extended_block.block,
+                highest_commit_index,
+            }
+        }));
+
+        Ok(Box::pin(block_stream))
+    }
+
+    async fn handle_fetch_blocks(
+        &self,
+        _peer: NodeId,
+        _block_refs: Vec<BlockRef>,
+    ) -> ConsensusResult<Vec<Bytes>> {
+        unimplemented!("ObserverNetworkService fetch_blocks not implemented for TestService")
+    }
+
+    async fn handle_fetch_commits(
+        &self,
+        _peer: NodeId,
+        _commit_range: CommitRange,
+    ) -> ConsensusResult<(Vec<TrustedCommit>, Vec<VerifiedBlock>)> {
+        unimplemented!("ObserverNetworkService fetch_commits not implemented for TestService")
     }
 }

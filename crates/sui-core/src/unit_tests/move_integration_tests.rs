@@ -80,7 +80,7 @@ async fn test_object_wrapping_unwrapping() {
     assert_eq!(child_object_ref.1, create_child_version);
 
     let wrapped_version =
-        SequenceNumber::lamport_increment([child_object_ref.1, effects.gas_object().0.1]);
+        SequenceNumber::lamport_increment([child_object_ref.1, effects.gas_object().unwrap().0.1]);
 
     // Create a Parent object, by wrapping the child object.
     let effects = call_move(
@@ -125,7 +125,7 @@ async fn test_object_wrapping_unwrapping() {
     assert_eq!(parent_object_ref.1, wrapped_version);
 
     let unwrapped_version =
-        SequenceNumber::lamport_increment([parent_object_ref.1, effects.gas_object().0.1]);
+        SequenceNumber::lamport_increment([parent_object_ref.1, effects.gas_object().unwrap().0.1]);
 
     // Extract the child out of the parent.
     let effects = call_move(
@@ -164,7 +164,7 @@ async fn test_object_wrapping_unwrapping() {
     let rewrap_version = SequenceNumber::lamport_increment([
         parent_object_ref.1,
         child_object_ref.1,
-        effects.gas_object().0.1,
+        effects.gas_object().unwrap().0.1,
     ]);
 
     // Wrap the child to the parent again.
@@ -203,7 +203,7 @@ async fn test_object_wrapping_unwrapping() {
     let parent_object_ref = effects.mutated_excluding_gas().first().unwrap().0;
 
     let deleted_version =
-        SequenceNumber::lamport_increment([parent_object_ref.1, effects.gas_object().0.1]);
+        SequenceNumber::lamport_increment([parent_object_ref.1, effects.gas_object().unwrap().0.1]);
 
     // Now delete the parent object, which will in turn delete the child object.
     let effects = call_move(
@@ -2869,6 +2869,57 @@ pub async fn build_and_publish_test_package(
     )
     .await
     .0
+}
+
+pub async fn build_and_publish_package_with_upgrade_cap(
+    authority: &AuthorityState,
+    sender: &SuiAddress,
+    sender_key: &AccountKeyPair,
+    gas_object_id: &ObjectID,
+    modules: Vec<Vec<u8>>,
+    dep_ids: Vec<ObjectID>,
+) -> (ObjectRef, ObjectRef) {
+    let gas_price = authority.reference_gas_price_for_testing().unwrap();
+    let gas_budget = TEST_ONLY_GAS_UNIT_FOR_PUBLISH * gas_price;
+    let effects = {
+        let gas_object = authority.get_object(gas_object_id).await;
+        let gas_object_ref = gas_object.unwrap().compute_object_reference();
+
+        let data = TransactionData::new_module(
+            *sender,
+            gas_object_ref,
+            modules,
+            dep_ids,
+            gas_budget,
+            gas_price,
+        );
+        let transaction = to_sender_signed_transaction(data, sender_key);
+
+        submit_and_execute(authority, transaction)
+            .await
+            .unwrap()
+            .1
+            .into_data()
+    };
+
+    assert!(
+        matches!(effects.status(), ExecutionStatus::Success),
+        "{:?}",
+        effects.status()
+    );
+
+    let package = effects
+        .created()
+        .into_iter()
+        .find(|(_, owner)| matches!(owner, Owner::Immutable))
+        .unwrap();
+    let upgrade_cap = effects
+        .created()
+        .into_iter()
+        .find(|(_, owner)| matches!(owner, Owner::AddressOwner(_)))
+        .unwrap();
+
+    (package.0, upgrade_cap.0)
 }
 
 pub async fn build_and_publish_test_package_with_upgrade_cap(

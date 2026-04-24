@@ -42,6 +42,7 @@ use self::{
 };
 use crate::crypto::group_ops::GroupOpsCostParams;
 use crate::crypto::poseidon::PoseidonBN254CostParams;
+use crate::crypto::rangeproofs::{self, BulletproofsCostParams};
 use crate::crypto::zklogin;
 use crate::crypto::zklogin::{CheckZkloginIdCostParams, CheckZkloginIssuerCostParams};
 use crate::{crypto::group_ops, transfer::PartyTransferInternalCostParams};
@@ -49,6 +50,7 @@ use better_any::{Tid, TidAble};
 use crypto::nitro_attestation::{self, NitroAttestationCostParams};
 use crypto::vdf::{self, VDFCostParams};
 use move_binary_format::errors::{PartialVMError, PartialVMResult};
+use move_binary_format::safe_unwrap;
 use move_core_types::{
     annotated_value as A,
     gas_algebra::{AbstractMemorySize, InternalGas},
@@ -57,16 +59,18 @@ use move_core_types::{
     runtime_value as R,
     vm_status::StatusCode,
 };
-use move_stdlib_natives::{self as MSN, GasParameters};
-use move_vm_runtime::{
-    native_extensions::NativeExtensionMarker,
-    native_functions::{NativeContext, NativeFunction, NativeFunctionTable},
+use move_vm_runtime::natives::{
+    extensions::NativeExtensionMarker,
+    functions::{NativeContext, NativeFunction, NativeFunctionTable},
+    move_stdlib::{self as MSN, GasParameters},
 };
-use move_vm_types::{
-    loaded_data::runtime_types::Type,
-    natives::function::NativeResult,
-    values::{Struct, Value},
-    views::{SizeConfig, ValueView},
+use move_vm_runtime::{
+    execution::{
+        Type,
+        values::{Struct, Value},
+    },
+    natives::functions::NativeResult,
+    shared::views::{SizeConfig, ValueView},
 };
 use std::sync::Arc;
 use sui_protocol_config::ProtocolConfig;
@@ -197,6 +201,9 @@ pub struct NativesCostTable {
 
     // nitro attestation
     pub nitro_attestation_cost_params: NitroAttestationCostParams,
+
+    // bulletproofs range proofs
+    pub bulletproofs_cost_params: BulletproofsCostParams,
 }
 
 impl NativeExtensionMarker<'_> for NativesCostTable {}
@@ -381,41 +388,23 @@ impl NativesCostTable {
                     .into(),
             },
             tx_context_fresh_id_cost_params: TxContextFreshIdCostParams {
-                tx_context_fresh_id_cost_base: if protocol_config.move_native_context() {
-                    protocol_config.tx_context_fresh_id_cost_base().into()
-                } else {
-                    DEFAULT_UNUSED_TX_CONTEXT_ENTRY_COST.into()
-                },
+                tx_context_fresh_id_cost_base: protocol_config
+                    .tx_context_fresh_id_cost_base()
+                    .into(),
             },
             tx_context_sender_cost_params: TxContextSenderCostParams {
-                tx_context_sender_cost_base: if protocol_config.move_native_context() {
-                    protocol_config.tx_context_sender_cost_base().into()
-                } else {
-                    DEFAULT_UNUSED_TX_CONTEXT_ENTRY_COST.into()
-                },
+                tx_context_sender_cost_base: protocol_config.tx_context_sender_cost_base().into(),
             },
             tx_context_epoch_cost_params: TxContextEpochCostParams {
-                tx_context_epoch_cost_base: if protocol_config.move_native_context() {
-                    protocol_config.tx_context_epoch_cost_base().into()
-                } else {
-                    DEFAULT_UNUSED_TX_CONTEXT_ENTRY_COST.into()
-                },
+                tx_context_epoch_cost_base: protocol_config.tx_context_epoch_cost_base().into(),
             },
             tx_context_epoch_timestamp_ms_cost_params: TxContextEpochTimestampMsCostParams {
-                tx_context_epoch_timestamp_ms_cost_base: if protocol_config.move_native_context() {
-                    protocol_config
-                        .tx_context_epoch_timestamp_ms_cost_base()
-                        .into()
-                } else {
-                    DEFAULT_UNUSED_TX_CONTEXT_ENTRY_COST.into()
-                },
+                tx_context_epoch_timestamp_ms_cost_base: protocol_config
+                    .tx_context_epoch_timestamp_ms_cost_base()
+                    .into(),
             },
             tx_context_sponsor_cost_params: TxContextSponsorCostParams {
-                tx_context_sponsor_cost_base: if protocol_config.move_native_context() {
-                    protocol_config.tx_context_sponsor_cost_base().into()
-                } else {
-                    DEFAULT_UNUSED_TX_CONTEXT_ENTRY_COST.into()
-                },
+                tx_context_sponsor_cost_base: protocol_config.tx_context_sponsor_cost_base().into(),
             },
             tx_context_rgp_cost_params: TxContextRGPCostParams {
                 tx_context_rgp_cost_base: protocol_config
@@ -424,32 +413,22 @@ impl NativesCostTable {
                     .into(),
             },
             tx_context_gas_price_cost_params: TxContextGasPriceCostParams {
-                tx_context_gas_price_cost_base: if protocol_config.move_native_context() {
-                    protocol_config.tx_context_gas_price_cost_base().into()
-                } else {
-                    DEFAULT_UNUSED_TX_CONTEXT_ENTRY_COST.into()
-                },
+                tx_context_gas_price_cost_base: protocol_config
+                    .tx_context_gas_price_cost_base()
+                    .into(),
             },
             tx_context_gas_budget_cost_params: TxContextGasBudgetCostParams {
-                tx_context_gas_budget_cost_base: if protocol_config.move_native_context() {
-                    protocol_config.tx_context_gas_budget_cost_base().into()
-                } else {
-                    DEFAULT_UNUSED_TX_CONTEXT_ENTRY_COST.into()
-                },
+                tx_context_gas_budget_cost_base: protocol_config
+                    .tx_context_gas_budget_cost_base()
+                    .into(),
             },
             tx_context_ids_created_cost_params: TxContextIdsCreatedCostParams {
-                tx_context_ids_created_cost_base: if protocol_config.move_native_context() {
-                    protocol_config.tx_context_ids_created_cost_base().into()
-                } else {
-                    DEFAULT_UNUSED_TX_CONTEXT_ENTRY_COST.into()
-                },
+                tx_context_ids_created_cost_base: protocol_config
+                    .tx_context_ids_created_cost_base()
+                    .into(),
             },
             tx_context_replace_cost_params: TxContextReplaceCostParams {
-                tx_context_replace_cost_base: if protocol_config.move_native_context() {
-                    protocol_config.tx_context_replace_cost_base().into()
-                } else {
-                    DEFAULT_UNUSED_TX_CONTEXT_ENTRY_COST.into()
-                },
+                tx_context_replace_cost_base: protocol_config.tx_context_replace_cost_base().into(),
             },
             type_is_one_time_witness_cost_params: TypesIsOneTimeWitnessCostParams {
                 types_is_one_time_witness_cost_base: protocol_config
@@ -629,6 +608,14 @@ impl NativesCostTable {
                     .transfer_receive_object_cost_base_as_option()
                     .unwrap_or(0)
                     .into(),
+                transfer_receive_object_internal_cost_per_byte: protocol_config
+                    .transfer_receive_object_cost_per_byte_as_option()
+                    .unwrap_or(0)
+                    .into(),
+                transfer_receive_object_internal_type_cost_per_byte: protocol_config
+                    .transfer_receive_object_type_cost_per_byte_as_option()
+                    .unwrap_or(0)
+                    .into(),
             },
             check_zklogin_id_cost_params: CheckZkloginIdCostParams {
                 check_zklogin_id_cost_base: protocol_config
@@ -802,6 +789,14 @@ impl NativesCostTable {
                     .map(Into::into),
                 verify_cost_per_cert: protocol_config
                     .nitro_attestation_verify_cost_per_cert_as_option()
+                    .map(Into::into),
+            },
+            bulletproofs_cost_params: BulletproofsCostParams {
+                verify_bulletproofs_ristretto255_base_cost: protocol_config
+                    .verify_bulletproofs_ristretto255_base_cost_as_option()
+                    .map(Into::into),
+                verify_bulletproofs_ristretto255_cost_per_bit_and_commitment: protocol_config
+                    .verify_bulletproofs_ristretto255_cost_per_bit_and_commitment_as_option()
                     .map(Into::into),
             },
         }
@@ -1306,6 +1301,11 @@ pub fn all_natives(silent: bool, protocol_config: &ProtocolConfig) -> NativeFunc
             "load_nitro_attestation_internal",
             make_native!(nitro_attestation::load_nitro_attestation_internal),
         ),
+        (
+            "rangeproofs",
+            "verify_bulletproofs_ristretto255_internal",
+            make_native!(rangeproofs::verify_bulletproofs_ristretto255),
+        ),
     ];
     let sui_framework_natives_iter =
         sui_framework_natives
@@ -1314,6 +1314,7 @@ pub fn all_natives(silent: bool, protocol_config: &ProtocolConfig) -> NativeFunc
             .map(|(module_name, func_name, func)| {
                 (
                     SUI_FRAMEWORK_ADDRESS,
+                    // Safe: string literals are always valid identifiers
                     Identifier::new(module_name).unwrap(),
                     Identifier::new(func_name).unwrap(),
                     func,
@@ -1330,17 +1331,20 @@ pub fn all_natives(silent: bool, protocol_config: &ProtocolConfig) -> NativeFunc
         .map(|(module_name, func_name, func)| {
             (
                 SUI_SYSTEM_ADDRESS,
+                // Safe: string literals are always valid identifiers
                 Identifier::new(module_name).unwrap(),
                 Identifier::new(func_name).unwrap(),
                 func,
             )
         })
         .chain(sui_framework_natives_iter)
-        .chain(move_stdlib_natives::all_natives(
-            MOVE_STDLIB_ADDRESS,
-            make_stdlib_gas_params_for_protocol_config(protocol_config),
-            silent,
-        ))
+        .chain(
+            move_vm_runtime::natives::move_stdlib::stdlib_native_function_table(
+                MOVE_STDLIB_ADDRESS,
+                make_stdlib_gas_params_for_protocol_config(protocol_config),
+                silent,
+            ),
+        )
         .collect()
 }
 
@@ -1366,8 +1370,8 @@ pub fn get_nested_struct_field(mut v: Value, offsets: &[usize]) -> Result<Value,
 }
 
 pub fn get_nth_struct_field(v: Value, n: usize) -> Result<Value, PartialVMError> {
-    let mut itr = v.value_as::<Struct>()?.unpack()?;
-    Ok(itr.nth(n).unwrap())
+    let mut itr = v.value_as::<Struct>()?.unpack();
+    Ok(safe_unwrap!(itr.nth(n)))
 }
 
 /// Returns the struct tag, non-annotated type layout, and fully annotated type layout of `ty`.
@@ -1446,17 +1450,11 @@ pub(crate) fn legacy_test_cost() -> InternalGas {
 }
 
 pub(crate) fn abstract_size(
-    protocol_config: &ProtocolConfig,
+    _protocol_config: &ProtocolConfig,
     v: &Value,
 ) -> PartialVMResult<AbstractMemorySize> {
-    if protocol_config.abstract_size_in_object_runtime() {
-        v.abstract_memory_size(&SizeConfig {
-            include_vector_size: true,
-            traverse_references: false,
-            fine_grained_value_size: true,
-        })
-    } else {
-        // TODO: Remove this (with glee!) in the next execution version cut.
-        Ok(v.legacy_size())
-    }
+    v.abstract_memory_size(&SizeConfig {
+        include_vector_size: true,
+        traverse_references: false,
+    })
 }

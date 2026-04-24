@@ -749,7 +749,7 @@ async fn test_edge_cases() {
 
     request
         .metadata_mut()
-        .insert("x-sui-checkpoint", "10".parse().unwrap());
+        .insert(CHECKPOINT_HEIGHT_METADATA, "10".parse().unwrap());
 
     let err = client.batch_get_balances(request).await.unwrap_err();
     assert_eq!(err.code(), tonic::Code::OutOfRange);
@@ -1180,5 +1180,5 @@ fn run_tx_and_return_gas(
         .execute_transaction(Transaction::from_data_and_signer(data, vec![signer]))
         .expect("Failed to execute transaction");
     assert!(fx.status().is_ok(), "Transaction failed: {:?}", fx.status());
-    fx.gas_object().0
+    fx.gas_object().unwrap().0
 }

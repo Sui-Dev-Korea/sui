@@ -14,6 +14,7 @@ use std::{
 use consensus_config::AuthorityIndex;
 use consensus_types::block::{BlockDigest, BlockRef, BlockTimestampMs, Round, TransactionIndex};
 use itertools::Itertools as _;
+use mysten_common::ZipDebugEqIteratorExt;
 use tokio::time::Instant;
 use tracing::{debug, error, info, trace};
 
@@ -147,13 +148,8 @@ impl DagState {
                         last_committed_rounds[block_ref.author] =
                             max(last_committed_rounds[block_ref.author], block_ref.round);
                     }
-                    let committed_subdag = load_committed_subdag_from_store(
-                        &context,
-                        store.as_ref(),
-                        commit.clone(),
-                        vec![],
-                    );
-                    // We don't need to recover reputation scores for unscored_committed_subdags
+                    let committed_subdag =
+                        load_committed_subdag_from_store(store.as_ref(), commit.clone());
                     unscored_committed_subdags.push(committed_subdag);
                 });
         }
@@ -353,13 +349,14 @@ impl DagState {
 
         if self.threshold_clock.add_block(block_ref) {
             // Do not measure quorum delay when no local block is proposed in the round.
-            let last_proposed_block = self.get_last_proposed_block();
-            if last_proposed_block.round() == block_ref.round {
+            if let Some(last_proposed_block) = self.get_last_proposed_block()
+                && last_proposed_block.round() == block_ref.round
+            {
                 let quorum_delay_ms = self
                     .context
                     .clock
                     .timestamp_utc_ms()
-                    .saturating_sub(self.get_last_proposed_block().timestamp_ms());
+                    .saturating_sub(last_proposed_block.timestamp_ms());
                 self.context
                     .metrics
                     .node_metrics
@@ -410,6 +407,10 @@ impl DagState {
     /// Gets blocks by checking genesis, cached recent blocks in memory, then storage.
     /// An element is None when the corresponding block is not found.
     pub(crate) fn get_blocks(&self, block_refs: &[BlockRef]) -> Vec<Option<VerifiedBlock>> {
+        if block_refs.is_empty() {
+            return vec![];
+        }
+
         let mut blocks = vec![None; block_refs.len()];
         let mut missing = Vec::new();
 
@@ -447,7 +448,7 @@ impl DagState {
             .with_label_values(&["get_blocks"])
             .inc();
 
-        for ((index, _), result) in missing.into_iter().zip(store_results.into_iter()) {
+        for ((index, _), result) in missing.into_iter().zip_debug_eq(store_results.into_iter()) {
             blocks[index] = result;
         }
 
@@ -530,8 +531,13 @@ impl DagState {
 
     /// Gets the last proposed block from this authority.
     /// If no block is proposed yet, returns the genesis block.
-    pub(crate) fn get_last_proposed_block(&self) -> VerifiedBlock {
-        self.get_last_block_for_authority(self.context.own_index)
+    /// If the node is an observer, returns None.
+    pub(crate) fn get_last_proposed_block(&self) -> Option<VerifiedBlock> {
+        if self.context.is_validator() {
+            Some(self.get_last_block_for_authority(self.context.own_index))
+        } else {
+            None
+        }
     }
 
     /// Retrieves the last accepted block from the specified `authority`. If no block is found in cache
@@ -696,7 +702,10 @@ impl DagState {
             }
         }
 
-        blocks.into_iter().zip(equivocating_blocks).collect()
+        blocks
+            .into_iter()
+            .zip_debug_eq(equivocating_blocks)
+            .collect()
     }
 
     /// Checks whether a block exists in the slot. The method checks only against the cached data.
@@ -764,7 +773,7 @@ impl DagState {
             .with_label_values(&["contains_blocks"])
             .inc();
 
-        for ((index, _), result) in missing.into_iter().zip(store_results.into_iter()) {
+        for ((index, _), result) in missing.into_iter().zip_debug_eq(store_results.into_iter()) {
             exist[index] = result;
         }
 
@@ -1163,10 +1172,6 @@ impl DagState {
         self.scoring_subdag.scored_subdags_count()
     }
 
-    pub(crate) fn is_scoring_subdag_empty(&self) -> bool {
-        self.scoring_subdag.is_empty()
-    }
-
     pub(crate) fn calculate_scoring_subdag_scores(&self) -> ReputationScores {
         self.scoring_subdag.calculate_distributed_vote_scores()
     }
@@ -1549,9 +1554,7 @@ mod test {
     async fn test_link_causal_history() {
         let (mut context, _) = Context::new_for_test(4);
         context.parameters.dag_state_cached_rounds = 10;
-        context
-            .protocol_config
-            .set_consensus_gc_depth_for_testing(3);
+        context.protocol_config.set_gc_depth_for_testing(3);
         let context = Arc::new(context);
 
         let store = Arc::new(MemStore::new());
@@ -1791,9 +1794,7 @@ mod test {
         const CACHED_ROUNDS: Round = 3;
 
         let (mut context, _) = Context::new_for_test(4);
-        context
-            .protocol_config
-            .set_consensus_gc_depth_for_testing(GC_DEPTH);
+        context.protocol_config.set_gc_depth_for_testing(GC_DEPTH);
         context.parameters.dag_state_cached_rounds = CACHED_ROUNDS;
 
         let context = Arc::new(context);
@@ -1924,9 +1925,7 @@ mod test {
         let num_authorities: u32 = 4;
         let (mut context, _) = Context::new_for_test(num_authorities as usize);
         context.parameters.dag_state_cached_rounds = CACHED_ROUNDS;
-        context
-            .protocol_config
-            .set_consensus_gc_depth_for_testing(GC_DEPTH);
+        context.protocol_config.set_gc_depth_for_testing(GC_DEPTH);
 
         let context = Arc::new(context);
 
@@ -2295,9 +2294,7 @@ mod test {
         const GC_DEPTH: u32 = 1;
         let (mut context, _) = Context::new_for_test(4);
         context.parameters.dag_state_cached_rounds = CACHED_ROUNDS;
-        context
-            .protocol_config
-            .set_consensus_gc_depth_for_testing(GC_DEPTH);
+        context.protocol_config.set_gc_depth_for_testing(GC_DEPTH);
 
         let context = Arc::new(context);
         let store = Arc::new(MemStore::new());
@@ -2432,9 +2429,7 @@ mod test {
         const GC_DEPTH: u32 = 1;
         let (mut context, _) = Context::new_for_test(4);
         context.parameters.dag_state_cached_rounds = CACHED_ROUNDS;
-        context
-            .protocol_config
-            .set_consensus_gc_depth_for_testing(GC_DEPTH);
+        context.protocol_config.set_gc_depth_for_testing(GC_DEPTH);
 
         let context = Arc::new(context);
         let store = Arc::new(MemStore::new());
@@ -2556,7 +2551,7 @@ mod test {
                 .find(|block| block.author() == context.own_index)
                 .unwrap();
 
-            assert_eq!(dag_state.read().get_last_proposed_block(), my_genesis);
+            assert_eq!(dag_state.read().get_last_proposed_block(), Some(my_genesis));
         }
 
         // WHEN adding some blocks for authorities, only the last ones should be returned

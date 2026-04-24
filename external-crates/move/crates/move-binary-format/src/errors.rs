@@ -7,6 +7,7 @@ use crate::{
     file_format::{CodeOffset, FunctionDefinitionIndex, TableIndex},
 };
 use move_core_types::{
+    account_address::AccountAddress,
     language_storage::ModuleId,
     vm_status::{StatusCode, StatusType},
 };
@@ -33,7 +34,10 @@ pub type PartialVMResult<T> = ::std::result::Result<T, PartialVMError>;
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum Location {
     Undefined,
+    // The `AccountAddress` inside of the `Module`'s `ModuleId` is the original id
     Module(ModuleId),
+    // The `AccountAddress` inside of the `Package` is the version id of the package
+    Package(AccountAddress),
 }
 
 /// A representation of the execution state (e.g., stack trace) at an
@@ -352,6 +356,7 @@ impl fmt::Display for Location {
         match self {
             Location::Undefined => write!(f, "UNDEFINED"),
             Location::Module(id) => write!(f, "Module {:?}", id),
+            Location::Package(addr) => write!(f, "Package {:?}", addr),
         }
     }
 }
@@ -490,5 +495,37 @@ impl fmt::Debug for PartialVMError_ {
 impl std::error::Error for PartialVMError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         None
+    }
+}
+
+/// Trait enabling `safe_unwrap!` to work on both `Option<T>` and `Result<T, E>`.
+pub trait SafeUnwrap {
+    type Output;
+    fn safe_unwrap_or_error(self, file: &str, line: u32) -> Result<Self::Output, PartialVMError>;
+}
+
+impl<T> SafeUnwrap for Option<T> {
+    type Output = T;
+    fn safe_unwrap_or_error(self, file: &str, line: u32) -> Result<T, PartialVMError> {
+        match self {
+            Some(x) => Ok(x),
+            None => Err(
+                PartialVMError::new(StatusCode::UNKNOWN_INVARIANT_VIOLATION_ERROR)
+                    .with_message(format!("{file}:{line} (none)")),
+            ),
+        }
+    }
+}
+
+impl<T, E: std::fmt::Display> SafeUnwrap for Result<T, E> {
+    type Output = T;
+    fn safe_unwrap_or_error(self, file: &str, line: u32) -> Result<T, PartialVMError> {
+        match self {
+            Ok(x) => Ok(x),
+            Err(e) => Err(
+                PartialVMError::new(StatusCode::UNKNOWN_INVARIANT_VIOLATION_ERROR)
+                    .with_message(format!("{file}:{line} {e:#}")),
+            ),
+        }
     }
 }

@@ -209,6 +209,10 @@ impl MigrationStore {
         &self.migration_id
     }
 
+    pub(crate) fn object_store(&self) -> &Arc<dyn ObjectStore> {
+        &self.object_store
+    }
+
     pub fn file_ranges(&self) -> &Arc<RwLock<HashMap<String, FileRangeIndex>>> {
         &self.file_ranges
     }
@@ -249,23 +253,6 @@ impl MigrationStore {
             Err(ObjectStoreError::NotFound { .. }) => Ok(None),
             Err(e) => Err(e.into()),
         }
-    }
-
-    /// Initialize migration mode for a pipeline.
-    ///
-    /// Reads existing watermark file if present.
-    ///
-    /// Returns the last processed checkpoint if a watermark exists, or None if starting fresh.
-    /// The watermark file is created/updated by `update_watermark` after file uploads.
-    pub(crate) async fn init_watermark(
-        &self,
-        pipeline: &str,
-        _default_next_checkpoint: u64,
-    ) -> anyhow::Result<Option<u64>> {
-        Ok(self
-            .committer_watermark(pipeline)
-            .await?
-            .map(|w| w.checkpoint_hi_inclusive))
     }
 
     /// Update watermark for a single pipeline after successful file upload.

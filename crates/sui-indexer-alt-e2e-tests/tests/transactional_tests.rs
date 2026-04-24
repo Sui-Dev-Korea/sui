@@ -13,13 +13,10 @@ use reqwest::Client;
 use reqwest::header::HeaderName;
 use serde_json::Value;
 use serde_json::json;
-use sui_indexer_alt::config::ConcurrentLayer;
 use sui_indexer_alt::config::IndexerConfig;
-use sui_indexer_alt::config::Merge;
-use sui_indexer_alt::config::PipelineLayer;
-use sui_indexer_alt::config::PrunerLayer;
 use sui_indexer_alt_framework::ingestion::ClientArgs;
 use sui_indexer_alt_framework::ingestion::ingestion_client::IngestionClientArgs;
+use sui_indexer_alt_jsonrpc::NodeArgs;
 use sui_transactional_test_runner::create_adapter;
 use sui_transactional_test_runner::offchain_state::OffchainStateReader;
 use sui_transactional_test_runner::offchain_state::TestResponse;
@@ -146,35 +143,17 @@ async fn cluster(config: &OffChainConfig) -> Arc<OffchainCluster> {
         ..Default::default()
     };
 
-    // The test config includes every pipeline, we configure its consistent range using the
-    // off-chain config that was passed in.
-    let pruner = PrunerLayer {
-        retention: Some(config.consistent_range as u64),
-        ..Default::default()
-    };
-
-    let indexer_config = IndexerConfig::for_test()
-        .merge(IndexerConfig {
-            pipeline: PipelineLayer {
-                coin_balance_buckets: Some(ConcurrentLayer {
-                    pruner: Some(pruner.clone()),
-                    ..Default::default()
-                }),
-                obj_info: Some(ConcurrentLayer {
-                    pruner: Some(pruner),
-                    ..Default::default()
-                }),
-                ..Default::default()
-            },
-            ..Default::default()
-        })
-        .expect("Failed to create indexer config");
+    let indexer_config = IndexerConfig::for_test();
 
     Arc::new(
         OffchainCluster::new(
             client_args,
             OffchainClusterConfig {
                 indexer_config,
+                // TODO: dummy value until simulacrum exposes grpc
+                jsonrpc_node_args: NodeArgs {
+                    fullnode_grpc_url: Some("http://127.0.0.1:1".into()),
+                },
                 ..Default::default()
             },
             &prometheus::Registry::new(),

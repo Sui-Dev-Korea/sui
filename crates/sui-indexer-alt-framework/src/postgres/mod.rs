@@ -160,7 +160,9 @@ pub mod tests {
             .concurrent_pipeline(ConcurrentPipeline1, ConcurrentConfig::default())
             .await
             .unwrap();
-        assert_eq!(indexer.first_ingestion_checkpoint, 0);
+        assert_eq!(indexer.last_checkpoint, None);
+        assert_eq!(indexer.next_checkpoint, 0);
+        assert_eq!(indexer.next_sequential_checkpoint, None);
     }
 
     #[tokio::test]
@@ -169,6 +171,9 @@ pub mod tests {
         {
             let watermark = CommitterWatermark::new_for_testing(10);
             let mut conn = indexer.store().connect().await.unwrap();
+            conn.init_watermark(ConcurrentPipeline1::NAME, None)
+                .await
+                .unwrap();
             assert!(
                 conn.set_committer_watermark(ConcurrentPipeline1::NAME, watermark)
                     .await
@@ -179,20 +184,30 @@ pub mod tests {
             .concurrent_pipeline(ConcurrentPipeline1, ConcurrentConfig::default())
             .await
             .unwrap();
-        assert_eq!(indexer.first_ingestion_checkpoint, 11);
+        assert_eq!(indexer.last_checkpoint, None);
+        assert_eq!(indexer.next_checkpoint, 11);
+        assert_eq!(indexer.next_sequential_checkpoint, None);
     }
 
     #[tokio::test]
     async fn test_add_multiple_pipelines() {
         let (mut indexer, _temp_db) = Indexer::new_for_testing(&MIGRATIONS).await;
         {
-            let watermark1 = CommitterWatermark::new_for_testing(10);
             let mut conn = indexer.store().connect().await.unwrap();
+
+            conn.init_watermark(ConcurrentPipeline1::NAME, None)
+                .await
+                .unwrap();
+            let watermark1 = CommitterWatermark::new_for_testing(10);
             assert!(
                 conn.set_committer_watermark(ConcurrentPipeline1::NAME, watermark1)
                     .await
                     .unwrap()
             );
+
+            conn.init_watermark(ConcurrentPipeline2::NAME, None)
+                .await
+                .unwrap();
             let watermark2 = CommitterWatermark::new_for_testing(20);
             assert!(
                 conn.set_committer_watermark(ConcurrentPipeline2::NAME, watermark2)
@@ -205,11 +220,15 @@ pub mod tests {
             .concurrent_pipeline(ConcurrentPipeline2, ConcurrentConfig::default())
             .await
             .unwrap();
-        assert_eq!(indexer.first_ingestion_checkpoint, 21);
+        assert_eq!(indexer.last_checkpoint, None);
+        assert_eq!(indexer.next_checkpoint, 21);
+        assert_eq!(indexer.next_sequential_checkpoint, None);
         indexer
             .concurrent_pipeline(ConcurrentPipeline1, ConcurrentConfig::default())
             .await
             .unwrap();
-        assert_eq!(indexer.first_ingestion_checkpoint, 11);
+        assert_eq!(indexer.last_checkpoint, None);
+        assert_eq!(indexer.next_checkpoint, 11);
+        assert_eq!(indexer.next_sequential_checkpoint, None);
     }
 }

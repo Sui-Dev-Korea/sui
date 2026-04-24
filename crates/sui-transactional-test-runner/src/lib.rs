@@ -3,55 +3,71 @@
 
 //! This module contains the transactional test runner instantiation for the Sui adapter
 
+#[cfg(feature = "testing")]
 pub mod args;
+#[cfg(feature = "testing")]
 pub mod cursor;
+#[cfg(feature = "testing")]
 pub mod offchain_state;
+#[cfg(feature = "testing")]
 pub mod programmable_transaction_test_parser;
+#[cfg(feature = "testing")]
 mod simulator_persisted_store;
+#[cfg(feature = "testing")]
 pub mod test_adapter;
 
+#[cfg(feature = "testing")]
 pub use move_transactional_test_runner::framework::{
     create_adapter, run_tasks_with_adapter, run_test_impl,
 };
-use rand::rngs::StdRng;
-use simulacrum::AdvanceEpochConfig;
-use simulacrum::Simulacrum;
-use simulacrum::SimulatorStore;
-use simulator_persisted_store::PersistedStore;
-use std::path::Path;
-use std::sync::Arc;
-use sui_core::authority::AuthorityState;
-use sui_core::authority::authority_per_epoch_store::CertLockGuard;
-use sui_core::authority::authority_test_utils::submit_and_execute_with_error;
-use sui_core::authority::shared_object_version_manager::AssignedVersions;
-use sui_json_rpc::authority_state::StateRead;
-use sui_json_rpc_types::EventFilter;
-use sui_json_rpc_types::{DevInspectResults, DryRunTransactionBlockResponse};
-use sui_storage::key_value_store::TransactionKeyValueStore;
-use sui_types::base_types::ObjectID;
-use sui_types::base_types::SuiAddress;
-use sui_types::base_types::VersionNumber;
-use sui_types::committee::EpochId;
-use sui_types::digests::TransactionDigest;
-use sui_types::effects::TransactionEffects;
-use sui_types::effects::TransactionEvents;
-use sui_types::error::ExecutionError;
-use sui_types::error::SuiErrorKind;
-use sui_types::error::SuiResult;
-use sui_types::event::Event;
-use sui_types::executable_transaction::{ExecutableTransaction, VerifiedExecutableTransaction};
-use sui_types::messages_checkpoint::CheckpointContentsDigest;
-use sui_types::messages_checkpoint::VerifiedCheckpoint;
-use sui_types::object::Object;
-use sui_types::storage::ObjectStore;
-use sui_types::storage::ReadStore;
-use sui_types::sui_system_state::SuiSystemStateTrait;
-use sui_types::sui_system_state::epoch_start_sui_system_state::EpochStartSystemStateTrait;
-use sui_types::transaction::Transaction;
-use sui_types::transaction::TransactionKind;
-use sui_types::transaction::{InputObjects, TransactionData};
-use test_adapter::{PRE_COMPILED, SuiTestAdapter};
 
+#[cfg(feature = "testing")]
+mod testing_imports {
+    pub use super::simulator_persisted_store::PersistedStore;
+    pub use super::test_adapter::{PRE_COMPILED, SuiTestAdapter};
+    pub use rand::rngs::StdRng;
+    pub use simulacrum::AdvanceEpochConfig;
+    pub use simulacrum::Simulacrum;
+    pub use simulacrum::SimulatorStore;
+    pub use std::path::Path;
+    pub use std::sync::Arc;
+    pub use sui_core::authority::AuthorityState;
+    pub use sui_core::authority::authority_per_epoch_store::CertLockGuard;
+    pub use sui_core::authority::authority_test_utils::submit_and_execute_with_error;
+    pub use sui_core::authority::shared_object_version_manager::AssignedVersions;
+    pub use sui_json_rpc::authority_state::StateRead;
+    pub use sui_json_rpc_types::EventFilter;
+    pub use sui_json_rpc_types::{DevInspectResults, DryRunTransactionBlockResponse};
+    pub use sui_storage::key_value_store::TransactionKeyValueStore;
+    pub use sui_types::base_types::ObjectID;
+    pub use sui_types::base_types::SuiAddress;
+    pub use sui_types::base_types::VersionNumber;
+    pub use sui_types::committee::EpochId;
+    pub use sui_types::digests::TransactionDigest;
+    pub use sui_types::effects::TransactionEffects;
+    pub use sui_types::effects::TransactionEvents;
+    pub use sui_types::error::ExecutionError;
+    pub use sui_types::error::SuiErrorKind;
+    pub use sui_types::error::SuiResult;
+    pub use sui_types::event::Event;
+    pub use sui_types::executable_transaction::{
+        ExecutableTransaction, VerifiedExecutableTransaction,
+    };
+    pub use sui_types::messages_checkpoint::CheckpointContentsDigest;
+    pub use sui_types::messages_checkpoint::VerifiedCheckpoint;
+    pub use sui_types::object::Object;
+    pub use sui_types::storage::ObjectStore;
+    pub use sui_types::storage::ReadStore;
+    pub use sui_types::sui_system_state::SuiSystemStateTrait;
+    pub use sui_types::sui_system_state::epoch_start_sui_system_state::EpochStartSystemStateTrait;
+    pub use sui_types::transaction::Transaction;
+    pub use sui_types::transaction::TransactionKind;
+    pub use sui_types::transaction::{InputObjects, TransactionData};
+}
+#[cfg(feature = "testing")]
+use testing_imports::*;
+
+#[cfg(feature = "testing")]
 #[cfg_attr(not(msim), tokio::main)]
 #[cfg_attr(msim, msim::main)]
 pub async fn run_test(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
@@ -63,12 +79,16 @@ pub async fn run_test(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+#[cfg(feature = "testing")]
 pub struct ValidatorWithFullnode {
     pub validator: Arc<AuthorityState>,
     pub fullnode: Arc<AuthorityState>,
     pub kv_store: Arc<TransactionKeyValueStore>,
+    pending_effects: Vec<TransactionEffects>,
+    next_checkpoint_seq: u64,
 }
 
+#[cfg(feature = "testing")]
 #[allow(unused_variables)]
 /// TODO: better name?
 #[async_trait::async_trait]
@@ -129,6 +149,7 @@ pub trait TransactionalAdapter: Send + Sync + ReadStore {
     fn get_object(&self, object_id: &ObjectID) -> Option<Object>;
 }
 
+#[cfg(feature = "testing")]
 #[async_trait::async_trait]
 impl TransactionalAdapter for ValidatorWithFullnode {
     async fn execute_txn(
@@ -143,7 +164,9 @@ impl TransactionalAdapter for ValidatorWithFullnode {
             is_consensus_tx,
         )
         .await?;
-        Ok((effects.into_data(), execution_error))
+        let effects = effects.into_data();
+        self.pending_effects.push(effects.clone());
+        Ok((effects, execution_error))
     }
 
     async fn read_input_objects(
@@ -239,7 +262,20 @@ impl TransactionalAdapter for ValidatorWithFullnode {
     }
 
     async fn create_checkpoint(&mut self) -> anyhow::Result<VerifiedCheckpoint> {
-        unimplemented!("create_checkpoint not supported")
+        let checkpoint_seq = self.next_checkpoint_seq;
+        self.next_checkpoint_seq += 1;
+        let effects = std::mem::take(&mut self.pending_effects);
+        if !effects.is_empty() {
+            let replay_txns = self
+                .validator
+                .settle_accumulator_for_testing(&effects, Some(checkpoint_seq))
+                .await;
+            self.fullnode
+                .replay_settlement_for_testing(&replay_txns)
+                .await;
+        }
+        self.get_checkpoint_by_sequence_number(0)
+            .ok_or_else(|| anyhow::anyhow!("No genesis checkpoint found"))
     }
 
     async fn advance_clock(
@@ -285,6 +321,7 @@ impl TransactionalAdapter for ValidatorWithFullnode {
     }
 }
 
+#[cfg(feature = "testing")]
 impl ReadStore for ValidatorWithFullnode {
     fn get_committee(
         &self,
@@ -295,6 +332,13 @@ impl ReadStore for ValidatorWithFullnode {
 
     fn get_latest_epoch_id(&self) -> sui_types::storage::error::Result<EpochId> {
         Ok(self.validator.epoch_store_for_testing().epoch())
+    }
+
+    fn get_latest_checkpoint_sequence_number(
+        &self,
+    ) -> sui_types::storage::error::Result<sui_types::messages_checkpoint::CheckpointSequenceNumber>
+    {
+        Ok(self.next_checkpoint_seq.saturating_sub(1))
     }
 
     fn get_latest_checkpoint(&self) -> sui_types::storage::error::Result<VerifiedCheckpoint> {
@@ -404,6 +448,7 @@ impl ReadStore for ValidatorWithFullnode {
     }
 }
 
+#[cfg(feature = "testing")]
 impl ObjectStore for ValidatorWithFullnode {
     fn get_object(&self, object_id: &ObjectID) -> Option<Object> {
         self.validator.get_object_store().get_object(object_id)
@@ -416,6 +461,7 @@ impl ObjectStore for ValidatorWithFullnode {
     }
 }
 
+#[cfg(feature = "testing")]
 #[async_trait::async_trait]
 impl TransactionalAdapter for Simulacrum<StdRng, PersistedStore> {
     async fn execute_txn(

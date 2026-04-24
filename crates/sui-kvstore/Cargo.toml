@@ -8,6 +8,7 @@ version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+arc-swap.workspace = true
 bytes.workspace = true
 async-trait.workspace = true
 base64.workspace = true
@@ -16,9 +17,9 @@ clap.workspace = true
 futures.workspace = true
 governor.workspace = true
 http.workspace = true
-num_cpus.workspace = true
 gcp_auth.workspace = true
 prometheus.workspace = true
+rand.workspace = true
 prost.workspace = true
 prost-types.workspace = true
 rustls.workspace = true
@@ -37,6 +38,7 @@ tonic-prost.workspace = true
 tracing.workspace = true
 
 [dev-dependencies]
+mysten-common.workspace = true
 sui-indexer-alt-framework = { workspace = true, features = ["cluster"] }
 sui-keys.workspace = true
 sui-rpc.workspace = true

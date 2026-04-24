@@ -4,7 +4,8 @@
 use super::{ast as T, env::Env};
 use crate::{
     execution_mode::ExecutionMode,
-    programmable_transactions::context::EitherError,
+    gas_charger::GasPayment,
+    static_programmable_transactions::execution::context::EitherError,
     static_programmable_transactions::{
         loading::ast::{self as L, Type},
         spanned::sp,
@@ -17,7 +18,7 @@ use move_core_types::account_address::AccountAddress;
 use std::rc::Rc;
 use sui_types::{
     balance::RESOLVED_BALANCE_STRUCT,
-    base_types::{ObjectID, ObjectRef, TxContextKind},
+    base_types::{ObjectRef, TxContextKind},
     coin::{COIN_MODULE_NAME, REDEEM_FUNDS_FUNC_NAME, RESOLVED_COIN_STRUCT},
     error::{ExecutionError, SafeIndex, command_argument_error},
     execution_status::{CommandArgumentError, ExecutionErrorKind},
@@ -41,7 +42,7 @@ enum InputKind {
 
 struct Context {
     current_command: u16,
-    gas_coin: Option<ObjectID>,
+    gas_payment: Option<GasPayment>,
     /// What kind of input is at each original index
     input_resolution: Vec<InputKind>,
     bytes: IndexSet<Vec<u8>>,
@@ -54,15 +55,21 @@ struct Context {
     receiving: IndexMap<(T::InputIndex, Type), T::ReceivingInput>,
     withdrawal_compatibility_conversions:
         IndexMap<T::Location, T::WithdrawalCompatibilityConversion>,
+    original_command_len: usize,
     commands: Vec<T::Command>,
 }
 
 impl Context {
-    fn new(gas_coin: Option<ObjectID>, linputs: L::Inputs) -> Result<Self, ExecutionError> {
+    fn new(
+        gas_payment: Option<GasPayment>,
+        original_command_len: usize,
+        linputs: L::Inputs,
+    ) -> Result<Self, ExecutionError> {
         let mut context = Context {
             current_command: 0,
-            gas_coin,
+            gas_payment,
             input_resolution: vec![],
+            original_command_len,
             bytes: IndexSet::new(),
             bytes_idx_remapping: IndexMap::new(),
             receiving_refs: IndexMap::new(),
@@ -151,7 +158,7 @@ impl Context {
 
     fn finish(self) -> T::Transaction {
         let Self {
-            gas_coin,
+            gas_payment,
             bytes,
             objects,
             withdrawals,
@@ -159,6 +166,7 @@ impl Context {
             receiving,
             commands,
             withdrawal_compatibility_conversions,
+            original_command_len,
             ..
         } = self;
         let objects = objects.into_iter().map(|(_, o)| o).collect();
@@ -166,13 +174,14 @@ impl Context {
         let pure = pure.into_iter().map(|(_, p)| p).collect();
         let receiving = receiving.into_iter().map(|(_, r)| r).collect();
         T::Transaction {
-            gas_coin,
+            gas_payment,
             bytes,
             objects,
             withdrawals,
             pure,
             receiving,
             withdrawal_compatibility_conversions,
+            original_command_len,
             commands,
         }
     }
@@ -329,13 +338,14 @@ pub fn transaction<Mode: ExecutionMode>(
     lt: L::Transaction,
 ) -> Result<T::Transaction, ExecutionError> {
     let L::Transaction {
-        gas_coin,
+        gas_payment,
         mut inputs,
+        original_command_len,
         mut commands,
     } = lt;
     let withdrawal_compatability_inputs =
         determine_withdrawal_compatibility_inputs(env, &mut inputs)?;
-    let mut context = Context::new(gas_coin, inputs)?;
+    let mut context = Context::new(gas_payment, original_command_len, inputs)?;
     withdrawal_compatibility_conversion(
         env,
         &mut context,
@@ -510,28 +520,15 @@ fn command<Mode: ExecutionMode>(
 }
 
 fn move_call_parameters<'a>(
-    env: &Env,
+    _env: &Env,
     function: &'a L::LoadedFunction,
 ) -> Vec<(&'a Type, TxContextKind)> {
-    if env.protocol_config.flexible_tx_context_positions() {
-        function
-            .signature
-            .parameters
-            .iter()
-            .map(|ty| (ty, ty.is_tx_context()))
-            .collect()
-    } else {
-        let mut kinds = function
-            .signature
-            .parameters
-            .iter()
-            .map(|ty| (ty, TxContextKind::None))
-            .collect::<Vec<_>>();
-        if let Some((ty, kind)) = kinds.last_mut() {
-            *kind = ty.is_tx_context();
-        }
-        kinds
-    }
+    function
+        .signature
+        .parameters
+        .iter()
+        .map(|ty| (ty, ty.is_tx_context()))
+        .collect()
 }
 
 fn move_call_arguments(
@@ -562,7 +559,7 @@ fn move_call_arguments(
                 "Expected {} argument{} calling function '{}::{}', but found {}",
                 num_parameters,
                 if num_parameters == 1 { "" } else { "s" },
-                function.storage_id,
+                function.version_mid,
                 function.name,
                 num_args,
             ),
@@ -693,8 +690,11 @@ fn arguments(
     locations: Vec<SplatLocation>,
     expected_tys: impl IntoIterator<Item = Type>,
 ) -> Result<Vec<T::Argument>, ExecutionError> {
+    #[allow(clippy::disallowed_methods)]
     locations
         .into_iter()
+        // Intentional zip: expected_tys may be an infinite repeat iterator
+        // TODO: Consider fixing callers to not use infinite repeat iterator.
         .zip(expected_tys)
         .enumerate()
         .map(|(i, (location, expected_ty))| {
@@ -1288,13 +1288,14 @@ mod consumed_shared_objects {
     impl Context {
         pub fn new(ast: &T::Transaction) -> Self {
             let T::Transaction {
-                gas_coin: _,
+                gas_payment: _,
                 bytes: _,
                 objects,
                 withdrawals: _,
                 pure: _,
                 receiving: _,
                 withdrawal_compatibility_conversions: _,
+                original_command_len: _,
                 commands: _,
             } = ast;
             let inputs = objects

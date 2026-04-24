@@ -382,7 +382,7 @@ async fn test_transfers() {
     cluster.create_checkpoint().await;
 
     gas_budget = (gas_budget as i64 - 1000 - fx.gas_cost_summary().net_gas_usage()) as u64;
-    a_gas = fx.gas_object().0;
+    a_gas = fx.gas_object().unwrap().0;
 
     // A still controls the budget
     assert_eq!(
@@ -676,7 +676,7 @@ async fn test_edge_cases() {
 
     request
         .metadata_mut()
-        .insert("x-sui-checkpoint", "10".parse().unwrap());
+        .insert(CHECKPOINT_HEIGHT_METADATA, "10".parse().unwrap());
 
     let err = client.batch_get_balances(request).await.unwrap_err();
     assert_eq!(err.code(), tonic::Code::OutOfRange);

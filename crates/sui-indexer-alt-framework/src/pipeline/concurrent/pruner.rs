@@ -20,7 +20,7 @@ use crate::pipeline::concurrent::Handler;
 use crate::pipeline::concurrent::PrunerConfig;
 use crate::pipeline::logging::LoggerWatermark;
 use crate::pipeline::logging::WatermarkLogger;
-use crate::store::Connection;
+use crate::store::ConcurrentConnection;
 use crate::store::Store;
 
 #[derive(Default)]
@@ -95,7 +95,7 @@ impl PendingRanges {
 /// [LOUD_WATERMARK_UPDATE_INTERVAL]-many checkpoints.
 ///
 /// If the `config` is `None`, the task will shutdown immediately.
-pub(super) fn pruner<H: Handler + Send + Sync + 'static>(
+pub(super) fn pruner<H: Handler>(
     handler: Arc<H>,
     config: Option<PrunerConfig>,
     store: H::Store,
@@ -153,7 +153,7 @@ pub(super) fn pruner<H: Handler + Send + Sync + 'static>(
 
                     Ok(None) => {
                         guard.stop_and_record();
-                        warn!(pipeline = H::NAME, "No watermark for pipeline, skipping");
+                        info!(pipeline = H::NAME, "No watermark for pipeline, skipping");
                         continue;
                     }
 
@@ -278,7 +278,7 @@ pub(super) fn pruner<H: Handler + Send + Sync + 'static>(
     })
 }
 
-async fn prune_task_impl<H: Handler + Send + Sync + 'static>(
+async fn prune_task_impl<H: Handler>(
     metrics: Arc<IndexerMetrics>,
     db: H::Store,
     handler: Arc<H>,
@@ -535,12 +535,13 @@ mod tests {
 
         let watermark = MockWatermark {
             epoch_hi_inclusive: 0,
-            checkpoint_hi_inclusive: 3,
+            checkpoint_hi_inclusive: Some(3),
             tx_hi: 9,
             timestamp_ms_hi_inclusive: timestamp,
             reader_lo: 3,
             pruner_timestamp: timestamp,
             pruner_hi: 0,
+            chain_id: None,
         };
         let store = MockStore::new()
             .with_watermark(DataPipeline::NAME, watermark)
@@ -614,12 +615,13 @@ mod tests {
 
         let watermark = MockWatermark {
             epoch_hi_inclusive: 0,
-            checkpoint_hi_inclusive: 3,
+            checkpoint_hi_inclusive: Some(3),
             tx_hi: 9,
             timestamp_ms_hi_inclusive: timestamp,
             reader_lo: 3,
             pruner_timestamp: 0,
             pruner_hi: 0,
+            chain_id: None,
         };
         let store = MockStore::new()
             .with_watermark(DataPipeline::NAME, watermark)
@@ -680,12 +682,13 @@ mod tests {
 
         let watermark = MockWatermark {
             epoch_hi_inclusive: 0,
-            checkpoint_hi_inclusive: 4,
+            checkpoint_hi_inclusive: Some(4),
             tx_hi: 8,
             timestamp_ms_hi_inclusive: timestamp,
             reader_lo: 4,        // Allow pruning up to checkpoint 4 (exclusive)
             pruner_timestamp: 0, // Past timestamp so delay doesn't block
             pruner_hi: 1,
+            chain_id: None,
         };
 
         // Configure failing behavior: range [1,2) should fail once before succeeding

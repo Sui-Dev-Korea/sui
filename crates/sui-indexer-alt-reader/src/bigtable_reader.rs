@@ -14,7 +14,7 @@ use sui_kvstore::CheckpointData;
 use sui_kvstore::KeyValueStoreReader;
 use sui_kvstore::TransactionData;
 use sui_kvstore::TransactionEventsData;
-use sui_kvstore::Watermark;
+use sui_kvstore::WatermarkV1;
 use sui_types::digests::TransactionDigest;
 use sui_types::messages_checkpoint::CheckpointSequenceNumber;
 use sui_types::object::Object;
@@ -82,7 +82,7 @@ impl BigtableReader {
                 client_name,
                 Some(registry),
                 bigtable_args.bigtable_app_profile_id,
-                Some(1),
+                Default::default(),
             )
             .await
             .context("Failed to create BigTable client")?,
@@ -95,7 +95,7 @@ impl BigtableReader {
     }
 
     /// Get the watermark representing the minimum across all pipeline watermarks.
-    pub async fn watermark(&self) -> anyhow::Result<Option<Watermark>> {
+    pub async fn watermark(&self) -> anyhow::Result<Option<WatermarkV1>> {
         measure("watermark", &(), self.0.clone().get_watermark()).await
     }
 
@@ -103,7 +103,7 @@ impl BigtableReader {
     pub async fn watermark_for_pipeline(
         &self,
         pipelines: &[&str],
-    ) -> anyhow::Result<Option<Watermark>> {
+    ) -> anyhow::Result<Option<WatermarkV1>> {
         measure(
             "watermark",
             &(),

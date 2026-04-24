@@ -3,39 +3,45 @@
 
 use std::sync::Arc;
 
+use anyhow::Context;
 use bytes::Bytes;
-use object_store::Error as ObjectStoreError;
+use object_store::Error;
 use object_store::ObjectStore;
 use object_store::ObjectStoreExt;
 use object_store::RetryConfig;
 use object_store::path::Path as ObjectPath;
+use prometheus::IntCounter;
 use serde::de::DeserializeOwned;
-use tracing::debug;
-use tracing::error;
+use sui_types::digests::ChainIdentifier;
 
 use crate::ingestion::decode;
-use crate::ingestion::ingestion_client::FetchData;
-use crate::ingestion::ingestion_client::FetchError;
-use crate::ingestion::ingestion_client::FetchResult;
+use crate::ingestion::ingestion_client::CheckpointError;
+use crate::ingestion::ingestion_client::CheckpointResult;
 use crate::ingestion::ingestion_client::IngestionClientTrait;
 use crate::types::full_checkpoint_content::Checkpoint;
 
-/// Disable object_store's internal retries so that transient errors (429s, 5xx) propagate
-/// immediately to the framework's own retry logic.
-pub(super) fn retry_config() -> RetryConfig {
-    RetryConfig {
-        max_retries: 0,
-        ..Default::default()
-    }
-}
+// from sui-indexer-alt-object-store
+pub(crate) const WATERMARK_PATH: &str = "_metadata/watermark/checkpoint_blob.json";
 
 pub struct StoreIngestionClient {
     store: Arc<dyn ObjectStore>,
+    /// Counter incremented (in the [`IngestionClientTrait`] impl) by the size in bytes of each
+    /// fetched checkpoint payload. `None` for callers that only use this client for one-shot
+    /// metadata fetches (e.g. `end_of_epoch_checkpoints`) and don't need a metric.
+    total_ingested_bytes: Option<IntCounter>,
+}
+
+#[derive(serde::Deserialize, serde::Serialize)]
+pub(crate) struct ObjectStoreWatermark {
+    pub checkpoint_hi_inclusive: u64,
 }
 
 impl StoreIngestionClient {
-    pub fn new(store: Arc<dyn ObjectStore>) -> Self {
-        Self { store }
+    pub fn new(store: Arc<dyn ObjectStore>, total_ingested_bytes: Option<IntCounter>) -> Self {
+        Self {
+            store,
+            total_ingested_bytes,
+        }
     }
 
     /// Fetch metadata mapping epoch IDs to the sequence numbers of their last checkpoints.
@@ -48,7 +54,12 @@ impl StoreIngestionClient {
     /// Fetch and decode checkpoint data by sequence number.
     pub async fn checkpoint(&self, checkpoint: u64) -> anyhow::Result<Checkpoint> {
         let bytes = self.checkpoint_bytes(checkpoint).await?;
-        Ok(decode::checkpoint(&bytes)?)
+        // zstd decompress + prost decode + proto -> Checkpoint is multi-ms of CPU
+        // work; offload to the blocking pool so it doesn't stall the reactor.
+        let decoded = tokio::task::spawn_blocking(move || decode::checkpoint(&bytes))
+            .await
+            .context("decode task panicked")??;
+        Ok(decoded)
     }
 
     async fn checkpoint_bytes(&self, checkpoint: u64) -> object_store::Result<Bytes> {
@@ -60,10 +71,28 @@ impl StoreIngestionClient {
         let result = self.store.get(&path).await?;
         result.bytes().await
     }
+
+    async fn watermark_checkpoint_hi_inclusive(&self) -> anyhow::Result<Option<u64>> {
+        let bytes = match self.bytes(ObjectPath::from(WATERMARK_PATH)).await {
+            Ok(bytes) => bytes,
+            Err(Error::NotFound { .. }) => return Ok(None),
+            Err(e) => return Err(e).context(format!("error reading {WATERMARK_PATH}")),
+        };
+
+        let watermark: ObjectStoreWatermark =
+            serde_json::from_slice(&bytes).context(format!("error parsing {WATERMARK_PATH}"))?;
+
+        Ok(Some(watermark.checkpoint_hi_inclusive))
+    }
 }
 
 #[async_trait::async_trait]
 impl IngestionClientTrait for StoreIngestionClient {
+    async fn chain_id(&self) -> anyhow::Result<ChainIdentifier> {
+        let checkpoint = self.checkpoint(0).await?;
+        Ok((*checkpoint.summary.digest()).into())
+    }
+
     /// Fetch a checkpoint from the remote store.
     ///
     /// Transient errors include:
@@ -73,21 +102,39 @@ impl IngestionClientTrait for StoreIngestionClient {
     /// - rate limiting,
     /// - server errors (5xx),
     /// - issues getting a full response.
-    async fn fetch(&self, checkpoint: u64) -> FetchResult {
-        match self.checkpoint_bytes(checkpoint).await {
-            Ok(bytes) => Ok(FetchData::Raw(bytes)),
-            Err(ObjectStoreError::NotFound { .. }) => {
-                debug!(checkpoint, "Checkpoint not found");
-                Err(FetchError::NotFound)
-            }
-            Err(error) => {
-                error!(checkpoint, "Failed to fetch checkpoint: {error}");
-                Err(FetchError::Transient {
-                    reason: "object_store",
-                    error: error.into(),
-                })
-            }
+    async fn checkpoint(&self, checkpoint: u64) -> CheckpointResult {
+        let bytes = self
+            .checkpoint_bytes(checkpoint)
+            .await
+            .map_err(|e| match e {
+                Error::NotFound { .. } => CheckpointError::NotFound,
+                e => CheckpointError::Fetch(e.into()),
+            })?;
+
+        if let Some(counter) = &self.total_ingested_bytes {
+            counter.inc_by(bytes.len() as u64);
         }
+        // zstd decompress + prost decode + proto -> Checkpoint is multi-ms of CPU
+        // work; offload to the blocking pool so it doesn't stall the reactor.
+        tokio::task::spawn_blocking(move || decode::checkpoint(&bytes))
+            .await
+            .map_err(|e| CheckpointError::Fetch(anyhow::anyhow!("decode task panicked: {e}")))?
+            .map_err(CheckpointError::Decode)
+    }
+
+    async fn latest_checkpoint_number(&self) -> anyhow::Result<u64> {
+        self.watermark_checkpoint_hi_inclusive()
+            .await
+            .map(|cp| cp.unwrap_or(0))
+    }
+}
+
+/// Disable object_store's internal retries so that transient errors (429s, 5xx) propagate
+/// immediately to the framework's own retry logic.
+pub(super) fn retry_config() -> RetryConfig {
+    RetryConfig {
+        max_retries: 0,
+        ..Default::default()
     }
 }
 
@@ -106,6 +153,7 @@ pub(crate) mod tests {
     use wiremock::Respond;
     use wiremock::ResponseTemplate;
     use wiremock::matchers::method;
+    use wiremock::matchers::path;
     use wiremock::matchers::path_regex;
 
     use crate::ingestion::error::Error;
@@ -123,6 +171,24 @@ pub(crate) mod tests {
             .await;
     }
 
+    /// Mount a high-priority mock for checkpoint 0 used by `StoreIngestionClient::chain_id()`.
+    pub(crate) async fn respond_with_chain_id(server: &MockServer) {
+        Mock::given(method("GET"))
+            .and(path("/0.binpb.zst"))
+            .respond_with(status(StatusCode::OK).set_body_bytes(test_checkpoint_data(0)))
+            .with_priority(1)
+            .mount(server)
+            .await;
+    }
+
+    /// Returns the expected chain_id produced by `StoreIngestionClient::chain_id()` when
+    /// `respond_with_chain_id` is mounted.
+    pub(crate) fn expected_chain_id() -> ChainIdentifier {
+        let bytes = test_checkpoint_data(0);
+        let checkpoint = decode::checkpoint(&bytes).unwrap();
+        (*checkpoint.summary.digest()).into()
+    }
+
     pub(crate) fn status(code: StatusCode) -> ResponseTemplate {
         ResponseTemplate::new(code.as_u16())
     }
@@ -137,13 +203,63 @@ pub(crate) mod tests {
         IngestionClient::with_store(store, test_ingestion_metrics()).unwrap()
     }
 
+    async fn test_latest_checkpoint_number(watermark: ResponseTemplate) -> anyhow::Result<u64> {
+        let server = MockServer::start().await;
+
+        Mock::given(method("GET"))
+            .and(path(WATERMARK_PATH))
+            .respond_with(watermark)
+            .mount(&server)
+            .await;
+
+        let store = HttpBuilder::new()
+            .with_url(server.uri())
+            .with_client_options(ClientOptions::default().with_allow_http(true))
+            .build()
+            .map(Arc::new)
+            .unwrap();
+        let client = StoreIngestionClient::new(store, None);
+
+        IngestionClientTrait::latest_checkpoint_number(&client).await
+    }
+
+    #[tokio::test]
+    async fn test_latest_checkpoint_no_watermark() {
+        assert_eq!(
+            test_latest_checkpoint_number(status(StatusCode::NOT_FOUND))
+                .await
+                .unwrap(),
+            0
+        )
+    }
+
+    #[tokio::test]
+    async fn test_latest_checkpoint_corrupt_watermark() {
+        assert!(
+            test_latest_checkpoint_number(status(StatusCode::OK).set_body_string("<"))
+                .await
+                .is_err()
+        )
+    }
+
+    #[tokio::test]
+    async fn test_latest_checkpoint_from_watermark() {
+        let body = serde_json::json!({"checkpoint_hi_inclusive": 1}).to_string();
+        assert_eq!(
+            test_latest_checkpoint_number(status(StatusCode::OK).set_body_string(body))
+                .await
+                .unwrap(),
+            1
+        )
+    }
+
     #[tokio::test]
     async fn fail_on_not_found() {
         let server = MockServer::start().await;
         respond_with(&server, status(StatusCode::NOT_FOUND)).await;
 
         let client = remote_test_client(server.uri());
-        let error = client.fetch(42).await.unwrap_err();
+        let error = client.checkpoint(42).await.unwrap_err();
 
         assert!(matches!(error, Error::NotFound(42)));
     }
@@ -159,14 +275,13 @@ pub(crate) mod tests {
             let mut times = times.lock().unwrap();
             *times += 1;
             match (*times, r.url.path()) {
-                // The first request will trigger a redirect to 0.binpb.zst no matter what the
-                // original request was for -- triggering a request error.
-                (1, _) => {
-                    status(StatusCode::MOVED_PERMANENTLY).append_header("Location", "/0.binpb.zst")
-                }
+                // The first request will trigger a redirect to 999999.binpb.zst no matter what
+                // the original request was for -- triggering a request error.
+                (1, _) => status(StatusCode::MOVED_PERMANENTLY)
+                    .append_header("Location", "/999999.binpb.zst"),
 
-                // Set-up checkpoint 0 as an infinite redirect loop.
-                (_, "/0.binpb.zst") => {
+                // Set-up checkpoint 999999 as an infinite redirect loop.
+                (_, "/999999.binpb.zst") => {
                     status(StatusCode::MOVED_PERMANENTLY).append_header("Location", r.url.as_str())
                 }
 
@@ -175,11 +290,13 @@ pub(crate) mod tests {
             }
         })
         .await;
+        respond_with_chain_id(&server).await;
 
         let client = remote_test_client(server.uri());
-        let checkpoint = client.fetch(42).await.unwrap();
+        let envelope = client.checkpoint(42).await.unwrap();
 
-        assert_eq!(42, checkpoint.summary.sequence_number)
+        assert_eq!(42, envelope.checkpoint.summary.sequence_number);
+        assert_eq!(envelope.chain_id, expected_chain_id());
     }
 
     /// Assume that certain errors will recover by themselves, and keep retrying with an
@@ -200,11 +317,13 @@ pub(crate) mod tests {
             }
         })
         .await;
+        respond_with_chain_id(&server).await;
 
         let client = remote_test_client(server.uri());
-        let checkpoint = client.fetch(42).await.unwrap();
+        let envelope = client.checkpoint(42).await.unwrap();
 
-        assert_eq!(42, checkpoint.summary.sequence_number)
+        assert_eq!(42, envelope.checkpoint.summary.sequence_number);
+        assert_eq!(envelope.chain_id, expected_chain_id());
     }
 
     /// Treat deserialization failure as another kind of transient error -- all checkpoint data
@@ -223,11 +342,13 @@ pub(crate) mod tests {
             }
         })
         .await;
+        respond_with_chain_id(&server).await;
 
         let client = remote_test_client(server.uri());
-        let checkpoint = client.fetch(42).await.unwrap();
+        let envelope = client.checkpoint(42).await.unwrap();
 
-        assert_eq!(42, checkpoint.summary.sequence_number)
+        assert_eq!(42, envelope.checkpoint.summary.sequence_number);
+        assert_eq!(envelope.chain_id, expected_chain_id());
     }
 
     /// Test that timeout errors are retried as transient errors.
@@ -243,7 +364,7 @@ pub(crate) mod tests {
             match times_clone.fetch_add(1, Ordering::Relaxed) {
                 0 => {
                     // Delay longer than our test timeout (2 seconds)
-                    std::thread::sleep(std::time::Duration::from_secs(4));
+                    std::thread::sleep(Duration::from_secs(4));
                     status(StatusCode::OK).set_body_bytes(test_checkpoint_data(42))
                 }
                 _ => {
@@ -253,6 +374,7 @@ pub(crate) mod tests {
             }
         })
         .await;
+        respond_with_chain_id(&server).await;
 
         let options = ClientOptions::default()
             .with_allow_http(true)
@@ -267,10 +389,12 @@ pub(crate) mod tests {
             IngestionClient::with_store(store, test_ingestion_metrics()).unwrap();
 
         // This should timeout once, then succeed on retry
-        let checkpoint = ingestion_client.fetch(42).await.unwrap();
-        assert_eq!(42, checkpoint.summary.sequence_number);
+        let envelope = ingestion_client.checkpoint(42).await.unwrap();
+        assert_eq!(42, envelope.checkpoint.summary.sequence_number);
+        assert_eq!(envelope.chain_id, expected_chain_id());
 
         // Verify that the server received exactly 2 requests (1 timeout + 1 successful retry)
+        // The chain_id request for checkpoint 0 is handled by a separate mock.
         let final_count = times.load(Ordering::Relaxed);
         assert_eq!(final_count, 2);
     }

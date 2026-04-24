@@ -15,7 +15,8 @@ use move_trace_format::{
     format::{Effect, MoveTraceBuilder, RefType, TraceEvent, TypeTagWithRefs},
     value::{SerializableMoveValue, SimplifiedMoveStruct},
 };
-use move_vm_types::values::Value as VMValue;
+use move_vm_runtime::execution::values::Value as VMValue;
+use mysten_common::ZipDebugEqIteratorExt;
 use sui_types::{
     error::ExecutionError,
     ptb_trace::{
@@ -54,7 +55,7 @@ pub fn trace_transfer(
 ) -> Result<(), ExecutionError> {
     if let Some(trace_builder) = trace_builder_opt {
         let mut to_transfer = vec![];
-        for (idx, (v, ty)) in values.iter().zip(tys).enumerate() {
+        for (idx, (v, ty)) in values.iter().zip_debug_eq(tys).enumerate() {
             let tag = adapter_type_to_type_tag_with_refs(ty)?;
             let layout = annotated_type_layout_for_adapter_ty(context, ty)?;
             let value = serializable_move_value_from_ctx_value(v, &layout)?;
@@ -88,10 +89,10 @@ pub fn trace_ptb_summary(
                 Command__::MoveCall(move_call) => {
                     let pkg = move_call
                         .function
-                        .storage_id
+                        .version_mid
                         .address()
                         .to_canonical_string(/*with_prefix*/ true);
-                    let module = move_call.function.storage_id.name().to_string();
+                    let module = move_call.function.version_mid.name().to_string();
                     let function = move_call.function.name.to_string();
                     Ok(vec![PTBCommandInfo::MoveCall {
                         pkg,
@@ -351,20 +352,12 @@ fn annotated_type_layout_for_adapter_ty(
     context: &mut Context,
     type_: &Type,
 ) -> Result<A::MoveTypeLayout, ExecutionError> {
-    let ty = context
-        .env
-        .load_vm_type_argument_from_adapter_type(0, type_)?;
-    context
-        .env
-        .vm
-        .get_runtime()
-        .type_to_fully_annotated_layout(&ty)
-        .map_err(|e| {
-            make_invariant_violation!(
-                "Failed to get annotated type layout for adapter type: {}",
-                e
-            )
-        })
+    context.env.fully_annotated_layout(type_).map_err(|e| {
+        make_invariant_violation!(
+            "Failed to get annotated type layout for adapter type: {}",
+            e
+        )
+    })
 }
 
 /// Creates a `SerializableMoveValue` (a Move value for the trace format) from a `CtxValue` and a
@@ -373,7 +366,7 @@ fn serializable_move_value_from_ctx_value(
     value: &CtxValue,
     annotated_layout: &A::MoveTypeLayout,
 ) -> Result<SerializableMoveValue, ExecutionError> {
-    VMValue::as_annotated_move_value_for_tracing_only(
+    VMValue::as_annotated_move_value(
         value.inner_for_tracing().inner_for_tracing(),
         annotated_layout,
     )

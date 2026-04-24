@@ -22,7 +22,7 @@ use crate::pipeline::logging::WatermarkLogger;
 use crate::pipeline::sequential::Handler;
 use crate::pipeline::sequential::SequentialConfig;
 use crate::store::Connection;
-use crate::store::TransactionalStore;
+use crate::store::SequentialStore;
 
 /// The committer task gathers rows into batches and writes them to the database.
 ///
@@ -34,34 +34,21 @@ use crate::store::TransactionalStore;
 /// Writes are performed on checkpoint boundaries (more than one checkpoint can be present in a
 /// single write), in a single transaction that includes all row updates and an update to the
 /// watermark table.
-///
-/// The committer can be configured to lag behind the ingestion service by a fixed number of
-/// checkpoints (configured by `checkpoint_lag`). A value of `0` means no lag.
-///
-/// Upon successful write, the task sends its new watermark back to the ingestion service, to
-/// unblock its regulator.
-pub(super) fn committer<H>(
+pub(super) fn committer<H: Handler>(
     handler: Arc<H>,
     config: SequentialConfig,
     mut next_checkpoint: u64,
     mut rx: mpsc::Receiver<IndexedCheckpoint<H>>,
-    tx: mpsc::UnboundedSender<(&'static str, u64)>,
     store: H::Store,
     metrics: Arc<IndexerMetrics>,
     min_eager_rows: usize,
     max_batch_checkpoints: usize,
-) -> Service
-where
-    H: Handler + Send + Sync + 'static,
-    H::Store: TransactionalStore + 'static,
-{
+) -> Service {
     Service::new().spawn_aborting(async move {
         // The `poll` interval controls the maximum time to wait between commits, regardless of the
         // amount of data available.
         let mut poll = interval(config.committer.collect_interval());
         poll.set_missed_tick_behavior(MissedTickBehavior::Delay);
-
-        let checkpoint_lag = config.checkpoint_lag;
 
         // Buffer to gather the next batch to write. A checkpoint's data is only added to the batch
         // when it is known to come from the next checkpoint after `watermark` (the current tip of
@@ -105,7 +92,7 @@ where
                     if batch_checkpoints == 0
                         && rx.is_closed()
                         && rx.is_empty()
-                        && !can_process_pending(next_checkpoint, checkpoint_lag, &pending)
+                        && !has_ready_checkpoint(next_checkpoint, &pending)
                     {
                         info!(pipeline = H::NAME, "Process closed channel and no more data to commit");
                         break;
@@ -124,9 +111,8 @@ where
                         .with_label_values(&[H::NAME])
                         .start_timer();
 
-                    // Push data into the next batch as long as it's from contiguous checkpoints,
-                    // outside of the checkpoint lag and we haven't gathered information from too
-                    // many checkpoints already.
+                    // Push data into the next batch as long as it's from contiguous checkpoints
+                    // and we haven't gathered information from too many checkpoints already.
                     //
                     // We don't worry about overall size because the handler may have optimized
                     // writes by combining rows, but we will limit the number of checkpoints we try
@@ -134,10 +120,6 @@ where
                     // (and therefore the length of the write transaction).
                     // docs::#batch  (see docs/content/guides/developer/advanced/custom-indexer.mdx)
                     while batch_checkpoints < max_batch_checkpoints {
-                        if !can_process_pending(next_checkpoint, checkpoint_lag, &pending) {
-                            break;
-                        }
-
                         let Some(entry) = pending.first_entry() else {
                             break;
                         };
@@ -318,13 +300,6 @@ where
                         .with_label_values(&[H::NAME])
                         .set(watermark.timestamp_ms_hi_inclusive as i64);
 
-                    // docs::#send (see docs/content/guides/developer/advanced/custom-indexer.mdx)
-                    // Ignore the result -- the ingestion service will close this channel
-                    // once it is done, but there may still be checkpoints buffered that need
-                    // processing.
-                    let _ = tx.send((H::NAME, watermark.checkpoint_hi_inclusive + 1));
-                    // docs::/#send
-
                     let _ = std::mem::take(&mut batch);
                     pending_rows -= batch_rows;
                     batch_checkpoints = 0;
@@ -333,7 +308,7 @@ where
 
                     // If we could make more progress immediately, then schedule more work without
                     // waiting.
-                    if can_process_pending(next_checkpoint, checkpoint_lag, &pending) {
+                    if has_ready_checkpoint(next_checkpoint, &pending) {
                         poll.reset_immediately();
                     }
                 }
@@ -358,9 +333,7 @@ where
                         continue;
                     }
 
-                    if batch_checkpoints > 0
-                        || can_process_pending(next_checkpoint, checkpoint_lag, &pending)
-                    {
+                    if batch_checkpoints > 0 || has_ready_checkpoint(next_checkpoint, &pending) {
                         poll.reset_immediately();
                     }
                 }
@@ -372,25 +345,13 @@ where
     })
 }
 
-// Tests whether the first checkpoint in the `pending` buffer can be processed immediately, which
-// is subject to the following conditions:
-//
-// - It is at or before the `next_checkpoint` expected by the committer.
-// - It is at least `checkpoint_lag` checkpoints before the last checkpoint in the buffer.
-fn can_process_pending<T>(
-    next_checkpoint: u64,
-    checkpoint_lag: u64,
-    pending: &BTreeMap<u64, T>,
-) -> bool {
-    let Some((&first, _)) = pending.first_key_value() else {
-        return false;
-    };
-
-    let Some((&last, _)) = pending.last_key_value() else {
-        return false;
-    };
-
-    first <= next_checkpoint && first + checkpoint_lag <= last
+// Whether the first entry in `pending` is ready to be consumed by the committer — either to be
+// included in the next batch (if it matches `next_checkpoint`) or discarded as a stale duplicate
+// (if it predates `next_checkpoint`).
+fn has_ready_checkpoint<T>(next_checkpoint: u64, pending: &BTreeMap<u64, T>) -> bool {
+    pending
+        .first_key_value()
+        .is_some_and(|(&first, _)| first <= next_checkpoint)
 }
 
 #[cfg(test)]
@@ -451,7 +412,6 @@ mod tests {
     struct TestSetup {
         store: MockStore,
         checkpoint_tx: mpsc::Sender<IndexedCheckpoint<TestHandler>>,
-        commit_hi_rx: mpsc::UnboundedReceiver<(&'static str, u64)>,
         #[allow(unused)]
         committer: Service,
     }
@@ -469,8 +429,6 @@ mod tests {
             .unwrap_or(<TestHandler as super::Handler>::MAX_BATCH_CHECKPOINTS);
 
         let (checkpoint_tx, checkpoint_rx) = mpsc::channel(10);
-        #[allow(clippy::disallowed_methods)]
-        let (commit_hi_tx, commit_hi_rx) = mpsc::unbounded_channel();
 
         let store_clone = store.clone();
         let handler = Arc::new(TestHandler);
@@ -479,7 +437,6 @@ mod tests {
             config,
             next_checkpoint,
             checkpoint_rx,
-            commit_hi_tx,
             store_clone,
             metrics,
             min_eager_rows,
@@ -489,7 +446,6 @@ mod tests {
         TestSetup {
             store,
             checkpoint_tx,
-            commit_hi_rx,
             committer,
         }
     }
@@ -514,11 +470,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_committer_processes_sequential_checkpoints() {
-        let config = SequentialConfig {
-            committer: CommitterConfig::default(),
-            checkpoint_lag: 0, // Zero checkpoint lag to process new batch instantly
-            ..Default::default()
-        };
+        let config = SequentialConfig::default();
         let mut setup = setup_test(0, config, MockStore::default());
 
         // Send checkpoints in order
@@ -535,14 +487,11 @@ mod tests {
         // Verify watermark was updated
         {
             let watermark = setup.store.watermark(TestHandler::NAME).unwrap();
-            assert_eq!(watermark.checkpoint_hi_inclusive, 2);
+            assert_eq!(watermark.checkpoint_hi_inclusive, Some(2));
             assert_eq!(watermark.tx_hi, 2);
         }
 
         // Verify commit_hi was sent to ingestion
-        let commit_hi = setup.commit_hi_rx.recv().await.unwrap();
-        assert_eq!(commit_hi.0, "test", "Pipeline name should be 'test'");
-        assert_eq!(commit_hi.1, 3, "commit_hi should be 3 (checkpoint 2 + 1)");
     }
 
     /// Configure the MockStore with no watermark, and emulate `first_checkpoint` by passing the
@@ -581,18 +530,14 @@ mod tests {
         // Verify watermark was updated
         {
             let watermark = setup.store.watermark(TestHandler::NAME).unwrap();
-            assert_eq!(watermark.checkpoint_hi_inclusive, 7);
+            assert_eq!(watermark.checkpoint_hi_inclusive, Some(7));
             assert_eq!(watermark.tx_hi, 7);
         }
     }
 
     #[tokio::test]
     async fn test_committer_processes_out_of_order_checkpoints() {
-        let config = SequentialConfig {
-            committer: CommitterConfig::default(),
-            checkpoint_lag: 0, // Zero checkpoint lag to process new batch instantly
-            ..Default::default()
-        };
+        let config = SequentialConfig::default();
         let mut setup = setup_test(0, config, MockStore::default());
 
         // Send checkpoints out of order
@@ -609,23 +554,16 @@ mod tests {
         // Verify watermark was updated
         {
             let watermark = setup.store.watermark(TestHandler::NAME).unwrap();
-            assert_eq!(watermark.checkpoint_hi_inclusive, 2);
+            assert_eq!(watermark.checkpoint_hi_inclusive, Some(2));
             assert_eq!(watermark.tx_hi, 2);
         }
 
         // Verify commit_hi was sent to ingestion
-        let commit_hi = setup.commit_hi_rx.recv().await.unwrap();
-        assert_eq!(commit_hi.0, "test", "Pipeline name should be 'test'");
-        assert_eq!(commit_hi.1, 3, "commit_hi should be 3 (checkpoint 2 + 1)");
     }
 
     #[tokio::test]
     async fn test_committer_commit_up_to_max_batch_checkpoints() {
-        let config = SequentialConfig {
-            committer: CommitterConfig::default(),
-            checkpoint_lag: 0, // Zero checkpoint lag to process new batch instantly
-            ..Default::default()
-        };
+        let config = SequentialConfig::default();
         let mut setup = setup_test(0, config, MockStore::default());
 
         // Send checkpoints up to MAX_BATCH_CHECKPOINTS
@@ -636,55 +574,8 @@ mod tests {
         // Wait for processing
         tokio::time::sleep(Duration::from_millis(200)).await;
 
-        // Verify commit_hi values are sent for each batch
-        let commit_hi1 = setup.commit_hi_rx.recv().await.unwrap();
-        assert_eq!(
-            commit_hi1.1, 3,
-            "First commit_hi should be 3 (checkpoint 2 + 1, highest processed of first batch)"
-        );
-
-        let commit_hi2 = setup.commit_hi_rx.recv().await.unwrap();
-        assert_eq!(
-            commit_hi2.1, 4,
-            "Second commit_hi should be 4 (checkpoint 3 + 1, highest processed of second batch)"
-        );
-
         // Verify data is written in order across batches
         assert_eq!(setup.store.get_sequential_data(), vec![0, 1, 2, 3]);
-    }
-
-    #[tokio::test]
-    async fn test_committer_does_not_commit_until_checkpoint_lag() {
-        let config = SequentialConfig {
-            committer: CommitterConfig::default(),
-            checkpoint_lag: 1, // Only commit checkpoints that are at least 1 behind
-            ..Default::default()
-        };
-        let mut setup = setup_test(0, config, MockStore::default());
-
-        // Send checkpoints 0-2
-        for i in 0..3 {
-            send_checkpoint(&mut setup, i).await;
-        }
-
-        // Wait for processing
-        tokio::time::sleep(Duration::from_millis(200)).await;
-
-        // Verify only checkpoints 0 and 1 are written (since checkpoint 2 is not lagged enough)
-        assert_eq!(setup.store.get_sequential_data(), vec![0, 1]);
-        let commit_hi = setup.commit_hi_rx.recv().await.unwrap();
-        assert_eq!(commit_hi.1, 2, "commit_hi should be 2 (checkpoint 1 + 1)");
-
-        // Send checkpoint 3 to exceed the checkpoint_lag for checkpoint 2
-        send_checkpoint(&mut setup, 3).await;
-
-        // Wait for next polling processing
-        tokio::time::sleep(Duration::from_millis(1000)).await;
-
-        // Verify checkpoint 2 is now written
-        assert_eq!(setup.store.get_sequential_data(), vec![0, 1, 2]);
-        let commit_hi = setup.commit_hi_rx.recv().await.unwrap();
-        assert_eq!(commit_hi.1, 3, "commit_hi should be 3 (checkpoint 2 + 1)");
     }
 
     #[tokio::test]
@@ -694,7 +585,6 @@ mod tests {
                 collect_interval_ms: 4_000, // Long polling to test eager commit
                 ..Default::default()
             },
-            checkpoint_lag: 0, // Zero checkpoint lag to not block the eager logic
             ..Default::default()
         };
         let mut setup = setup_test(0, config, MockStore::default());
@@ -721,49 +611,12 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_committer_cannot_commit_eagerly_due_to_checkpoint_lag() {
-        let config = SequentialConfig {
-            committer: CommitterConfig {
-                collect_interval_ms: 4_000, // Long polling to test eager commit
-                ..Default::default()
-            },
-            checkpoint_lag: 4, // High checkpoint lag to block eager commits
-            ..Default::default()
-        };
-        let mut setup = setup_test(0, config, MockStore::default());
-
-        // Wait for initial poll to be over
-        tokio::time::sleep(Duration::from_millis(200)).await;
-
-        // Send checkpoints 0-3
-        for i in 0..4 {
-            send_checkpoint(&mut setup, i).await;
-        }
-
-        // Wait for processing
-        tokio::time::sleep(Duration::from_millis(200)).await;
-
-        // Verify no checkpoints are written due to checkpoint lag
-        assert_eq!(setup.store.get_sequential_data(), Vec::<u64>::new());
-
-        // Send checkpoint 4 to exceed checkpoint lag
-        send_checkpoint(&mut setup, 4).await;
-
-        // Wait for processing
-        tokio::time::sleep(Duration::from_millis(200)).await;
-
-        // Verify only checkpoint 0 is written (since it's the only one that satisfies checkpoint_lag)
-        assert_eq!(setup.store.get_sequential_data(), vec![0]);
-    }
-
-    #[tokio::test]
     async fn test_committer_retries_on_transaction_failure() {
         let config = SequentialConfig {
             committer: CommitterConfig {
                 collect_interval_ms: 1_000, // Long polling to test retry logic
                 ..Default::default()
             },
-            checkpoint_lag: 0,
             ..Default::default()
         };
 
@@ -786,13 +639,5 @@ mod tests {
 
         // Verify data is written after retries complete on next polling
         assert_eq!(setup.store.get_sequential_data(), vec![10]);
-
-        // Verify commit_hi is updated
-        let commit_hi = setup.commit_hi_rx.recv().await.unwrap();
-        assert_eq!(commit_hi.0, "test", "Pipeline name should be 'test'");
-        assert_eq!(
-            commit_hi.1, 11,
-            "commit_hi should be 11 (checkpoint 10 + 1)"
-        );
     }
 }

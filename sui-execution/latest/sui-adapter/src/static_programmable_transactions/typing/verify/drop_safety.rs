@@ -213,6 +213,7 @@ mod verify {
             typing::ast::{self as T, Type},
         },
     };
+    use mysten_common::ZipDebugEqIteratorExt;
     use sui_types::error::{ExecutionError, SafeIndex};
     use sui_types::execution_status::ExecutionErrorKind;
 
@@ -230,7 +231,7 @@ mod verify {
     }
 
     impl Context {
-        fn new(env: &Env, ast: &T::Transaction) -> Result<Self, ExecutionError> {
+        fn new(_env: &Env, ast: &T::Transaction) -> Result<Self, ExecutionError> {
             let objects = ast.objects.iter().map(|_| Some(Value)).collect::<Vec<_>>();
             let withdrawals = ast
                 .withdrawals
@@ -243,9 +244,7 @@ mod verify {
                 .iter()
                 .map(|_| Some(Value))
                 .collect::<Vec<_>>();
-            let gas_coin = if ast.gas_coin.is_none()
-                && env.protocol_config.gasless_transaction_drop_safety()
-            {
+            let gas_coin = if ast.gas_payment.is_none() {
                 None
             } else {
                 Some(Value)
@@ -299,7 +298,7 @@ mod verify {
             );
             let result_values = result
                 .into_iter()
-                .zip(c.value.drop_values.iter().copied())
+                .zip_debug_eq(c.value.drop_values.iter().copied())
                 .map(|(v, drop)| {
                     if !drop {
                         Some(v)
@@ -328,10 +327,10 @@ mod verify {
         consume_value_opts(pure);
         consume_value_opts(receiving);
         assert_invariant!(results.len() == commands.len(), "result length mismatch");
-        for (i, (result, c)) in results.into_iter().zip(&ast.commands).enumerate() {
+        for (i, (result, c)) in results.into_iter().zip_debug_eq(&ast.commands).enumerate() {
             let tys = &c.value.result_type;
             assert_invariant!(result.len() == tys.len(), "result length mismatch");
-            for (j, (vopt, ty)) in result.into_iter().zip(tys).enumerate() {
+            for (j, (vopt, ty)) in result.into_iter().zip_debug_eq(tys).enumerate() {
                 drop_value_opt::<Mode>((i, j), vopt, ty)?;
             }
         }

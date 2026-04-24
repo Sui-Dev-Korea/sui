@@ -3,8 +3,10 @@
 
 use crate::{
     execution_mode::ExecutionMode,
-    programmable_transactions::execution::{PrimitiveArgumentLayout, bcs_argument_validate},
     sp,
+    static_programmable_transactions::execution::context::{
+        PrimitiveArgumentLayout, bcs_argument_validate,
+    },
     static_programmable_transactions::{
         env::Env,
         loading::ast::{ObjectMutability, Type},
@@ -13,7 +15,9 @@ use crate::{
 };
 use indexmap::IndexSet;
 use sui_types::{
+    SUI_FRAMEWORK_ADDRESS,
     base_types::{RESOLVED_ASCII_STR, RESOLVED_STD_OPTION, RESOLVED_UTF8_STR},
+    coin::{COIN_MODULE_NAME, SEND_FUNDS_FUNC_NAME},
     error::{ExecutionError, SafeIndex, command_argument_error},
     execution_status::{CommandArgumentError, ExecutionErrorKind},
     id::RESOLVED_SUI_ID,
@@ -68,27 +72,29 @@ impl Context {
 ///    permissible
 ///    - Can be relaxed under certain execution modes
 /// 2. That any `Object` arguments are used validly. This means mutable references are taken only
-///    on mutable objects. And that the gas coin is only taken by value in transfer objects
-pub fn verify<Mode: ExecutionMode>(_env: &Env, txn: &T::Transaction) -> Result<(), ExecutionError> {
+///    on mutable objects. And that the gas coin is only taken by value in transfer objects or with
+///    `sui::coin::send_funds`.
+pub fn verify<Mode: ExecutionMode>(env: &Env, txn: &T::Transaction) -> Result<(), ExecutionError> {
     let T::Transaction {
-        gas_coin: _,
+        gas_payment: _,
         bytes,
         objects: _,
         withdrawals: _,
         pure,
         receiving,
         withdrawal_compatibility_conversions: _,
+        original_command_len: _,
         commands,
     } = txn;
     for pure in pure {
         check_pure_input::<Mode>(bytes, pure)?;
     }
     for receiving in receiving {
-        check_receving_input(receiving)?;
+        check_receiving_input(receiving)?;
     }
     let context = &mut Context::new(txn);
     for c in commands {
-        command(context, c).map_err(|e| e.with_command_index(c.idx as usize))?;
+        command(env, context, c).map_err(|e| e.with_command_index(c.idx as usize))?;
     }
     Ok(())
 }
@@ -191,7 +197,7 @@ fn primitive_serialization_layout(
     })
 }
 
-fn check_receving_input(receiving: &T::ReceivingInput) -> Result<(), ExecutionError> {
+fn check_receiving_input(receiving: &T::ReceivingInput) -> Result<(), ExecutionError> {
     let T::ReceivingInput {
         original_input_index: _,
         object_ref: _,
@@ -231,11 +237,14 @@ pub fn is_valid_receiving(constraint: &Type) -> bool {
 // Object usage
 //**************************************************************************************************
 
-fn command(context: &mut Context, sp!(_, c): &T::Command) -> Result<(), ExecutionError> {
+fn command(env: &Env, context: &mut Context, sp!(_, c): &T::Command) -> Result<(), ExecutionError> {
     match &c.command {
         T::Command__::MoveCall(mc) => {
             check_obj_usages(context, &mc.arguments)?;
-            check_gas_by_values(&mc.arguments)?;
+            if !(env.protocol_config.enable_accumulators() && is_coin_send_funds(&mc.function)) {
+                // We allow the gas coin to be used with `sui::coin::send_funds`
+                check_gas_by_values(&mc.arguments)?;
+            }
         }
         T::Command__::TransferObjects(objects, recipient) => {
             check_obj_usages(context, objects)?;
@@ -377,4 +386,10 @@ fn check_gas_by_value_loc(idx: u16, location: &T::Location) -> Result<(), Execut
         | T::Location::ReceivingInput(_)
         | T::Location::Result(_, _) => Ok(()),
     }
+}
+
+pub fn is_coin_send_funds(function: &T::LoadedFunction) -> bool {
+    function.original_mid.address() == &SUI_FRAMEWORK_ADDRESS
+        && function.original_mid.name() == COIN_MODULE_NAME
+        && function.name.as_ident_str() == SEND_FUNDS_FUNC_NAME
 }

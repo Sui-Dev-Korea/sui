@@ -2,10 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use std::{
-    cell::RefCell,
-    collections::BTreeSet,
-    sync::atomic::{AtomicBool, Ordering},
+    collections::{BTreeMap, BTreeSet},
+    sync::{
+        Arc, LazyLock,
+        atomic::{AtomicBool, Ordering},
+    },
 };
+
+#[cfg(msim)]
+use std::cell::RefCell;
+#[cfg(not(msim))]
+use std::sync::Mutex;
 
 use clap::*;
 use fastcrypto::encoding::{Base58, Encoding, Hex};
@@ -13,6 +20,7 @@ use move_binary_format::{
     binary_config::{BinaryConfig, TableConfig},
     file_format_common::VERSION_1,
 };
+use move_core_types::account_address::AccountAddress;
 use move_vm_config::verifier::VerifierConfig;
 use mysten_common::in_integration_test;
 use serde::{Deserialize, Serialize};
@@ -24,7 +32,10 @@ use tracing::{info, warn};
 
 /// The minimum and maximum protocol versions supported by this build.
 const MIN_PROTOCOL_VERSION: u64 = 1;
-const MAX_PROTOCOL_VERSION: u64 = 116;
+const MAX_PROTOCOL_VERSION: u64 = 122;
+
+const TESTNET_USDC: &str =
+    "0xa1ec7fc00a6f40db9693ad1415d0c193ad3906494428cf252621037bd7117e29::usdc::USDC";
 
 // Record history of protocol version allocations here:
 //
@@ -302,8 +313,16 @@ const MAX_PROTOCOL_VERSION: u64 = 116;
 // Version 115: Gasless transaction drop safety.
 //              Enable address aliases on mainnet.
 //              Relax ValidDuring requirement for transactions with owned inputs.
-//              Disable defer_unpaid_amplification (debugging).
 // Version 116: Enable Display Registry.
+//              Disable defer_unpaid_amplification (debugging).
+// Version 117: Update Sui System metadata handling.
+// Version 118: Adds `transfer_migration_cap` to display registry
+// Version 119: Enable the new VM.
+// Version 120: Disallow unused jump tables
+// Version 121: Re-enable defer_unpaid_amplification (devnet + testnet).
+// Version 122: Framework update: vector::empty is deprecated.
+//              Enable bulletproofs verification on devnet.
+//              Enable defer_unpaid_amplification on mainnet.
 
 #[derive(Copy, Clone, Debug, Hash, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ProtocolVersion(u64);
@@ -577,6 +596,10 @@ struct FeatureFlags {
     // Enable group operations for Ristretto255
     #[serde(skip_serializing_if = "is_false")]
     enable_ristretto255_group_ops: bool,
+
+    // Enable native functions for group operations.
+    #[serde(skip_serializing_if = "is_false")]
+    enable_verify_bulletproofs_ristretto255: bool,
 
     // Enable nitro attestation.
     #[serde(skip_serializing_if = "is_false")]
@@ -951,6 +974,10 @@ struct FeatureFlags {
     #[serde(skip_serializing_if = "is_false")]
     deprecate_global_storage_ops: bool,
 
+    // If true, normalize depth formula to not be empty for zero depth.
+    #[serde(skip_serializing_if = "is_false")]
+    normalize_depth_formula: bool,
+
     // If true, skip GC'ed accept votes in CommitFinalizer.
     #[serde(skip_serializing_if = "is_false")]
     consensus_skip_gced_accept_votes: bool,
@@ -1019,6 +1046,27 @@ struct FeatureFlags {
     // If true, mark the gas coin as uninitialized in drop safety when there is no gas coin.
     #[serde(skip_serializing_if = "is_false")]
     gasless_transaction_drop_safety: bool,
+
+    // When split-checkpoints enabled, merge randomness and non-randomness schedulables together.
+    #[serde(skip_serializing_if = "is_false")]
+    merge_randomness_into_checkpoint: bool,
+
+    // If true, use coin party owner information.
+    #[serde(skip_serializing_if = "is_false")]
+    use_coin_party_owner: bool,
+
+    #[serde(skip_serializing_if = "is_false")]
+    enable_gasless: bool,
+
+    #[serde(skip_serializing_if = "is_false")]
+    gasless_verify_remaining_balance: bool,
+
+    #[serde(skip_serializing_if = "is_false")]
+    disallow_jump_orphans: bool,
+
+    // If true, return early on type mismatch in receive_object.
+    #[serde(skip_serializing_if = "is_false")]
+    early_return_receive_object_mismatched_type: bool,
 }
 
 fn is_false(b: &bool) -> bool {
@@ -1533,6 +1581,8 @@ pub struct ProtocolConfig {
     // Cost params for the Move native function
     // `receive_object<T: key>(p: &mut UID, recv: Receiving<T>T)`
     transfer_receive_object_cost_base: Option<u64>,
+    transfer_receive_object_cost_per_byte: Option<u64>,
+    transfer_receive_object_type_cost_per_byte: Option<u64>,
 
     // TxContext
     // Cost params for the Move native function `transfer_impl<T: key>(obj: T, recipient: address)`
@@ -1688,6 +1738,9 @@ pub struct ProtocolConfig {
     group_ops_ristretto_point_mul_cost: Option<u64>,
     group_ops_ristretto_scalar_div_cost: Option<u64>,
     group_ops_ristretto_point_div_cost: Option<u64>,
+
+    verify_bulletproofs_ristretto255_base_cost: Option<u64>,
+    verify_bulletproofs_ristretto255_cost_per_bit_and_commitment: Option<u64>,
 
     // hmac::hmac_sha3_256
     hmac_hmac_sha3_256_cost_base: Option<u64>,
@@ -1886,6 +1939,33 @@ pub struct ProtocolConfig {
 
     /// The maximum number of updates per settlement transaction.
     max_updates_per_settlement_txn: Option<u32>,
+
+    /// Maximum computation units allowed for a gasless transaction.
+    gasless_max_computation_units: Option<u64>,
+
+    /// Allowed token types for gasless transactions, with minimum transfer sizes per token.
+    #[skip_accessor]
+    gasless_allowed_token_types: Option<Vec<(String, u64)>>,
+
+    /// Maximum number of unused Pure inputs allowed in a gasless transaction.
+    /// Object and FundsWithdrawal inputs must always be used.
+    /// When None, there is no limit (effectively unlimited).
+    gasless_max_unused_inputs: Option<u64>,
+
+    /// Maximum size in bytes of each Pure input in a gasless transaction.
+    /// When None, there is no limit (effectively unlimited).
+    gasless_max_pure_input_bytes: Option<u64>,
+
+    /// Max tps for gasless transactions. Unlimited when unset, zero when set to zero.
+    gasless_max_tps: Option<u64>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[skip_accessor]
+    include_special_package_amendments: Option<Arc<Amendments>>,
+
+    /// Maximum serialized size in bytes of a gasless transaction (SenderSignedData).
+    /// Bounds the persistent storage impact of each admitted gasless transaction.
+    gasless_max_tx_size_bytes: Option<u64>,
 }
 
 /// An aliased address.
@@ -2166,7 +2246,7 @@ impl ProtocolConfig {
     }
 
     pub fn enable_coin_reservation_obj_refs(&self) -> bool {
-        self.feature_flags.enable_coin_reservation_obj_refs
+        self.new_vm_enabled() && self.feature_flags.enable_coin_reservation_obj_refs
     }
 
     pub fn create_root_accumulator_object(&self) -> bool {
@@ -2223,6 +2303,10 @@ impl ProtocolConfig {
 
     pub fn enable_ristretto255_group_ops(&self) -> bool {
         self.feature_flags.enable_ristretto255_group_ops
+    }
+
+    pub fn enable_verify_bulletproofs_ristretto255(&self) -> bool {
+        self.feature_flags.enable_verify_bulletproofs_ristretto255
     }
 
     pub fn reject_mutable_random_on_entry_functions(&self) -> bool {
@@ -2574,6 +2658,10 @@ impl ProtocolConfig {
         self.feature_flags.deprecate_global_storage_ops
     }
 
+    pub fn normalize_depth_formula(&self) -> bool {
+        self.feature_flags.normalize_depth_formula
+    }
+
     pub fn consensus_skip_gced_accept_votes(&self) -> bool {
         self.feature_flags.consensus_skip_gced_accept_votes
     }
@@ -2652,6 +2740,56 @@ impl ProtocolConfig {
     pub fn gasless_transaction_drop_safety(&self) -> bool {
         self.feature_flags.gasless_transaction_drop_safety
     }
+
+    pub fn new_vm_enabled(&self) -> bool {
+        self.execution_version.is_some_and(|v| v >= 4)
+    }
+
+    pub fn merge_randomness_into_checkpoint(&self) -> bool {
+        self.feature_flags.merge_randomness_into_checkpoint
+    }
+
+    pub fn use_coin_party_owner(&self) -> bool {
+        self.feature_flags.use_coin_party_owner
+    }
+
+    pub fn enable_gasless(&self) -> bool {
+        self.feature_flags.enable_gasless
+    }
+
+    pub fn gasless_verify_remaining_balance(&self) -> bool {
+        self.feature_flags.gasless_verify_remaining_balance
+    }
+
+    pub fn gasless_allowed_token_types(&self) -> &[(String, u64)] {
+        debug_assert!(self.gasless_allowed_token_types.is_some());
+        self.gasless_allowed_token_types.as_deref().unwrap_or(&[])
+    }
+
+    pub fn get_gasless_max_unused_inputs(&self) -> u64 {
+        self.gasless_max_unused_inputs.unwrap_or(u64::MAX)
+    }
+
+    pub fn get_gasless_max_pure_input_bytes(&self) -> u64 {
+        self.gasless_max_pure_input_bytes.unwrap_or(u64::MAX)
+    }
+
+    pub fn get_gasless_max_tx_size_bytes(&self) -> u64 {
+        self.gasless_max_tx_size_bytes.unwrap_or(u64::MAX)
+    }
+
+    pub fn disallow_jump_orphans(&self) -> bool {
+        self.feature_flags.disallow_jump_orphans
+    }
+
+    pub fn early_return_receive_object_mismatched_type(&self) -> bool {
+        self.feature_flags
+            .early_return_receive_object_mismatched_type
+    }
+
+    pub fn include_special_package_amendments_as_option(&self) -> &Option<Arc<Amendments>> {
+        &self.include_special_package_amendments
+    }
 }
 
 #[cfg(not(msim))]
@@ -2684,16 +2822,7 @@ impl ProtocolConfig {
         let mut ret = Self::get_for_version_impl(version, chain);
         ret.version = version;
 
-        ret = CONFIG_OVERRIDE.with(|ovr| {
-            if let Some(override_fn) = &*ovr.borrow() {
-                warn!(
-                    "overriding ProtocolConfig settings with custom settings (you should not see this log outside of tests)"
-                );
-                override_fn(version, ret)
-            } else {
-                ret
-            }
-        });
+        ret = Self::apply_config_override(version, ret);
 
         if std::env::var("SUI_PROTOCOL_CONFIG_OVERRIDE_ENABLE").is_ok() {
             warn!(
@@ -2714,6 +2843,7 @@ impl ProtocolConfig {
         if version.0 >= ProtocolVersion::MIN.0 && version.0 <= ProtocolVersion::MAX_ALLOWED.0 {
             let mut ret = Self::get_for_version_impl(version, chain);
             ret.version = version;
+            ret = Self::apply_config_override(version, ret);
             Some(ret)
         } else {
             None
@@ -2948,6 +3078,8 @@ impl ProtocolConfig {
             // Cost params for the Move native function `share_object<T: key>(obj: T)`
             transfer_share_object_cost_base: Some(52),
             transfer_receive_object_cost_base: None,
+            transfer_receive_object_type_cost_per_byte: None,
+            transfer_receive_object_cost_per_byte: None,
 
             // `tx_context` module
             // Cost params for the Move native function `transfer_impl<T: key>(obj: T, recipient: address)`
@@ -3108,6 +3240,9 @@ impl ProtocolConfig {
             group_ops_ristretto_scalar_div_cost: None,
             group_ops_ristretto_point_div_cost: None,
 
+            verify_bulletproofs_ristretto255_base_cost: None,
+            verify_bulletproofs_ristretto255_cost_per_bit_and_commitment: None,
+
             // zklogin::check_zklogin_id
             check_zklogin_id_cost_base: None,
             // zklogin::check_zklogin_issuer
@@ -3238,6 +3373,14 @@ impl ProtocolConfig {
             translation_per_linkage_entry_charge: None,
 
             max_updates_per_settlement_txn: None,
+
+            gasless_max_computation_units: None,
+            gasless_allowed_token_types: None,
+            gasless_max_unused_inputs: None,
+            gasless_max_pure_input_bytes: None,
+            gasless_max_tps: None,
+            include_special_package_amendments: None,
+            gasless_max_tx_size_bytes: None,
             // When adding a new constant, set it to None in the earliest version, like this:
             // new_constant: None,
         };
@@ -4655,14 +4798,71 @@ impl ProtocolConfig {
                     }
                 }
                 115 => {
+                    cfg.feature_flags.normalize_depth_formula = true;
+                }
+                116 => {
                     cfg.feature_flags.gasless_transaction_drop_safety = true;
                     cfg.feature_flags.address_aliases = true;
                     cfg.feature_flags.relax_valid_during_for_owned_inputs = true;
                     // Disabled while debugging
                     cfg.feature_flags.defer_unpaid_amplification = false;
-                }
-                116 => {
                     cfg.feature_flags.enable_display_registry = true;
+                }
+                117 => {}
+                118 => {
+                    cfg.feature_flags.use_coin_party_owner = true;
+                }
+                119 => {
+                    // Enable new VM.
+                    cfg.execution_version = Some(4);
+                    cfg.feature_flags.address_balance_gas_reject_gas_coin_arg = false;
+                    cfg.feature_flags.merge_randomness_into_checkpoint = true;
+                    if chain != Chain::Mainnet {
+                        cfg.feature_flags.enable_gasless = true;
+                        cfg.gasless_max_computation_units = Some(50_000);
+                        cfg.gasless_allowed_token_types = Some(vec![]);
+                        cfg.feature_flags.enable_coin_reservation_obj_refs = true;
+                        cfg.feature_flags
+                            .convert_withdrawal_compatibility_ptb_arguments = true;
+                    }
+                    cfg.gasless_max_unused_inputs = Some(1);
+                    cfg.gasless_max_pure_input_bytes = Some(32);
+                    if chain == Chain::Testnet {
+                        cfg.gasless_allowed_token_types = Some(vec![(TESTNET_USDC.to_string(), 0)]);
+                    }
+                    cfg.transfer_receive_object_cost_per_byte = Some(1);
+                    cfg.transfer_receive_object_type_cost_per_byte = Some(2);
+                }
+                120 => {
+                    cfg.feature_flags.disallow_jump_orphans = true;
+                }
+                121 => {
+                    // Re-enable unpaid amplification deferral protection (testnet + devnet)
+                    if chain != Chain::Mainnet {
+                        cfg.feature_flags.defer_unpaid_amplification = true;
+                        cfg.gasless_max_tps = Some(50);
+                    }
+                    cfg.feature_flags
+                        .early_return_receive_object_mismatched_type = true;
+                }
+                122 => {
+                    // Enable unpaid amplification deferral on mainnet
+                    cfg.feature_flags.defer_unpaid_amplification = true;
+                    // Enable bulletproofs range proofs on devnet
+                    cfg.verify_bulletproofs_ristretto255_base_cost = Some(30000);
+                    cfg.verify_bulletproofs_ristretto255_cost_per_bit_and_commitment = Some(6500);
+                    if chain != Chain::Mainnet && chain != Chain::Testnet {
+                        cfg.feature_flags.enable_verify_bulletproofs_ristretto255 = true;
+                    }
+                    cfg.feature_flags.gasless_verify_remaining_balance = true;
+                    cfg.include_special_package_amendments = match chain {
+                        Chain::Mainnet => Some(MAINNET_LINKAGE_AMENDMENTS.clone()),
+                        Chain::Testnet => Some(TESTNET_LINKAGE_AMENDMENTS.clone()),
+                        Chain::Unknown => None,
+                    };
+                    cfg.gasless_max_tx_size_bytes = Some(16 * 1024);
+                    cfg.gasless_max_tps = Some(300);
+                    cfg.gasless_max_computation_units = Some(5_000);
                 }
                 // Use this template when making changes:
                 //
@@ -4768,6 +4968,7 @@ impl ProtocolConfig {
             deprecate_global_storage_ops,
             disable_entry_point_signature_check: self.disable_entry_point_signature_check(),
             switch_to_regex_reference_safety: false,
+            disallow_jump_orphans: self.disallow_jump_orphans(),
         }
     }
 
@@ -4822,6 +5023,20 @@ impl ProtocolConfig {
     /// Override one or more settings in the config, for testing.
     /// This must be called at the beginning of the test, before get_for_(min|max)_version is
     /// called, since those functions cache their return value.
+    #[cfg(not(msim))]
+    pub fn apply_overrides_for_testing(
+        override_fn: impl Fn(ProtocolVersion, Self) -> Self + Send + Sync + 'static,
+    ) -> OverrideGuard {
+        let mut cur = CONFIG_OVERRIDE.lock().unwrap();
+        assert!(cur.is_none(), "config override already present");
+        *cur = Some(Box::new(override_fn));
+        OverrideGuard
+    }
+
+    /// Override one or more settings in the config, for testing.
+    /// This must be called at the beginning of the test, before get_for_(min|max)_version is
+    /// called, since those functions cache their return value.
+    #[cfg(msim)]
     pub fn apply_overrides_for_testing(
         override_fn: impl Fn(ProtocolVersion, Self) -> Self + Send + 'static,
     ) -> OverrideGuard {
@@ -4830,6 +5045,31 @@ impl ProtocolConfig {
             assert!(cur.is_none(), "config override already present");
             *cur = Some(Box::new(override_fn));
             OverrideGuard
+        })
+    }
+
+    #[cfg(not(msim))]
+    fn apply_config_override(version: ProtocolVersion, mut ret: Self) -> Self {
+        if let Some(override_fn) = CONFIG_OVERRIDE.lock().unwrap().as_ref() {
+            warn!(
+                "overriding ProtocolConfig settings with custom settings (you should not see this log outside of tests)"
+            );
+            ret = override_fn(version, ret);
+        }
+        ret
+    }
+
+    #[cfg(msim)]
+    fn apply_config_override(version: ProtocolVersion, ret: Self) -> Self {
+        CONFIG_OVERRIDE.with(|ovr| {
+            if let Some(override_fn) = &*ovr.borrow() {
+                warn!(
+                    "overriding ProtocolConfig settings with custom settings (you should not see this log outside of tests)"
+                );
+                override_fn(version, ret)
+            } else {
+                ret
+            }
         })
     }
 }
@@ -4981,6 +5221,17 @@ impl ProtocolConfig {
 
     pub fn enable_coin_reservation_for_testing(&mut self) {
         self.feature_flags.enable_coin_reservation_obj_refs = true;
+        self.feature_flags
+            .convert_withdrawal_compatibility_ptb_arguments = true;
+        // Ensure execution_version >= 4 so new_vm_enabled() returns true,
+        // which is required for enable_coin_reservation_obj_refs() to return true.
+        self.execution_version = Some(self.execution_version.map_or(4, |v| v.max(4)));
+    }
+
+    pub fn disable_coin_reservation_for_testing(&mut self) {
+        self.feature_flags.enable_coin_reservation_obj_refs = false;
+        self.feature_flags
+            .convert_withdrawal_compatibility_ptb_arguments = false;
     }
 
     pub fn create_root_accumulator_object_for_testing(&mut self) {
@@ -4996,11 +5247,32 @@ impl ProtocolConfig {
         self.feature_flags.allow_private_accumulator_entrypoints = true;
         self.feature_flags.enable_address_balance_gas_payments = true;
         self.feature_flags.address_balance_gas_check_rgp_at_signing = true;
-        self.feature_flags.address_balance_gas_reject_gas_coin_arg = true;
+        self.feature_flags.address_balance_gas_reject_gas_coin_arg = false;
+        self.execution_version = Some(self.execution_version.map_or(4, |v| v.max(4)))
     }
 
     pub fn disable_address_balance_gas_payments_for_testing(&mut self) {
         self.feature_flags.enable_address_balance_gas_payments = false;
+    }
+
+    pub fn enable_gasless_for_testing(&mut self) {
+        self.enable_address_balance_gas_payments_for_testing();
+        self.feature_flags.enable_gasless = true;
+        self.feature_flags.gasless_verify_remaining_balance = true;
+        self.gasless_max_computation_units = Some(5_000);
+        self.gasless_allowed_token_types = Some(vec![]);
+        self.gasless_max_tps = Some(1000);
+        self.gasless_max_tx_size_bytes = Some(16 * 1024);
+    }
+
+    pub fn disable_gasless_for_testing(&mut self) {
+        self.feature_flags.enable_gasless = false;
+        self.gasless_max_computation_units = None;
+        self.gasless_allowed_token_types = None;
+    }
+
+    pub fn set_gasless_allowed_token_types_for_testing(&mut self, types: Vec<(String, u64)>) {
+        self.gasless_allowed_token_types = Some(types);
     }
 
     pub fn enable_multi_epoch_transaction_expiration_for_testing(&mut self) {
@@ -5074,10 +5346,22 @@ impl ProtocolConfig {
     pub fn set_split_checkpoints_in_consensus_handler_for_testing(&mut self, val: bool) {
         self.feature_flags.split_checkpoints_in_consensus_handler = val;
     }
+
+    pub fn set_merge_randomness_into_checkpoint_for_testing(&mut self, val: bool) {
+        self.feature_flags.merge_randomness_into_checkpoint = val;
+    }
 }
 
+#[cfg(not(msim))]
+type OverrideFn = dyn Fn(ProtocolVersion, ProtocolConfig) -> ProtocolConfig + Send + Sync;
+
+#[cfg(not(msim))]
+static CONFIG_OVERRIDE: Mutex<Option<Box<OverrideFn>>> = Mutex::new(None);
+
+#[cfg(msim)]
 type OverrideFn = dyn Fn(ProtocolVersion, ProtocolConfig) -> ProtocolConfig + Send;
 
+#[cfg(msim)]
 thread_local! {
     static CONFIG_OVERRIDE: RefCell<Option<Box<OverrideFn>>> = RefCell::new(None);
 }
@@ -5085,6 +5369,15 @@ thread_local! {
 #[must_use]
 pub struct OverrideGuard;
 
+#[cfg(not(msim))]
+impl Drop for OverrideGuard {
+    fn drop(&mut self) {
+        info!("restoring override fn");
+        *CONFIG_OVERRIDE.lock().unwrap() = None;
+    }
+}
+
+#[cfg(msim)]
 impl Drop for OverrideGuard {
     fn drop(&mut self) {
         info!("restoring override fn");
@@ -5163,6 +5456,52 @@ macro_rules! check_limit_by_meter {
         result
     }};
 }
+
+// Amendments tables
+
+pub type Amendments = BTreeMap<AccountAddress, BTreeMap<AccountAddress, AccountAddress>>;
+
+static MAINNET_LINKAGE_AMENDMENTS: LazyLock<Arc<Amendments>> =
+    LazyLock::new(|| parse_amendments(include_str!("mainnet_amendments.json")));
+
+static TESTNET_LINKAGE_AMENDMENTS: LazyLock<Arc<Amendments>> =
+    LazyLock::new(|| parse_amendments(include_str!("testnet_amendments.json")));
+
+fn parse_amendments(json: &str) -> Arc<Amendments> {
+    #[derive(serde::Deserialize)]
+    struct AmendmentEntry {
+        root: String,
+        deps: Vec<DepEntry>,
+    }
+
+    #[derive(serde::Deserialize)]
+    struct DepEntry {
+        original_id: String,
+        version_id: String,
+    }
+
+    let entries: Vec<AmendmentEntry> =
+        serde_json::from_str(json).expect("Failed to parse amendments JSON");
+    let mut amendments = BTreeMap::new();
+    for entry in entries {
+        let root_id = AccountAddress::from_hex_literal(&entry.root).unwrap();
+        let mut dep_ids = BTreeMap::new();
+        for dep in entry.deps {
+            let orig_id = AccountAddress::from_hex_literal(&dep.original_id).unwrap();
+            let upgraded_id = AccountAddress::from_hex_literal(&dep.version_id).unwrap();
+            assert!(
+                dep_ids.insert(orig_id, upgraded_id).is_none(),
+                "Duplicate original ID in amendments table"
+            );
+        }
+        assert!(
+            amendments.insert(root_id, dep_ids).is_none(),
+            "Duplicate root ID in amendments table"
+        );
+    }
+    Arc::new(amendments)
+}
+
 #[cfg(all(test, not(msim)))]
 mod test {
     use insta::assert_yaml_snapshot;
@@ -5219,6 +5558,26 @@ mod test {
 
         prot.set_attr_for_testing("max_arguments".to_string(), "456".to_string());
         assert_eq!(prot.max_arguments(), 456);
+    }
+
+    #[test]
+    fn test_get_for_version_if_supported_applies_test_overrides() {
+        let before =
+            ProtocolConfig::get_for_version_if_supported(ProtocolVersion::new(1), Chain::Unknown)
+                .unwrap();
+
+        assert!(!before.enable_coin_reservation_obj_refs());
+
+        let _guard = ProtocolConfig::apply_overrides_for_testing(|_, mut cfg| {
+            cfg.enable_coin_reservation_for_testing();
+            cfg
+        });
+
+        let after =
+            ProtocolConfig::get_for_version_if_supported(ProtocolVersion::new(1), Chain::Unknown)
+                .unwrap();
+
+        assert!(after.enable_coin_reservation_obj_refs());
     }
 
     #[test]
@@ -5355,5 +5714,13 @@ mod test {
             check_limit!(2550000u64, high),
             LimitThresholdCrossed::Hard(2550000, 10000)
         ));
+    }
+
+    #[test]
+    fn linkage_amendments_load() {
+        let mainnet = LazyLock::force(&MAINNET_LINKAGE_AMENDMENTS);
+        let testnet = LazyLock::force(&TESTNET_LINKAGE_AMENDMENTS);
+        assert!(!mainnet.is_empty(), "mainnet amendments must not be empty");
+        assert!(!testnet.is_empty(), "testnet amendments must not be empty");
     }
 }

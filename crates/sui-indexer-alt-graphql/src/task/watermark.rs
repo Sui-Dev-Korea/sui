@@ -404,15 +404,18 @@ async fn watermark_from_bigtable(bigtable_reader: &BigtableReader) -> anyhow::Re
         .await
         .context("Failed to get checkpoint watermark")?
         .context("Checkpoint watermark not found")?;
+    let checkpoint_hi_inclusive = wm
+        .checkpoint_hi_inclusive
+        .context("Checkpoint watermark not found")?;
 
     Ok(WatermarkRow {
         pipeline: "bigtable".to_owned(),
         epoch_hi_inclusive: wm.epoch_hi_inclusive as i64,
-        checkpoint_hi_inclusive: wm.checkpoint_hi_inclusive as i64,
+        checkpoint_hi_inclusive: checkpoint_hi_inclusive as i64,
         tx_hi: wm.tx_hi as i64,
         timestamp_ms_hi_inclusive: wm.timestamp_ms_hi_inclusive as i64,
         epoch_lo: 0,
-        checkpoint_lo: 0,
+        checkpoint_lo: wm.reader_lo as i64,
         tx_lo: 0,
     })
 }
@@ -446,6 +449,8 @@ async fn watermarks_from_pg(
         .await
         .context("Failed to connect to database")?;
 
+    // Filter out pipelines that have been initialized, but do not yet have indexed checkpoints with
+    // `reader_lo <= checkpoint_hi_inclusive`.
     let rows: Vec<WatermarkRow> = conn
         .results(query!(
             r#"
@@ -464,7 +469,8 @@ async fn watermarks_from_pg(
                 cp_sequence_numbers c
             ON (w.reader_lo = c.cp_sequence_number)
             WHERE
-                pipeline = ANY({Array<Text>})
+                w.pipeline = ANY({Array<Text>})
+            AND w.reader_lo <= w.checkpoint_hi_inclusive
             "#,
             pg_pipelines,
         ))

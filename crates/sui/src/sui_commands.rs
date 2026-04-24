@@ -20,7 +20,7 @@ use move_analyzer::analyzer;
 use move_command_line_common::files::MOVE_COMPILED_EXTENSION;
 use move_compiler::editions::Flavor;
 use move_package_alt_compilation::build_config::BuildConfig;
-use mysten_common::tempdir;
+use mysten_common::{ZipDebugEqIteratorExt, tempdir};
 use prometheus::Registry;
 use rand::rngs::OsRng;
 use serde_json::json;
@@ -50,16 +50,16 @@ use sui_indexer_alt_framework::{
     ingestion::{ClientArgs, ingestion_client::IngestionClientArgs},
 };
 use sui_indexer_alt_graphql::{
-    RpcArgs as GraphQlArgs, args::KvArgs as GraphQlKvArgs, config::RpcConfig as GraphQlConfig,
+    RpcArgs as GraphQlArgs, args::SubscriptionArgs, config::RpcConfig as GraphQlConfig,
     start_rpc as start_graphql,
 };
 use sui_indexer_alt_reader::{
-    consistent_reader::ConsistentReaderArgs, fullnode_client::FullnodeArgs,
+    consistent_reader::ConsistentReaderArgs, fullnode_client::FullnodeArgs, kv_loader::KvArgs,
     system_package_task::SystemPackageTaskArgs,
 };
 use sui_keys::key_derive::generate_new_key;
 use sui_keys::keypair_file::read_key;
-use sui_keys::keystore::{AccountKeystore, FileBasedKeystore, Keystore};
+use sui_keys::keystore::{AccountKeystore, External, FileBasedKeystore, Keystore};
 use sui_move::summary::PackageSummaryMetadata;
 use sui_move::{self, execute_move_command};
 use sui_move_build::BuildConfig as SuiBuildConfig;
@@ -523,7 +523,10 @@ impl SuiCommand {
                 cmd,
             } => {
                 let client_path = sui_config_dir()?.join(SUI_CLIENT_CONFIG);
-                let mut config = PersistedConfig::<SuiClientConfig>::read(&client_path)?;
+                prompt_if_no_config(&client_path, false).await?;
+                let config: SuiClientConfig = PersistedConfig::read(&client_path)?;
+                let mut config = config.persisted(&client_path);
+                ensure_external_keystore_config(&mut config, &client_path)?;
 
                 cmd.execute(config.external_keys.as_mut())
                     .await?
@@ -628,19 +631,19 @@ impl SuiCommand {
                             &rerooted_path,
                             build_config.environment.clone(),
                             &context,
+                            false,
                         )
                         .await?;
 
                         let mut root_pkg = if let Some(pubfile_path) = pubfile_path {
-                            let chain_id = context
-                                .grpc_client()?
-                                .get_chain_identifier()
-                                .await?
-                                .to_string();
+                            // for ephemeral dumping, we take the chain ID from the real
+                            // environment.
+                            let chain_id = environment.id();
+
                             let modes = build_config.mode_set();
                             load_root_pkg_for_ephemeral_publish_or_upgrade(
                                 &rerooted_path,
-                                &chain_id,
+                                chain_id,
                                 build_config.environment.clone(),
                                 pubfile_path,
                                 modes,
@@ -751,7 +754,7 @@ impl SuiCommand {
                 for (node_config, (port, key_path)) in network_config
                     .validator_configs()
                     .iter()
-                    .zip(bridge_committee_config.bridge_authority_port_and_key_path)
+                    .zip_debug_eq(bridge_committee_config.bridge_authority_port_and_key_path)
                 {
                     let account_kp = node_config.account_key_pair.keypair();
                     let sui_address = SuiAddress::from(&account_kp.public());
@@ -1163,9 +1166,7 @@ async fn start(
             ..Default::default()
         };
 
-        let fullnode_args = FullnodeArgs {
-            fullnode_rpc_url: Some(fullnode_rpc_url.clone()),
-        };
+        let fullnode_args = FullnodeArgs::new(socket_addr_to_url(fullnode_rpc_address)?);
 
         let mut graphql_config = GraphQlConfig::default();
         graphql_config.zklogin.env = sui_indexer_alt_graphql::config::ZkLoginEnv::Test;
@@ -1175,10 +1176,11 @@ async fn start(
                 database_url.clone(),
                 fullnode_args,
                 DbArgs::default(),
-                GraphQlKvArgs::default(),
+                KvArgs::default(),
                 consistent_reader_args,
                 graphql_args,
                 SystemPackageTaskArgs::default(),
+                SubscriptionArgs::default(),
                 "0.0.0",
                 graphql_config,
                 pipelines,
@@ -1575,6 +1577,9 @@ async fn prompt_if_no_config(
     let config_dir = wallet_conf_file
         .parent()
         .ok_or_else(|| anyhow!("Error: {wallet_conf_file:?} is an invalid file path"))?;
+    let external_keystore = Keystore::External(External::load_or_create(
+        &default_external_keystore_path(wallet_conf_file),
+    )?);
 
     let (keystore, address) =
         create_default_keystore(&config_dir.join(SUI_KEYSTORE_FILENAME)).await?;
@@ -1590,7 +1595,7 @@ async fn prompt_if_no_config(
             SuiEnv::devnet(),
             SuiEnv::localnet(),
         ],
-        external_keys: None,
+        external_keys: Some(external_keystore),
         active_address: Some(address),
         active_env: Some(default_env_name.clone()),
     }
@@ -1599,6 +1604,23 @@ async fn prompt_if_no_config(
     println!("Created {wallet_conf_file:?}");
     println!("Set active environment to {default_env_name}");
 
+    Ok(())
+}
+
+fn default_external_keystore_path(client_path: &Path) -> PathBuf {
+    client_path.with_file_name("external.keystore")
+}
+
+fn ensure_external_keystore_config(
+    config: &mut PersistedConfig<SuiClientConfig>,
+    client_path: &Path,
+) -> Result<(), anyhow::Error> {
+    if config.external_keys.is_none() {
+        config.external_keys = Some(Keystore::External(External::load_or_create(
+            &default_external_keystore_path(client_path),
+        )?));
+        config.save()?;
+    }
     Ok(())
 }
 
