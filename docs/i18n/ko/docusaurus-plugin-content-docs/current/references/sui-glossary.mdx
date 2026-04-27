@@ -46,7 +46,7 @@ Causal history는 Sui에서 object와 그 직접적인 선행자 및 후속자 �
 
 ### Certificate {#certificate}
 
-Certificate는 transaction이 승인되었거나 인증되었음을 증명하는 메커니즘이다. Validator는 transaction에 투표하고 집계자는 이러한 투표의 비잔틴 저항 다수를 certificate로 수집해 모든 Sui validator에 브로드캐스트함으로써 확정성을 보장한다.
+Certificate는 transaction이 승인되었거나 인증되었음을 증명하는 메커니즘이다. Validator는 transaction에 투표하고 집계자는 이 투표의 비잔틴 저항 다수를 certificate로 수집해 모든 Sui validator에 브로드캐스트함으로써 확정성을 보장한다.
 
 ### Closed-Loop Token {#closed-loop-token}
 
@@ -116,7 +116,7 @@ Sui에서 스토리지의 기본 단위는 object이다. 스토리지가 address
 - **Owned:** object는 소유자만 수정할 수 있다.
 - **Shared:** object는 누구나 수정할 수 있다.
 
-Immutable object는 소유자가 없기 때문에 이러한 구분이 필요하지 않다.
+Immutable object는 소유자가 없기 때문에 이 구분이 필요하지 않다.
 
 #### Operation Cap {#operation-cap}
 
@@ -172,13 +172,13 @@ account에 귀속되어 전송할 수 없는 자산이다.
 
 ### Transaction {#transaction}
 
-Sui에서 transaction은 블록체인에 대한 변경이다. 이는 NFT를 mint하거나 NFT 또는 다른 token을 전송하는 것처럼 single-writer, single-address object에만 영향을 주는 simple transaction일 수 있다. 이러한 transaction은 Sui의 합의 프로토콜을 우회할 수 있다.
+Sui에서 transaction은 블록체인에 대한 변경이다. 이는 NFT를 mint하거나 NFT 또는 다른 token을 전송하는 것처럼 single-writer, single-address object에만 영향을 주는 simple transaction일 수 있다. 이 transaction은 Sui의 합의 프로토콜을 우회할 수 있다.
 
 여러 address가 소유하거나 공유된 object에 영향을 주는 더 복잡한 transaction은 자산 관리 및 기타 DeFi 사용 사례처럼 합의를 거친다.
 
 ### Transfer {#transfer}
 
-Transfer는 Sui의 명령을 통해 token의 소유자 address를 새로운 address로 전환하는 것이다. 이는 Sui CLI client command line interface를 통해 수행된다. 이는 CLI client에서 사용할 수 있는 많은 명령 가운데 비교적 자주 쓰이는 명령 중 하나이다.
+Transfer는 Sui의 명령으로 token의 소유자 address를 새로운 address로 전환하는 것이다. 이는 Sui CLI client command line interface를 통해 수행된다. 이는 CLI client에서 사용할 수 있는 많은 명령 가운데 비교적 자주 쓰이는 명령 중 하나이다.
 
 ### Validator {#validator}
 

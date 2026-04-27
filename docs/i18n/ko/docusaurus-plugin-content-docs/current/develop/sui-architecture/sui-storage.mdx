@@ -5,7 +5,7 @@ keywords: [ storage, storage architecture, storage fund, storage rebates, storag
 ---
 
 
-모든 블록체인에서의 운영 비용은 두 가지 주요 구성 요소로 이루어진다: **compute**는 로직(transaction)을 처리하는 데 필요한 연산 능력이고, **storage**는 데이터와 transaction 결과를 저장하는 데 필요한 디지털 공간이다.
+모든 블록체인에서의 운영 비용은 두 가지 주요 구성 요소로 이루어진다: **compute**는 로직(트랜잭션)을 처리하는 데 필요한 연산 능력이고, **storage**는 데이터와 트랜잭션 결과를 저장하는 데 필요한 디지털 공간이다.
 
 ## storage architecture
 
@@ -23,7 +23,7 @@ keywords: [ storage, storage architecture, storage fund, storage rebates, storag
 
 Validators는 데이터베이스 증가를 제한하기 위해 pruning을 활성화해야 한다.
 
-Transaction-per-second (TPS) 비율이 증가에 영향을 미치지만, 전체 transaction과 object 이력을 저장하는 것이 주요 요인이다.
+Transaction-per-second (TPS) 비율이 증가에 영향을 미치지만, 전체 트랜잭션과 객체 이력을 저장하는 것이 주요 요인이다.
 
 Transaction 유형도 데이터 증가에 영향을 준다.
 
@@ -75,7 +75,7 @@ Growth examples:
 
 ## storage 비용
 
-object를 생성하거나 수정하는 모든 transaction에는 스토리지 수수료가 발생한다.
+객체를 생성하거나 수정하는 모든 트랜잭션에는 스토리지 수수료가 발생한다.
 
 Sui에서 compute는 비교적 고정되어 있으며 수백 개의 validator가 24코어, 128GB RAM 머신을 실행한다.
 
@@ -102,21 +102,21 @@ Sui에서 compute는 비교적 고정되어 있으며 수백 개의 validator가
 
 :::
 
-transaction의 총 스토리지 수수료는 transaction의 총 가스 수수료의 일부로 청구된다.
+트랜잭션의 총 스토리지 수수료는 트랜잭션의 총 가스 수수료의 일부로 청구된다.
 
 ### storage fund
 
-transaction의 총 스토리지 비용은 transaction에서 사용한 각 스토리지 unit을 기준으로 한다.
+트랜잭션의 총 스토리지 비용은 트랜잭션에서 사용한 각 스토리지 unit을 기준으로 한다.
 
 데이터 1바이트는 100 storage units와 같다.
 
 참고로 1킬로바이트는 100,000 storage units와 같다.
 
-transaction에 1킬로바이트 object가 포함되면 스토리지 수수료는 760만 MIST 또는 0.0076 SUI가 된다.
+트랜잭션에 1킬로바이트 객체가 포함되면 스토리지 수수료는 760만 MIST 또는 0.0076 SUI가 된다.
 
 이 수수료는 두 부분으로 나뉜다:
 
-1. **Refundable deposit:** object가 존재하는 동안 _스토리지 기금_ 에 잠긴다. object가 삭제되거나 크기가 줄어들면 이 예치금의 일부가 _스토리지 리베이트_ 로 반환된다.
+1. **Refundable deposit:** 객체가 존재하는 동안 _스토리지 기금_ 에 잠긴다. 객체가 삭제되거나 크기가 줄어들면 이 예치금의 일부가 _스토리지 리베이트_ 로 반환된다.
 
 2. **Non-refundable fee:** 스토리지 기금에 영구적으로 잠기며 해당 SUI를 영구히 유통에서 제거한다.
 
@@ -130,7 +130,7 @@ transaction에 1킬로바이트 object가 포함되면 스토리지 수수료는
 
 스토리지 기금이 얻는 초과 staking 보상은 다시 스토리지 기금에 재투자되어 validator를 보상하는 데 필요한 역량을 스토리지 기금이 갖추도록 보장한다.
 
-### storage rebate
+### 스토리지 리베이트
 
 스토리지 기금의 설계는 데이터를 저장하는 비용이 이를 온체인에 유지하는 가치보다 크다면 사용자가 데이터를 삭제하도록 장려한다.
 
@@ -140,4 +140,4 @@ transaction에 1킬로바이트 object가 포함되면 스토리지 수수료는
 
 스토리지 수수료의 환불 불가 부분(1%)은 절대 반환되지 않는다.
 
-immutable object는 삭제하거나 수정할 수 없으므로 스토리지 수수료가 영구히 잠기며 리베이트도 받을 수 없다.
+불변 객체는 삭제하거나 수정할 수 없으므로 스토리지 수수료가 영구히 잠기며 리베이트도 받을 수 없다.

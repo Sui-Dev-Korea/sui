@@ -10,11 +10,11 @@ DeepBookV3 인덱서는 DeepBookV3 프로토콜의 오더북 및 거래 데이�
 
 DeepBookV3 인덱서는 다음을 가능하게 하는 엔드포인트를 제공하여 데이터 조회를 단순화한다:
 
-- **Viewing pool information:** 기본 자산과 quote 자산, tick sizes, lot sizes를 포함하여 사용 가능한 모든 거래 pool에 대한 자세한 메타데이터를 조회한다.
-- **Historical volume analysis:** interval 기반 breakdown을 지원하면서 특정 pool 또는 balance manager에 대한 volume metrics를 사용자 정의 시간 범위로 가져온다.
-- **User-specific volume tracking:** balance manager별 volume을 조회하여 개별 trader 활동에 대한 인사이트를 제공한다.
-- **OHLCV candlestick data:** 구성 가능한 intervals로 technical analysis를 위한 candlestick chart data에 접근한다.
-- **DeepBook Margin data:** loans, liquidations, margin pool operations를 포함한 margin trading events를 조회한다.
+- **Viewing 풀 information:** 기본 자산과 견적 자산, tick sizes, lot sizes를 포함하여 사용 가능한 모든 거래 풀에 대한 자세한 메타데이터를 조회한다.
+- **Historical volume analysis:** 간격 기반 breakdown을 지원하면서 특정 풀 또는 BalanceManager에 대한 거래량 메트릭을 사용자 정의 시간 범위로 가져온다.
+- **User-specific volume tracking:** BalanceManager별 volume을 조회하여 개별 trader 활동에 대한 인사이트를 제공한다.
+- **OHLCV candlestick data:** 구성 가능한 간격로 technical analysis를 위한 candlestick chart data에 접근한다.
+- **DeepBook Margin data:** loans, liquidations, 마진 풀 operations를 포함한 margin trading events를 조회한다.
 
 공개 인덱서를 사용하거나 직접 서비스를 구동할 수 있다. 선택은 몇 가지 요소에 따라 달라진다.
 
@@ -55,7 +55,7 @@ https://deepbook-indexer.testnet.mystenlabs.com/
 - `/historical_volume_by_balance_manager_id`
 - `/historical_volume_by_balance_manager_id_with_interval`
 
-다음은 각 자산의 base unit을 결정하는 데 사용되는 decimal places(scalars)이다.
+다음은 각 자산의 base 단위를 결정하는 데 사용되는 decimal places(scalars)이다.
 
 | Asset | Scalar |
 | --- | --- |
@@ -78,22 +78,22 @@ https://deepbook-indexer.testnet.mystenlabs.com/
 
 반환된 volume을 표준 자산 단위로 변환하려면 값을 10^SCALAR로 나눈다. 예를 들어:
 
-SUI/USDC pool의 base 자산에 대해 반환된 volume이 1,000,000,000 SUI UNIT인 경우, SUI에서의 올바른 volume은 1,000,000,000 / 10^(SUI_SCALAR) = 1 SUI이다. 마찬가지로 SUI/USDC pool의 quote 자산에 대해 반환된 volume이 1,000,000,000 USDC UNIT인 경우, 올바른 volume은 1,000,000,000 / 10^(USDC_SCALAR) = 1,000 USDC이다.
+SUI/USDC 풀의 베이스 자산에 대해 반환된 volume이 1,000,000,000 SUI UNIT인 경우, SUI에서의 올바른 volume은 1,000,000,000 / 10^(SUI_SCALAR) = 1 SUI이다. 마찬가지로 SUI/USDC 풀의 견적 자산에 대해 반환된 volume이 1,000,000,000 USDC UNIT인 경우, 올바른 volume은 1,000,000,000 / 10^(USDC_SCALAR) = 1,000 USDC이다.
 
-이러한 변환을 사용하여 모든 pools와 자산에 걸쳐 volume을 올바르게 해석한다.
+이러한 변환을 사용하여 모든 풀과 자산에 걸쳐 volume을 올바르게 해석한다.
 
 ## API 엔드포인트
 
 DeepBookV3용 인덱서 API가 제공하는 엔드포인트를 사용하여 다음 작업을 수행할 수 있다.
 
 <details>
-<summary>Get all pool information</summary>
+<summary>Get all 풀 information</summary>
 
 ```
 /get_pools
 ```
 
-사용 가능한 모든 pools의 목록을 반환하며, 각 pool에는 base 자산과 quote 자산에 대한 자세한 정보와 minimum size, lot size, tick size 같은 pool parameters가 포함된다.
+사용 가능한 모든 풀의 목록을 반환하며, 각 풀에는 베이스 자산과 견적 자산에 대한 자세한 정보와 minimum size, lot size, tick size 같은 풀 파라미터가 포함된다.
 
 #### 응답
 
@@ -118,21 +118,21 @@ DeepBookV3용 인덱서 API가 제공하는 엔드포인트를 사용하여 다�
 ]
 ```
 
-응답의 각 pool object에는 다음 필드가 포함된다:
+응답의 각 풀 객체에는 다음 필드가 포함된다:
 
-- **pool_id:** pool의 ID이다.
-- **pool_name:** pool의 이름이다.
-- **base_asset_id:** base 자산의 ID이다.
-- **base_asset_decimals:** base 자산의 소수 자릿수이다.
-- **base_asset_symbol:** base 자산의 symbol이다.
-- **base_asset_name:** base 자산의 이름이다.
-- **quote_asset_id:** quote 자산의 ID이다.
-- **quote_asset_decimals:** quote 자산의 소수 자릿수이다.
-- **quote_asset_symbol:** quote 자산의 symbol이다.
-- **quote_asset_name:** quote 자산의 이름이다.
-- **min_size:** base 자산의 최소 단위로 표현된 pool의 minimum trade size이다.
-- **lot_size:** 이 pool에서 base 자산의 최소 단위로 표현된 trades의 minimum increment이다.
-- **tick_size:** 이 pool에서 trades를 위한 minimum price increment이다.
+- **풀_id:** 풀의 ID이다.
+- **풀_name:** 풀의 이름이다.
+- **base_자산_id:** 베이스 자산의 ID이다.
+- **base_자산_decimals:** 베이스 자산의 소수 자릿수이다.
+- **base_자산_symbol:** 베이스 자산의 symbol이다.
+- **base_자산_name:** 베이스 자산의 이름이다.
+- **quote_자산_id:** 견적 자산의 ID이다.
+- **quote_자산_decimals:** 견적 자산의 소수 자릿수이다.
+- **quote_자산_symbol:** 견적 자산의 symbol이다.
+- **quote_자산_name:** 견적 자산의 이름이다.
+- **min_size:** 베이스 자산의 최소 단위로 표현된 풀의 minimum trade size이다.
+- **lot_size:** 이 풀에서 베이스 자산의 최소 단위로 표현된 trades의 minimum increment이다.
+- **tick_size:** 이 풀에서 trades를 위한 minimum price increment이다.
 
 #### 예시
 
@@ -182,19 +182,19 @@ DeepBookV3용 인덱서 API가 제공하는 엔드포인트를 사용하여 다�
 </details>
 
 <details>
-<summary>Get historical volume for pool in a specific time range</summary>
+<summary>Get 과거 거래량 for 풀 in a specific time range</summary>
 
 ```http
 /historical_volume/:pool_names?start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&volume_in_base=<BOOLEAN>
 ```
 
-이 엔드포인트를 사용하여 특정 시간 범위 동안 pool의 과거 volume을 가져온다. `pool_names`는 쉼표로 구분하고 `start_time`과 `end_time` 값에는 유닉스 타임스탬프 초를 사용한다.
+이 엔드포인트를 사용하여 특정 시간 범위 동안 풀의 과거 volume을 가져온다. `pool_names`는 쉼표로 구분하고 `start_time`과 `end_time` 값에는 유닉스 타임스탬프 초를 사용한다.
 
-기본적으로 이 엔드포인트는 지정된 pools에 대해 quote 자산 기준의 최근 24시간 거래량을 가져온다. base 자산을 기준으로 조회하려면 `volume_in_base`를 `true`로 설정한다.
+기본적으로 이 엔드포인트는 지정된 풀에 대해 견적 자산 기준의 최근 24시간 거래량을 가져온다. 베이스 자산을 기준으로 조회하려면 `volume_in_base`를 `true`로 설정한다.
 
 #### 응답
 
-지정된 각 pool에 대해 주어진 시간 범위 내의 과거 volume을 반환한다.
+지정된 각 풀에 대해 주어진 시간 범위 내의 과거 volume을 반환한다.
 
 ```json
 {
@@ -224,19 +224,19 @@ DeepBookV3용 인덱서 API가 제공하는 엔드포인트를 사용하여 다�
 </details>
 
 <details>
-<summary>Get historical volume for all pools</summary>
+<summary>Get 과거 거래량 for all 풀</summary>
 
 ```http
 /all_historical_volume?start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&volume_in_base=<BOOLEAN>
 ```
 
-이 엔드포인트를 사용하여 모든 pools에 대한 과거 volume을 가져온다. 해당 시간 범위의 volume을 조회하려면 선택적인 `start_time`과 `end_time` 값을 유닉스 타임스탬프 초로 포함한다.
+이 엔드포인트를 사용하여 모든 풀에 대한 과거 volume을 가져온다. 해당 시간 범위의 volume을 조회하려면 선택적인 `start_time`과 `end_time` 값을 유닉스 타임스탬프 초로 포함한다.
 
-기본적으로 이 엔드포인트는 quote 자산 기준의 최근 24시간 거래량을 가져온다. base 자산을 기준으로 조회하려면 `volume_in_base`를 `true`로 설정한다.
+기본적으로 이 엔드포인트는 견적 자산 기준의 최근 24시간 거래량을 가져온다. 베이스 자산을 기준으로 조회하려면 `volume_in_base`를 `true`로 설정한다.
 
 #### 응답
 
-제공된 시간 범위(있는 경우) 내에서 사용 가능한 모든 pools에 대한 과거 volume을 반환한다.
+제공된 시간 범위(있는 경우) 내에서 사용 가능한 모든 풀에 대한 과거 volume을 반환한다.
 
 ```json
 {
@@ -270,15 +270,15 @@ DeepBookV3용 인덱서 API가 제공하는 엔드포인트를 사용하여 다�
 </details>
 
 <details>
-<summary>Get historical volume by balance manager</summary>
+<summary>Get 과거 거래량 by BalanceManager</summary>
 
 ```http
 /historical_volume_by_balance_manager_id/:pool_names/:balance_manager_id?start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&volume_in_base=<BOOLEAN>
 ```
 
-특정 시간 범위에 대해 balance manager별 과거 volume을 가져온다. `pool_names`는 쉼표로 구분하고 선택적인 `start_time`과 `end_time` 값에는 유닉스 타임스탬프 초를 사용한다.
+특정 시간 범위에 대해 BalanceManager별 과거 volume을 가져온다. `pool_names`는 쉼표로 구분하고 선택적인 `start_time`과 `end_time` 값에는 유닉스 타임스탬프 초를 사용한다.
 
-기본적으로 이 엔드포인트는 지정된 pools에 대해 quote 자산 기준의 balance manager별 최근 24시간 거래량을 가져온다. base 자산을 기준으로 조회하려면 `volume_in_base`를 `true`로 설정한다.
+기본적으로 이 엔드포인트는 지정된 풀에 대해 견적 자산 기준의 BalanceManager별 최근 24시간 거래량을 가져온다. 베이스 자산을 기준으로 조회하려면 `volume_in_base`를 `true`로 설정한다.
 
 #### 응답
 
@@ -315,15 +315,15 @@ DeepBookV3용 인덱서 API가 제공하는 엔드포인트를 사용하여 다�
 </details>
 
 <details>
-<summary>Get historical volume by balance manager within a specific time range and intervals</summary>
+<summary>Get 과거 거래량 by BalanceManager within a specific time range and 간격</summary>
 
 ```http
 /historical_volume_by_balance_manager_id_with_interval/:pool_names/:balance_manager_id?start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&interval=<UNIX_TIMESTAMP_SECONDS>&volume_in_base=<BOOLEAN>
 ```
 
-특정 시간 범위에서 intervals를 포함하여 `BalanceManager`별 과거 volume을 가져온다. `pool_names`는 쉼표로 구분하고 선택적인 `start_time`과 `end_time` 값에는 유닉스 타임스탬프 초를 사용한다. `interval` 값에는 초 단위의 숫자를 사용한다. 간단한 interval 예로 `start_time`이 5이고 `end_time`이 10이며 `interval`이 2인 경우, 응답에는 기간 시작 시간을 key로 하여 5에서 7까지와 7에서 9까지의 거래량이 포함된다.
+특정 시간 범위에서 간격을 포함하여 `BalanceManager`별 과거 volume을 가져온다. `pool_names`는 쉼표로 구분하고 선택적인 `start_time`과 `end_time` 값에는 유닉스 타임스탬프 초를 사용한다. `interval` 값에는 초 단위의 숫자를 사용한다. 간단한 간격 예로 `start_time`이 5이고 `end_time`이 10이며 `interval`이 2인 경우, 응답에는 기간 시작 시간을 key로 하여 5에서 7까지와 7에서 9까지의 거래량이 포함된다.
 
-기본적으로 이 엔드포인트는 지정된 pools에 대해 quote 자산 기준의 최근 24시간 거래량을 가져온다. base 자산을 기준으로 조회하려면 `volume_in_base`를 `true`로 설정한다.
+기본적으로 이 엔드포인트는 지정된 풀에 대해 견적 자산 기준의 최근 24시간 거래량을 가져온다. 베이스 자산을 기준으로 조회하려면 `volume_in_base`를 `true`로 설정한다.
 
 #### 응답
 
@@ -342,7 +342,7 @@ DeepBookV3용 인덱서 API가 제공하는 엔드포인트를 사용하여 다�
 
 #### 예시
 
-24시간 interval을 사용한 다음 엔드포인트에 대한 성공적인 요청은
+24시간 간격을 사용한 다음 엔드포인트에 대한 성공적인 요청은
 
 ```http
 /historical_volume_by_balance_manager_id_with_interval/USDC_DEEP,SUI_USDC/0x344c2734b1d211bd15212bfb7847c66a3b18803f3f5ab00f5ff6f87b6fe6d27d?start_time=1731460703&end_time=1731692703&interval=86400&volume_in_base=true
@@ -380,7 +380,7 @@ DeepBookV3의 모든 거래 페어에 대한 summary를 JSON 형식으로 반환
 
 #### 응답
 
-각 summary object는 다음 형식을 가진다. JSON object의 필드 순서는 보장되지 않는다.
+각 summary 객체는 다음 형식을 가진다. JSON 객체의 필드 순서는 보장되지 않는다.
 
 ```json
 {
@@ -464,8 +464,8 @@ DeepBookV3의 모든 거래 페어에 대한 summary를 JSON 형식으로 반환
 
 모든 거래 페어의 volume(이미 scale이 적용됨), last price, 그리고 `isFrozen` 값을 반환한다. `isFrozen`의 가능한 값은 다음과 같다:
 
-- `0`: pool이 active 상태이다.
-- `1`: pool이 inactive 상태이다.
+- `0`: 풀이 active 상태이다.
+- `1`: 풀이 inactive 상태이다.
 
 #### 응답
 
@@ -517,28 +517,35 @@ DeepBookV3의 모든 거래 페어에 대한 summary를 JSON 형식으로 반환
 /trades/:pool_name?limit=<INTEGER>&start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&maker_balance_manager_id=<ID>&taker_balance_manager_id=<ID>
 ```
 
-pool에서 가장 최근의 trades를 반환한다.
+풀에서 가장 최근의 trades를 반환한다.
 
 #### 응답
 
 ```json
 [
     {
+        "event_digest": "string",
+        "digest": "string",
         "trade_id": "string",
-        "base_volume": integer,
-        "quote_volume": integer,
-        "price": integer,
-        "type": "string",
-        "timestamp": integer,
         "maker_order_id": "string",
         "taker_order_id": "string",
         "maker_balance_manager_id": "string",
-        "taker_balance_manager_id": "string"
+        "taker_balance_manager_id": "string",
+        "price": float,
+        "base_volume": float,
+        "quote_volume": float,
+        "timestamp": integer,
+        "type": "string",
+        "taker_is_bid": boolean,
+        "taker_fee": float,
+        "maker_fee": float,
+        "taker_fee_is_deep": boolean,
+        "maker_fee_is_deep": boolean
     }
 ]
 ```
 
-`timestamp` 값은 유닉스 밀리초이다.
+`timestamp` 값은 유닉스 밀리초이다. `type` 값은 taker의 방향에 따라 `"buy"` 또는 `"sell"`이다.
 
 #### 예시
 
@@ -553,16 +560,23 @@ trades/SUI_USDC?limit=2&start_time=1738093405&end_time=1738096485&maker_balance_
 ```json
 [
     {
+        "event_digest": "abc123...",
+        "digest": "def456...",
         "trade_id": "136321457151457660152049680",
-        "base_volume": 405,
-        "quote_volume": 1499,
-        "price": 3695,
-        "type": "sell",
-        "timestamp": 1738096392913,
         "maker_order_id": "68160737799100866923792791",
         "taker_order_id": "170141183460537392451039660509112362617",
         "maker_balance_manager_id": "0x344c2734b1d211bd15212bfb7847c66a3b18803f3f5ab00f5ff6f87b6fe6d27d",
-        "taker_balance_manager_id": "0x47dcbbc8561fe3d52198336855f0983878152a12524749e054357ac2e3573d58"
+        "taker_balance_manager_id": "0x47dcbbc8561fe3d52198336855f0983878152a12524749e054357ac2e3573d58",
+        "price": 3.695,
+        "base_volume": 405.0,
+        "quote_volume": 1499.0,
+        "timestamp": 1738096392913,
+        "type": "sell",
+        "taker_is_bid": false,
+        "taker_fee": 0.001,
+        "maker_fee": 0.0005,
+        "taker_fee_is_deep": true,
+        "maker_fee_is_deep": true
     },
 	...
 ]
@@ -571,13 +585,13 @@ trades/SUI_USDC?limit=2&start_time=1738093405&end_time=1738096485&maker_balance_
 </details>
 
 <details>
-<summary>Get order updates</summary>
+<summary>Get 주문 updates</summary>
 
 ```http
 /order_updates/:pool_name?limit=<INTEGER>&start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&status=<"Placed" or "Canceled">&balance_manager_id=<ID>
 ```
 
-pool에서 최근에 배치되거나 취소된 orders를 반환한다.
+풀에서 최근에 배치되거나 취소된 주문을 반환한다.
 
 #### 응답
 
@@ -629,18 +643,18 @@ pool에서 최근에 배치되거나 취소된 orders를 반환한다.
 </details>
 
 <details>
-<summary>Get order book information</summary>
+<summary>Get 오더북 information</summary>
 
 ```http
 /orderbook/:pool_name?level={1|2}&depth={integer}
 ```
 
-해당 pool에 대한 bids와 asks를 반환한다. 반환되는 bids와 asks는 각각 최고가에서 최저가 순으로 정렬된다. 엔드포인트에는 두 개의 선택적 query parameters가 있다:
+해당 풀에 대한 bids와 asks를 반환한다. 반환되는 bids와 asks는 각각 최고가에서 최저가 순으로 정렬된다. 엔드포인트에는 두 개의 선택적 쿼리 파라미터가 있다:
 
 - **level**: `level` 값은 1 또는 2일 수 있다.
 - `1`: best bid와 ask만 반환한다.
 - `2`: best bids와 asks 기준으로 정렬한다. 이 값이 기본값이다.
-- **depth**: `depth` 값은 `0` 또는 `1`보다 큰 값일 수 있다. `0`이면 전체 order book을 반환하고, `1`보다 크면 지정된 수의 bids와 asks를 모두 반환한다. 즉, `depth=100`을 제공하면 응답에는 bids 50개와 asks 50개가 포함된다. `depth` 값이 홀수이면 다음으로 낮은 짝수 값으로 처리된다. 따라서 `depth=101`도 bids 50개와 asks 50개를 반환한다. `depth` parameter를 제공하지 않으면 응답은 기본적으로 order book의 모든 orders를 포함한다.
+- **depth**: `depth` 값은 `0` 또는 `1`보다 큰 값일 수 있다. `0`이면 전체 오더북을 반환하고, `1`보다 크면 지정된 수의 bids와 asks를 모두 반환한다. 즉, `depth=100`을 제공하면 응답에는 bids 50개와 asks 50개가 포함된다. `depth` 값이 홀수이면 다음으로 낮은 짝수 값으로 처리된다. 따라서 `depth=101`도 bids 50개와 asks 50개를 반환한다. `depth` 파라미터를 제공하지 않으면 응답은 기본적으로 오더북의 모든 주문을 포함한다.
 
 #### 응답
 
@@ -670,7 +684,7 @@ pool에서 최근에 배치되거나 취소된 orders를 반환한다.
 }
 ```
 
-반환되는 timestamp는 밀리초 단위의 Unix timestamp를 나타내는 string이다.
+반환되는 타임스탬프는 밀리초 단위의 Unix 타임스탬프를 나타내는 string이다.
 
 #### 예시
 
@@ -711,17 +725,17 @@ pool에서 최근에 배치되거나 취소된 orders를 반환한다.
 </details>
 
 <details>
-<summary>Get asset information</summary>
+<summary>Get 자산 information</summary>
 
 ```http
 /assets
 ```
 
-DeepBookV3에서 거래되는 모든 coins에 대한 자산 정보를 반환한다.
+DeepBookV3에서 거래되는 모든 코인에 대한 자산 정보를 반환한다.
 
 #### 응답
 
-각 asset object는 다음 형식을 가진다:
+각 자산 객체는 다음 형식을 가진다:
 
 ```json
 "ASSET_NAME": {
@@ -769,13 +783,13 @@ DeepBookV3에서 거래되는 모든 coins에 대한 자산 정보를 반환한�
 </details>
 
 <details>
-<summary>Get orders by balance manager</summary>
+<summary>Get 주문 by BalanceManager</summary>
 
 ```http
 /orders/:pool_name/:balance_manager_id?limit=<INTEGER>&status=<STATUS>
 ```
 
-pool에서 특정 balance manager에 대한 orders를 반환한다. `status` parameter는 order status(예: `Placed`, `Canceled`, `Filled`)로 필터링할 수 있다. 여러 statuses는 쉼표로 구분한 값으로 제공할 수 있다.
+풀에서 특정 BalanceManager에 대한 주문을 반환한다. `status` 파라미터는 주문 status(예: `Placed`, `Canceled`, `Filled`)로 필터링할 수 있다. 여러 statuses는 쉼표로 구분한 값으로 제공할 수 있다.
 
 #### 응답
 
@@ -805,7 +819,7 @@ pool에서 특정 balance manager에 대한 orders를 반환한다. `status` par
 /trade_count?start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>
 ```
 
-지정된 시간 범위 내에서 모든 pools에 걸친 전체 trade 수를 반환한다.
+지정된 시간 범위 내에서 모든 풀에 걸친 전체 trade 수를 반환한다.
 
 #### 응답
 
@@ -822,7 +836,7 @@ integer
 /ohclv/:pool_name?interval=<INTERVAL>&start_time=<UNIX_TIMESTAMP_SECONDS>&end_time=<UNIX_TIMESTAMP_SECONDS>&limit=<INTEGER>
 ```
 
-pool에 대한 OHLCV(Open, High, Low, Close, Volume) candlestick data를 반환한다. 유효한 intervals는 `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, `1w`이다.
+풀에 대한 OHLCV(Open, High, Low, Close, Volume) candlestick data를 반환한다. 유효한 간격는 `1m`, `5m`, `15m`, `30m`, `1h`, `4h`, `1d`, `1w`이다.
 
 #### 응답
 
@@ -858,13 +872,13 @@ pool에 대한 OHLCV(Open, High, Low, Close, Volume) candlestick data를 반환�
 </details>
 
 <details>
-<summary>Get net deposits</summary>
+<summary>Get net 예치</summary>
 
 ```http
 /get_net_deposits/:asset_ids/:timestamp
 ```
 
-지정된 timestamp까지 지정된 자산에 대한 net deposits(예치금에서 출금을 뺀 값)를 반환한다. Asset IDs는 쉼표로 구분해야 한다.
+지정된 타임스탬프까지 지정된 자산에 대한 net 예치(예치금에서 출금을 뺀 값)를 반환한다. Asset IDs는 쉼표로 구분해야 한다.
 
 #### 응답
 
@@ -885,7 +899,7 @@ pool에 대한 OHLCV(Open, High, Low, Close, Volume) candlestick data를 반환�
 /deep_supply
 ```
 
-DEEP tokens의 총 공급량을 반환한다.
+DEEP 토큰의 총 공급량을 반환한다.
 
 #### 응답
 
@@ -898,13 +912,13 @@ DEEP tokens의 총 공급량을 반환한다.
 </details>
 
 <details>
-<summary>Get deposited assets</summary>
+<summary>Get deposited 자산</summary>
 
 ```http
 /deposited_assets/:balance_manager_ids
 ```
 
-지정된 balance managers에 예치된 자산 목록을 반환한다. Balance manager IDs는 쉼표로 구분해야 한다.
+지정된 BalanceManager에 예치된 자산 목록을 반환한다. BalanceManager IDs는 쉼표로 구분해야 한다.
 
 #### 응답
 
@@ -926,7 +940,7 @@ DEEP tokens의 총 공급량을 반환한다.
 /status?max_checkpoint_lag=<INTEGER>&max_time_lag_seconds=<INTEGER>
 ```
 
-각 pipeline에 대한 checkpoint lag 정보를 포함한 indexer의 health status를 반환한다. 선택적 parameters는 healthy status를 결정하기 위한 thresholds를 설정한다(기본값: `max_checkpoint_lag=100`, `max_time_lag_seconds=60`).
+각 pipeline에 대한 checkpoint lag 정보를 포함한 indexer의 상태를 반환한다. 선택적 파라미터는 healthy status를 결정하기 위한 thresholds를 설정한다(기본값: `max_checkpoint_lag=100`, `max_time_lag_seconds=60`).
 
 #### 응답
 
@@ -962,7 +976,7 @@ DEEP tokens의 총 공급량을 반환한다.
 /get_points?addresses=<ADDRESS1>,<ADDRESS2>,...
 ```
 
-지정된 address들에 대해 누적된 총 points를 반환한다. Points는 DeepBookV3의 trading activity를 통해 적립된다. Addresses는 쉼표로 구분한 값으로 제공한다.
+지정된 주소들에 대해 누적된 총 points를 반환한다. Points는 DeepBookV3의 거래 활동를 통해 적립된다. Addresses는 쉼표로 구분한 값으로 제공한다.
 
 #### 응답
 
@@ -1011,7 +1025,7 @@ DEEP tokens의 총 공급량을 반환한다.
 /margin_supply
 ```
 
-Margin pool contract를 통해 onchain query한 각 margin pool의 total supply balance를 반환한다.
+마진 풀 contract를 통해 onchain query한 각 마진 풀의 total supply 잔액을 반환한다.
 
 #### 응답
 
@@ -1027,13 +1041,13 @@ Asset type에서 total supply amount(smallest units)로 mapping한 값이다.
 </details>
 
 <details>
-<summary>Get pool creation events</summary>
+<summary>Get 풀 creation events</summary>
 
 ```http
 /pool_created
 ```
 
-DeepBook pool이 생성될 때의 event를 반환한다.
+DeepBook 풀이 생성될 때의 event를 반환한다.
 
 #### 응답
 
@@ -1061,13 +1075,13 @@ DeepBook pool이 생성될 때의 event를 반환한다.
 </details>
 
 <details>
-<summary>Get book parameters updated events</summary>
+<summary>Get book 파라미터 updated events</summary>
 
 ```http
 /book_params_updated?pool_id=<ID>
 ```
 
-Pool에 대한 가장 최근 book parameter update event를 반환한다. `pool_id` parameter가 필요하다.
+Pool에 대한 가장 최근 오더북 파라미터 update event를 반환한다. `pool_id` 파라미터가 필요하다.
 
 #### 응답
 
@@ -1096,7 +1110,7 @@ Pool에 대한 가장 최근 book parameter update event를 반환한다. `pool_
 /portfolio/:wallet_address
 ```
 
-Wallet address에 대한 comprehensive portfolio view를 반환하며 margin position, collateral balance, LP position, total equity summary를 포함한다.
+Wallet 주소에 대한 comprehensive 포트폴리오 뷰를 반환하며 margin 포지션, 담보 잔액, LP 포지션, total 자기자본 요약를 포함한다.
 
 #### 응답
 
@@ -1148,13 +1162,13 @@ Wallet address에 대한 comprehensive portfolio view를 반환하며 margin pos
 </details>
 
 <details>
-<summary>Get referral fee events</summary>
+<summary>Get 리퍼럴 수수료 events</summary>
 
 ```http
 /referral_fee_events?pool_id=<ID>&referral_id=<ID>
 ```
 
-trading 중 적립된 referral fees에 대한 events를 반환한다. 이 events는 서로 다른 pools에 걸쳐 referrals가 적립한 fees를 추적한다.
+trading 중 적립된 리퍼럴 수수료에 대한 events를 반환한다. 이 events는 서로 다른 풀에 걸쳐 referrals가 적립한 fees를 추적한다.
 
 #### 응답
 

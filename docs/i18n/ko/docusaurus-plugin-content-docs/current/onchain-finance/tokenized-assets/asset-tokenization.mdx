@@ -1,94 +1,94 @@
 ---
 title: 자산 토큰화
-description: Sui의 tokenized_asset module을 사용해 real-world assets를 onchain fractional tokens로 표현한다.
+description: Sui의 tokenized_자산 모듈을 사용해 real-world 자산을 onchain fractional 토큰으로 표현한다.
 keywords: [asset tokenization, fractionalization, NFT, fungible token, tokenized asset, Move, kiosk, burnability]
 ---
 
-Asset tokenization은 real estate, art, commodities, stocks 같은 real-world assets를 blockchain 위의 digital tokens로 표현하는 process이다. 각 token은 underlying asset의 ownership 또는 fraction을 나타내며, onchain에서 기록되고 관리된다.
+Asset tokenization은 real estate, art, commodities, stocks 같은 real-world 자산을 blockchain 위의 digital 토큰으로 표현하는 process이다. 각 토큰은 underlying 자산의 ownership 또는 fraction을 나타내며, onchain에서 기록되고 관리된다.
 
 ## Fractionalization 개요
 
-Asset tokenization의 핵심 개념은 fractionalization이다. 즉 high-value asset을 smaller units로 나누고, 각 unit이 전체의 share를 나타내게 한다. 이를 통해 investors는 전체 asset이 아니라 fraction을 보유할 수 있으므로 asset 접근성이 높아진다. 일반적인 use cases에는 하나의 property를 thousands of tradeable shares로 나눌 수 있는 real estate, 또는 여러 investors가 하나의 high-value item에 stake를 보유할 수 있는 fine art와 collectibles가 있다.
+Asset tokenization의 핵심 개념은 fractionalization이다. 즉 high-value 자산을 smaller units로 나누고, 각 단위가 전체의 share를 나타내게 한다. 이를 통해 investors는 전체 자산이 아니라 fraction을 보유할 수 있으므로 자산 접근성이 높아진다. 일반적인 사용 사례에는 하나의 property를 thousands of tradeable shares로 나눌 수 있는 real estate, 또는 여러 investors가 하나의 high-value item에 stake를 보유할 수 있는 fine art와 collectibles가 있다.
 
-Sui에서는 `tokenized_asset` module이 이를 처리한다. 이 module은 [`coin` library](/references/framework/sui_sui/coin)와 유사하게 동작한다. 새로운 [One-Time Witness (OTW)](https://move-book.com/programmability/one-time-witness/) type을 받으면 fractional asset의 unique onchain representation을 만든다. 각 fraction은 asset의 total supply에 count되는 balance를 가진 `TokenizedAsset<T>` object이다.
+Sui에서는 `tokenized_asset` 모듈이 이를 처리한다. 이 모듈은 [`coin` library](/references/framework/sui_sui/coin)와 유사하게 동작한다. 새로운 [One-Time Witness (OTW)](https://move-book.com/programmability/one-time-witness/) 타입을 받으면 fractional 자산의 unique onchain representation을 만든다. 각 fraction은 자산의 total supply에 count되는 잔액을 가진 `TokenizedAsset<T>` 객체이다.
 
-이 pattern은 [ERC1155](https://eips.ethereum.org/EIPS/eip-1155) multi-token standard와 유사하지만 추가 functionality가 있다. Sui에서 구현하려는 Solidity 기반 use cases의 starting point로 적합하다.
+이 pattern은 [ERC1155](https://eips.ethereum.org/EIPS/eip-1155) multi-토큰 standard와 유사하지만 추가 기능이 있다. Sui에서 구현하려는 Solidity 기반 사용 사례의 starting point로 적합하다.
 
 ### Asset creation 개요
 
-각 asset은 fixed total supply로 fractionalized된다. Asset을 만들 때 name, description, symbol, icon URL을 포함한 metadata를 정의한다. 이 metadata는 모든 fractions에 공유되며 `AssetMetadata<T>` object에 저장된다.
+각 자산은 fixed total supply로 fractionalized된다. Asset을 만들 때 name, description, symbol, icon URL을 포함한 메타데이터를 정의한다. 이 메타데이터는 모든 fractions에 공유되며 `AssetMetadata<T>` 객체에 저장된다.
 
-각 fraction은 `TokenizedAsset<T>`이며, 모든 fractions를 합친 balance가 total supply가 된다.
+각 fraction은 `TokenizedAsset<T>`이며, 모든 fractions를 합친 잔액이 total supply가 된다.
 
-### Non-fungible token vs fungible token
+### Non-fungible 토큰 vs fungible 토큰
 
-`tokenized_asset` module은 non-fungible token(NFT) fractions와 fungible token(FT) fractions를 모두 지원한다. 모든 fraction은 asset creation time에 정의된 base metadata(name, description, symbol, icon URL)를 공유한다. NFT와 FT의 구분은 mint time에 per-token metadata가 함께 제공되는지에 따라 결정된다:
+`tokenized_asset` 모듈은 non-fungible 토큰(NFT) fractions와 fungible 토큰(FT) fractions를 모두 지원한다. 모든 fraction은 자산 creation time에 정의된 base metadata(name, description, symbol, icon URL)를 공유한다. NFT와 FT의 구분은 민트 time에 per-토큰 metadata가 함께 제공되는지에 따라 결정된다:
 
-- **NFT**: Minting 시 per-token key-value metadata가 제공되면 token은 unique하다. Balance는 1로 고정되며 asset의 single distinct instance를 나타낸다.
-- **FT**: Per-token metadata가 제공되지 않으면 token은 fungible하다. Balance는 1을 초과할 수 있으며 여러 identical instances가 존재할 수 있다.
+- **NFT**: Minting 시 per-토큰 key-value metadata가 제공되면 토큰은 unique하다. Balance는 1로 고정되며 자산의 single distinct 인스턴스를 나타낸다.
+- **FT**: Per-토큰 metadata가 제공되지 않으면 토큰은 fungible하다. Balance는 1을 초과할 수 있으며 여러 identical instances가 존재할 수 있다.
 
-FTs는 balance가 1보다 클 때 smaller units로 split하거나 join할 수 있다. Splitting을 사용하면 holder가 전체를 sell하지 않고 position 일부만 transfer할 수 있다(예: 500 shares 중 100 shares 판매). Joining은 같은 asset의 여러 FT objects를 하나로 consolidate하여 holder가 관리하는 objects 수를 줄이고 시간이 지나며 gas costs를 낮춘다. NFTs는 balance가 1로 고정되므로 split하거나 join할 수 없다.
+FTs는 잔액이 1보다 클 때 smaller units로 split하거나 join할 수 있다. Splitting을 사용하면 holder가 전체를 sell하지 않고 포지션 일부만 전송할 수 있다(예: 500 shares 중 100 shares 판매). Joining은 같은 자산의 여러 FT 객체를 하나로 consolidate하여 holder가 관리하는 객체 수를 줄이고 시간이 지나며 gas costs를 낮춘다. NFTs는 잔액이 1로 고정되므로 split하거나 join할 수 없다.
 
-NFT든 FT든 모든 fractions는 asset의 total supply에 count된다.
+NFT든 FT든 모든 fractions는 자산의 total supply에 count된다.
 
 ### Burnability 설정
 
 Asset을 만들 때 fractions가 burnable한지 정의한다. Burning은 circulation에서 fraction을 permanently remove한다.
 
-## Move package
+## Move 패키지
 
-Asset tokenization implementation은 `asset_tokenization`과 `template` 두 Move packages로 구성된다.
+Asset tokenization implementation은 `asset_tokenization`과 `template` 두 Move 패키지로 구성된다.
 
 :::info
-이 문서에서 설명하는 packages는 tokenized assets가 정의된 transfer policy 안에서 동작하도록 [Kiosk standard](/onchain-finance/kiosk)를 사용한다. 이는 royalties와 commissions 같은 rules가 있는 marketable tokenized assets를 지원한다.
+이 문서에서 설명하는 패키지는 토큰화된 자산이 정의된 transfer 정책 안에서 동작하도록 [Kiosk standard](/onchain-finance/kiosk)를 사용한다. 이는 로열티와 commissions 같은 규칙이 있는 marketable 토큰화된 자산을 지원한다.
 
-Kiosk가 requirement가 아니라면 `unlock` module과 `proxy`의 transfer policy-related methods를 제외할 수 있다.
+Kiosk가 요구 사항가 아니라면 `unlock` 모듈과 `proxy`의 transfer 정책-related methods를 제외할 수 있다.
 :::
 
-### `asset_tokenization` package
+### `asset_tokenization` 패키지
 
-`asset_tokenization` package에는 `tokenized_asset`, `proxy`, `unlock` 세 modules가 포함된다.
+`asset_tokenization` 패키지에는 `tokenized_asset`, `proxy`, `unlock` 세 모듈가 포함된다.
 
 #### `tokenized_asset`
 
-`tokenized_asset` module은 implementation의 core이다. Asset creation, minting, splitting, joining, burning을 처리한다. Sui의 [`coin` library](/references/framework/sui_sui/coin)와 유사하게 동작한다:
+`tokenized_asset` 모듈은 implementation의 core이다. Asset creation, 민트, splitting, joining, 소각을 처리한다. Sui의 [`coin` library](/references/framework/sui_sui/coin)와 유사하게 동작한다:
 
-- [One-Time Witness](https://move-book.com/programmability/one-time-witness/) type을 사용해 새 asset representation을 만들고 `AssetCap<T>`와 `AssetMetadata<T>`를 반환한다
-- Metadata 제공 여부에 따라 `TokenizedAsset<T>` fractions를 NFTs 또는 FTs로 mint한다
+- [One-Time Witness](https://move-book.com/programmability/one-time-witness/) 타입을 사용해 새 자산 representation을 만들고 `AssetCap<T>`와 `AssetMetadata<T>`를 반환한다
+- Metadata 제공 여부에 따라 `TokenizedAsset<T>` fractions를 NFTs 또는 FTs로 민트한다
 - FT fractions를 split하고 join한다
 - Asset이 burnable로 구성된 경우 fractions를 burn한다
 
-전체 struct와 function details는 [`tokenized_asset` source](https://github.com/MystenLabs/asset-tokenization/blob/main/move/asset_tokenization/sources/tokenized_asset.move)를 참조한다.
+전체 struct와 함수 details는 [`tokenized_asset` source](https://github.com/MystenLabs/asset-tokenization/blob/main/move/asset_tokenization/sources/tokenized_asset.move)를 참조한다.
 
 #### `proxy`
 
-`proxy` module은 asset type owner를 대신해 publisher-related operations를 관리한다. Tokenized assets에 대한 transfer policy creation과 management에 대한 access를 제어한다:
+`proxy` 모듈은 자산 type 소유자를 대신해 publisher-related operations를 관리한다. Tokenized 자산에 대한 transfer 정책 creation과 관리에 대한 access를 제어한다:
 
-- One-Time Witness를 사용해 `Publisher` object를 claim하고 shared `Registry`에 저장한다
-- `setup_tp`를 사용해 주어진 `TokenizedAsset<T>` type에 대한 `TransferPolicy`와 `TransferPolicyCap`을 만든다
-- `new_display`를 사용해 `TokenizedAsset<T>` type에 대한 empty `Display`를 만든다
-- `unlock` module에서 사용하는 shared `ProtectedTP<T>` object에 empty transfer policy를 저장한다
+- One-Time Witness를 사용해 `Publisher` 객체를 claim하고 shared `Registry`에 저장한다
+- `TransferPolicy`를 사용해 주어진 `TransferPolicyCap` type에 대한 `TokenizedAsset<T>`와 `setup_tp`을 만든다
+- `Display`를 사용해 `TokenizedAsset<T>` type에 대한 empty `new_display`를 만든다
+- `ProtectedTP<T>` 모듈에서 사용하는 shared `unlock` 객체에 empty transfer 정책을 저장한다
 
-전체 struct와 function details는 [`proxy` source](https://github.com/MystenLabs/asset-tokenization/blob/main/move/asset_tokenization/sources/proxy.move)를 참조한다.
+전체 struct와 함수 details는 [`proxy` source](https://github.com/MystenLabs/asset-tokenization/blob/main/move/asset_tokenization/sources/proxy.move)를 참조한다.
 
 #### `unlock`
 
-`unlock` module은 kiosk에 lock된 tokenized assets를 standard transfer policy rules를 따르지 않고 burn 및 join할 수 있게 한다. 이를 통해 asset type creators는 controlled way로 kiosk assets에 대해 이러한 operations를 지원할 수 있다.
+`unlock` 모듈은 kiosk에 lock된 토큰화된 자산을 standard transfer 정책 규칙을 따르지 않고 burn 및 join할 수 있게 한다. 이를 통해 자산 type creators는 controlled way로 kiosk 자산에 대해 이러한 operations를 지원할 수 있다.
 
 주요 responsibility:
 
-- Joining을 위해 kiosk-locked asset을 unlock하고, operation이 완료되기 전에 balance가 올바르게 merged되었는지 enforce하는 `JoinPromise`를 반환한다
-- Burning을 위해 kiosk-locked asset을 unlock하고, circulating supply가 reduced되었는지 enforce하는 `BurnPromise`를 반환한다
+- Joining을 위해 kiosk-locked 자산을 unlock하고, operation이 완료되기 전에 잔액이 올바르게 merged되었는지 enforce하는 `JoinPromise`를 반환한다
+- Burning을 위해 kiosk-locked 자산을 unlock하고, circulating supply가 reduced되었는지 enforce하는 `BurnPromise`를 반환한다
 
-전체 struct와 function details는 [`unlock` source](https://github.com/MystenLabs/asset-tokenization/blob/main/move/asset_tokenization/sources/unlock.move)를 참조한다.
+전체 struct와 함수 details는 [`unlock` source](https://github.com/MystenLabs/asset-tokenization/blob/main/move/asset_tokenization/sources/unlock.move)를 참조한다.
 
-### `template` package
+### `template` 패키지
 
-`template` package는 Rust WebAssembly(WASM)를 사용해 browser를 통해 asset creation을 가능하게 하는 example use case package이다. 새 asset type을 tokenized asset으로 표현해야 할 때 starting point 역할을 한다.
+`template` 패키지는 Rust WebAssembly(WASM)를 사용해 browser를 통해 자산 creation을 가능하게 하는 example 사용 사례 패키지이다. 새 자산 타입을 토큰화된 자산으로 표현해야 할 때 starting point 역할을 한다.
 
-이 package에는 두 modules가 포함된다:
+이 패키지에는 두 모듈가 포함된다:
 
-- [`template`](https://github.com/MystenLabs/asset-tokenization/blob/main/move/template/sources/template.move): `tokenized_asset::new_asset`을 호출해 새 asset을 정의한다. Name, symbol, description, total supply, burnability 같은 fields는 WASM library가 publish time에 수정할 수 있는 constants로 정의된다.
-- [`genesis`](https://github.com/MystenLabs/asset-tokenization/blob/main/move/template/sources/genesis.move): Sender가 publisher를 claim할 수 있도록 One-Time Witness를 포함하는 minimal module이다.
+- [`template`](https://github.com/MystenLabs/asset-tokenization/blob/main/move/template/sources/template.move): `tokenized_asset::new_asset`을 호출해 새 자산을 정의한다. Name, symbol, description, total supply, burnability 같은 필드는 WASM library가 publish time에 수정할 수 있는 constants로 정의된다.
+- [`genesis`](https://github.com/MystenLabs/asset-tokenization/blob/main/move/template/sources/genesis.move): Sender가 publisher를 claim할 수 있도록 One-Time Witness를 포함하는 minimal 모듈이다.
 
 WASM bytecode manipulation과 deploy 방법에 대한 자세한 내용은 [Deploy a Tokenized Asset](/onchain-finance/tokenized-assets/deploy-tokenized-asset)을 참조한다.

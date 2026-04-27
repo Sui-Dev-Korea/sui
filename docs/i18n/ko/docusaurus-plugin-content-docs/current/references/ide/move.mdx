@@ -37,14 +37,14 @@ Visual Studio Code Marketplace에서 Move extension을 설치할 수 있다.
 
 - 명령줄을 사용한다.
 
-    ```sh
-    $ code --install-extension mysten.move
-    ```
+      ```sh
+      $ code --install-extension mysten.move
+      ```
 
 다음 extension들이 Move extension 설치에 포함된다:
 
 - [Move Syntax](https://marketplace.visualstudio.com/items?itemName=damirka.move-syntax)
-- [Move Trace Debugger](https://marketplace.visualstudio.com/items?itemName=mysten.move-trace-analyze)
+- [Move Trace Debugger](/references/ide/debugger)
 
 ### Install move-analyzer
 
@@ -64,11 +64,11 @@ Move extension은 대부분의 Language Server Protocol 기능과 함께 Move co
 
 Move extension은 Move code를 빌드, 테스트, trace하기 위한 명령 팔레트 명령을 설치한다.
 
-![Move commands in the command palette](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/ide/images/commands.png?raw=true)
+![Move commands in the command palette](./images/commands.png)
 
-이러한 명령은 열려 있는 Move source file에 대한 `Move.toml` 파일을 찾아 적절한 `sui move` command를 실행하기 위해 터미널을 연다.
+이 명령은 열려 있는 Move source file에 대한 `Move.toml` 파일을 찾아 적절한 `sui move` command를 실행하기 위해 터미널을 연다.
 
-trace를 생성하려면 trace 생성이 가능한 `sui` binary가 있어야 한다. 자세한 내용은 [Debugger](./debugger)를 참조한다.
+trace를 생성하려면 trace 생성이 가능한 `sui` binary가 있어야 한다. 자세한 내용은 [Debugger](/references/ide/debugger#install)를 참조한다.
 
 ### Syntax highlighting
 
@@ -80,29 +80,29 @@ trace를 생성하려면 trace 생성이 가능한 `sui` binary가 있어야 한
 
 -  struct 위에 마우스를 올리면 구조와 정의를 확인할 수 있다.
 
-    ![Struct hoverover](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/ide/images/hover_struct.png?raw=true)
+    ![Struct hoverover](./images/hover_struct.png)
 
 - 함수 위에 마우스를 올리면 세부 정보와 정의를 확인할 수 있다.
 
-    ![Function hoverover](https://gitlocalize.com/repo/10485/ko/docs/content/references/ide/images/hover_fun.png)
+    ![Function hoverover](./images/hover_fun.png)
 
 -  macro 위에 마우스를 올리면 해당 기능을 확인할 수 있다.
 
-    ![Macro hoverover](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/ide/images/hover_macros.png?raw=true)
+    ![Macro hoverover](./images/hover_macros.png)
 
 ### Code completion
 
 Move extension은 dot operator 입력 시 자동 완성을 제공하며 해당 타입에서 사용 가능한 method와 field를 표시한다.
 
-![Code completion](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/ide/images/dot_completion.png?raw=true)
+![Code completion](./images/dot_completion.png)
 
 Move extension은 `::` operator 이후에도 자동 완성을 제공한다.
 
-![Type completion](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/ide/images/colon_completion.png?raw=true)
+![Type completion](./images/colon_completion.png)
 
 마지막으로 Move extension은 *inlay hints*를 제공하며, 플러그인은 변수 선언, unpack, 함수 매개변수 및 기타 위치 뒤에 올바른 타입을 자동으로 삽입한다.
 
-![Inlay hints](https://github.com/Sui-Dev-Korea/sui/blob/main/docs/i18n/ko/docusaurus-plugin-content-docs/current/references/ide/images/inlay_hint.png?raw=true)
+![Inlay hints](./images/inlay_hint.png)
 
 ### Navigation
 

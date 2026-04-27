@@ -6,43 +6,43 @@ keywords: [ gas smashing, smash gas, combine coins, combine coins into one objec
 
 :::info
 
-address balances feature를 사용한다면 gas smashing을 사용할 필요가 없다. Address balance gas payment는 gas coin을 선택하거나 병합해야 할 필요를 완전히 제거한다.
+Address Balances 기능을 사용한다면 gas smashing을 사용할 필요가 없다. 주소 잔액 기반 가스 지불은 가스 코인을 선택하거나 병합할 필요를 완전히 제거한다.
 
 :::
 
-Sui의 모든 transaction은 성공적으로 실행되려면 gas fee를 지불해야 한다. Gas smashing을 사용하면 이 수수료를 단일 코인이 아니라 여러 코인으로 지불할 수 있다. 작은 denomination coin이 많거나 account의 coin 수를 줄이고 싶을 때 유용하다. Gas smashing은 `GasCoin` [programmable transaction block (PTB)](/develop/transactions/ptbs/prog-txn-blocks) argument와 함께 사용할 때 가장 강력하다.
+Sui의 모든 트랜잭션은 성공적으로 실행되려면 가스 수수료를 지불해야 한다. Gas smashing을 사용하면 이 수수료를 단일 코인이 아니라 여러 코인으로 지불할 수 있다. 액면가가 작은 코인이 많거나 계정의 코인 수를 줄이고 싶을 때 유용하다. Gas smashing은 `GasCoin` [프로그래머블 트랜잭션 블록 (PTB)](/develop/transactions/ptbs/prog-txn-blocks) 인자와 함께 사용할 때 가장 강력하다.
 
-transaction에 gas fee 지불용으로 여러 coin을 제공하면 gas smashing이 자동으로 발생한다. Sui가 transaction을 실행할 때 network는 제공된 모든 coin을 하나의 coin으로 결합하거나 smash한다. Smashing은 transaction에 제공된 coin amount나 gas budget과 무관하게, minimum 및 maximum gas budget 범위 안에 있으면 발생한다. Sui는 transaction의 execution status와 무관하게 단일 coin에서 gas fee를 차감한다. 즉, execution error 같은 이유로 transaction이 실행에 실패하더라도 제공된 gas coin은 transaction 실행 후에도 smashed된 상태로 남는다.
+트랜잭션에 가스 수수료 지불용으로 여러 코인을 제공하면 gas smashing이 자동으로 발생한다. Sui가 트랜잭션을 실행할 때 네트워크는 제공된 모든 코인을 하나의 코인으로 결합하거나 smash한다. Smashing은 트랜잭션에 제공된 코인 금액이나 가스 예산과 무관하게, 최소 및 최대 가스 예산 범위 안에 있으면 발생한다. Sui는 트랜잭션의 실행 상태와 무관하게 단일 코인에서 가스 수수료를 차감한다. 즉, execution error 같은 이유로 트랜잭션이 실행에 실패하더라도 제공된 가스 코인은 트랜잭션 실행 후에도 smashed된 상태로 남는다.
 
-이 설계는 하나의 PTB에서 많은 작은 coin을 결합하면서 동시에 관련 없는 operation을 실행할 수 있으므로, gas smashing을 coin 관리와 gas 지불을 같은 transaction에서 처리하는 실용적인 방법으로 만든다.
+이 설계는 하나의 PTB에서 많은 작은 코인을 결합하면서 동시에 관련 없는 작업을 실행할 수 있으므로, gas smashing을 코인 관리와 가스 지불을 같은 트랜잭션에서 처리하는 실용적인 방법으로 만든다.
 
-하나의 PTB에서 최대 256개 coin을 smash할 수 있다. gas coin이 256개를 넘는 transaction은 실패한다.
+하나의 PTB에서 최대 256개 코인을 smash할 수 있다. 가스 코인이 256개를 넘는 트랜잭션은 실패한다.
 
-## rebate
+## 리베이트
 
-첫 번째 coin을 제외한 모든 coin은 삭제되며, 이 과정에서 storage rebate가 생성되는 경우가 많다. Rebate는 같은 transaction에서 gas 지불에 적용할 수 없다. 대신 execution이 완료된 뒤 rebate와 gas 차감 후 남은 balance가 첫 번째 coin에 적립된다.
+첫 번째 코인을 제외한 모든 코인은 삭제되며, 이 과정에서 스토리지 리베이트가 생성되는 경우가 많다. 리베이트는 같은 트랜잭션에서 가스 지불에 적용할 수 없다. 대신 실행이 완료된 뒤 리베이트와 가스 차감 후 남은 잔액이 첫 번째 코인에 적립된다.
 
-### refund가 있는 out-of-gas 상황
+### 환불이 있는 out-of-gas 상황
 
-smashing은 항상 발생하므로, storage rebate 때문에 transaction이 gas를 모두 소진하면서도 net refund를 만드는 특이한 결과가 생길 수 있다.
+smashing은 항상 발생하므로, 스토리지 리베이트 때문에 트랜잭션이 가스를 모두 소진하면서도 net refund를 만드는 특이한 결과가 생길 수 있다.
 
-다음 scenario를 생각해 본다:
+다음 시나리오를 생각해 본다:
 
-- Transaction `T`의 gas budget은 `5000`이다.
+- Transaction `T`의 가스 예산은 `5000`이다.
 
-- 다음 balance를 가진 5개 coin을 제공한다: `C1 = 1000`, `C2 = 2000`, `C3 = 3000`, `C4 = 4000`, `C5 = 5000`.
+- 다음 잔액을 가진 5개 코인을 제공한다: `C1 = 1000`, `C2 = 2000`, `C3 = 3000`, `C4 = 4000`, `C5 = 5000`.
 
-- coin당 storage rebate는 `2000`이다.
+- 코인당 스토리지 리베이트는 `2000`이다.
 
-- gas cost가 `5000` budget을 초과하면 `T`는 `OutOfGas`로 실패한다.
+- gas cost가 `5000` 예산을 초과하면 `T`는 `OutOfGas`로 실패한다.
 
-하지만 smashing과 rebate 이후에는 다음과 같다:
+하지만 smashing과 리베이트 이후에는 다음과 같다:
 
 ```
 Final balance in C1 =
-  (1000 + 2000 + 3000 + 4000 + 5000)   // 모든 coin balance
+  (1000 + 2000 + 3000 + 4000 + 5000)   // all coin balances
   - 5000                               // gas cost
-  + (2000 * 4)                         // 삭제된 coin의 rebate
+  + (2000 * 4)                         // rebates for deleted coins
 = 15000 - 5000 + 8000
 = 18000
 ```

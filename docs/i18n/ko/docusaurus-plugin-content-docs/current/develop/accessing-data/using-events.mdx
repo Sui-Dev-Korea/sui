@@ -5,13 +5,13 @@ keywords: [ using events, notify events, notify assets, notify on-chain assets, 
 ---
 
 
-Move code는 Sui에 저장된 object와 상호작용할 수 있다.
-일부 애플리케이션은 object의 활동을 추적하고, NFT가 몇 번 mint되었는지 또는 smart contract가 생성한 SUI의 양을 기준으로 application을 업데이트하는 것처럼, 그 활동을 바탕으로 애플리케이션 안의 특정 workflow를 트리거하고 싶어 할 수 있다. 
+Move code는 Sui에 저장된 객체와 상호작용할 수 있다.
+일부 애플리케이션은 객체의 활동을 추적하고, NFT가 몇 번 mint되었는지 또는 스마트 계약이 생성한 SUI의 양을 기준으로 application을 업데이트하는 것처럼, 그 활동을 바탕으로 애플리케이션 안의 특정 workflow를 트리거하고 싶어 할 수 있다.
 
 Move는 event를 발생시키는 방식을 통해 활동 모니터링을 지원한다.
 event를 발생시키는 과정은 3단계로 이루어진다:
 
-1. 추적하고 싶은 데이터를 포착하는 event struct를 Move module에 정의한다.
+1. 추적하고 싶은 데이터를 포착하는 event struct를 Move 모듈에 정의한다.
 
 1. 관련 action이 발생할 때 `emit` 함수를 사용해 event를 발생시킨다.
 
@@ -20,11 +20,11 @@ event를 발생시키는 과정은 3단계로 이루어진다:
 ## event struct 정의
 
 event struct는 `copy`와 `drop` ability를 가진다.
-event 안에는 action에 대한 관련 데이터를 포착하는 데 필요한 field를 정의한다.
+event 안에는 action에 대한 관련 데이터를 포착하는 데 필요한 필드를 정의한다.
 
 <ImportContent source="crates/sui-indexer-alt-e2e-tests/packages/emit_event/sources/emit_event.move" mode="code" struct="TestEvent" noComments />
 
-## Using the `emit` function
+## Using the `emit` 함수
 
 모니터링하려는 action이 발생할 때 event를 발생시키려면 `sui::event::emit` 함수를 사용한다:
 
@@ -35,24 +35,24 @@ event 안에는 action에 대한 관련 데이터를 포착하는 데 필요한 
 Move code가 event를 발생시킨 뒤에는 이를 처리해야 한다.
 접근 방식은 2가지가 있다:
 
-- **커스텀 인덱서**: real-time 처리를 위해 checkpoint를 stream하고 event를 지속적으로 filter한다. 
+- **커스텀 인덱서**: real-time 처리를 위해 checkpoint를 stream하고 event를 지속적으로 filter한다.
 - **Polling**: 발생한 event를 주기적으로 Sui network에서 질의한다. 이 접근 방식은 가져온 데이터를 저장할 database가 필요하다.
 
-### event object 구조
+### event 객체 구조
 
-event를 처리할 때 각 event object는 다음 attribute를 포함한다:
+event를 처리할 때 각 event 객체는 다음 attribute를 포함한다:
 
-- `id`: transaction digest ID와 event sequence를 담은 JSON object.
+- `id`: 트랜잭션 digest ID와 event sequence를 담은 JSON 객체.
 
-- `packageId`: event를 발생시키는 package의 object ID.
+- `packageId`: event를 발생시키는 패키지의 객체 ID.
 
-- `transactionModule`: transaction을 수행하는 module.
+- `transactionModule`: 트랜잭션을 수행하는 모듈.
 
 - `sender`: event를 트리거한 Sui network address.
 
 - `type`: 발생하는 event의 type.
 
-- `parsedJson`: event를 설명하는 JSON object.
+- `parsedJson`: event를 설명하는 JSON 객체.
 
 - `bcs`: Binary canonical serialization 값.
 
@@ -63,7 +63,7 @@ event를 처리할 때 각 event object는 다음 attribute를 포함한다:
 ### RPC로 event query
 
 Sui RPC는 온체인 package를 질의하고 사용 가능한 event를 반환하는 [`queryEvents`](/sui-api-ref#suix_queryEvents) method를 제공한다.
-예를 들어 다음 `curl` 명령은 Mainnet의 DeepBookV3 package에서 특정 type의 event를 질의한다:
+예를 들어 다음 `curl` 명령은 Mainnet의 DeepBookV3 패키지에서 특정 type의 event를 질의한다:
 
 ```sh
 $ curl -X POST https://fullnode.mainnet.sui.io:443 \
@@ -183,7 +183,7 @@ Successful response
 
 </details>
 
-특정 transaction의 event를 가져오기 위해 `include: { events: true }`와 함께 `getTransaction` method를 사용할 수 있다:
+특정 트랜잭션의 event를 가져오기 위해 `getTransaction`와 함께 `include: { events: true }` method를 사용할 수 있다:
 
 ```ts
 import { SuiGrpcClient } from '@mysten/sui/grpc';
@@ -252,7 +252,7 @@ Event connection
 ### Rust에서 event query
 
 GitHub의 [Sui by Example](https://github.com/gdanezis/sui-by-example/blob/main/src/05_reading_events/bin/main.rs) repo에는 `query_events` 함수를 사용해 event를 질의하는 방법을 보여주는 code sample이 있다.
-`PACKAGE_ID_CONST`가 가리키는 package는 Mainnet에 존재하므로 Cargo를 사용해 이 code를 테스트할 수 있다.
+`PACKAGE_ID_CONST`가 가리키는 패키지는 Mainnet에 존재하므로 Cargo를 사용해 이 code를 테스트할 수 있다.
 이렇게 하려면 `sui-by-example` repo를 로컬에 clone하고 [Example 05 directions](https://github.com/gdanezis/sui-by-example/tree/main/src/05_reading_events)를 따른다.
 
 ```rust
@@ -289,7 +289,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
 ## event query filtering
 
-질의에서 반환되는 event를 filter하려면 다음 데이터 구조를 사용한다. 
+질의에서 반환되는 event를 filter하려면 다음 데이터 구조를 사용한다.
 
 ### RPC
 
@@ -304,9 +304,9 @@ async fn main() -> Result<(), anyhow::Error> {
 | `Sender`          | sender address로 질의                                    | `{"Sender":"0x008e9c621f4fdb210b873aab59a1e5bf32ddb1d33ee85eb069b348c234465106"}`                     |
 | `TimeRange`       | [start_time, end_time] 구간에 발생한 event를 반환        | `{"TimeRange":{"startTime":1669039504014, "endTime":1669039604014}}`                                  |
 
-### GraphQL 
+### GraphQL
 
-GraphQL로 질의한 event를 filter하려면 다음 workflow 중 하나를 사용한다. 
+GraphQL로 질의한 event를 filter하려면 다음 workflow 중 하나를 사용한다.
 
 <details>
 <summary>
@@ -349,7 +349,7 @@ query ByTxSender {
 
 </details>
 
-[TypeScript SDK](https://sdk.mystenlabs.com/typedoc/modules/_mysten_sui.graphql.html)도 Sui GraphQL service와 상호작용하고 event를 filter하는 데 사용할 수 있다.
+[TypeScript SDK](https://sdk.mystenlabs.com/typedoc/modules/_mysten_sui.graphql)도 Sui GraphQL service와 상호작용하고 event를 filter하는 데 사용할 수 있다.
 
 <details>
 <summary>

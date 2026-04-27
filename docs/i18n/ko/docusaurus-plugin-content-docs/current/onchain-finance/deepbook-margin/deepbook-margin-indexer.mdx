@@ -1,12 +1,12 @@
 ---
 title: DeepBook Margin 인덱서
 sidebar_label: DeepBook Margin 인덱서
-description: DeepBook Margin Indexer는 loan, liquidation, margin pool operation을 포함한 margin trading event에 대한 액세스를 제공한다.
+description: DeepBook Margin Indexer는 loan, liquidation, 마진 풀 operation을 포함한 margin trading event에 대한 액세스를 제공한다.
 keywords: [DeepBook Margin Indexer, margin manager, margin pool, liquidation, loan, borrow, repay, supply, withdraw, collateral]
 ---
 
 
-DeepBook Margin 인덱서는 margin trading 데이터용 엔드포인트를 통해 DeepBookV3 인덱서를 확장한다. 이러한 엔드포인트는 margin manager 이벤트, margin pool operation, 그리고 liquidation monitoring에 대한 액세스를 제공한다.
+DeepBook Margin 인덱서는 margin trading 데이터용 엔드포인트를 통해 DeepBookV3 인덱서를 확장한다. 이러한 엔드포인트는 margin manager 이벤트, 마진 풀 operation, 그리고 liquidation monitoring에 대한 액세스를 제공한다.
 
 ## 공개 엔드포인트
 
@@ -20,8 +20,8 @@ margin 엔드포인트는 DeepBookV3와 동일한 public 인덱서를 통해 사
 
 모든 margin 엔드포인트는 다음 공통 쿼리 파라미터를 지원한다:
 
-- `start_time`: Unix timestamp seconds로 표현된 시간 범위의 시작(기본값: 24시간 전)
-- `end_time`: Unix timestamp seconds로 표현된 시간 범위의 끝(기본값: 현재 시간)
+- `start_time`: Unix 타임스탬프 seconds로 표현된 시간 범위의 시작(기본값: 24시간 전)
+- `end_time`: Unix 타임스탬프 seconds로 표현된 시간 범위의 끝(기본값: 현재 시간)
 - `limit`: 반환할 결과의 최대 개수(기본값: 1)
 
 ## 마진 관리자 엔드포인트
@@ -64,7 +64,7 @@ margin manager가 생성될 때의 이벤트를 반환한다.
 /loan_borrowed?margin_manager_id=<ID>&margin_pool_id=<ID>
 ```
 
-asset이 margin pool에서 borrow될 때의 이벤트를 반환한다.
+자산이 마진 풀에서 차입될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -95,7 +95,7 @@ asset이 margin pool에서 borrow될 때의 이벤트를 반환한다.
 /loan_repaid?margin_manager_id=<ID>&margin_pool_id=<ID>
 ```
 
-borrow된 asset이 repay될 때의 이벤트를 반환한다.
+차입된 자산이 상환될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -167,7 +167,7 @@ margin manager가 liquidation될 때의 이벤트를 반환한다.
 /margin_managers_info
 ```
 
-연관된 pool 및 asset 정보와 함께 모든 margin manager에 대한 집계 뷰를 반환한다.
+연관된 풀 및 자산 정보와 함께 모든 margin manager에 대한 집계 뷰를 반환한다.
 
 #### 응답
 
@@ -195,10 +195,10 @@ margin manager가 liquidation될 때의 이벤트를 반환한다.
 /margin_manager_states?max_risk_ratio=<FLOAT>&deepbook_pool_id=<ID>
 ```
 
-margin manager의 현재 상태를 반환한다. 이 엔드포인트는 liquidation 위험이 있을 수 있는 position을 모니터링하는 데 유용하다.
+margin manager의 현재 상태를 반환한다. 이 엔드포인트는 liquidation 위험이 있을 수 있는 포지션을 모니터링하는 데 유용하다.
 
 - `max_risk_ratio`: 이 임계값보다 낮은 risk ratio를 가진 margin manager만 반환하도록 필터링한다; liquidation 기회를 찾는 데 유용하다
-- `deepbook_pool_id`: 특정 DeepBook pool로 필터링한다
+- `deepbook_pool_id`: 특정 DeepBook 풀로 필터링한다
 
 #### 응답
 
@@ -234,16 +234,16 @@ margin manager의 현재 상태를 반환한다. 이 엔드포인트는 liquidat
 
 </details>
 
-## Margin pool endpoints
+## 마진 풀 endpoints
 
 <details>
-<summary>Get asset supplied events</summary>
+<summary>Get 자산 supplied events</summary>
 
 ```http
 /asset_supplied?margin_pool_id=<ID>&supplier=<ADDRESS>
 ```
 
-asset이 margin pool에 supply될 때의 이벤트를 반환한다.
+자산이 마진 풀에 supply될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -269,13 +269,13 @@ asset이 margin pool에 supply될 때의 이벤트를 반환한다.
 </details>
 
 <details>
-<summary>Get asset withdrawn events</summary>
+<summary>Get 자산 withdrawn events</summary>
 
 ```http
 /asset_withdrawn?margin_pool_id=<ID>&supplier=<ADDRESS>
 ```
 
-asset이 margin pool에서 withdraw될 때의 이벤트를 반환한다.
+자산이 마진 풀에서 출금될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -301,13 +301,13 @@ asset이 margin pool에서 withdraw될 때의 이벤트를 반환한다.
 </details>
 
 <details>
-<summary>Get margin pool creation events</summary>
+<summary>Get 마진 풀 creation events</summary>
 
 ```http
 /margin_pool_created?margin_pool_id=<ID>
 ```
 
-margin pool이 생성될 때의 이벤트를 반환한다.
+마진 풀이 생성될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -345,13 +345,13 @@ margin pool이 생성될 때의 이벤트를 반환한다.
 </details>
 
 <details>
-<summary>Get DeepBook pool updated events</summary>
+<summary>Get DeepBook 풀 updated events</summary>
 
 ```http
 /deepbook_pool_updated?margin_pool_id=<ID>&deepbook_pool_id=<ID>
 ```
 
-DeepBook pool이 margin pool에 대해 활성화되거나 비활성화될 때의 이벤트를 반환한다.
+DeepBook 풀이 마진 풀에 대해 활성화되거나 비활성화될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -376,13 +376,13 @@ DeepBook pool이 margin pool에 대해 활성화되거나 비활성화될 때의
 </details>
 
 <details>
-<summary>Get interest parameter update events</summary>
+<summary>Get interest 파라미터 update events</summary>
 
 ```http
 /interest_params_updated?margin_pool_id=<ID>
 ```
 
-interest rate parameter가 업데이트될 때의 이벤트를 반환한다.
+금리 파라미터가 업데이트될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -411,13 +411,13 @@ interest rate parameter가 업데이트될 때의 이벤트를 반환한다.
 </details>
 
 <details>
-<summary>Get margin pool configuration update events</summary>
+<summary>Get 마진 풀 configuration update events</summary>
 
 ```http
 /margin_pool_config_updated?margin_pool_id=<ID>
 ```
 
-margin pool configuration이 업데이트될 때의 이벤트를 반환한다.
+마진 풀 configuration이 업데이트될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -446,13 +446,13 @@ margin pool configuration이 업데이트될 때의 이벤트를 반환한다.
 </details>
 
 <details>
-<summary>Get supplier cap minted events</summary>
+<summary>Get supplier cap 민트ed events</summary>
 
 ```http
 /supplier_cap_minted?supplier_cap_id=<ID>
 ```
 
-supplier capability가 mint될 때의 이벤트를 반환한다.
+supplier capability가 민트될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -474,13 +474,13 @@ supplier capability가 mint될 때의 이벤트를 반환한다.
 </details>
 
 <details>
-<summary>Get supply referral minted events</summary>
+<summary>Get supply referral 민트ed events</summary>
 
 ```http
 /supply_referral_minted?margin_pool_id=<ID>&owner=<ADDRESS>
 ```
 
-supply referral이 mint될 때의 이벤트를 반환한다.
+supply referral이 민트될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -510,7 +510,7 @@ supply referral이 mint될 때의 이벤트를 반환한다.
 /protocol_fees_increased?margin_pool_id=<ID>
 ```
 
-protocol fee가 증가할 때의 이벤트를 반환한다.
+프로토콜 수수료가 증가할 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -536,13 +536,13 @@ protocol fee가 증가할 때의 이벤트를 반환한다.
 </details>
 
 <details>
-<summary>Get referral fees claimed events</summary>
+<summary>Get 리퍼럴 수수료 claimed events</summary>
 
 ```http
 /referral_fees_claimed?referral_id=<ID>&owner=<ADDRESS>
 ```
 
-referral fee가 claim될 때의 이벤트를 반환한다.
+리퍼럴 수수료가 claim될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -566,17 +566,17 @@ referral fee가 claim될 때의 이벤트를 반환한다.
 </details>
 
 <details>
-<summary>Get collateral events</summary>
+<summary>Get 담보 events</summary>
 
 ```http
 /collateral_events?margin_manager_id=<ID>&type=<"Deposit" | "Withdraw">&is_base=<BOOLEAN>
 ```
 
-collateral이 margin manager에 deposit되거나 withdraw될 때의 이벤트를 반환한다. 이 엔드포인트는 이벤트 시점의 Pyth price 데이터를 포함하여 모든 collateral movement에 대한 상세 추적을 제공한다.
+담보이 margin manager에 예치되거나 출금될 때의 이벤트를 반환한다. 이 엔드포인트는 이벤트 시점의 Pyth price 데이터를 포함하여 모든 담보 movement에 대한 상세 추적을 제공한다.
 
 - `margin_manager_id`: 특정 margin manager로 필터링한다
 - `type`: 이벤트 타입(`Deposit` 또는 `Withdraw`)으로 필터링한다
-- `is_base`: collateral이 base asset(`true`)인지 quote asset(`false`)인지로 필터링한다
+- `is_base`: 담보이 베이스 자산(`true`)인지 견적 자산(`false`)인지로 필터링한다
 
 #### 응답
 
@@ -649,7 +649,7 @@ maintainer capability가 업데이트될 때의 이벤트를 반환한다.
 /maintainer_fees_withdrawn?margin_pool_id=<ID>
 ```
 
-maintainer fee가 withdraw될 때의 이벤트를 반환한다.
+maintainer fee가 출금될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -679,7 +679,7 @@ maintainer fee가 withdraw될 때의 이벤트를 반환한다.
 /protocol_fees_withdrawn?margin_pool_id=<ID>
 ```
 
-protocol fee가 withdraw될 때의 이벤트를 반환한다.
+프로토콜 수수료가 출금될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -731,13 +731,13 @@ pause capability가 업데이트될 때의 이벤트를 반환한다.
 </details>
 
 <details>
-<summary>Get DeepBook pool registered events</summary>
+<summary>Get DeepBook 풀 registered events</summary>
 
 ```http
 /deepbook_pool_registered?pool_id=<ID>
 ```
 
-DeepBook pool이 margin registry에 등록될 때의 이벤트를 반환한다.
+DeepBook 풀이 margin registry에 등록될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -772,13 +772,13 @@ DeepBook pool이 margin registry에 등록될 때의 이벤트를 반환한다.
 </details>
 
 <details>
-<summary>Get DeepBook pool registry updated events</summary>
+<summary>Get DeepBook 풀 registry updated events</summary>
 
 ```http
 /deepbook_pool_updated_registry?pool_id=<ID>
 ```
 
-DeepBook pool registry entry가 업데이트될 때의 이벤트를 반환한다.
+DeepBook 풀 registry entry가 업데이트될 때의 이벤트를 반환한다.
 
 #### 응답
 
@@ -801,13 +801,13 @@ DeepBook pool registry entry가 업데이트될 때의 이벤트를 반환한다
 </details>
 
 <details>
-<summary>Get DeepBook pool config updated events</summary>
+<summary>Get DeepBook 풀 config updated events</summary>
 
 ```http
 /deepbook_pool_config_updated?pool_id=<ID>
 ```
 
-DeepBook pool configuration이 업데이트될 때의 이벤트를 반환한다.
+DeepBook 풀 configuration이 업데이트될 때의 이벤트를 반환한다.
 
 #### 응답
 

@@ -47,32 +47,32 @@ View `sui` binary installation details.
 
 </details>
 
-- [x] Sui account와 CLI environment를 설정한다.
+- [x] Sui 계정와 CLI environment를 설정한다.
 
 <details className="nudge-details">
 
 <summary>
 
-View Sui account and CLI environment instructions.
+View Sui 계정 and CLI environment instructions.
 
 </summary>
 
-    - 이 프로그램을 처음 실행하면 Sui 풀 노드 server URL과 의미 있는 environment alias를 입력하라고 요청한다. 또한 `sui.keystore`에 임의의 key pair와 `client.yaml` config를 생성한다. 이미 validator account key가 있다면 그 key로 교체한다.
+    - 이 프로그램을 처음 실행하면 Sui 풀 노드 server URL과 의미 있는 environment alias를 입력하라고 요청한다. 또한 `sui.keystore`에 임의의 키 쌍과 `client.yaml` 구성을 생성한다. 이미 validator 계정 키가 있다면 그 키로 교체한다.
 
-       기본적으로 `client.yaml`과 `sui.keystore` files는 `~/.sui/sui_config`에 있다. 자세한 내용은 [Sui client CLI tutorial](/references/cli/client)을 참고한다.
+       기본적으로 `client.yaml`과 `sui.keystore` 파일은 `~/.sui/sui_config`에 있다. 자세한 내용은 [Sui client CLI tutorial](/references/cli/client)을 참고한다.
 
        ```sh
        $ sui client
        ```
 
     - 이미 설정했다면 다음만 확인한다:
-      - `client.yaml`의 `rpc`가 올바른지.
-      - `client.yaml`의 `active_address`가 올바른지.
-      - `sui.keystore`에 account key pair가 들어 있는지.
+      - `rpc`의 `client.yaml`가 올바른지.
+      - `active_address`의 `client.yaml`가 올바른지.
+      - `sui.keystore`에 계정 키 쌍이 들어 있는지.
 
 </details>
 
-- [x] validator 정보를 출력해 network connection과 configuration을 테스트한다:
+- [x] validator 정보를 출력해 네트워크 connection과 구성을 테스트한다:
 
 ```sh
 $ sui validator display-metadata
@@ -85,7 +85,7 @@ $ sui validator display-metadata
 
 validator 작업을 수행하려면 Sui CLI를 사용한다.
 
-### help information 출력
+### 도움말 정보 출력
 
 ```sh
 $ sui validator --help
@@ -99,10 +99,10 @@ validator 후보가 되려면 먼저 다음을 실행한다:
 $ sui validator make-validator-info <name> <description> <image-url> <project-url> <host-name> <gas_price>
 ```
 
-이 명령은 `validator.info` file과 key pair files를 생성한다. 이 명령의 출력에는 다음이 포함된다:
-  1. 네 개의 [key pair files](./validator-tasks#키-관리). **permissions를 최소 공개 범위로 설정하고(예: `chmod 600`) 안전하게 저장해야 한다**. 이 files는 validator 노드를 실행할 때 필요하다.
-    a. 이 가이드를 충실히 따르면 이 key pair는 실제로 `sui.keystore` file에서 복사된다.
-  2. validator 정보를 담은 `validator.info` file. 모든 정보가 올바른지 다시 확인한다.
+이 명령은 `validator.info` 파일과 키 쌍 파일을 생성한다. 이 명령의 출력에는 다음이 포함된다:
+  1. 네 개의 [키 쌍 파일](/operators/validator/validator-tasks#key-management). **permissions를 최소 공개 범위로 설정하고(예: `chmod 600`) 안전하게 저장해야 한다**. 이 파일은 validator 노드를 실행할 때 필요하다.
+    a. 이 가이드를 충실히 따르면 이 키 쌍은 실제로 `sui.keystore` 파일에서 복사된다.
+  2. validator 정보를 담은 `validator.info` 파일. 모든 정보가 올바른지 다시 확인한다.
 
 그다음 다음을 실행한다:
 
@@ -110,11 +110,11 @@ $ sui validator make-validator-info <name> <description> <image-url> <project-ur
 $ sui validator become-candidate path/to/validator.info
 ```
 
-이 명령은 validator 후보가 되기 위한 on-chain transaction을 제출한다. parameter는 이전 단계에서 생성한 `validator.info` file path이다. **transaction이 성공했는지(출력에 표시됨) 반드시 확인한다.**
+이 명령은 validator 후보가 되기 위한 on-chain 트랜잭션을 제출한다. parameter는 이전 단계에서 생성한 `validator.info` 파일 path이다. **트랜잭션이 성공했는지(출력에 표시됨) 반드시 확인한다.**
 
 이 시점에서 validator 후보가 되었으며 self-staking과 delegated staking을 받을 수 있다.
 
-아직 하지 않았다면 지금 풀 노드를 시작해 network를 따라잡는다. committee에 공식 합류했는데 최신 상태가 아니면 network에 의미 있게 기여할 수 없고 peer reporting 대상이 될 수 있다. 그러면 본인과 delegator의 staking rewards가 감소할 위험이 있다.
+아직 하지 않았다면 지금 풀 노드를 시작해 네트워크를 따라잡는다. committee에 공식 합류했는데 최신 상태가 아니면 네트워크에 의미 있게 기여할 수 없고 peer reporting 대상이 될 수 있다. 그러면 본인과 delegator의 staking rewards가 감소할 위험이 있다.
 
 그다음 30M SUI를 확보해 validator staking pool에 stake해야 한다. validator staking pool에 Sui를 추가하려면 다음 명령을 사용한다:
 
@@ -122,7 +122,7 @@ $ sui validator become-candidate path/to/validator.info
 $ sui client call --package 0x3 --module sui_system --function request_add_stake --args 0x5 {sui_object_id} {validator_address}
 ```
 
-이 명령은 stake object(`0x3::staking_pool::StakedSui` 타입)를 생성한다. 이 object는 다음 명령으로 인출할 수 있다:
+이 명령은 stake 객체(`0x3::staking_pool::StakedSui` 타입)를 생성한다. 이 객체는 다음 명령으로 인출할 수 있다:
 
 ```sh
 $ sui client call --package 0x3 --module sui_system --function request_withdraw_stake --args 0x5 {stake_object_id}
@@ -130,7 +130,7 @@ $ sui client call --package 0x3 --module sui_system --function request_withdraw_
 
 :::tip
 
-비활성 validator의 활성화되지 않은 stake는 인출할 수 없다. 이런 경우 다음 epoch change 후 stake가 활성화되면 인출할 수 있어야 한다.
+비활성 validator의 활성화되지 않은 stake는 인출할 수 없다. 이런 경우 다음 에포크 change 후 stake가 활성화되면 인출할 수 있어야 한다.
 
 :::
 
@@ -140,7 +140,7 @@ $ sui client call --package 0x3 --module sui_system --function request_withdraw_
 $ sui validator join-committee
 ```
 
-committee에 합류하면 pending validator가 된다. pending validator는 다음 epoch부터 active가 되어 committee에 합류한다.
+committee에 합류하면 pending validator가 된다. pending validator는 다음 에포크부터 active가 되어 committee에 합류한다.
 
 ### committee leave
 
@@ -150,11 +150,11 @@ committee에서 나가려면 다음을 실행한다:
 $ sui validator leave-committee
 ```
 
-다음 epoch부터 committee에서 제거된다.
+다음 에포크부터 committee에서 제거된다.
 
 ### proof of possession: payload 생성
 
-proof of possession 생성에 사용되는 payload를 직렬화한다. 이렇게 하면 signer가 authority protocol BLS key pair로 서명하기 위해 payload를 offline으로 가져갈 수 있다.
+proof of possession 생성에 사용되는 payload를 직렬화한다. 이렇게 하면 signer가 authority 프로토콜 BLS 키 쌍로 서명하기 위해 payload를 offline으로 가져갈 수 있다.
 
 ```sh
 $ sui validator serialize-payload-pop --account-address $ACCOUNT_ADDRESS --protocol-public-key $BLS_PUBKEY
@@ -164,7 +164,7 @@ $ sui validator serialize-payload-pop --account-address $ACCOUNT_ADDRESS --proto
 Serialized payload: $PAYLOAD_TO_SIGN
 ```
 
-### validator metadata 표시
+### validator 메타데이터 표시
 
 로컬 validator의 metadata를 표시한다:
 
@@ -172,13 +172,13 @@ Serialized payload: $PAYLOAD_TO_SIGN
 $ sui validator display-metadata
 ```
 
-validator address를 통해 다른 validator의 metadata를 표시한다:
+validator 주소를 통해 다른 validator의 metadata를 표시한다:
 
 ```sh
 $ sui validator display-metadata <validator-address>
 ```
 
-### validator metadata update
+### validator 메타데이터 업데이트
 
 validator metadata를 업데이트하는 방법을 보려면 다음을 실행한다. 변경이 언제 적용되는지에 대한 설명을 주의 깊게 읽는다.
 
@@ -192,18 +192,18 @@ $ sui validator update-metadata --help
 - Description
 - Image URL
 - Project URL
-- Network address
-- P2P address
-- Primary address
-- Worker address
-- Protocol public key
-- Network public key
-- Worker public key
+- 네트워크 주소
+- P2P 주소
+- Primary 주소
+- Worker 주소
+- 프로토콜 공개 키
+- 네트워크 공개 키
+- Worker 공개 키
 
 :::info
-위 metadata 중 처음 4개만 즉시 적용된다. 나머지는 다음 epoch 이후에만 변경된다. 이 경우 다음 epoch 직후 새 key files와 업데이트된 `validator.yaml` config로 validator program을 즉시 다시 시작한다.
+위 metadata 중 처음 4개만 즉시 적용된다. 나머지는 다음 에포크 이후에만 변경된다. 이 경우 다음 에포크 직후 새 키 파일과 업데이트된 `validator.yaml` 구성로 validator program을 즉시 다시 시작한다.
 
-특히 새 address가 firewall 뒤에 있지 않은지 확인한다.
+특히 새 주소가 firewall 뒤에 있지 않은지 확인한다.
 :::
 
 각 metadata 업데이트 방법을 보려면 다음을 실행한다.
@@ -214,19 +214,19 @@ $ sui validator update-metadata --help
 
 ### Operation Cap
 
-Operation Cap은 validator가 다른 account에 특정 작업을 이 validator 대신 수행하도록 권한을 부여할 수 있게 한다. [Learn more about Operation Cap](./validator-tasks#operation-cap).
+Operation Cap은 validator가 다른 계정에 특정 작업을 이 validator 대신 수행하도록 권한을 부여할 수 있게 한다. [Learn more about Operation Cap](/operators/validator/validator-tasks#operation-cap).
 
-Operation Cap 보유자(validator 자신 또는 delegatee)는 Operation Cap으로 gas price를 업데이트하고 validator peers를 보고한다.
+Operation Cap 보유자(validator 자신 또는 delegatee)는 Operation Cap으로 가스 가격를 업데이트하고 validator peers를 보고한다.
 
-### gas price update
+### 가스 가격 업데이트
 
-account 자체가 validator이고 Operation Cap을 보유한 경우 다음으로 gas price를 업데이트한다:
+계정 자체가 validator이고 Operation Cap을 보유한 경우 다음으로 가스 가격를 업데이트한다:
 
 ```sh
 $ sui validator update-gas-price <gas-price>
 ```
 
-account가 delegatee인 경우 다음을 사용한다:
+계정이 delegatee인 경우 다음을 사용한다:
 
 ```sh
 $ sui validator update-gas-price --operation-cap-id <operation-cap-id> <gas-price>
@@ -234,7 +234,7 @@ $ sui validator update-gas-price --operation-cap-id <operation-cap-id> <gas-pric
 
 ### validator report
 
-account 자체가 validator이고 Operation Cap을 보유한 경우 다음으로 validator peers를 보고한다:
+계정 자체가 validator이고 Operation Cap을 보유한 경우 다음으로 validator peers를 보고한다:
 
 ```sh
 $ sui validator report-validator <reportee-address>
@@ -242,9 +242,9 @@ $ sui validator report-validator <reportee-address>
 
 기존 report를 취소하려면 `--undo-report false` 인수를 추가한다.
 
-마찬가지로 account가 delegatee인 경우 명령에 `--operation-cap-id <operation-cap-id>` 옵션을 추가한다.
+마찬가지로 계정이 delegatee인 경우 명령에 `--operation-cap-id <operation-cap-id>` 옵션을 추가한다.
 
-account가 delegatee인 경우 다음을 실행한다:
+계정이 delegatee인 경우 다음을 실행한다:
 
 ```sh
 $ sui validator update-gas-price --operation-cap-id <operation-cap-id> <gas-price>

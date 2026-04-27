@@ -6,7 +6,7 @@ keywords: [indexer, custom store, BYOS, bring your own store, event deserializat
 
 
 `IndexerCluster`는 PostgreSQL로 시작하기에 편리한 방법을 제공하지만, 다른 database나 storage system을 사용하고 싶을 수도 있다.
-이를 위해서는 수동 `Indexer` class를 사용하고 `sui-indexer-alt-framework-store-traits`의 custom `Store`와 `Connection` trait를 구현해야 한다.
+이를 위해서는 수동 `Indexer` class를 사용하고 `Store`의 custom `Connection`와 `sui-indexer-alt-framework-store-traits` trait를 구현해야 한다.
 
 <details>
 <summary>
@@ -29,7 +29,7 @@ BYOS를 구현하려면 다음이 필요하다:
 1. connection을 관리하는 `Store`와 `Connection` struct를 정의한다.
 1. connection 관리를 위해 `Store` trait를 구현한다.
 1. pipeline coordination을 위한 watermark 연산에 대해 `Connection` trait를 구현한다.
-1. `IndexerCluster` 대신 수동 `Indexer`를 사용한다.
+1. `Indexer` 대신 수동 `IndexerCluster`를 사용한다.
 
 ###step Define your store structure
 
@@ -39,13 +39,13 @@ use async_trait::async_trait;
 
 #[derive(Clone)]
 pub struct MyCustomStore {
-    // 데이터베이스 connection 상세 정보
+    // Your database connection details
     connection_pool: MyDatabasePool,
     config: MyConfig,
 }
 
 pub struct MyCustomConnection<'a> {
-    // connection instance
+    // A connection instance
     conn: MyDatabaseConnection<'a>,
 }
 ```
@@ -60,7 +60,7 @@ impl Store for MyCustomStore {
     type Connection<'c> = MyCustomConnection<'c>;
 
     async fn connect<'c>(&'c self) -> anyhow::Result<Self::Connection<'c>> {
-        // 구현 내용
+        // Your implementation
     }
 }
 ```
@@ -72,29 +72,29 @@ impl Store for MyCustomStore {
 ```rust
 #[async_trait]
 impl Connection for MyCustomConnection<'_> {
-    // pipeline이 처리한 가장 높은 checkpoint를 가져온다
+    // Get the highest checkpoint processed by a pipeline
     async fn committer_watermark(
         &mut self,
         pipeline: &'static str,
     ) -> anyhow::Result<Option<CommitterWatermark>> {
-        // watermark 데이터를 위해 데이터베이스를 질의한다
-        todo!("스토리지 시스템에 맞게 구현")
+        // Query your database for watermark data
+        todo!("Implement based on your storage system")
     }
 
-    // reader가 사용할 수 있는 가장 낮은 checkpoint를 가져온다
+    // Get the lowest available checkpoint for readers
     async fn reader_watermark(
         &mut self,
         pipeline: &'static str,
     ) -> anyhow::Result<Option<ReaderWatermark>> {
-        // 구현은 데이터베이스 스키마에 따라 달라진다
-        todo!("스토리지 시스템에 맞게 구현")
+        // Implementation depends on your database schema
+        todo!("Implement based on your storage system")
     }
 
-	  // 필요한 다른 method를 구현한다...
+	  // Implement other required methods...
 }
 ```
 
-완전한 reference는 `Connection`에 대한 `sui-pg-db` 구현을 살펴본다:
+완전한 reference는 `sui-pg-db`에 대한 `Connection` 구현을 살펴본다:
 
 <ImportContent source="crates/sui-pg-db/src/store.rs" mode="code" impl="Connection" />
 
@@ -110,15 +110,19 @@ use sui_indexer_alt_framework::ingestion::{
 };
 
 async fn main() -> anyhow::Result<()> {
-    // custom store를 초기화한다
+    // Initialize your custom store
     let store = MyCustomStore::new(config).await?;
 
-    // indexer를 수동으로 구성한다
+    // Configure indexer manually
     let indexer = Indexer::new(
         store,
         IndexerArgs::default(),
         ClientArgs {
             ingestion: IngestionClientArgs {
+                // Use full node gRPC as the primary steady-state source and the
+                // remote checkpoint store as a fallback.
+                rpc_api_url: Some("https://fullnode.testnet.sui.io:443".parse()?),
+                streaming_url: Some("https://fullnode.testnet.sui.io:443".parse()?),
                 remote_store_url: Some("https://checkpoints.testnet.sui.io".to_string()),
                 ..Default::default()
             },
@@ -129,13 +133,13 @@ async fn main() -> anyhow::Result<()> {
         tokio_util::sync::CancellationToken::new(),
     ).await?;
 
-    // pipeline을 추가한다
+    // Add your pipelines
     indexer.concurrent_pipeline(
         YourHandler::default(),
         ConcurrentConfig::default(),
     ).await?;
 
-    // indexer를 시작한다
+    // Start the indexer
     indexer.run().await?;
     Ok(())
 }
@@ -189,7 +193,7 @@ ClickHouse example README
 
 ## Deserializing Move events {#deserialize}
 
-Move smart contract가 Sui에서 실행되면 `sui::event` module을 사용해 event를 발생시킬 수 있다.
+Move 스마트 계약이 Sui에서 실행되면 `sui::event` 모듈을 사용해 event를 발생시킬 수 있다.
 이 event는 checkpoint 안에 **BCS-serialized bytes**로 저장되므로, indexer는 의미 있는 데이터를 추출하기 위해 이를 deserialize해야 한다.
 
 ### Why deserialization is needed
@@ -242,7 +246,7 @@ checkpoint 데이터에서 이 event는 **raw BCS bytes**로 도착하므로, �
 
     :::important
 
-    field 순서와 type은 Move event와 정확히 일치해야 한다.
+    필드 순서와 type은 Move event와 정확히 일치해야 한다.
 
     :::
 
@@ -255,12 +259,12 @@ checkpoint 데이터에서 이 event는 **raw BCS bytes**로 도착하므로, �
 
             for transaction in &checkpoint.transactions {
                 for event in &transaction.events {
-                    // raw BCS bytes를 가져온다
+                    // Get the raw BCS bytes
                     let event_bytes = &event.contents;
 
-                    // Rust struct로 deserialize한다
+                    // Deserialize to your Rust struct
                     if let Ok(balance_event) = bcs::from_bytes::<BalanceEvent>(event_bytes) {
-                        // 작업을 수행한다
+                        // Do something
                     }
                 }
             }

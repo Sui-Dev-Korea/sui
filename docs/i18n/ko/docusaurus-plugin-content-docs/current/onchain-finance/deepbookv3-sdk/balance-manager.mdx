@@ -1,7 +1,7 @@
 ---
 title: BalanceManager SDK
 sidebar_label: BalanceManager SDK
-description: DeepBookV3 SDK를 사용해 balance manager와 해당 capability를 관리하는 방법을 설명한다.
+description: DeepBookV3 SDK를 사용해 BalanceManager와 해당 capability를 관리하는 방법을 설명한다.
 keywords:
   [
     balance manager,
@@ -18,16 +18,16 @@ keywords:
 ---
 
 
-`BalanceManager`는 모든 asset balance를 보관하는 DeepBookV3의 핵심 구성 요소이다. SDK는 balance manager를 생성, 관리, 그리고 상호작용하기 위한 포괄적인 함수를 제공한다.
+`BalanceManager`는 모든 자산 잔액을 보관하는 DeepBookV3의 핵심 구성 요소이다. SDK는 BalanceManager를 생성, 관리, 그리고 상호작용하기 위한 포괄적인 함수를 제공한다.
 
 ## BalanceManager 함수
 
-DeepBookV3 SDK는 balance manager를 관리하기 위한 다음 함수를 제공한다.
+DeepBookV3 SDK는 BalanceManager를 관리하기 위한 다음 함수를 제공한다.
 
 <details>
 <summary>createAndShareBalanceManager</summary>
 
-새 balance manager를 생성하고 자동으로 공유하려면 `createAndShareBalanceManager`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+새 BalanceManager를 생성하고 자동으로 공유하려면 `createAndShareBalanceManager`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="createAndShareBalanceManager" signatureOnly/>
 
@@ -36,11 +36,11 @@ DeepBookV3 SDK는 balance manager를 관리하기 위한 다음 함수를 제공
 <details>
 <summary>createBalanceManagerWithOwner</summary>
 
-custom owner로 새 balance manager를 생성하려면 `createBalanceManagerWithOwner`를 사용한다. manager object를 반환한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+custom 소유자로 새 BalanceManager를 생성하려면 `createBalanceManagerWithOwner`를 사용한다. manager 객체를 반환한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `ownerAddress`: owner의 address를 나타내는 String이다.
+- `ownerAddress`: 소유자의 주소를 나타내는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="createBalanceManagerWithOwner" signatureOnly/>
 
@@ -49,11 +49,11 @@ custom owner로 새 balance manager를 생성하려면 `createBalanceManagerWith
 <details>
 <summary>shareBalanceManager</summary>
 
-생성되었지만 아직 공유되지 않은 balance manager를 공유하려면 `shareBalanceManager`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+생성되었지만 아직 공유되지 않은 BalanceManager를 공유하려면 `shareBalanceManager`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `manager`: 공유할 balance manager를 나타내는 `TransactionArgument`이다.
+- `manager`: 공유할 BalanceManager를 나타내는 `TransactionArgument`이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="shareBalanceManager" signatureOnly/>
 
@@ -64,13 +64,13 @@ custom owner로 새 balance manager를 생성하려면 `createBalanceManagerWith
 <details>
 <summary>depositIntoManager</summary>
 
-balance manager에 fund를 deposit하려면 `depositIntoManager`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+BalanceManager에 fund를 예치하려면 `depositIntoManager`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
-- `coinKey`: deposit할 coin을 식별하는 String이다.
-- `amountToDeposit`: deposit할 amount를 나타내는 Number이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
+- `coinKey`: 예치할 코인을 식별하는 String이다.
+- `amountToDeposit`: 예치할 amount를 나타내는 Number이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="depositIntoManager" signatureOnly/>
 
@@ -79,14 +79,14 @@ balance manager에 fund를 deposit하려면 `depositIntoManager`를 사용한다
 <details>
 <summary>withdrawFromManager</summary>
 
-balance manager에서 fund를 인출하려면 `withdrawFromManager`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+BalanceManager에서 fund를 인출하려면 `withdrawFromManager`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
-- `coinKey`: 인출할 coin을 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
+- `coinKey`: 인출할 코인을 식별하는 String이다.
 - `amountToWithdraw`: 인출할 amount를 나타내는 Number이다.
-- `recipient`: recipient address를 나타내는 String이다.
+- `recipient`: recipient 주소를 나타내는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="withdrawFromManager" signatureOnly/>
 
@@ -95,13 +95,13 @@ balance manager에서 fund를 인출하려면 `withdrawFromManager`를 사용한
 <details>
 <summary>withdrawAllFromManager</summary>
 
-balance manager에서 특정 coin 타입의 모든 fund를 인출하려면 `withdrawAllFromManager`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+BalanceManager에서 특정 코인 타입의 모든 fund를 인출하려면 `withdrawAllFromManager`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
-- `coinKey`: 인출할 coin을 식별하는 String이다.
-- `recipient`: recipient address를 나타내는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
+- `coinKey`: 인출할 코인을 식별하는 String이다.
+- `recipient`: recipient 주소를 나타내는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="withdrawAllFromManager" signatureOnly/>
 
@@ -110,27 +110,27 @@ balance manager에서 특정 coin 타입의 모든 fund를 인출하려면 `with
 <details>
 <summary>checkManagerBalance</summary>
 
-balance manager에서 특정 coin의 balance를 확인하려면 `checkManagerBalance`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+BalanceManager에서 특정 코인의 잔액을 확인하려면 `checkManagerBalance`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
-- `coinKey`: 확인할 coin을 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
+- `coinKey`: 확인할 코인을 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="checkManagerBalance" signatureOnly/>
 
 </details>
 
-## Trade proof functions
+## Trade proof 함수
 
 <details>
 <summary>generateProof</summary>
 
-balance manager에 대한 trade proof를 생성하려면 `generateProof`를 사용한다. `tradeCap` 설정 여부에 따라 적절한 함수를 자동으로 호출한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+BalanceManager에 대한 trade proof를 생성하려면 `generateProof`를 사용한다. `tradeCap` 설정 여부에 따라 적절한 함수를 자동으로 호출한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="generateProof" signatureOnly/>
 
@@ -139,11 +139,11 @@ balance manager에 대한 trade proof를 생성하려면 `generateProof`를 사�
 <details>
 <summary>generateProofAsOwner</summary>
 
-balance manager의 owner로서 trade proof를 생성하려면 `generateProofAsOwner`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+BalanceManager의 소유자로서 trade proof를 생성하려면 `generateProofAsOwner`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerId`: balance manager의 ID를 나타내는 String이다.
+- `managerId`: BalanceManager의 ID를 나타내는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="generateProofAsOwner" signatureOnly/>
 
@@ -152,53 +152,53 @@ balance manager의 owner로서 trade proof를 생성하려면 `generateProofAsOw
 <details>
 <summary>generateProofAsTrader</summary>
 
-`tradeCap`을 사용하여 trade proof를 생성하려면 `generateProofAsTrader`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+`generateProofAsTrader`을 사용하여 trade proof를 생성하려면 `tradeCap`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerId`: balance manager의 ID를 나타내는 String이다.
+- `managerId`: BalanceManager의 ID를 나타내는 String이다.
 - `tradeCapId`: trade cap의 ID를 나타내는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="generateProofAsTrader" signatureOnly/>
 
 </details>
 
-## Capability functions
+## Capability 함수
 
 <details>
-<summary>mintTradeCap</summary>
+<summary>민트TradeCap</summary>
 
-balance manager에 대한 `tradeCap`을 mint하려면 `mintTradeCap`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+BalanceManager에 대한 `mintTradeCap`을 민트하려면 `tradeCap`을 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="mintTradeCap" signatureOnly/>
 
 </details>
 
 <details>
-<summary>mintDepositCap</summary>
+<summary>민트DepositCap</summary>
 
-balance manager에 대한 `depositCap`을 mint하려면 `mintDepositCap`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+BalanceManager에 대한 `mintDepositCap`을 민트하려면 `depositCap`을 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="mintDepositCap" signatureOnly/>
 
 </details>
 
 <details>
-<summary>mintWithdrawalCap</summary>
+<summary>민트WithdrawalCap</summary>
 
-balance manager에 대한 `withdrawCap`을 mint하려면 `mintWithdrawalCap`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+BalanceManager에 대한 `mintWithdrawalCap`을 민트하려면 `withdrawCap`을 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="mintWithdrawalCap" signatureOnly/>
 
@@ -207,13 +207,13 @@ balance manager에 대한 `withdrawCap`을 mint하려면 `mintWithdrawalCap`을 
 <details>
 <summary>depositWithCap</summary>
 
-`depositCap`을 사용해 balance manager에 fund를 deposit하려면 `depositWithCap`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+`depositWithCap`을 사용해 BalanceManager에 fund를 예치하려면 `depositCap`을 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
-- `coinKey`: deposit할 coin을 식별하는 String이다.
-- `amountToDeposit`: deposit할 amount를 나타내는 Number이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
+- `coinKey`: 예치할 코인을 식별하는 String이다.
+- `amountToDeposit`: 예치할 amount를 나타내는 Number이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="depositWithCap" signatureOnly/>
 
@@ -222,12 +222,12 @@ balance manager에 대한 `withdrawCap`을 mint하려면 `mintWithdrawalCap`을 
 <details>
 <summary>withdrawWithCap</summary>
 
-`withdrawCap`을 사용해 balance manager에서 fund를 인출하려면 `withdrawWithCap`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+`withdrawWithCap`을 사용해 BalanceManager에서 fund를 인출하려면 `withdrawCap`을 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
-- `coinKey`: 인출할 coin을 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
+- `coinKey`: 인출할 코인을 식별하는 String이다.
 - `amountToWithdraw`: 인출할 amount를 나타내는 Number이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="withdrawWithCap" signatureOnly/>
@@ -237,27 +237,27 @@ balance manager에 대한 `withdrawCap`을 mint하려면 `mintWithdrawalCap`을 
 <details>
 <summary>revokeTradeCap</summary>
 
-`TradeCap`을 revoke하려면 `revokeTradeCap`을 사용한다. 이는 연관된 `DepositCap`과 `WithdrawCap`도 revoke한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+`revokeTradeCap`을 revoke하려면 `TradeCap`을 사용한다. 이는 연관된 `DepositCap`과 `WithdrawCap`도 revoke한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
 - `tradeCapId`: revoke할 TradeCap의 ID를 나타내는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="revokeTradeCap" signatureOnly/>
 
 </details>
 
-## referral function
+## referral 함수
 
 <details>
 <summary>setBalanceManagerReferral</summary>
 
-balance manager에 대해 pool-specific referral을 설정하려면 `setBalanceManagerReferral`을 사용한다. permission checking을 위해 `tradeCap`이 필요하다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+BalanceManager에 대해 풀-specific referral을 설정하려면 `setBalanceManagerReferral`을 사용한다. permission checking을 위해 `tradeCap`이 필요하다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
 - `referral`: referral ID(DeepBookPoolReferral)를 나타내는 String이다.
 - `tradeCap`: permission을 위한 trade cap을 나타내는 `TransactionArgument`이다.
 
@@ -268,12 +268,12 @@ balance manager에 대해 pool-specific referral을 설정하려면 `setBalanceM
 <details>
 <summary>unsetBalanceManagerReferral</summary>
 
-특정 pool에 대해 balance manager에서 referral을 제거하려면 `unsetBalanceManagerReferral`을 사용한다. permission checking을 위해 `tradeCap`이 필요하다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+특정 풀에 대해 BalanceManager에서 referral을 제거하려면 `unsetBalanceManagerReferral`을 사용한다. permission checking을 위해 `tradeCap`이 필요하다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
-- `poolKey`: referral을 해제할 pool을 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
+- `poolKey`: referral을 해제할 풀을 식별하는 String이다.
 - `tradeCap`: permission을 위한 trade cap을 나타내는 `TransactionArgument`이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="unsetBalanceManagerReferral" signatureOnly/>
@@ -283,42 +283,42 @@ balance manager에 대해 pool-specific referral을 설정하려면 `setBalanceM
 <details>
 <summary>getBalanceManagerReferralId</summary>
 
-특정 pool에 대해 balance manager와 연관된 referral ID를 가져오려면 `getBalanceManagerReferralId`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+특정 풀에 대해 BalanceManager와 연관된 referral ID를 가져오려면 `getBalanceManagerReferralId`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
-- `poolKey`: pool을 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
+- `poolKey`: 풀을 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="getBalanceManagerReferralId" signatureOnly/>
 
 </details>
 
-## Registry functions
+## Registry 함수
 
 <details>
 <summary>registerBalanceManager</summary>
 
-registry에 balance manager를 등록하려면 `registerBalanceManager`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+registry에 BalanceManager를 등록하려면 `registerBalanceManager`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="registerBalanceManager" signatureOnly/>
 
 </details>
 
-## read-only function
+## read-only 함수
 
 <details>
-<summary>owner</summary>
+<summary>소유자</summary>
 
-balance manager의 owner address를 가져오려면 `owner`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+BalanceManager의 소유자 주소를 가져오려면 `owner`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="owner" signatureOnly/>
 
@@ -327,11 +327,11 @@ balance manager의 owner address를 가져오려면 `owner`를 사용한다. 이
 <details>
 <summary>id</summary>
 
-balance manager의 ID를 가져오려면 `id`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+BalanceManager의 ID를 가져오려면 `id`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerKey`: balance manager를 식별하는 String이다.
+- `managerKey`: BalanceManager를 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/balanceManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="id" signatureOnly/>
 
@@ -340,7 +340,7 @@ balance manager의 ID를 가져오려면 `id`를 사용한다. 이 호출은 `Tr
 <details>
 <summary>balanceManagerReferralOwner</summary>
 
-pool referral(DeepBookPoolReferral)의 owner address를 가져오려면 `balanceManagerReferralOwner`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+풀 referral(DeepBookPoolReferral)의 소유자 주소를 가져오려면 `balanceManagerReferralOwner`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
@@ -353,7 +353,7 @@ pool referral(DeepBookPoolReferral)의 owner address를 가져오려면 `balance
 <details>
 <summary>balanceManagerReferralPoolId</summary>
 
-pool referral(DeepBookPoolReferral)과 연관된 pool ID를 가져오려면 `balanceManagerReferralPoolId`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+풀 referral(DeepBookPoolReferral)과 연관된 풀 ID를 가져오려면 `balanceManagerReferralPoolId`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
@@ -365,55 +365,55 @@ pool referral(DeepBookPoolReferral)과 연관된 pool ID를 가져오려면 `bal
 
 ## 예시
 
-다음 예시는 일반적인 balance manager operation을 시연한다.
+다음 예시는 일반적인 BalanceManager operation을 시연한다.
 
 ### BalanceManager 생성 및 share
 
 ```tsx
-// 예시: 새 balance manager를 생성하고 share한다
+// Example: Create and share a new balance manager
 createBalanceManager = (tx: Transaction) => {
 	tx.add(this.balanceManager.createAndShareBalanceManager());
 };
 ```
 
-### custom owner로 BalanceManager 생성
+### custom 소유자로 BalanceManager 생성
 
 ```tsx
-// 예시: custom owner로 balance manager를 생성하고 share한다
+// Example: Create a balance manager with custom owner and share it
 createManagerWithOwner = (tx: Transaction) => {
 	const ownerAddress = '0x123...';
 
-	// custom owner로 manager를 생성한다
+	// Create the manager with custom owner
 	const manager = tx.add(this.balanceManager.createBalanceManagerWithOwner(ownerAddress));
 
-	// manager를 share한다
+	// Share the manager
 	tx.add(this.balanceManager.shareBalanceManager(manager));
 };
 ```
 
-### fund deposit 및 withdraw
+### fund 예치 및 출금
 
 ```tsx
-// 예시: balance manager에 USDC를 예치한다
+// Example: Deposit USDC into a balance manager
 depositFunds = (tx: Transaction) => {
 	const managerKey = 'MANAGER_1';
 	const coinKey = 'DBUSDC';
-	const amount = 1000; // 금액은 USDC 1000이다
+	const amount = 1000; // 1000 USDC
 
 	tx.add(this.balanceManager.depositIntoManager(managerKey, coinKey, amount));
 };
 
-// 예시: balance manager에서 SUI를 출금한다
+// Example: Withdraw SUI from a balance manager
 withdrawFunds = (tx: Transaction) => {
 	const managerKey = 'MANAGER_1';
 	const coinKey = 'SUI';
-	const amount = 100; // 금액은 SUI 100이다
+	const amount = 100; // 100 SUI
 	const recipient = '0x456...';
 
 	tx.add(this.balanceManager.withdrawFromManager(managerKey, coinKey, amount, recipient));
 };
 
-// 예시: balance manager에서 DEEP 전부를 출금한다
+// Example: Withdraw all DEEP from a balance manager
 withdrawAllDeep = (tx: Transaction) => {
 	const managerKey = 'MANAGER_1';
 	const coinKey = 'DEEP';
@@ -423,39 +423,39 @@ withdrawAllDeep = (tx: Transaction) => {
 };
 ```
 
-### capability mint 및 사용
+### capability 민트 및 사용
 
 ```tsx
-// 예시: TradeCap을 mint하고 사용한다
+// Example: Mint a TradeCap and use it
 mintAndUseTradeCap = async (tx: Transaction) => {
 	const managerKey = 'MANAGER_1';
 
-	// TradeCap을 mint한다
+	// Mint the TradeCap
 	const tradeCap = tx.add(this.balanceManager.mintTradeCap(managerKey));
 
-	// trader에게 전송한다
+	// Transfer to a trader
 	const traderAddress = '0x789...';
 	tx.transferObjects([tradeCap], traderAddress);
 };
 
-// 예시: DepositCap을 사용해 자금을 예치한다
+// Example: Use DepositCap to deposit funds
 depositWithCapability = (tx: Transaction) => {
 	const managerKey = 'MANAGER_1';
 	const coinKey = 'DBUSDC';
-	const amount = 5000; // 금액은 USDC 5000이다
+	const amount = 5000; // 5000 USDC
 
 	tx.add(this.balanceManager.depositWithCap(managerKey, coinKey, amount));
 };
 
-// 예시: WithdrawCap을 사용해 자금을 출금한다
+// Example: Use WithdrawCap to withdraw funds
 withdrawWithCapability = (tx: Transaction) => {
 	const managerKey = 'MANAGER_1';
 	const coinKey = 'SUI';
-	const amount = 50; // 금액은 SUI 50이다
+	const amount = 50; // 50 SUI
 
 	const withdrawnCoin = tx.add(this.balanceManager.withdrawWithCap(managerKey, coinKey, amount));
 
-	// 출금한 coin을 전송한다
+	// Transfer the withdrawn coin
 	tx.transferObjects([withdrawnCoin], '0xabc...');
 };
 ```
@@ -463,15 +463,15 @@ withdrawWithCapability = (tx: Transaction) => {
 ### trade proof 생성
 
 ```tsx
-// 예시: trade proof를 생성하고 이를 사용해 order를 넣는다
+// Example: Generate a trade proof and use it to place an order
 placeOrderWithProof = (tx: Transaction) => {
 	const managerKey = 'MANAGER_1';
 	const poolKey = 'SUI_DBUSDC';
 
-	// proof를 자동으로 생성한다(owner 또는 tradeCap method 사용)
+	// Generate proof automatically (uses owner or tradeCap method)
 	const proof = tx.add(this.balanceManager.generateProof(managerKey));
 
-	// proof를 사용해 order를 넣는다
+	// Use the proof to place an order
 	tx.add(
 		this.deepBook.placeLimitOrder({
 			poolKey: poolKey,
@@ -489,18 +489,18 @@ placeOrderWithProof = (tx: Transaction) => {
 ### referral 설정 및 관리
 
 ```tsx
-// 예시: balance manager에 pool-specific referral을 설정한다
+// Example: Set a pool-specific referral for a balance manager
 setManagerReferral = (tx: Transaction) => {
 	const managerKey = 'MANAGER_1';
-	const referralId = '0xdef...'; // DeepBookPoolReferral의 ID
+	const referralId = '0xdef...'; // DeepBookPoolReferral ID
 
-	// TradeCap을 가져오거나 생성한다
-	const tradeCap = tx.object('0x...'); // tradeCap이 이미 mint되었다고 가정한다
+	// Get or create the TradeCap
+	const tradeCap = tx.object('0x...'); // Assuming tradeCap is already minted
 
 	tx.add(this.balanceManager.setBalanceManagerReferral(managerKey, referralId, tradeCap));
 };
 
-// 예시: 특정 pool에 대한 referral 설정을 해제한다
+// Example: Unset a referral for a specific pool
 unsetManagerReferral = (tx: Transaction) => {
 	const managerKey = 'MANAGER_1';
 	const poolKey = 'SUI_DBUSDC';
@@ -513,22 +513,22 @@ unsetManagerReferral = (tx: Transaction) => {
 ### workflow 완료
 
 ```tsx
-// 예시: balance manager 설정 workflow를 완료한다
+// Example: Complete balance manager setup workflow
 completeSetup = async (tx: Transaction) => {
 	const ownerAddress = '0x123...';
 
-	// Step 1: custom owner로 manager를 생성한다
+	// Step 1: Create manager with custom owner
 	const manager = tx.add(this.balanceManager.createBalanceManagerWithOwner(ownerAddress));
 
-	// Step 2: manager를 share한다
+	// Step 2: Share the manager
 	tx.add(this.balanceManager.shareBalanceManager(manager));
 
-	// Step 3: capabilities를 mint한다
+	// Step 3: Mint capabilities
 	const tradeCap = tx.add(this.balanceManager.mintTradeCap('MANAGER_1'));
 	const depositCap = tx.add(this.balanceManager.mintDepositCap('MANAGER_1'));
 	const withdrawCap = tx.add(this.balanceManager.mintWithdrawalCap('MANAGER_1'));
 
-	// Step 4: capabilities를 owner에게 전송한다
+	// Step 4: Transfer capabilities to owner
 	tx.transferObjects([depositCap, withdrawCap, tradeCap], ownerAddress);
 };
 ```

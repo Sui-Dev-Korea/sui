@@ -1,6 +1,6 @@
 ---
 title: PTB 구성하기
-description: Sui TypeScript SDK를 사용하면 하나의 transaction 안에서 여러 command를 수행하는 programmable transaction blocks를 만들 수 있다.
+description: Sui TypeScript SDK를 사용하면 하나의 트랜잭션 안에서 여러 command를 수행하는 프로그래머블 트랜잭션 블록를 만들 수 있다.
 keywords:
   [
     ptbs,
@@ -26,19 +26,19 @@ import { Transaction } from '@mysten/sui/transactions';
 const tx = new Transaction();
 ```
 
-이 객체를 사용해 PTB에 transaction을 추가할 수 있다:
+이 객체를 사용해 PTB에 트랜잭션을 추가할 수 있다:
 
 ```ts
-// gas 결제에 사용되는 coin을 기반으로 잔액 100인 새 coin을 만든다.
-// 여기서는 어떤 잔액이든 정의할 수 있다.
+// Create a new coin with balance 100, based on the coins used as gas payment.
+// You can define any balance here.
 const [coin] = tx.splitCoins(tx.gas, [tx.pure('u64', 100)]);
 
-// 분할된 coin을 특정 address로 전송한다.
+// Transfer the split coin to a specific address.
 tx.transferObjects([coin], tx.pure('address', '0xSomeSuiAddress'));
 ```
 
-같은 타입의 여러 transaction command를 하나의 PTB에 붙일 수 있다.
-예를 들어 transfer 목록을 가져와 이를 순회하면서 각 대상에게 coin을 전송하려면 다음과 같이 한다:
+같은 타입의 여러 트랜잭션 command를 하나의 PTB에 붙일 수 있다.
+예를 들어 transfer 목록을 가져와 이를 순회하면서 각 대상에게 코인을 전송하려면 다음과 같이 한다:
 
 ```ts
 interface Transfer {
@@ -46,38 +46,38 @@ interface Transfer {
 	amount: number;
 }
 
-// 수행할 Sui transfer 목록을 준비한다:
+// Procure a list of some Sui transfers to make:
 const transfers: Transfer[] = getTransfers();
 
 const tx = new Transaction();
 
-// 먼저 gas coin을 여러 coin으로 분할한다:
+// First, split the gas coin into multiple coins:
 const coins = tx.splitCoins(
 	tx.gas,
 	transfers.map((transfer) => tx.pure('u64', transfer.amount)),
 );
 
-// 다음으로 각 coin에 대한 transfer transaction을 만든다:
+// Next, create a transfer transaction for each coin:
 transfers.forEach((transfer, index) => {
 	tx.transferObjects([coins[index]], tx.pure('address', transfer.to));
 });
 ```
 
-transaction 정의가 끝나면 Sui client와 `KeyPair`를 사용해 `client.signAndExecuteTransaction`으로 직접 실행할 수 있다.
+트랜잭션 정의가 끝나면 Sui client와 `KeyPair`를 사용해 `client.signAndExecuteTransaction`으로 직접 실행할 수 있다.
 
 ```ts
 client.signAndExecuteTransaction({ signer: keypair, transaction: tx });
 ```
 
-## input 구성
+## 입력 구성
 
-입력은 외부 값을 PTB에 제공하는 방법이며, 예를 들어 전송할 SUI amount, Move call에 전달할 object, shared object 등을 넣는다.
+입력은 외부 값을 PTB에 제공하는 방법이며, 예를 들어 전송할 SUI amount, Move call에 전달할 객체, 공유 객체 등을 넣는다.
 
 입력을 정의하는 방법은 2가지가 있다:
 
-- object용: `tx.object(objectId)` 함수는 object reference를 담은 입력을 구성하는 데 사용된다.
+- 객체용: `tx.object(objectId)` 함수는 객체 reference를 담은 입력을 구성하는 데 사용된다.
 
-- pure value용: `tx.pure(type, value)` 함수는 non-object 입력을 구성하는 데 사용된다.
+- pure value용: `tx.pure(type, value)` 함수는 non-객체 입력을 구성하는 데 사용된다.
   - 값이 `Uint8Array`이면 raw bytes로 간주되어 직접 사용된다: `tx.pure(SomeUint8Array)`.
 
   - 그렇지 않으면 값에 대한 BCS serialization layout을 생성하는 데 사용된다.
@@ -86,40 +86,40 @@ client.signAndExecuteTransaction({ signer: keypair, transaction: tx });
 
 [inputs](/develop/transactions/ptbs/inputs-and-results)에 대해 더 알아본다.
 
-## transaction result를 argument로 전달
+## 트랜잭션 결과를 인자로 전달
 
-transaction command의 결과를 이후 transaction command의 인자로 사용할 수 있다.
-transaction builder의 각 transaction command method는 transaction 결과를 가리키는 reference를 반환한다.
+트랜잭션 command의 결과를 이후 트랜잭션 command의 인자로 사용할 수 있다.
+트랜잭션 builder의 각 트랜잭션 command method는 트랜잭션 결과를 가리키는 reference를 반환한다.
 
 ```ts
-// gas object에서 coin object를 하나 분할한다:
+// Split a coin object off of the gas object:
 const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(100)]);
-// 결과로 생긴 coin object를 전송한다:
+// Transfer the resulting coin object:
 tx.transferObjects([coin], tx.pure.address(address));
 ```
 
-transaction command가 여러 결과를 반환할 때는 destructuring 또는 배열 인덱스를 사용해 특정 인덱스의 결과에 접근할 수 있다.
+트랜잭션 command가 여러 결과를 반환할 때는 destructuring 또는 배열 인덱스를 사용해 특정 인덱스의 결과에 접근할 수 있다.
 
 ```ts
-// Destructuring(권장, 논리적인 로컬 이름을 붙일 수 있기 때문):
+// Destructuring (preferred, as it gives you logical local names):
 const [nft1, nft2] = tx.moveCall({ target: '0x2::nft::mint_many' });
 tx.transferObjects([nft1, nft2], tx.pure.address(address));
 
-// 배열 인덱스:
+// Array indexes:
 const mintMany = tx.moveCall({ target: '0x2::nft::mint_many' });
 tx.transferObjects([mintMany[0], mintMany[1]], tx.pure.address(address));
 ```
 
-## gas coin 사용
+## 가스 코인 사용
 
-PTB에서는 `splitCoin`을 사용해 설정된 balance를 가진 coin을 gas payment coin으로부터 구성할 수 있다.
-이는 SUI 결제에 유용하며 사전 coin 선택이 필요하지 않게 해준다.
-`tx.gas`를 사용해 PTB 안에서 gas coin에 접근할 수 있으며, 어떤 인자에도 유효한 입력으로 사용할 수 있다.
+PTB에서는 `splitCoin`을 사용해 설정된 balance를 가진 코인을 gas payment 코인으로부터 구성할 수 있다.
+이는 SUI 결제에 유용하며 사전 코인 선택이 필요하지 않게 해준다.
+`tx.gas`를 사용해 PTB 안에서 가스 코인에 접근할 수 있으며, 어떤 인자에도 유효한 입력으로 사용할 수 있다.
 `transferObjects`를 제외하면 `tx.gas`는 reference로 사용되어야 한다.
-즉 `mergeCoins`로 gas coin에 coin을 더하거나 `moveCall`을 통해 Move 함수에 빌려줄 수도 있다.
+즉 `mergeCoins`로 가스 코인에 코인을 더하거나 `moveCall`을 통해 Move 함수에 빌려줄 수도 있다.
 
-모든 coin balance를 다른 address로 보내고 싶다면 `transferObjects`를 사용해 gas coin을 전송할 수 있다.
-wallet 안의 다른 coin은 해당 `Object ID`를 사용해 전송할 수도 있다.
+모든 코인 balance를 다른 address로 보내고 싶다면 `transferObjects`를 사용해 가스 코인을 전송할 수 있다.
+wallet 안의 다른 코인은 해당 `Object ID`를 사용해 전송할 수도 있다.
 예를 들면 다음과 같다:
 
 ```ts
@@ -130,11 +130,11 @@ tx.transferObjects([coin], tx.pure.address(address));
 
 ## PTB byte 가져오기
 
-PTB에 서명하거나 실행하는 대신 PTB byte가 필요하다면 transaction builder 자체의 `build` method를 사용할 수 있다.
+PTB에 서명하거나 실행하는 대신 PTB byte가 필요하다면 트랜잭션 builder 자체의 `build` method를 사용할 수 있다.
 
 :::tip
 
-PTB의 `sender` field가 채워지도록 하려면 `setSender()`를 명시적으로 호출해야 할 수 있다.
+PTB의 `setSender()` 필드가 채워지도록 하려면 `sender`를 명시적으로 호출해야 할 수 있다.
 보통 이 작업은 signer가 [transaction 서명](/develop/transactions/transaction-auth/auth-overview) 전에 수행하지만, 직접 PTB byte를 생성하는 경우에는 자동으로 수행되지 않는다.
 
 :::
@@ -142,7 +142,7 @@ PTB의 `sender` field가 채워지도록 하려면 `setSender()`를 명시적으
 ```ts
 const tx = new Transaction();
 
-// ... transaction을 몇 개 추가한다...
+// ... add some transactions...
 
 await tx.build({ provider });
 ```
@@ -158,34 +158,34 @@ const tx = Transaction.from(bytes);
 ## offline build
 
 `provider`가 필요 없도록 PTB를 오프라인에서 build하려면 모든 입력 값과 gas 구성을 완전히 정의해야 한다.
-pure value에는 transaction에서 직접 사용하는 `Uint8Array`를 제공할 수 있다.
-object에는 `Inputs` helper를 사용해 object reference를 구성할 수 있다.
+pure value에는 트랜잭션에서 직접 사용하는 `Uint8Array`를 제공할 수 있다.
+객체에는 `Inputs` helper를 사용해 객체 reference를 구성할 수 있다.
 
 ```ts
 import { Inputs } from '@mysten/sui/transactions';
 
-// pure value의 경우:
+// For pure values:
 tx.pure(pureValueAsBytes);
 
-// owned 또는 immutable object의 경우:
+// For owned or immutable objects:
 tx.object(Inputs.ObjectRef({ digest, objectId, version }));
 
-// shared object의 경우:
+// For shared objects:
 tx.object(Inputs.SharedObjectRef({ objectId, initialSharedVersion, mutable }));
 ```
 
-그런 다음 transaction에 대해 `build`를 호출할 때 `provider` object를 생략할 수 있다.
+그런 다음 트랜잭션에 대해 `provider`를 호출할 때 `build` 객체를 생략할 수 있다.
 필수 데이터가 누락되어 있으면 error가 발생한다.
 
 ## gas 구성
 
-transaction builder는 gas price, budget, gas로 사용할 coin 선택을 포함해 모든 gas 로직에 대한 기본 동작을 제공한다.
+트랜잭션 builder는 가스 가격, budget, gas로 사용할 코인 선택을 포함해 모든 gas 로직에 대한 기본 동작을 제공한다.
 이 동작은 사용자화할 수 있다.
 
-### gas price
+### 가스 가격
 
-기본적으로 SDK는 gas price를 network의 reference gas price로 설정한다.
-`setGasPrice`를 transaction builder에 호출해 PTB의 gas price를 명시적으로 설정할 수도 있다:
+기본적으로 SDK는 가스 가격를 network의 reference 가스 가격로 설정한다.
+`setGasPrice`를 트랜잭션 builder에 호출해 PTB의 가스 가격를 명시적으로 설정할 수도 있다:
 
 ```ts
 tx.setGasPrice(gasPrice);
@@ -193,13 +193,13 @@ tx.setGasPrice(gasPrice);
 
 ### budget
 
-기본적으로 SDK는 먼저 PTB의 dry-run을 실행해 gas budget을 자동으로 산정한다.
-그 다음 SDK는 dry run gas consumption을 사용해 transaction에 필요한 balance를 결정한다.
-이 동작은 transaction builder의 `setGasBudget`을 사용해 transaction의 gas budget을 명시적으로 설정함으로써 재정의할 수 있다.
+기본적으로 SDK는 먼저 PTB의 dry-run을 실행해 가스 예산을 자동으로 산정한다.
+그 다음 SDK는 dry run gas consumption을 사용해 트랜잭션에 필요한 balance를 결정한다.
+이 동작은 트랜잭션 builder의 `setGasBudget`을 사용해 트랜잭션의 가스 예산을 명시적으로 설정함으로써 재정의할 수 있다.
 
 :::info
 
-Sui는 gas budget을 SUI로 표현하므로 PTB의 gas price를 고려해야 한다.
+Sui는 가스 예산을 SUI로 표현하므로 PTB의 가스 가격를 고려해야 한다.
 
 :::
 
@@ -210,17 +210,18 @@ tx.setGasBudget(gasBudgetAmount);
 ### gas payment
 
 기본적으로 SDK는 gas payment를 자동으로 결정한다.
-PTB의 입력으로 사용되지 않는, 제공된 address의 모든 coin을 선택한다.
+PTB의 입력으로 사용되지 않는, 제공된 address의 모든 코인을 선택한다.
 
-SDK는 PTB를 실행하기 전에 gas payment에 사용하는 coin 목록을 하나의 gas coin으로 병합하고, gas object 중 1개를 제외한 나머지를 모두 삭제한다.
-0 인덱스의 gas coin이 나머지 coin이 병합되는 대상이다.
+SDK는 PTB를 실행하기 전에 gas payment에 사용하는 코인 목록을 하나의 가스 코인으로 병합하고, gas 객체 중 1개를 제외한 나머지를 모두 삭제한다.
+0 인덱스의 가스 코인이 나머지 코인이 병합되는 대상이다.
 
 ```ts
-// 참고: coin이 PTB의 어떤 입력 object와도 겹치지 않도록 해야 한다.
+// NOTE: You need to ensure that the coins do not overlap with any
+// of the input objects for the PTB.
 tx.setGasPayment([coin1, coin2]);
 ```
 
-Gas coin은 coin의 `{ objectId: string, version: string | number, digest: string }`을 담은 object여야 한다.
+Gas 코인은 코인의 `{ objectId: string, version: string | number, digest: string }`을 담은 객체여야 한다.
 
 ### App / Wallet integration
 
@@ -229,27 +230,27 @@ Gas coin은 coin의 `{ objectId: string, version: string | number, digest: strin
 그런 다음 이 PTB 클래스를 serialize하여 wallet으로 보내 실행할 수 있다.
 
 wallet으로 보낼 PTB를 serialize하려면 Sui는 불투명한 문자열 표현을 반환하는 `tx.serialize()` 함수 사용을 권장하며, 이 문자열은 Wallet Standard 앱 컨텍스트에서 wallet로 전달될 수 있다.
-그다음 `Transaction.from()`을 사용해 이를 다시 `Transaction`으로 변환할 수 있다.
+그다음 `Transaction`을 사용해 이를 다시 `Transaction.from()`으로 변환할 수 있다.
 
 :::tip
 
 앱 코드에서 byte로부터 PTB를 build해서는 안 된다.
-`build` 대신 `serialize`를 사용하면 wallet 자체 안에서 PTB byte를 build할 수 있다.
-이렇게 하면 wallet이 필요에 따라 gas 로직과 coin 선택을 수행할 수 있다.
+`serialize` 대신 `build`를 사용하면 wallet 자체 안에서 PTB byte를 build할 수 있다.
+이렇게 하면 wallet이 필요에 따라 gas 로직과 코인 선택을 수행할 수 있다.
 
 :::
 
 ```ts
-// 앱 내부
+// Within an app
 const tx = new Transaction();
 wallet.signTransaction({ transaction: tx });
 
-// Wallet Standard 코드 내부:
+// Your Wallet Standard code:
 function handleSignTransaction(input) {
 	sendToWalletContext({ transaction: input.transaction.serialize() });
 }
 
-// wallet 컨텍스트 내부:
+// Within your wallet context:
 function handleSignRequest(input) {
 	const userTx = Transaction.from(input.transaction);
 }
@@ -261,14 +262,14 @@ PTB builder는 PTB를 build할 때 `onlyTransactionKind` flag를 사용함으로
 
 ```ts
 const tx = new Transaction();
-// ... transaction을 몇 개 추가한다...
+// ... add some transactions...
 
 const kindBytes = await tx.build({ provider, onlyTransactionKind: true });
 
-// kind bytes에서 sponsored transaction을 구성한다:
+// Construct a sponsored transaction from the kind bytes:
 const sponsoredTx = Transaction.fromKind(kindBytes);
 
-// 이제 필요한 sponsored transaction 데이터를 설정할 수 있다:
+// You can now set the sponsored transaction data that is required:
 sponsoredTx.setSender(sender);
 sponsoredTx.setGasOwner(sponsor);
 sponsoredTx.setGasPayment(sponsorCoins);

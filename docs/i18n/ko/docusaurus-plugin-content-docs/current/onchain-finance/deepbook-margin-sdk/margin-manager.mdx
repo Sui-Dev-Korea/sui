@@ -1,7 +1,7 @@
 ---
 title: 마진 매니저 SDK
 sidebar_label: 마진 매니저 SDK
-description: DeepBook Margin SDK를 사용해 margin account와 leveraged position을 관리하는 방법을 설명한다.
+description: DeepBook Margin SDK를 사용해 margin 계정와 leveraged 포지션을 관리하는 방법을 설명한다.
 keywords:
   [
     margin manager,
@@ -17,39 +17,39 @@ keywords:
 ---
 
 
-margin account를 관리하는 것은 DeepBook에서 leveraged trading을 수행하는 데 필수적이다. Margin Manager SDK는 margin manager 생성, collateral deposit, asset borrow, 그리고 risk 관리에 대한 함수를 제공한다.
+margin 계정을 관리하는 것은 DeepBook에서 leveraged trading을 수행하는 데 필수적이다. Margin Manager SDK는 margin manager 생성, 담보 예치, 자산 차입, 그리고 risk 관리에 대한 함수를 제공한다.
 
-## Margin Manager functions
+## Margin Manager 함수
 
-DeepBook Margin SDK는 margin account를 관리하기 위한 다음 함수를 제공한다.
+DeepBook Margin SDK는 margin 계정을 관리하기 위한 다음 함수를 제공한다.
 
 ### `newMarginManager`
 
-하나의 transaction에서 새 margin manager를 생성하고 공유하려면 `newMarginManager`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+하나의 트랜잭션에서 새 margin manager를 생성하고 공유하려면 `newMarginManager`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `poolKey`: DeepBook pool을 식별하는 String이다.
+- `poolKey`: DeepBook 풀을 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="newMarginManager" signatureOnly />
 
 ### `newMarginManagerWithInitializer`
 
-margin manager를 생성하고 initializer와 함께 반환하려면 `newMarginManagerWithInitializer`를 사용한다. 이후 이를 공유하기 위해 `shareMarginManager`를 호출해야 한다. 이 호출은 `manager`와 `initializer`를 포함하는 object를 반환한다.
+margin manager를 생성하고 initializer와 함께 반환하려면 `newMarginManagerWithInitializer`를 사용한다. 이후 이를 공유하기 위해 `shareMarginManager`를 호출해야 한다. 이 호출은 `manager`와 `initializer`를 포함하는 객체를 반환한다.
 
 **매개변수**
 
-- `poolKey`: DeepBook pool을 식별하는 String이다.
+- `poolKey`: DeepBook 풀을 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="newMarginManagerWithInitializer" signatureOnly />
 
 ### `shareMarginManager`
 
-`newMarginManagerWithInitializer`로 생성한 margin manager를 공유하려면 `shareMarginManager`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+`shareMarginManager`로 생성한 margin manager를 공유하려면 `newMarginManagerWithInitializer`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `poolKey`: DeepBook pool을 식별하는 String이다.
+- `poolKey`: DeepBook 풀을 식별하는 String이다.
 - `manager`: margin manager를 나타내는 `TransactionArgument`이다.
 - `initializer`: initializer를 나타내는 `TransactionArgument`이다.
 
@@ -57,32 +57,32 @@ margin manager를 생성하고 initializer와 함께 반환하려면 `newMarginM
 
 ### `depositDuringInitialization`
 
-`depositDuringInitialization`을 사용해 margin manager 생성 중, 공유되기 전에 자금을 deposit한다. 이는 `newMarginManagerWithInitializer`와 같은 transaction 안에서, `shareMarginManager`보다 먼저 호출해야 한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+`depositDuringInitialization`을 사용해 margin manager 생성 중, 공유되기 전에 자금을 예치한다. 이는 `newMarginManagerWithInitializer`와 같은 트랜잭션 안에서, `shareMarginManager`보다 먼저 호출해야 한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `manager`: `newMarginManagerWithInitializer`가 반환한 margin manager를 나타내는 `TransactionArgument`이다.
-- `poolKey`: DeepBook pool을 식별하는 String이다.
-- `coinType`: deposit할 coin type을 식별하는 String이다(예: `'SUI'`, `'DBUSDC'`, `'DEEP'`).
-- `amount`: deposit할 amount를 나타내는 Number이다(`amount` 또는 `coin` 중 하나만 제공한다).
-- `coin`: deposit할 coin object를 나타내는 `TransactionArgument`이다(`amount` 또는 `coin` 중 하나만 제공한다).
+- `manager`: `TransactionArgument`가 반환한 margin manager를 나타내는 `newMarginManagerWithInitializer`이다.
+- `poolKey`: DeepBook 풀을 식별하는 String이다.
+- `coinType`: 예치할 코인 타입을 식별하는 String이다(예: `'SUI'`, `'DBUSDC'`, `'DEEP'`).
+- `amount`: 예치할 amount를 나타내는 Number이다(`amount` 또는 `coin` 중 하나만 제공한다).
+- `coin`: 예치할 코인 객체를 나타내는 `TransactionArgument`이다(`amount` 또는 `coin` 중 하나만 제공한다).
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="depositDuringInitialization" signatureOnly />
 
 ### `depositBase`, `depositQuote`, `depositDeep`
 
-이 함수를 사용해 margin manager에 asset을 deposit한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+이 함수를 사용해 margin manager에 자산을 예치한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
 - `managerKey`: margin manager를 식별하는 String이다.
-- `amount`: deposit할 amount를 나타내는 Number이다.
+- `amount`: 예치할 amount를 나타내는 Number이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="depositBase,depositQuote,depositDeep" signatureOnly />
 
 ### `withdrawBase`, `withdrawQuote`, `withdrawDeep`
 
-이 함수를 사용해 margin manager에서 asset을 인출한다. 인출은 risk ratio limit의 적용을 받는다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+이 함수를 사용해 margin manager에서 자산을 인출한다. 인출은 risk ratio limit의 적용을 받는다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
@@ -93,42 +93,42 @@ margin manager를 생성하고 initializer와 함께 반환하려면 `newMarginM
 
 ### `borrowBase`, `borrowQuote`
 
-이 함수를 사용해 margin pool에서 asset을 borrow한다. borrow는 risk ratio limit의 적용을 받는다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+이 함수를 사용해 마진 풀에서 자산을 차입한다. 차입는 risk ratio limit의 적용을 받는다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
 - `managerKey`: margin manager를 식별하는 String이다.
-- `amount`: borrow할 amount를 나타내는 Number이다.
+- `amount`: 차입할 amount를 나타내는 Number이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="borrowBase,borrowQuote" signatureOnly />
 
 ### `repayBase`, `repayQuote`
 
-이 함수를 사용해 borrow한 asset을 repay한다. amount를 지정하지 않으면, 총 debt까지 사용 가능한 최대 balance를 repay한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+이 함수를 사용해 차입한 자산을 상환한다. amount를 지정하지 않으면, 총 debt까지 사용 가능한 최대 잔액을 상환한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
 - `managerKey`: margin manager를 식별하는 String이다.
-- `amount`: repay할 amount를 나타내는 optional Number이다.
+- `amount`: 상환할 amount를 나타내는 optional Number이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="repayBase,repayQuote" signatureOnly />
 
 ### `liquidate`
 
-담보가 부족한 margin manager를 liquidation하려면 `liquidate`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+담보가 부족한 margin manager를 liquidation하려면 `liquidate`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `managerAddress`: liquidation할 margin manager의 address를 나타내는 String이다.
-- `poolKey`: DeepBook pool을 식별하는 String이다.
-- `debtIsBase`: debt가 base asset인지 여부를 나타내는 Boolean이다.
-- `repayCoin`: 상환에 사용할 coin을 나타내는 `TransactionArgument`이다.
+- `managerAddress`: liquidation할 margin manager의 주소를 나타내는 String이다.
+- `poolKey`: DeepBook 풀을 식별하는 String이다.
+- `debtIsBase`: debt가 베이스 자산인지 여부를 나타내는 Boolean이다.
+- `repayCoin`: 상환에 사용할 코인을 나타내는 `TransactionArgument`이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="liquidate" signatureOnly />
 
 ### `setMarginManagerReferral`
 
-margin manager에 대해 pool-specific referral을 설정하려면 `setMarginManagerReferral`을 사용한다. referral은 margin manager와 연관된 pool에 대해 mint된 `DeepBookPoolReferral`이어야 한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+margin manager에 대해 풀-specific referral을 설정하려면 `setMarginManagerReferral`을 사용한다. referral은 margin manager와 연관된 풀에 대해 민트된 `DeepBookPoolReferral`이어야 한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
@@ -139,22 +139,22 @@ margin manager에 대해 pool-specific referral을 설정하려면 `setMarginMan
 
 ### `unsetMarginManagerReferral`
 
-특정 pool에 대해 margin manager에서 referral 연관 관계를 제거하려면 `unsetMarginManagerReferral`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+특정 풀에 대해 margin manager에서 referral 연관 관계를 제거하려면 `unsetMarginManagerReferral`을 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
 - `managerKey`: margin manager를 식별하는 String이다.
-- `poolKey`: DeepBook pool을 식별하는 String이다.
+- `poolKey`: DeepBook 풀을 식별하는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="unsetMarginManagerReferral" signatureOnly />
 
-## read-only function
+## read-only 함수
 
 다음 함수는 margin manager state를 수정하지 않고 쿼리한다.
 
 ### `managerState`
 
-risk ratio, assets, debts, Pyth price data를 포함한 margin manager의 종합 state 정보를 쿼리한다.
+risk ratio, 자산, debts, Pyth price data를 포함한 margin manager의 종합 state 정보를 쿼리한다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="managerState" signatureOnly />
 
@@ -166,19 +166,19 @@ risk ratio, assets, debts, Pyth price data를 포함한 margin manager의 종합
 
 ### `baseBalance`, `quoteBalance`, `deepBalance`
 
-Margin manager가 보유한 개별 asset balances를 쿼리한다.
+Margin manager가 보유한 개별 자산 잔액을 쿼리한다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="baseBalance,quoteBalance,deepBalance" signatureOnly />
 
 ### `borrowedShares`, `borrowedBaseShares`, `borrowedQuoteShares`, `hasBaseDebt`
 
-borrowed position 정보를 쿼리한다.
+borrowed 포지션 정보를 쿼리한다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="borrowedShares,borrowedBaseShares,borrowedQuoteShares,hasBaseDebt" signatureOnly />
 
 ### `balanceManager`, `calculateAssets`, `calculateDebts`
 
-balance와 debt 정보를 쿼리한다.
+잔액와 debt 정보를 쿼리한다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginManager.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="balanceManager,calculateAssets,calculateDebts" signatureOnly />
 
@@ -190,59 +190,59 @@ balance와 debt 정보를 쿼리한다.
 
 ```tsx
 /**
- * @description 새 margin manager를 생성한다
- * @param {string} poolKey pool을 식별하는 키
- * @returns Transaction object를 받는 함수를 반환한다
+ * @description Create a new margin manager
+ * @param {string} poolKey The key to identify the pool
+ * @returns A function that takes a Transaction object
  */
 newMarginManager = (poolKey: string) => (tx: Transaction) => {};
 
-// 예시 사용
+// Example usage
 createMarginManager = (tx: Transaction) => {
 	const poolKey = 'SUI_DBUSDC';
 	tx.add(this.marginContract.newMarginManager(poolKey));
 };
 ```
 
-### collateral deposit
+### 담보 예치
 
 ```tsx
-// 예시: 담보로 SUI 100을 예치한다
+// Example: Deposit 100 SUI as collateral
 depositCollateral = (tx: Transaction) => {
 	const managerKey = 'MARGIN_MANAGER_1';
 	tx.add(this.marginContract.depositBase(managerKey, 100));
 };
 ```
 
-### asset borrow
+### 자산 차입
 
 ```tsx
-// 예시: USDC 500을 차입한다
+// Example: Borrow 500 USDC
 borrowFunds = (tx: Transaction) => {
 	const managerKey = 'MARGIN_MANAGER_1';
 	tx.add(this.marginContract.borrowQuote(managerKey, 500));
 };
 ```
 
-### loan repay
+### loan 상환
 
 ```tsx
-// 예시: 차입한 모든 quote asset을 상환한다
+// Example: Repay all borrowed quote assets
 repayLoan = (tx: Transaction) => {
 	const managerKey = 'MARGIN_MANAGER_1';
-	// amount를 지정하지 않으면 전부 상환한다
+	// No amount specified = repay all
 	tx.add(this.marginContract.repayQuote(managerKey));
 };
 ```
 
-### position liquidate
+### 포지션 liquidate
 
 ```tsx
-// 예시: 담보 부족 상태의 position을 청산한다
+// Example: Liquidate an undercollateralized position
 liquidatePosition = (tx: Transaction) => {
-	const managerAddress = '0x...'; // 청산할 margin manager의 address
+	const managerAddress = '0x...'; // Address of margin manager to liquidate
 	const poolKey = 'SUI_DBUSDC';
-	const debtIsBase = false; // 부채는 USDC(quote)이다
-	const repayCoin = tx.splitCoins(tx.gas, [500 * 1_000_000]); // 금액은 USDC 500이다
+	const debtIsBase = false; // Debt is in USDC (quote)
+	const repayCoin = tx.splitCoins(tx.gas, [500 * 1_000_000]); // 500 USDC
 	tx.add(this.marginContract.liquidate(managerAddress, poolKey, debtIsBase, repayCoin));
 };
 ```

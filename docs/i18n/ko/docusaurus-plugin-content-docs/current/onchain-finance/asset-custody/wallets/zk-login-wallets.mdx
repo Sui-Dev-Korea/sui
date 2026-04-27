@@ -1,28 +1,28 @@
 ---
-title: zkLogin wallet
-description: Sui에서 zkLogin wallet이 동작하는 방식, Enoki와 Playtron wallet 같은 예시, Sui TypeScript SDK를 사용해 zkLogin을 app에 통합하는 방법을 알아본다.
+title: zkLogin 지갑
+description: Sui에서 zkLogin 지갑이 동작하는 방식, Enoki와 Playtron 지갑 같은 예시, Sui TypeScript SDK를 사용해 zkLogin을 app에 통합하는 방법을 알아본다.
 keywords: [ zkLogin, zero-knowledge login, wallet, enoki, playtron, suiplay0x1, sponsored transactions, oauth, jwt, ephemeral key pair, dapp kit ]
 ---
 
-zkLogin wallet은 전통적인 private key 또는 recovery passphrase 대신 OAuth credential에서 Sui address를 derive한다. 사용자는 이미 사용하는 provider(Google, Apple, Twitch 등)로 sign in하고, wallet은 해당 credential에 연결된 Sui address를 생성한다. seed phrase는 생성되지 않으며, OAuth provider는 persistent private key를 저장하지 않는다. [zkLogin은 Sui native primitive](/sui-stack/zklogin-integration/zklogin)이며, onchain application을 처음 사용하는 사용자의 key management 부담을 없애도록 설계되었다.
+zkLogin 지갑은 전통적인 개인 키 또는 복구 패스프레이즈 대신 OAuth credential에서 Sui 주소를 derive한다. 사용자는 이미 사용하는 provider(Google, Apple, Twitch 등)로 sign in하고, 지갑은 해당 credential에 연결된 Sui 주소를 생성한다. seed phrase는 생성되지 않으며, OAuth provider는 persistent 개인 키를 저장하지 않는다. [zkLogin은 Sui native primitive](/sui-stack/zklogin-integration/zklogin)이며, onchain 애플리케이션을 처음 사용하는 사용자의 key 관리 부담을 없애도록 설계되었다.
 
-## zkLogin wallet 동작 방식
+## zkLogin 지갑 동작 방식
 
-높은 수준에서 zkLogin wallet은 다음과 같이 동작한다:
+높은 수준에서 zkLogin 지갑은 다음과 같이 동작한다:
 
 1. app은 제한된 수의 epoch 동안 유효한 [ephemeral key pair](/sui-stack/zklogin-integration/zklogin#how-zklogin-works)를 생성한다.
-2. 사용자는 OAuth provider로 authenticate한다. provider는 ephemeral public key에서 derive된 nonce를 포함하는 [JSON Web Token(JWT) 설명](/sui-stack/zklogin-integration/zklogin#json-web-tokenjwt-설명)을 반환한다.
+2. 사용자는 OAuth provider로 authenticate한다. provider는 ephemeral 공개 키에서 derive된 nonce를 포함하는 [JSON Web Token(JWT) 설명](/sui-stack/zklogin-integration/zklogin#json-web-token-jwt)을 반환한다.
 3. app 또는 proving service는 JWT를 사용해 zero-knowledge proof (ZKP)를 생성한다. 이 proof는 credential을 onchain에 공개하지 않고도 사용자가 유효한 OAuth credential을 보유함을 확인한다.
-4. app은 JWT, [per-user salt 설명](/sui-stack/zklogin-integration/zklogin#user-salt-설명), issuer URL을 사용해 사용자의 [stable Sui address derive](/sui-stack/zklogin-integration/zklogin#address-definition-정의)를 수행한다. 동일한 credential은 지정된 app 및 salt에 대해 항상 같은 address를 생성한다.
-5. transaction은 [ephemeral private key 설명](/sui-stack/zklogin-integration/zklogin#ephemeral-private-key-설명)으로 signing되고 ZKP와 함께 제출된다. validator는 proof를 verify하고 transaction을 실행한다.
+4. app은 JWT, [per-user salt 설명](/sui-stack/zklogin-integration/zklogin#user-salt), issuer URL을 사용해 사용자의 [stable Sui 주소 derive](/sui-stack/zklogin-integration/zklogin#address-definition)를 수행한다. 동일한 credential은 지정된 app 및 salt에 대해 항상 같은 주소를 생성한다.
+5. 트랜잭션은 [ephemeral 개인 키 설명](/sui-stack/zklogin-integration/zklogin#ephemeral-private-key)으로 signing되고 ZKP와 함께 제출된다. validator는 proof를 verify하고 트랜잭션을 실행한다.
 
-zkLogin은 two-factor scheme이므로 OAuth account를 compromise한 attacker라도 per-user salt까지 compromise하지 않는 한 transaction에 signing할 수 없다.
+zkLogin은 two-factor scheme이므로 OAuth 계정을 compromise한 attacker라도 per-user salt까지 compromise하지 않는 한 트랜잭션에 signing할 수 없다.
 
 ## Enoki
 
-[Enoki](https://enoki.mystenlabs.com/)는 zkLogin과 sponsored transaction을 단순한 API 뒤에 감싼 Mysten Labs platform이다. proof generation, salt storage, OAuth configuration을 직접 관리하는 대신 Enoki Developer Portal에 app을 등록하고 OAuth provider를 구성한 뒤 [`@mysten/enoki` SDK](https://docs.enoki.mystenlabs.com/)로 나머지를 처리한다.
+[Enoki](https://enoki.mystenlabs.com/)는 zkLogin과 sponsored 트랜잭션을 단순한 API 뒤에 감싼 Mysten Labs platform이다. proof generation, salt storage, OAuth configuration을 직접 관리하는 대신 Enoki Developer Portal에 app을 등록하고 OAuth provider를 구성한 뒤 [`@mysten/enoki` SDK](https://docs.enoki.mystenlabs.com/)로 나머지를 처리한다.
 
-Enoki는 [Wallet Standard](/onchain-finance/asset-custody/wallets/wallet-standard)를 구현하며 `registerEnokiWallets`를 통해 [Sui dApp Kit](https://sdk.mystenlabs.com/dapp-kit)과 통합된다. 등록되면 설치된 다른 wallet과 함께 표준 connection UI에 표시된다.
+Enoki는 [Wallet Standard](/onchain-finance/asset-custody/wallets/wallet-standard)를 구현하며 `registerEnokiWallets`를 통해 [Sui dApp Kit](https://sdk.mystenlabs.com/dapp-kit)과 통합된다. 등록되면 설치된 다른 지갑과 함께 표준 connection UI에 표시된다.
 
 <ImportContent
   source="/packages/enoki/src/wallet/register.ts"
@@ -33,15 +33,15 @@ Enoki는 [Wallet Standard](/onchain-finance/asset-custody/wallets/wallet-standar
   noComments
 />
 
-## Playtron wallet
+## Playtron 지갑
 
-[Playtron](https://www.playtron.one/) wallet은 [SuiPlay0X1](/sui-stack/suiplay0x1/wallet-integration)의 default zkLogin wallet이다. 모든 SuiPlay0X1 사용자는 Playtron account를 가지며, 모든 Playtron account에는 해당 credential에서 derive된 zkLogin wallet이 연결되어 있다.
+[Playtron](https://www.playtron.one/) 지갑은 [SuiPlay0X1](/sui-stack/suiplay0x1/wallet-integration)의 기본값 zkLogin 지갑이다. 모든 SuiPlay0X1 사용자는 Playtron 계정을 가지며, 모든 Playtron 계정에는 해당 credential에서 derive된 zkLogin 지갑이 연결되어 있다.
 
-SuiPlay0X1에서 실행되는 game은 Playtron wallet을 default option으로 지원해야 한다. 해당 game의 off-device version은 Sui dApp Kit을 사용해 사용자가 web interface를 통해 Playtron wallet을 연결할 수 있게 해야 한다.
+SuiPlay0X1에서 실행되는 game은 Playtron 지갑을 기본값 option으로 지원해야 한다. 해당 game의 off-device version은 Sui dApp Kit을 사용해 사용자가 web interface를 통해 Playtron 지갑을 연결할 수 있게 해야 한다.
 
 ## zkLogin SDK
 
-[Sui TypeScript SDK의 `@mysten/sui/zklogin` module](https://sdk.mystenlabs.com/sui/zklogin)은 Enoki 같은 managed service 없이 zkLogin wallet과 app을 직접 build하기 위한 utility를 제공한다. proof generation, salt management, address derivation을 완전히 제어해야 할 때 이 SDK를 사용한다.
+[Sui TypeScript SDK의 `@mysten/sui/zklogin` 모듈](https://sdk.mystenlabs.com/sui/zklogin)은 Enoki 같은 managed service 없이 zkLogin 지갑과 app을 직접 build하기 위한 utility를 제공한다. proof generation, salt 관리, 주소 derivation을 완전히 제어해야 할 때 이 SDK를 사용한다.
 
 Sui TypeScript SDK를 설치한다:
 
@@ -53,7 +53,7 @@ npm i @mysten/sui
 
 모든 zkLogin utility는 `@mysten/sui/zklogin`에서 export된다.
 
-**JWT에서 Sui address derive:**
+**JWT에서 Sui 주소 derive:**
 
 <ImportContent
   source="/packages/sui/src/zklogin/address.ts"
@@ -64,7 +64,7 @@ npm i @mysten/sui
   noComments
 />
 
-**parsed JWT에서 address derive:**
+**parsed JWT에서 주소 derive:**
 
 <ImportContent
   source="/packages/sui/src/zklogin/address.ts"
@@ -75,7 +75,7 @@ npm i @mysten/sui
   noComments
 />
 
-**address seed에서 address derive:**
+**주소 seed에서 주소 derive:**
 
 <ImportContent
   source="/packages/sui/src/zklogin/address.ts"
@@ -86,7 +86,7 @@ npm i @mysten/sui
   noComments
 />
 
-**transaction 제출을 위해 zkLogin signature serialize:**
+**트랜잭션 제출을 위해 zkLogin signature serialize:**
 
 <ImportContent
   source="/packages/sui/src/zklogin/signature.ts"
@@ -110,7 +110,7 @@ npm i @mysten/sui
 
 ### proof generation
 
-Sui TypeScript SDK는 address derivation과 signature serialization을 처리하지만 ZKP를 생성하지는 않는다. proof generation에는 prover service가 필요하다:
+Sui TypeScript SDK는 주소 derivation과 signature serialization을 처리하지만 ZKP를 생성하지는 않는다. proof generation에는 prover service가 필요하다:
 
-- **Mysten Labs prover:** Mysten Labs가 유지 관리하는 publicly accessible proving service이다. Testnet 및 Devnet development에 적합하다. endpoint와 request format은 [zkLogin 통합 가이드](/sui-stack/zklogin-integration)를 참조한다.
+- **Mysten Labs prover:** Mysten Labs가 유지 관리하는 publicly accessible proving service이다. Testnet 및 Devnet development에 적합하다. endpoint와 요청 format은 [zkLogin 통합 가이드](/sui-stack/zklogin-integration)를 참조한다.
 - **self-hosted prover:** proving infrastructure를 완전히 제어해야 하는 production environment에서 자체 prover를 실행한다.

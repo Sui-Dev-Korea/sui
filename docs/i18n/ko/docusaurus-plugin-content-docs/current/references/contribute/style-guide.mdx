@@ -371,13 +371,13 @@ True / False 또는 True/False와 같이 "and" 또는 "or" 대신 슬래시를 �
 
 #### Heading size 크기
 
-- Heading 1: (#) 페이지 제목에만 사용된다. frontmatter에 타이틀이 지정되면 해당 타이틀이 Heading 1 요소로 페이지가 자동으로 포맷된다.
+- **Heading 1** (`#`): 페이지 제목에만 사용된다. frontmatter에 타이틀이 지정되면 해당 타이틀이 Heading 1 요소로 페이지가 자동으로 포맷된다.
 
-- Heading 2: (##) 최상위 섹션 제목이다. 페이지에서 새 주제를 도입하는 데 사용된다.
+- **Heading 2** (`##`): 최상위 섹션 제목이다. 페이지에서 새 주제를 도입하는 데 사용된다.
 
-- Heading 3: (###) 각 Heading 2의 하위 주제이다. 최상위 제목 아래에 여러 개념을 도입하는 데 사용된다.
+- **Heading 3** (`###`): 각 Heading 2의 하위 주제이다. 최상위 제목 아래에 여러 개념을 도입하는 데 사용된다.
 
-- Heading 4: (####) 각 Heading 3의 하위 주제이다. Heading 3 주제에 대한 예제를 도입하거나 하위 섹션을 구별되게 포맷하는 데 사용된다.
+- **Heading 4** (`####`): 각 Heading 3의 하위 주제이다. Heading 3 주제에 대한 예제를 도입하거나 하위 섹션을 구별되게 포맷하는 데 사용된다.
 
 - Heading 5: (#####) 각 Heading 4의 하위 주제이다. 포맷하면 굵은 본문 텍스트와 동일하게 보이지만 약간 더 크다. 다음과 같은 다른 요소 내에서 고유한 포맷을 만들기 위해 굵은 텍스트의 대안으로도 사용할 수 있다:
 
@@ -612,7 +612,7 @@ Metric name | 10 | X | Text string.
 
 #### Inline code 표기 {#inline-code}
 
-인라인 코드 주위에 백틱(`)을 사용한다.
+인라인 코드 주위에 백틱(\`)을 사용한다.
 
 항상 인라인 코드로 포맷해야 하는 것들(본문 및 제목):
 
@@ -634,7 +634,7 @@ Metric name | 10 | X | Text string.
 
 #### Console command 표기
 
-콘솔 명령은 세 개의 백틱(```)으로 포맷하고 `$`로 시작해야 한다.
+콘솔 명령은 세 개의 백틱(\`\`\`)으로 포맷하고 `$`로 시작해야 한다.
 
 > 예시:
 
@@ -658,7 +658,7 @@ $ brew install sui
 > 2. Seven lines begin with the `use` keyword, which enables this module to use types and functions declared in other modules (in this case, they are all coming from the Sui standard library).
 > 3. Two error codes. These codes are used in assertions and unit tests to ensure that the program is running as intended.
 
-세 개의 백틱(```)으로 시작하고, 적절한 구문 강조를 위해 코드 언어(Rust, Move 등)와 파일 이름을 나타내는 타이틀을 붙인다.
+세 개의 백틱(\`\`\`)으로 시작하고, 적절한 구문 강조를 위해 코드 언어(Rust, Move 등)와 파일 이름을 나타내는 타이틀을 붙인다.
 
 <Tabs>
 <TabItem value="example" label="Example" default>
@@ -819,20 +819,20 @@ Deploy the contract.
 <TabItem value="markdown" label="Markdown">
 
 ```
-### macOS에 install
+### Install on macOS
 
-##### Step 1: dependency install 실행
+##### Step 1: Install dependencies
 ...
 
-##### Step 2: installer 실행
+##### Step 2: Run the installer
 ...
 
-### Linux에 install
+### Install on Linux
 
-##### Step 1: package list update 실행
+##### Step 1: Update package lists
 ...
 
-##### Step 2: installer 실행
+##### Step 2: Run the installer
 ...
 ```
 
@@ -937,7 +937,7 @@ Walrus documentation 페이지에서는 prerequisites에 다음 outlined tab com
 <TabItem value="markdown" label="Markdown">
 
 ```markdown
-자세한 내용은 [앱 예시](/onchain-finance/examples-patterns)를 참조한다.
+To learn more, see [Examples of Sui Smart Contracts](/getting-started/).
 
 ```
 
@@ -1020,8 +1020,8 @@ INFO: Sui node is now running
 <TabItem value="markdown" label="Markdown">
 
 ````markdown
-<details>
-<summary>View full command output</summary>
+
+View full command output
 
 ```
 Compiling dependencies...
@@ -1164,7 +1164,7 @@ note 알림은 유효한 admonition이지만 시각적 스타일이 다른 지�
 
 :::note
 
-This section applies only if you're using the Devnet.
+This section applies only if you're using Devnet.
 
 :::
 
@@ -1284,7 +1284,7 @@ Index page는 카테고리용 landing page를 제공하고 사용자가 사이�
 
 ```mdx
 ---
-title: 페이지 제목
+title: Page Title
 description: A brief description of the page.
 keywords: [ keywords, describing, topics, on, page ]
 pagination_prev: null

@@ -5,7 +5,7 @@ keywords: [ zklogin, how to integrate zklogin, oauth, openID, integrate openID, 
 ---
 
 
-앱에 zkLogin을 통합하려면 [available providers](#openid-provider) 중 적어도 하나의 OAuth client가 필요하다.
+앱에 zkLogin을 통합하려면 [available providers](#openid-providers) 중 적어도 하나의 OAuth client가 필요하다.
 이 provider들의 Client ID와 redirect URI를 zkLogin 프로젝트에서 사용하게 된다.
 예를 들어 다음 TypeScript 코드는 테스트를 위한 Google login URL을 구성한다.
 
@@ -13,12 +13,12 @@ keywords: [ zklogin, how to integrate zklogin, oauth, openID, integrate openID, 
 const REDIRECT_URI = '<YOUR_SITE_URL>';
 
 const params = new URLSearchParams({
-	// OpenID provider로 client ID와 redirect URI를 구성한다
+	// Configure client ID and redirect URI with an OpenID provider
 	client_id: $CLIENT_ID,
 	redirect_uri: $REDIRECT_URI,
 	response_type: 'id_token',
 	scope: 'openid',
-	// nonce 생성에 대한 자세한 내용은 아래를 참조한다
+	// See below for details about generation of the nonce
 	nonce: nonce,
 });
 
@@ -104,9 +104,9 @@ _Kakao에 application을 추가한다_
 
 1. **App Keys**로 이동하면 플랫폼별 해당 client ID를 찾을 수 있다.
 
-- Native app key: Android 또는 iOS SDK를 통해 API를 호출할 때 사용한다.
-- JavaScript key: JavaScript SDK를 통해 API를 호출할 때 사용한다.
-- REST API key: REST API를 통해 API를 호출할 때 사용한다.
+- Native app key: Android 또는 iOS SDK로 API를 호출할 때 사용한다.
+- JavaScript key: JavaScript SDK로 API를 호출할 때 사용한다.
+- REST API key: REST API로 API를 호출할 때 사용한다.
 
 ![2](../../develop/cryptography/images/zklogin-kakao2.png "Find Client ID")
 
@@ -147,7 +147,7 @@ _redirect URL을 설정한다_
 1. [Apple developer account](https://developer.apple.com/)를 등록한다. **Certificates, Identifiers and Profiles** 섹션으로 이동한다.
 
 	![1](../../develop/cryptography/images/zklogin-apple1.png "Click on Certificates, Identifiers and Profiles")
-	
+
 	_여기에서 Certificates, Identifiers and Profiles를 생성할 수 있다_
 
 1. App ID를 생성한다.
@@ -157,7 +157,7 @@ _redirect URL을 설정한다_
     - capability 목록까지 스크롤을 내려 **Sign In with Apple** 옆의 상자를 체크해 활성화한다.
 
 	![1](../../develop/cryptography/images/zklogin-apple2.png "Create an App ID")
-	
+
 	_이렇게 App ID에 대해 Sign In with Apple을 활성화할 수 있다_
 
 1. Services ID를 생성한다.
@@ -182,7 +182,7 @@ _redirect URL을 설정한다_
 	이제 앱의 App ID와 Services ID가 생성되었다. Services ID의 identifier가 OAuth `client_id`이다. 이 예시에서는 `com.example.client`이다.
 
 	![1](../../develop/cryptography/images/zklogin-apple4.png "Set Redirect URL")
-	
+
 	_여기에서 redirect URL을 설정한다_
 
 </TabItem>

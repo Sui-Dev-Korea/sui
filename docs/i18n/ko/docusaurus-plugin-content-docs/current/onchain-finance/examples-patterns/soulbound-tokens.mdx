@@ -1,22 +1,22 @@
 ---
 title: Soulbound NFT
-description: Sui Move struct abilities와 Sui framework transfer module을 사용해 NFT를 soulbound(non-transferable)로 만든다.
+description: Sui Move struct abilities와 Sui 프레임워크 transfer 모듈을 사용해 NFT를 soulbound(non-transferable)로 만든다.
 keywords: [ERC-721, NFT, soulbound]
 ---
 
-Soulbound non-fungible token(NFT)은 transfer할 수 없는 NFT이다. NFT가 Sui account에 mint된 뒤에는 해당 NFT가 그 account에 bound되어 transfer할 수 없다. 이 implementation은 Sui framework `transfer` functions의 custom logic을 사용한다. <UnsafeLink href="/references/framework/sui-framework/sui_sui/transfer">`sui::transfer` module</UnsafeLink>에는 objects를 transfer하는 두 functions인 <UnsafeLink href="/references/framework/sui-framework/sui_sui/transfer#function-transfer">`transfer::transfer`</UnsafeLink>와 <UnsafeLink href="/references/framework/sui-framework/sui_sui/transfer#function-public_transfer">`transfer::public_transfer`</UnsafeLink>가 있다.
+Soulbound non-fungible 토큰(NFT)은 전송할 수 없는 NFT이다. NFT가 Sui 계정에 민트된 뒤에는 해당 NFT가 그 계정에 bound되어 전송할 수 없다. 이 implementation은 Sui 프레임워크 `transfer` 함수의 커스텀 로직을 사용한다. <UnsafeLink href="/references/framework/sui-framework/sui_sui/transfer">`sui::transfer` 모듈</UnsafeLink>에는 객체를 전송하는 두 함수인 <UnsafeLink href="/references/framework/sui-framework/sui_sui/transfer#function-transfer">`transfer::transfer`</UnsafeLink>와 <UnsafeLink href="/references/framework/sui-framework/sui_sui/transfer#function-public_transfer">`transfer::public_transfer`</UnsafeLink>가 있다.
 
-일반적으로 Sui에서 새 NFTs 또는 object types를 정의할 때 transfer function을 만들 필요는 없다. Sui framework가 누구나 objects를 transfer하는 데 사용할 수 있는 `transfer::public_transfer`를 제공하기 때문이다. `transfer::public_transfer`는 transferred objects가 `key`와 `store` abilities를 가져야 한다. 따라서 `key` ability는 있지만(`Sui object`라는 뜻) `store` ability는 없는 새 NFT type을 정의하면 holders는 `transfer::public_transfer`를 사용할 수 없다. 그 결과 soulbound NFT가 된다.
+일반적으로 Sui에서 새 NFTs 또는 객체 타입s를 정의할 때 transfer 함수를 만들 필요는 없다. Sui 프레임워크가 누구나 객체를 전송하는 데 사용할 수 있는 `transfer::public_transfer`를 제공하기 때문이다. `transfer::public_transfer`는 transferred 객체가 `key`와 `store` abilities를 가져야 한다. 따라서 `key` ability는 있지만(Sui 객체라는 뜻) `store` ability는 없는 새 NFT 타입을 정의하면 holders는 `transfer::public_transfer`를 사용할 수 없다. 그 결과 soulbound NFT가 된다.
 
-Sui에서 NFTs에 대한 custom transfer logic도 만들 수 있다. `transfer::transfer` function에는 transferred objects가 transfer가 invoke되는 module에서 정의되었는지 보장하는 Sui Move bytecode verifier의 custom rules가 있다. Struct definition에서 `store` ability를 제거하면 `transfer::public_transfer`는 사용할 수 없지만, 해당 object type을 정의한 module 안에서 invoke하는 한 `transfer::transfer`는 계속 사용할 수 있다. 이를 통해 module owner는 soulbound NFTs에 대한 custom transfer logic을 제공할 수 있다.
+Sui에서 NFTs에 대한 커스텀 전송 로직도 만들 수 있다. `transfer::transfer` 함수에는 transferred 객체가 전송이 invoke되는 모듈에서 정의되었는지 보장하는 Sui Move bytecode verifier의 커스텀 규칙이 있다. Struct definition에서 `store` ability를 제거하면 `transfer::public_transfer`는 사용할 수 없지만, 해당 객체 타입을 정의한 모듈 안에서 invoke하는 한 `transfer::transfer`는 계속 사용할 수 있다. 이를 통해 모듈 소유자는 soulbound NFTs에 대한 커스텀 전송 로직을 제공할 수 있다.
 
-다음 예시는 Sui에서 soulbound NFT를 만든다. `TestnetSoulboundNFT` struct는 `id`, `name`, `description`, `url` fields로 NFT를 정의한다:
+다음 예시는 Sui에서 soulbound NFT를 만든다. `TestnetSoulboundNFT` struct는 `id`, `name`, `description`, `url` 필드로 NFT를 정의한다:
 
 <ImportContent source="examples/move/nft-soulbound/sources/testnet_soulbound_nft.move" mode="code" struct="TestnetSoulboundNFT" noComments />
 
-`TestnetSoulboundNFT` struct는 `key` ability를 가지지만 `store` ability는 없다. 이는 `transfer::public_transfer`로 transfer할 수 없다는 뜻이다. 대신 같은 module에 구현된 custom transfer logic과 함께 `transfer::transfer`를 사용한다.
+`TestnetSoulboundNFT` struct는 `key` ability를 가지지만 `store` ability는 없다. 이는 `transfer::public_transfer`로 전송할 수 없다는 뜻이다. 대신 같은 모듈에 구현된 커스텀 전송 로직과 함께 `transfer::transfer`를 사용한다.
 
-이 예시는 `transfer::transfer` function을 사용해 custom transfer logic을 제공하는 방법도 보여준다. 이 위치에 NFT stats reset 또는 payment requirement 같은 additional logic을 추가할 수 있다. NFT가 완전히 soulbound라면 이 functionality를 제공하지 않는다:
+이 예시는 `transfer::transfer` 함수를 사용해 커스텀 전송 로직을 제공하는 방법도 보여준다. 이 위치에 NFT stats reset 또는 결제 요구 사항 같은 추가 로직을 추가할 수 있다. NFT가 완전히 soulbound라면 이 기능을 제공하지 않는다:
 
 <ImportContent source="examples/move/nft-soulbound/sources/testnet_soulbound_nft.move" mode="code" fun="transfer" />
 

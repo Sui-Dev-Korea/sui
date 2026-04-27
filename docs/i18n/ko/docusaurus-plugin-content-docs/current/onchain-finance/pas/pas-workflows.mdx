@@ -5,9 +5,9 @@ description: Accounts, Requests, Policies를 사용해 Sui의 Permissioned Asset
 keywords: [ PAS, Permissioned Asset Standard, Account, Policy, Request, permissioned assets, clawback, transfer ]
 ---
 
-Permissioned Asset Standard (PAS)는 Sui의 permissioned asset framework이다. 서로 다른 type의 asset은 **Accounts** 아래에 존재하며(address마다 하나, type과 독립적), 동일한 programmable transaction block (PTB) 안에서 approve되고 resolve되어야 하는 hot potato request를 통해서만 Account 사이를 이동할 수 있다.
+Permissioned Asset Standard (PAS)는 Sui의 permissioned 자산 프레임워크이다. 서로 다른 타입의 자산은 **Accounts** 아래에 존재하며(주소마다 하나, type과 독립적), 동일한 programmable 트랜잭션 블록 (PTB) 안에서 승인되고 해결되어야 하는 hot potato 요청을 통해서만 Account 사이를 이동할 수 있다.
 
-모든 action은 같은 pattern을 따른다.
+모든 액션은 같은 pattern을 따른다.
 
 ```mermaid
 flowchart LR
@@ -16,7 +16,7 @@ flowchart LR
 
 ## Account 생성
 
-Account creation은 permissionless이다. address마다 하나의 Account가 있으며, Account는 어떤 asset type이든 보유할 수 있다.
+Account creation은 permissionless이다. 주소마다 하나의 Account가 있으며, Account는 어떤 자산 type이든 보유할 수 있다.
 
 ```move
 account::create_and_share(&mut namespace, @0xAlice);
@@ -25,21 +25,21 @@ account::create_and_share(&mut namespace, @0xBob);
 
 ## 잔액 transfer
 
-permissioned asset의 balance를 한 Account에서 다른 Account로 transfer할 수 있다. 여기에는 owner `Auth` proof가 필요하다.
+permissioned 자산의 잔액을 한 Account에서 다른 Account로 전송할 수 있다. 여기에는 소유자 `Auth` proof가 필요하다.
 
-request는 다음 field를 포함한다.
+요청는 다음 필드를 포함한다.
 
 | **Field** | **Description** |
 |---|---|
-| `sender` | Wallet 또는 object address(Account address가 아님) |
-| `recipient` | Wallet 또는 object address(Account address가 아님) |
+| `sender` | Wallet 또는 객체 주소(Account 주소가 아님) |
+| `recipient` | Wallet 또는 객체 주소(Account 주소가 아님) |
 | `sender_account_id` | source Account의 ID |
 | `recipient_account_id` | destination Account의 derived ID |
 | `funds` | transfer되는 `T` |
 
-**Resolution**(`Balance<C>`의 경우): `send_funds::resolve_balance(request, &policy)`는 approval을 검증하고 `balance::send_funds`를 통해 balance를 recipient Account로 직접 보낸다.
+**Resolution**(`Balance<C>`의 경우): `send_funds::resolve_balance(request, &policy)`는 approval을 검증하고 `balance::send_funds`를 통해 잔액을 recipient Account로 직접 보낸다.
 
-`resolve_balance` function은 balance를 직접 보낸다. caller는 이를 다시 받지 않는다. balance는 바로 destination Account로 이동한다.
+`resolve_balance` 함수는 잔액을 직접 보낸다. caller는 이를 다시 받지 않는다. 잔액은 바로 destination Account로 이동한다.
 
 다음 예시는 완전한 transfer flow를 보여준다.
 
@@ -66,19 +66,19 @@ registry-gated transfer 구현은 [KYC example `kyc_registry`](https://github.co
 
 ## 잔액 clawback
 
-Account에서 token을 강제로 withdraw할 수 있다. 이는 admin action이므로 `Auth`가 필요하지 않다. policy에는 `clawback_allowed: true`가 있어야 한다.
+Account에서 토큰을 강제로 출금할 수 있다. 이는 admin 액션이므로 `Auth`가 필요하지 않다. 정책에는 `clawback_allowed: true`가 있어야 한다.
 
-request는 다음 field를 포함한다.
+요청는 다음 필드를 포함한다.
 
 | **Field** | **Description** |
 |---|---|
-| `owner` | source Account의 Wallet 또는 object address |
+| `owner` | source Account의 Wallet 또는 객체 주소 |
 | `account_id` | source Account의 ID |
 | `funds` | clawback되는 `T` |
 
 **Resolution:** `clawback_funds::resolve(request, &policy)`는 approval과 `policy.clawback_allowed`를 검증한 뒤 `T`를 caller에게 반환한다.
 
-`send_funds`와 달리 caller가 funds를 받고, 이를 어떻게 처리할지(burn, 다른 곳에 deposit 등) 결정한다.
+`send_funds`와 달리 caller가 자금을 받고, 이를 어떻게 처리할지(burn, 다른 곳에 예치 등) 결정한다.
 
 다음 예시는 clawback flow를 보여준다.
 
@@ -100,11 +100,11 @@ clawback-to-burn 구현은 [KYC example `treasury::burn`](https://github.com/Mys
 
 ## 잔액 unlock
 
-closed-loop system에서 token을 완전히 제거할 수 있다.
+closed-loop system에서 토큰을 완전히 제거할 수 있다.
 
 :::caution
 
-`unlock_funds`를 활성화하면 asset이 closed-loop system을 완전히 떠나고 이후 모든 transfer control을 bypass할 수 있다. unlock된 asset은 PAS restriction이 없는 일반 onchain object가 된다. 사용자가 managed system에서 asset을 withdraw해야 하는 use case가 명시적으로 필요한 경우에만 이 action을 허용한다.
+`unlock_funds`를 활성화하면 자산이 closed-loop system을 완전히 떠나고 이후 모든 transfer control을 bypass할 수 있다. unlock된 자산은 PAS restriction이 없는 일반 onchain 객체가 된다. 사용자가 managed system에서 자산을 출금해야 하는 사용 사례가 명시적으로 필요한 경우에만 이 액션을 허용한다.
 
 :::
 
@@ -112,14 +112,14 @@ resolution path는 2개다.
 
 | **Path** | **When to use** | **Resolution** |
 |---|---|---|
-| `unlock_funds::resolve(request, &policy)` | Managed asset(`Policy<T>`가 존재) | matching approval 필요 |
-| `unlock_funds::resolve_unrestricted_balance(request, &namespace)` | Unmanaged balance(Policy 없음) | approval 불필요 |
+| `unlock_funds::resolve(request, &policy)` | Managed 자산(`Policy<T>`가 존재) | matching approval 필요 |
+| `unlock_funds::resolve_unrestricted_balance(request, &namespace)` | Unmanaged 잔액(Policy 없음) | approval 불필요 |
 
-unrestricted path는 `Balance<C>` 전용이다. SUI처럼 실수로 Account에 들어갈 수 있는 asset을 위해 존재한다. 해당 type에 `Policy<Balance<C>>`가 있으면 managed asset control을 bypass할 수 없으므로 abort된다.
+unrestricted path는 `Balance<C>` 전용이다. SUI처럼 실수로 Account에 들어갈 수 있는 자산을 위해 존재한다. 해당 type에 `Policy<Balance<C>>`가 있으면 managed 자산 control을 bypass할 수 없으므로 중단된다.
 
-### Managed asset(policy 존재)
+### Managed 자산(정책 존재)
 
-다음 예시는 managed asset의 unlock flow를 보여준다.
+다음 예시는 managed 자산의 unlock flow를 보여준다.
 
 ```move
 let auth = account::new_auth(ctx);
@@ -132,7 +132,7 @@ let balance: Balance<MY_COIN> = unlock_funds::resolve(request, &policy);
 
 registry-gated unlock(redemption) 구현은 [Loyalty example `treasury::redeem`](https://github.com/MystenLabs/pas/blob/main/packages/examples/loyalty/sources/treasury.move)을 참조한다.
 
-### Unmanaged asset(policy 없음)
+### Unmanaged 자산(정책 없음)
 
 예를 들어 SUI가 실수로 Account로 전송된 경우:
 
@@ -144,23 +144,23 @@ let request = account.unlock_balance<SUI>(&auth, amount, ctx);
 let balance: Balance<SUI> = unlock_funds::resolve_unrestricted_balance(request, &namespace);
 ```
 
-## 잔액 deposit
+## 잔액 예치
 
-Account에 token을 deposit할 수 있다. request는 필요하지 않다.
+Account에 토큰을 예치할 수 있다. 요청는 필요하지 않다.
 
 ```move
 account.deposit_balance(balance);
 ```
 
-Account address로 직접 보낼 수도 있다. 이는 transaction에서 Account object를 사용할 수 있기 전 유용하다.
+Account 주소로 직접 보낼 수도 있다. 이는 트랜잭션에서 Account 객체를 사용할 수 있기 전 유용하다.
 
 ```move
 balance.send_funds(namespace.account_address(owner));
 ```
 
-## Move에서 action resolve(contract 내부)
+## Move에서 액션 해결(contract 내부)
 
-contract는 자체 function 안에서 approve와 resolve를 호출한다. balance는 사용자의 control 밖으로 나가지 않는다.
+contract는 자체 함수 안에서 승인와 해결을 호출한다. 잔액은 사용자의 control 밖으로 나가지 않는다.
 
 ```move
 public fun burn(
@@ -180,11 +180,11 @@ public fun burn(
 }
 ```
 
-**Use case:** Burn, seize 또는 contract가 balance를 필요로 하는 모든 operation. [`treasury::burn`](https://github.com/MystenLabs/pas/blob/main/packages/examples/kyc/sources/treasury.move) (KYC)와 [`treasury::redeem`](https://github.com/MystenLabs/pas/blob/main/packages/examples/loyalty/sources/treasury.move) (Loyalty)을 참조한다.
+**Use case:** Burn, seize 또는 contract가 잔액을 필요로 하는 모든 operation. [`treasury::burn`](https://github.com/MystenLabs/pas/blob/main/packages/examples/kyc/sources/treasury.move) (KYC)와 [`treasury::redeem`](https://github.com/MystenLabs/pas/blob/main/packages/examples/loyalty/sources/treasury.move) (Loyalty)을 참조한다.
 
-## PTB에서 action resolve(client-side)
+## PTB에서 액션 해결(클라이언트-side)
 
-single PTB 안에서 여러 Move call에 걸쳐 request를 만들고 approve한 뒤, 별도 Move call로 resolve한다.
+single PTB 안에서 여러 Move call에 걸쳐 요청을 만들고 승인한 뒤, 별도 Move call로 해결한다.
 
 ```mermaid
 flowchart TD
@@ -193,17 +193,17 @@ flowchart TD
     C --> D["send_funds::resolve_balance(request, policy) → sends to recipient"]
 ```
 
-**Use case:** compliance contract가 approve하고 PAS가 delivery를 처리하는 transfer.
+**Use case:** 컴플라이언스 contract가 승인하고 PAS가 delivery를 처리하는 transfer.
 
 :::info
 
-Step 3과 4는 같은 PTB 안에 있어야 한다. request는 hot potato이다. transaction이 resolution 없이 끝나면 abort된다.
+Step 3과 4는 같은 PTB 안에 있어야 한다. 요청는 hot potato이다. 트랜잭션이 resolution 없이 끝나면 중단된다.
 
 :::
 
-## 예제 package
+## 예제 패키지
 
 | **Example** | **Actions** | **Approval pattern** |
 |---|---|---|
-| [Loyalty](https://github.com/MystenLabs/pas/tree/main/packages/examples/loyalty) | `send_funds`(permissionless), `unlock_funds`(per-address registry) | Transfer는 open 상태이고 point는 system에 남는다. Redemption은 `RedeemRegistry`로 gate되고 Move에서 resolve된다. unlock되면 funds는 managed system을 완전히 떠난다. |
-| [KYC](https://github.com/MystenLabs/pas/tree/main/packages/examples/kyc) | `send_funds`(KYC registry), `clawback_funds`(issuer) | 모든 transfer는 recipient를 `KYCRegistry`에 대해 check한다. Clawback은 무조건 approve되어 issuer가 어떤 account의 token도 burn할 수 있게 한다. |
+| [Loyalty](https://github.com/MystenLabs/pas/tree/main/packages/examples/loyalty) | `send_funds`(permissionless), `unlock_funds`(per-주소 registry) | Transfer는 open 상태이고 point는 system에 남는다. Redemption은 `RedeemRegistry`로 gate되고 Move에서 해결된다. unlock되면 자금은 managed system을 완전히 떠난다. |
+| [KYC](https://github.com/MystenLabs/pas/tree/main/packages/examples/kyc) | `send_funds`(KYC registry), `clawback_funds`(issuer) | 모든 transfer는 recipient를 `KYCRegistry`에 대해 check한다. Clawback은 무조건 승인되어 issuer가 어떤 계정의 토큰도 burn할 수 있게 한다. |

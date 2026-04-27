@@ -19,7 +19,7 @@ Coin Registry로 마이그레이션하면 다음과 같은 이점이 있다:
 
 ### Migration process
 
-1. **Metadata migration:** `migrate_legacy_metadata<T>()`를 사용하여 기존 `CoinMetadata<T>` 정보를 기반으로 새 `Currency<T>` entry를 생성한다.
+1. **Metadata migration:** `migrate_legacy_metadata<T>()`를 사용하여 기존 `Currency<T>` 정보를 기반으로 새 `CoinMetadata<T>` entry를 생성한다.
     <ImportContent source="crates/sui-framework/packages/sui-framework/sources/registries/coin_registry.move" mode="code" fun="migrate_legacy_metadata" noTitle signatureOnly noComments />
 
 1. **Regulatory migration:** deny list capability가 있는 코인의 경우 다음을 사용한다:

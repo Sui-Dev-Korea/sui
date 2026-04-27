@@ -12,7 +12,7 @@ MDX는 Markdown 콘텐츠 안에서 [JSX](https://mdxjs.com/)를 사용할 수 �
 
 또한 커뮤니티 플러그인과 문서 팀이 개발한 custom component도 활용한다.
 
-이러한 기능은 기여에 필수는 아니지만, 독자의 경험을 향상한다면 포함할 수 있다.
+이 기능들은 기여에 필수는 아니지만, 독자의 경험을 향상한다면 포함할 수 있다.
 
 ## custom frontmatter
 
@@ -22,7 +22,7 @@ MDX는 Markdown 콘텐츠 안에서 [JSX](https://mdxjs.com/)를 사용할 수 �
 
 ```
 ---
-title: 페이지 제목
+title: Title of Page
 description: 1-2 sentences summarizing the page's content.
 keywords: [ words, for, search, results ]
 ---
@@ -42,7 +42,7 @@ keywords: [ words, for, search, results ]
 
 ```yaml
 ---
-title: 페이지 제목
+title: Page title
 description: A page of information describing a beta feature.
 beta: devnet, testnet
 ---
@@ -64,7 +64,7 @@ tutorial을 완료하는 데 필요한 effort를 나타내는 admonition box를 
 
 ```yaml
 ---
-title: 가이드 제목
+title: A Guide
 description: A guide on how to do this thing in Sui.
 effort: medium
 ---
@@ -114,7 +114,7 @@ Docusaurus는 모든 문서 페이지에 `<Tabs>`와 `<TabItem>` component를 �
 
 문서는 `<Tabs>` component를 올바르게 렌더링하고 스타일링하기 위해 몇 가지 custom script를 사용한다.
 
-이 script를 사용하면 페이지 형식을 깨뜨리지 않고 `<Tabs>`를 [`{@include:}` snippets](#snippet-mode)와 함께 사용할 수 있다.
+이 script를 사용하면 페이지 형식을 깨뜨리지 않고 `<Tabs>`를 [`{@include:}` snippets](#snippets-include)와 함께 사용할 수 있다.
 
 페이지 안에서 `<Tabs>` 인스턴스를 여러 개 사용할 때는 `groupId`를 사용하여 섹션 간 선택을 유지한다.
 
@@ -359,7 +359,7 @@ highlighting line 지정, title 제거 등을 위해 inject statement 끝에 추
 - `noTests` → 테스트 제거
 - `noTitle` → code block title 제거
 - `singleSpace` → 간격 정규화
-- `highlight` → 강조할 줄에 있는 고유 단어를 사용해 특정 줄 강조
+- `highlight` → 강조할 줄에 있는 고유 단어를 사용해 특정 줄 강조(예: `highlight="variable_name"`)
 
 **예시:**
 

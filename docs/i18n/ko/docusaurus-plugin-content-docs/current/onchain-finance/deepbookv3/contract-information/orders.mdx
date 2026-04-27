@@ -37,7 +37,7 @@ keywords:
 `Pool`이 노출하는 주문 관련 엔드포인트는 다음과 같다.
 
 <details>
-<summary>order option</summary>
+<summary>주문 option</summary>
 
 다음 상수는 주문에 사용할 수 있는 옵션을 정의한다.
 
@@ -69,7 +69,7 @@ keywords:
 <details>
 <summary>OrderInfo struct</summary>
 
-지정가 주문 또는 시장가 주문을 배치하면 `OrderInfo` object가 생성되어 반환된다. DeepBookV3는 주문이 완료되거나 book에 배치된 후 이 object를 자동으로 drop한다. `OrderInfo`는 모든 주문 정보를 나타내므로 요청의 실행 세부 정보를 검사하기 위해 `OrderInfo`를 사용한다. DeepBookV3는 어떤 error도 catch하지 않으므로 어떤 종류의 failure라도 발생하면 전체 transaction이 실패한다.
+지정가 주문 또는 시장가 주문을 배치하면 `OrderInfo` 객체가 생성되어 반환된다. DeepBookV3는 주문이 완료되거나 book에 배치된 후 이 객체를 자동으로 drop한다. 이 객체는 모든 주문 정보를 나타내므로 요청의 실행 세부 정보를 검사하기 위해 `OrderInfo`를 사용한다. DeepBookV3는 어떤 error도 catch하지 않으므로 어떤 종류의 failure라도 발생하면 전체 트랜잭션이 실패한다.
 
 <ImportContent
 	source="packages/deepbook/sources/book/order_info.move"
@@ -112,11 +112,11 @@ keywords:
 </details>
 
 <details>
-<summary>Place limit order</summary>
+<summary>Place 지정가 주문</summary>
 
 지정가 주문을 배치한다. 수량은 베이스 자산 기준이다. 현재 버전에서는 `pay_with_deep`가 true여야 하므로 수수료는 DEEP 토큰으로 지불된다.
 
-주문을 배치하기 전에 `TradeProof`를 생성하는 `BalanceManager` 호출을 결합해야 한다.
+주문을 배치하기 전에 `BalanceManager` 호출로 `TradeProof`를 생성하는 작업을 결합해야 한다.
 
 <ImportContent
 	source="packages/deepbook/sources/pool.move"
@@ -130,9 +130,9 @@ keywords:
 </details>
 
 <details>
-<summary>Place market order</summary>
+<summary>Place 시장가 주문</summary>
 
-시장가 주문을 배치한다. 수량은 베이스 자산 기준이다. bids에는 `MAX_PRICE` 가격으로, asks에는 `MIN_PRICE` 가격으로 `place_limit_order`를 호출한다. DeepBookV3는 채워지지 않은 수량이 있으면 그 수량에 대해 주문을 취소한다.
+시장가 주문을 배치한다. 수량은 베이스 자산 기준이다. bids에는 `place_limit_order` 가격으로, asks에는 `MAX_PRICE` 가격으로 `MIN_PRICE`를 호출한다. DeepBookV3는 채워지지 않은 수량이 있으면 그 수량에 대해 주문을 취소한다.
 
 <ImportContent
 	source="packages/deepbook/sources/pool.move"
@@ -146,11 +146,11 @@ keywords:
 </details>
 
 <details>
-<summary>Modify order</summary>
+<summary>Modify 주문</summary>
 
 `order_id`와 `new_quantity`가 주어지면 주문을 수정한다. 새 수량은 원래 수량보다 작고 체결된 수량보다 커야 한다. 주문은 아직 만료되지 않았어야 한다.
 
-`modify_order` 함수는 아무것도 반환하지 않는다. transaction이 성공하면 수정이 성공한 것으로 간주한다.
+`modify_order` 함수는 아무것도 반환하지 않는다. 트랜잭션이 성공하면 수정이 성공한 것으로 간주한다.
 
 <ImportContent
 	source="packages/deepbook/sources/pool.move"
@@ -164,9 +164,9 @@ keywords:
 </details>
 
 <details>
-<summary>Cancel order</summary>
+<summary>Cancel 주문</summary>
 
-주문을 취소한다. 주문은 `balance_manager`가 소유해야 한다. 주문은 book과 `balance_manager` open orders에서 제거된다. `balance_manager` balance는 주문의 남은 수량으로 업데이트된다.
+주문을 취소한다. 주문은 `balance_manager`가 소유해야 한다. 주문은 book과 `balance_manager` open 주문에서 제거된다. `balance_manager` 잔액은 주문의 남은 수량으로 업데이트된다.
 
 modify와 유사하게 `cancel_order`는 아무것도 반환하지 않는다. DeepBookV3는 `OrderCanceled` event를 emit한다.
 
@@ -182,9 +182,9 @@ modify와 유사하게 `cancel_order`는 아무것도 반환하지 않는다. De
 </details>
 
 <details>
-<summary>Cancel multiple orders</summary>
+<summary>Cancel multiple 주문</summary>
 
-vector 안의 여러 주문을 취소한다. 주문은 `balance_manager`가 소유해야 한다. 주문은 book과 `balance_manager` open orders에서 제거된다. 어떤 주문이라도 취소에 실패하면 어떤 주문도 취소되지 않는다(atomic operation).
+vector 안의 여러 주문을 취소한다. 주문은 `balance_manager`가 소유해야 한다. 주문은 book과 `balance_manager` open 주문에서 제거된다. 어떤 주문이라도 취소에 실패하면 어떤 주문도 취소되지 않는다(atomic operation).
 
 <ImportContent
 	source="packages/deepbook/sources/pool.move"
@@ -198,9 +198,9 @@ vector 안의 여러 주문을 취소한다. 주문은 `balance_manager`가 소�
 </details>
 
 <details>
-<summary>Cancel all orders</summary>
+<summary>Cancel all 주문</summary>
 
-pool에서 balance manager가 배치한 모든 open orders를 취소한다. 이는 balance manager와 연관된 모든 주문을 취소하는 편의 함수이다.
+풀에서 BalanceManager가 배치한 모든 open 주문을 취소한다. 이는 BalanceManager와 연관된 모든 주문을 취소하는 편의 함수가다.
 
 <ImportContent
 	source="packages/deepbook/sources/pool.move"
@@ -216,7 +216,7 @@ pool에서 balance manager가 배치한 모든 open orders를 취소한다. 이�
 <details>
 <summary>Withdraw settled amounts</summary>
 
-정산된 금액을 `balance_manager`로 withdraw한다. 모든 주문은 정산된 금액을 자동으로 withdraw한다. 이는 pool에서 정산된 모든 자금을 withdraw하기 위해 명시적으로 호출할 수 있다.
+정산된 금액을 `balance_manager`로 출금한다. 모든 주문은 정산된 금액을 자동으로 출금한다. 이는 풀에서 정산된 모든 자금을 출금하기 위해 명시적으로 호출할 수 있다.
 
 <ImportContent
 	source="packages/deepbook/sources/pool.move"
@@ -232,7 +232,7 @@ pool에서 balance manager가 배치한 모든 open orders를 취소한다. 이�
 <details>
 <summary>Withdraw settled amounts permissionless</summary>
 
-`TradeProof`를 요구하지 않고 정산된 금액을 `balance_manager`로 withdraw한다. 이는 누구나 호출하여 balance manager의 자금을 정산할 수 있는 permissionless 버전이다.
+정산된 금액을 `balance_manager`로 출금하며 `TradeProof`는 필요하지 않다. 이는 누구나 호출하여 BalanceManager의 자금을 정산할 수 있는 permissionless 버전이다.
 
 <ImportContent
 	source="packages/deepbook/sources/pool.move"
@@ -250,7 +250,7 @@ pool에서 balance manager가 배치한 모든 open orders를 취소한다. 이�
 <details>
 <summary>`OrderFilled`</summary>
 
-maker order가 채워질 때 emit된다.
+maker 주문이 채워질 때 emit된다.
 
 <ImportContent
 	source="packages/deepbook/sources/book/order_info.move"
@@ -265,7 +265,7 @@ maker order가 채워질 때 emit된다.
 <details>
 <summary>`OrderCanceled`</summary>
 
-maker order가 취소될 때 emit된다.
+maker 주문이 취소될 때 emit된다.
 
 <ImportContent
 	source="packages/deepbook/sources/book/order.move"
@@ -280,7 +280,7 @@ maker order가 취소될 때 emit된다.
 <details>
 <summary>`OrderModified`</summary>
 
-maker order가 수정될 때 emit된다.
+maker 주문이 수정될 때 emit된다.
 
 <ImportContent
 	source="packages/deepbook/sources/book/order.move"
@@ -295,7 +295,7 @@ maker order가 수정될 때 emit된다.
 <details>
 <summary>`OrderPlaced`</summary>
 
-maker order가 order book에 배치될 때 emit된다.
+maker 주문이 오더북에 배치될 때 emit된다.
 
 <ImportContent
 	source="packages/deepbook/sources/book/order_info.move"

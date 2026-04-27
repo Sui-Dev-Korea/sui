@@ -48,7 +48,7 @@ admin은 노출된 `/get_attestation` endpoint와 함께 enclave를 빌드하고
 
 </details>
 
-1. admin은 attestation response를 사용해 PCR과 enclave public key를 등록한다. 이 시점에는 `SEAL_API_KEY`가 아직 초기화되지 않았으므로 `/process_data` endpoint가 error를 반환한다.
+1. admin은 attestation response를 사용해 PCR과 enclave public key를 등록한다. 이 시점에는 `/process_data`가 아직 초기화되지 않았으므로 `SEAL_API_KEY` endpoint가 error를 반환한다.
 
 1. admin은 enclave를 온체인에 등록하고 enclave object ID와 initial shared version을 가져온다.
 
@@ -92,58 +92,58 @@ enclave는 시작 시 3개의 key를 생성하며, 모두 enclave memory에만 �
 
 enclave는 인터넷에 직접 접근할 수 없으므로 Seal key server의 HTTP endpoint에서 secret를 직접 가져올 수 없다. 이 예시는 host를 중개자로 사용해 Seal server에서 암호화된 secret를 가져온다.
 
-Seal response는 enclave의 encryption key 아래에서 암호화되므로 enclave만 가져온 Seal response를 복호화할 수 있어 이러한 위임은 안전하다. `seal_config.yaml`에 있는 Seal server의 public key는 admin이 enclave 안에서 정의하므로, enclave는 복호화된 Seal key가 변조되지 않았음을 검증할 수 있다.
+Seal response는 enclave의 encryption key 아래에서 암호화되므로 enclave만 가져온 Seal response를 복호화할 수 있어 이 위임은 안전하다. `seal_config.yaml`에 있는 Seal server의 public key는 admin이 enclave 안에서 정의하므로, enclave는 복호화된 Seal key가 변조되지 않았음을 검증할 수 있다.
 
 ## deployment step 예시
 
 ### Step 0: enclave build, 실행, 등록
 
 ```shell
-# enclave package를 게시한다
+# publish the enclave package
 cd move/enclave
 sui move build && sui client publish
 
-# 출력에서 이 값을 찾아 env var를 설정한다
+# find this in output and set env var
 ENCLAVE_PACKAGE_ID=0x8ecf22e78c90c3e32833d76d82415d7e4227ea370bec4efdad4c4830cbda9e49
 
-# seal-policy 앱 package를 게시한다
+# publish the seal-policy app package
 cd ../seal-policy
 sui move build && sui client publish
 
-# 출력에서 이 값들을 찾아 env var를 설정한다
+# find these in output and set env vars
 CAP_OBJECT_ID=0xbd6ad872040eddc08f20ff11e20a3dc030c3e30f4ab2303a0c42447006724262
 ENCLAVE_CONFIG_OBJECT_ID=0x3ee612ffc17f29280b8479c36a1096a339e38c353a7662baa559ba4d879dd4de
 APP_PACKAGE_ID=0x7f0171b76f82cd61ebb4ac3fd502deac6552e9becd38be28d5692b69b5fdb54e
 
-# enclave 내부의 APP_PACKAGE_ID로 seal_config.yaml을 업데이트한다
+# update seal_config.yaml with APP_PACKAGE_ID inside the enclave
 
-# enclave용 ec2 instance를 구성한다. 자세한 내용은 메인 가이드의 UsingNautilus.md를 참조한다
+# configure ec2 instance for enclave, see main guide for more details: UsingNautilus.md
 
-# 구성된 차이점이 포함된 repo가 있는 ec2 instance에 ssh로 접속하여 docker를 빌드하고 실행하고 노출한다
+# ssh in the ec2 instance containing the repo on configured diff: docker build, run and expose
 make ENCLAVE_APP=seal-example && make run && sh expose_enclave.sh
 
-# pcr을 찾아 env var를 설정한다
+# find the pcrs and set env vars
 cat out/nitro.pcrs
 
 PCR0=84db3309c8a06c31c1c0a44701fb6c47766244925d7c1d32d5e6589cbdea23aa1f619cddc62c7368ffe648a07df2feb8
 PCR1=84db3309c8a06c31c1c0a44701fb6c47766244925d7c1d32d5e6589cbdea23aa1f619cddc62c7368ffe648a07df2feb8
 PCR2=21b9efbc184807662e966d34f390821309eeac6802309798826296bf3e8bec7c10edb30948c90ba67310f7b964fc500a
 
-# name과 url을 채운다
+# populate name and url
 MODULE_NAME=weather
 OTW_NAME=WEATHER
 ENCLAVE_URL=http://<PUBLIC_IP>:3000
 
-# pcr을 업데이트한다
+# update pcrs
 sui client call --function update_pcrs --module enclave --package $ENCLAVE_PACKAGE_ID --type-args "$APP_PACKAGE_ID::$MODULE_NAME::$OTW_NAME" --args $ENCLAVE_CONFIG_OBJECT_ID $CAP_OBJECT_ID 0x$PCR0 0x$PCR1 0x$PCR2
 
-# 선택 사항으로 name을 업데이트한다
+# optional, update name
 sui client call --function update_name --module enclave --package $ENCLAVE_PACKAGE_ID --type-args "$APP_PACKAGE_ID::$MODULE_NAME::$OTW_NAME" --args $ENCLAVE_CONFIG_OBJECT_ID $CAP_OBJECT_ID "some name here"
 
-# enclave를 온체인에 등록한다
+# register the enclave onchain
 sh register_enclave.sh $ENCLAVE_PACKAGE_ID $APP_PACKAGE_ID $ENCLAVE_CONFIG_OBJECT_ID $ENCLAVE_URL $MODULE_NAME $OTW_NAME
 
-# 출력에서 생성된 enclave obj id를 읽고 그 initial shared version을 찾는다
+# read from output the created enclave obj id and finds its initial shared version
 ENCLAVE_OBJECT_ID=0x9b8bc44069abc9843bbd2f54b4e7732136cc7c615c34959f98ab2f7c74f002bd
 ENCLAVE_OBJ_VERSION=722158400
 ```
@@ -159,10 +159,10 @@ curl -H 'Content-Type: application/json' -d '{"payload": { "location": "San Fran
 
 [Seal repo](https://github.com/MystenLabs/seal)의 root directory에서 Seal CLI command를 실행할 수 있다. secret 값이 안전한 어느 곳에서나 이 단계를 수행한다. 출력은 이후 Step 4에서 사용한다.
 
-이 command는 주어진 network의 public full node를 사용해 지정된 key server ID의 public key를 조회한다. 그런 다음 identity `id`, threshold `t`, 지정한 key server `-k`, policy package `-p`를 사용해 secret를 암호화한다.
+이 command는 주어진 network의 public 풀 노드를 사용해 지정된 key server ID의 public key를 조회한다. 그런 다음 identity `id`, threshold `t`, 지정한 key server `-k`, policy package `-p`를 사용해 secret를 암호화한다.
 ```bash
-# seal repo에서 실행한다
-# step 0의 package id를 설정한다
+# in seal repo
+# set package id from step 0
 APP_PACKAGE_ID=0x2080f9c370ddb22c48d6377f8aa64883c3a1c61d3febbcc18b6bf70553ae45a0
 cargo run --bin seal-cli encrypt --secret 303435613237383132646265343536333932393133323233323231333036 \
     --id 0x00 \
@@ -193,12 +193,12 @@ Encrypted object:
 
 이 호출에서 enclave는 wallet가 서명한 certificate를 생성하고 `seal_approve`를 호출하는 PTB를 구성한다. enclave ephemeral key pair는 wallet public key의 intent message에 서명한다. session key는 request에 서명하고 encoded `FetchKeyRequest`를 반환한다.
 ```bash
-# step 0의 ENCLAVE_OBJECT_ID와 ENCLAVE_OBJ_VERSION을 사용한다
+# use ENCLAVE_OBJECT_ID and ENCLAVE_OBJ_VERSION from step 0
 curl -X POST http://localhost:3001/admin/init_seal_key_load \
   -H 'Content-Type: application/json' \
   -d '{"enclave_object_id": "'$ENCLAVE_OBJECT_ID'", "initial_shared_version": '$ENCLAVE_OBJ_VERSION'}'
 
-# 예상 response:
+# Expected response:
 {"encoded_request":"<FETCH_KEY_REQUEST>"}
 ```
 
@@ -206,7 +206,7 @@ curl -X POST http://localhost:3001/admin/init_seal_key_load \
 
 Seal repo의 root에서 다음 command를 실행한다:
 ```bash
-# seal repo에서 실행한다
+# in seal repo
 cargo run --bin seal-cli fetch-keys --request <FETCH_KEY_REQUEST> \
     -k 0x73d05d62c18d9374e3ea529e8e0ed6161da1a141a94d3f76ae3fe4e99356db75,0xf5d14a81a982144ae441cd7d64b09027f116a468bd36e7eca494f750591623c8 \
     -t 2 \
@@ -233,7 +233,7 @@ curl -X POST http://localhost:3001/admin/complete_seal_key_load \
     "seal_responses": "<ENCODED_SEAL_RESPONSES>"
   }'
 
-# 예상 response:
+# Expected response:
 {"status":"OK"}
 ```
 
@@ -249,7 +249,7 @@ curl -X POST http://localhost:3001/admin/provision_weather_api_key \
     "encrypted_object": "<ENCRYPTED_OBJECT>"
   }'
 
-# 예상 response:
+# Expected response:
 {"status":"OK"}
 ```
 
@@ -259,7 +259,7 @@ enclave server는 이제 완전히 동작하며 데이터를 처리할 수 있�
 ```bash
 curl -H 'Content-Type: application/json' -d '{"payload": { "location": "San Francisco"}}' -X POST http://<PUBLIC_IP>:3000/process_data
 
-# 예시 response:
+# Example response:
 {"response":{"intent":0,"timestamp_ms":1755805500000,"data":{"location":"San Francisco","temperature":18}},"signature":"4587c11eafe8e78c766c745c9f89b3bb7fd1a914d6381921e8d7d9822ddc9556966932df1c037e23bedc21f369f6edc66c1b8af019778eb6b1ec1ee7f324e801"}
 ```
 

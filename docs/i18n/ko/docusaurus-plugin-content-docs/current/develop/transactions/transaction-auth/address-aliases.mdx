@@ -1,11 +1,11 @@
 ---
 title: 주소 별칭
-description: Sui network의 특정 address에 대해 transaction 서명을 허용할 key 집합을 구성하는 데 address aliases를 사용할 수 있다.
+description: Sui network의 특정 address에 대해 트랜잭션 서명을 허용할 key 집합을 구성하는 데 address aliases를 사용할 수 있다.
 keywords: [ address aliases, aliases, key rotation, changing keys ]
 ---
 
 
-Sui network의 특정 address에 대해 transaction 서명을 허용할 key 집합을 구성하는 데 address aliases를 사용할 수 있다.
+Sui network의 특정 address에 대해 트랜잭션 서명을 허용할 key 집합을 구성하는 데 address aliases를 사용할 수 있다.
 
 address aliases는 다음과 같은 용도로 사용할 수 있다:
 - address에 대해 간단한 key rotation을 수행한다.
@@ -14,7 +14,7 @@ address aliases는 다음과 같은 용도로 사용할 수 있다:
 
 :::warning
 
-주어진 address에 대한 모든 alias는 그 address가 소유한 모든 coin, balance, 그리고 기타 리소스를 **단독으로 제어하거나 가져갈** 수 있는 능력을 가진다.
+주어진 address에 대한 모든 alias는 그 address가 소유한 모든 코인, balance, 그리고 기타 리소스를 **단독으로 제어하거나 가져갈** 수 있는 능력을 가진다.
 
 alias를 변경할 때는 매우 주의해야 한다.
 새로 추가하는 alias는 사실상 address의 공동 소유자가 된다.
@@ -27,7 +27,7 @@ Sui의 각 address에는 alias 집합이 있다.
 새 address는 자기 자신을 alias로 가지는 상태로 시작한다.
 즉 새 address `A`는 alias 집합 `{A}`를 가진다.
 
-address의 alias는 <UnsafeLink href="/references/framework/sui_sui/address_alias">`sui::address_alias` module</UnsafeLink>에 있는 Move API를 사용해 수정할 수 있다.
+address의 alias는 <UnsafeLink href="/references/framework/sui_sui/address_alias">`sui::address_alias` 모듈</UnsafeLink>에 있는 Move API를 사용해 수정할 수 있다.
 이 수정 함수들은 최상위 PTB 명령으로 호출되어야 하며 다른 Move 함수 안에서 호출할 수 없다.
 
 alias를 수정할 때의 몇 가지 제약 사항은 다음과 같다:
@@ -35,12 +35,12 @@ alias를 수정할 때의 몇 가지 제약 사항은 다음과 같다:
 - address는 자기 자신의 alias 집합에서 제거될 수 있다. 예를 들어 address `A`가 있고 이 address가 `{B, C}`의 서명만 허용하도록 만들 수 있다.
 - address에 허용되는 alias의 최대 개수는 8개이다.
 
-### aliased address로 transaction authenticate
+### aliased address로 트랜잭션 authenticate
 
-Sui의 transaction은 두 address인 `sender`와 `gas_owner`로 구성된다(둘은 같을 수도 있고 다를 수도 있다).
+Sui의 트랜잭션은 두 address인 `sender`와 `gas_owner`로 구성된다(둘은 같을 수도 있고 다를 수도 있다).
 구성된 각 address에 대해서는 그 alias 집합 안의 signer 중 하나로부터 signature가 필요하다.
 
-예를 들어 다음 transaction과 alias가 있다고 하자:
+예를 들어 다음 트랜잭션과 alias가 있다고 하자:
 ```
 transaction T {
   sender: A
@@ -52,17 +52,17 @@ aliases[A] = {A, B}
 aliases[X] = {Y}
 ```
 
-유효하려면 transaction `T`는 `A` 또는 `B` 중 하나의 signature가 필요하고, *또한* `Y`의 signature가 필요하다.
+유효하려면 트랜잭션 `T`는 `A` 또는 `B` 중 하나의 signature가 필요하고, *또한* `Y`의 signature가 필요하다.
 
-이 예시에서 transaction이 `A`가 아닌 `[B, Y]`의 signature를 가지고 있더라도 실행 중에는 여전히 `A`가 소유한 모든 것에 접근할 수 있으며, Move call 실행 중 `TxContext::sender` 역시 `A`가 된다.
+이 예시에서 트랜잭션이 `[B, Y]`가 아닌 `A`의 signature를 가지고 있더라도 실행 중에는 여전히 `A`가 소유한 모든 것에 접근할 수 있으며, Move call 실행 중 `TxContext::sender` 역시 `A`가 된다.
 
 ## Sui CLI로 alias 관리
 
-`sui client ptb`를 사용해 `sui::address_alias` module의 entry function을 호출하여 address alias를 관리할 수 있다. `AddressAliasState` singleton object는 address `0xa`에 있다.
+`sui client ptb`를 사용해 `sui::address_alias` 모듈의 entry 함수를 호출하여 address alias를 관리할 수 있다. `AddressAliasState` singleton 객체는 address `0xa`에 있다.
 
 ### address에 alias enable
 
-Alias를 수정하기 전에 address에 대해 alias configuration을 활성화해야 한다. 이렇게 하면 자신의 address를 sole alias로 초기화한 `AddressAliases` object가 생성된다:
+Alias를 수정하기 전에 address에 대해 alias configuration을 활성화해야 한다. 이렇게 하면 자신의 address를 sole alias로 초기화한 `AddressAliases` 객체가 생성된다:
 
 ```sh
 $ sui client ptb \
@@ -70,11 +70,11 @@ $ sui client ptb \
     --gas-budget 50000000
 ```
 
-Transaction output의 created objects section에서 `AddressAliases` object ID를 기록한다. 이후 모든 alias operation에 이 ID가 필요하다.
+Transaction output의 created 객체 section에서 `AddressAliases` 객체 ID를 기록한다. 이후 모든 alias operation에 이 ID가 필요하다.
 
 ### alias 추가
 
-다른 address를 alias set에 추가하여, 해당 address가 사용자를 대신해 transaction에 서명할 수 있게 한다:
+다른 address를 alias set에 추가하여, 해당 address가 사용자를 대신해 트랜잭션에 서명할 수 있게 한다:
 
 ```sh
 $ sui client ptb \
@@ -98,7 +98,7 @@ $ sui client ptb \
 
 :::warning
 
-자신의 address를 포함하지 않는 set으로 alias를 replace하면 더 이상 해당 address에 대해 transaction에 서명할 수 없다. 새 alias set에 있는 address만 그 권한을 가진다.
+자신의 address를 포함하지 않는 set으로 alias를 replace하면 더 이상 해당 address에 대해 트랜잭션에 서명할 수 없다. 새 alias set에 있는 address만 그 권한을 가진다.
 
 :::
 

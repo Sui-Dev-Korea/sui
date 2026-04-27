@@ -5,7 +5,7 @@ keywords: [ indexer, custom indexer, data processing, blockchain indexer, sui-in
 ---
 
 
-Sui는 transactions, events, object changes 등 풍부하고 복잡한 데이터를 생성한다. Sui가 이러한 데이터에 접근할 수 있는 표준 API를 제공하더라도, 많은 애플리케이션은 특정 events 추적, 분석 집계, 대시보드 구축, 특화된 데이터베이스 생성과 같은 워크플로를 위해 맞춤형 데이터 처리를 필요로 한다. 커스텀 인덱서를 사용하면 필요한 특정 blockchain 데이터를 추출하고, 변환하고, 저장할 수 있다. Sui APIs를 반복적으로 조회하거나 복잡한 filtering logic을 구축하는 대신, 원시 blockchain 데이터를 한 번 처리해 원하는 형식으로 저장한다.
+Sui는 트랜잭션, events, 객체 changes 등 풍부하고 복잡한 데이터를 생성한다. Sui가 이러한 데이터에 접근할 수 있는 표준 API를 제공하더라도, 많은 애플리케이션은 특정 events 추적, 분석 집계, 대시보드 구축, 특화된 데이터베이스 생성과 같은 워크플로를 위해 맞춤형 데이터 처리를 필요로 한다. 커스텀 인덱서를 사용하면 필요한 특정 blockchain 데이터를 추출하고, 변환하고, 저장할 수 있다. Sui APIs를 반복적으로 조회하거나 복잡한 filtering logic을 구축하는 대신, 원시 blockchain 데이터를 한 번 처리해 원하는 형식으로 저장한다.
 
 커스텀 인덱서는 DEX 거래량 추적, NFT collection activity 모니터링, 분석 대시보드 구축, cross-chain data 집계와 같은 사용 사례를 가능하게 한다. `sui-indexer-alt-framework`를 사용해 커스텀 인덱서를 구축하는데, 이 프레임워크는 데이터 수집, 처리, 저장을 위한 프로덕션 레벨 컴포넌트를 제공하면서 indexing logic에 대한 완전한 제어권도 제공한다.
 
@@ -43,7 +43,7 @@ Sui의 checkpoints는 일관된 blockchain state snapshots를 나타내는 trans
 
 **Polling-based sources**는 주기적으로 새로운 checkpoints를 확인한다:
 
-- **Remote stores**는 [`https://checkpoints.mainnet.sui.io`](https://checkpoints.mainnet.sui.io/)와 같은 공개 checkpoint repositories에 연결한다. 이 옵션은 가장 단순한 설정을 제공하며 자체 인프라 운영이 필요 없다.
+- **Remote stores**는 [`https://checkpoints.mainnet.sui.io`](https://checkpoints.mainnet.sui.io/)와 같은 공개 checkpoint repositories에 연결할 수 있지만, 이 HTTPS endpoint는 최근 30일 checkpoint만 보관하므로 fallback source로만 사용해야 한다. Mainnet에서 30일보다 오래된 backfill에는 `gs://mysten-mainnet-checkpoints-use4`를 `--remote-store-gcs`와 함께 사용한다.
 - **Local files**는 로컬 풀 노드가 생성한 checkpoint files를 처리한다. 이 방식은 가장 낮은 지연 시간을 제공하지만, node가 이 files를 자동으로 정리하지 않기 때문에 테스트 용도로만 권장된다.
 - **RPC endpoints**는 풀 노드 RPC endpoint에 직접 연결한다. 이 접근 방식은 직접 운영하는 신뢰 가능한 source에서 checkpoints를 가져오거나 remote store가 없는 네트워크(예: Devnet)에 접근할 수 있게 한다.
 
@@ -72,4 +72,4 @@ Sui의 checkpoints는 일관된 blockchain state snapshots를 나타내는 trans
 
 ## Building custom indexers
 
-애플리케이션 전용 데이터를 위한 자체 pipelines를 구축하려면 [커스텀 인덱서 만들기](/develop/accessing-data/custom-indexer/build)를 참조한다. 필요에 맞는 구성이 이미 준비되어 있을 수 있으므로 [data indexer operator](/references/awesome-sui)에 문의할 수도 있다.
+애플리케이션 전용 데이터를 위한 자체 pipelines를 구축하려면 [커스텀 인덱서 만들기](/develop/accessing-data/custom-indexer/build)를 참조한다. 필요에 맞는 구성이 이미 준비되어 있을 수 있으므로 [data indexer operator](/references/awesome-sui#indexers--data-services)에 문의할 수도 있다.

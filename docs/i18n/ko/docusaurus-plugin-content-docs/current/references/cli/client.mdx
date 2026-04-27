@@ -28,7 +28,7 @@ $ sui client --help
 
 ## JSON 출력
 
-Sui CLI의 인간 친화적인 형식인 기본 형식 대신 JSON 형식으로 응답을 표시하려면 명령어에 `--json` 플래그를 추가한다. 이는 데이터 세트가 매우 큰 경우, 특히 작은 화면에서 결과가 제대로 표시되지 않을 때 유용하다. 이러한 경우에 `--json` 플래그를 사용하면 편리하다.
+Sui CLI의 인간 친화적인 형식인 기본 형식 대신 JSON 형식으로 응답을 표시하려면 명령어에 `--json` 플래그를 추가한다. 이는 데이터 세트가 매우 큰 경우, 특히 작은 화면에서 결과가 제대로 표시되지 않을 때 유용하다. 이 경우에 `--json` 플래그를 사용하면 편리하다.
 
 ## 예시
 
@@ -36,7 +36,7 @@ Sui CLI의 인간 친화적인 형식인 기본 형식 대신 JSON 형식으로 
 
 ### 사용 가능한 network environment 나열
 
-`sui client envs` 명령어를 사용하여 CLI에 설정된 네트워크 환경을 확인할 수 있다. 이러한 환경 정보는 Sui 구성 디렉터리( `~/.sui/sui_config` )의 client.yaml 파일에도 저장되어 있다.
+`sui client envs` 명령어를 사용하여 CLI에 설정된 네트워크 환경을 확인할 수 있다. 이 환경 정보는 Sui 구성 디렉터리( `~/.sui/sui_config` )의 client.yaml 파일에도 저장되어 있다.
 
 ```sh
 ╭────────┬────────────────────────────────────┬────────╮
@@ -414,43 +414,33 @@ $ sui client gas eloquent-amber
 
 ### transaction replay
 
-`sui client replay-transaction --tx-digest <TRANSACTION-DIGEST>` 명령어를 사용하여 transaction을 로컬에서 다시 실행하고 transaction의 영향을 확인할 수 있다. 이 명령어는 클라이언트 환경 변수에 지정된 풀 노드에서 transaction 종속성을 가져온다. 오래전에 발생한 transaction의 경우, 해당 transaction에 대한 체인 데이터가 삭제되지 않은 풀 노드를 클라이언트 풀 노드로 설정하는 것이 좋다. 이렇게 하면 로컬에서 실행된 transaction의 결과가 온체인에 저장된 transaction의 결과와 일치하는지 확인할 수 있다.
-
-```sh
-$ sui client replay-transaction --tx-digest 51MzJP2Uesvza8vXGpPCGbfLrY6UCfdvdoErN1z4oXPW
-```
-
-transaction 재생 및 디버깅 또는 프로파일링에 transaction을 활용하는 방법에 대한 자세한 내용은 [Sui Replay CLI](./replay), [Move Trace Debugger](../ide/debugger), 그리고 [Sui 트레이스 분석](./trace-analysis) 가이드를 참조바란다.
+Transaction replay용 client command는 `sui replay` 명령으로 대체되어 deprecated되었다. Transaction replay와 이를 debugging 또는 profiling에 사용하는 방법은 [Transaction Replay](/references/cli/replay), [Debugging Transactions](/references/ide/debugger), [Transaction Trace Analysis](/references/cli/trace-analysis) 가이드에서 확인한다.
 
 ## Move package publish
 
 `sui client` 명령어의 주요 용도 중 하나는 Sui 네트워크에 스마트컨트랙트를 게시하는 것이다. 이 예제에서는 현재 환경을 데브넷 네트워크로 전환한 다음, Sui 저장소 에 있는 기존 Move 예제 중 하나를 빌드, 테스트 및 게시한다: [sui/examples/move](https://github.com/MystenLabs/sui/tree/main/examples/move)
 
-이 예제에서는 `sui move` 명령어를 사용한다. 해당 명령어에 대한 자세한 내용은 [Sui Move CLI](./move)를 참조바란다:
+이 예제에서는 `sui move` 명령어를 사용한다. 해당 명령어에 관한 자세한 내용은 [Sui Move CLI](/references/cli/move)를 참조한다:
 
 1. 터미널이나 콘솔을 열고 로컬 Sui 저장소의 루트 디렉터리로 이동한 다음 `move_tutorial` 예제 파일로 이동한다.
     ```sh
-    $ cd examples/move/first_package
+    $ sui client switch --env devnet
     ```
 2. 데브넷 네트워크로 전환한다. 이 명령은 별칭을 사용하므로 구성에 설정된 별칭 이름에 따라 `devnet` 값이 다를 수 있다(정의된 네트워크 및 해당 별칭 목록을 보려면 `sui client envs`를 사용한다).
     ```sh
-    $ sui client switch --env devnet
-    ```
-3. 패키지를 빌드하려면 `sui move build` 명령어를 사용한다. 이 명령어는 패키지 매니페스트 파일( [Move.toml](https://move-book.com/concepts/manifest.html) )과 동일한 레벨에서 실행해야 한다.
-    ```sh
     $ sui move build
     ```
-    콘솔에 빌드 상태가 표시된다.
+3. 패키지를 빌드하려면 `sui move build` 명령어를 사용한다. 이 명령어는 패키지 매니페스트 파일( [Move.toml](https://move-book.com/references/package-managers/manifest-reference) )과 동일한 레벨에서 실행해야 한다.
     ```sh
     INCLUDING DEPENDENCY Sui
     INCLUDING DEPENDENCY MoveStdlib
     BUILDING first_package
     ```
-4. `sui move test` 사용하여 유닛 테스트를 실행한다.
+    콘솔에 빌드 상태가 표시된다.
     ```sh
     $ sui move test
     ```
-    콘솔은 진행 상황에 대한 업데이트를 표시한다.
+4. `sui move test` 사용하여 유닛 테스트를 실행한다.
     ```sh
     INCLUDING DEPENDENCY Sui
     INCLUDING DEPENDENCY MoveStdlib
@@ -459,12 +449,12 @@ transaction 재생 및 디버깅 또는 프로파일링에 transaction을 활용
     [ PASS    ] 0x0::example::test_module_init
     [ PASS    ] 0x0::example::test_sword_transactions
     Test result: OK. Total tests: 2; passed: 2; failed: 0
-    ```
-5. `sui client verify-bytecode-meter`를 사용하여 모듈이 바이트코드 측정 테스트를 통과하는지 확인한다.
+     ```
+    콘솔은 진행 상황에 대한 업데이트를 표시한다.
     ```sh
     $ sui client verify-bytecode-meter
     ```
-    콘솔에는 허용되는 최대값과 패키지가 사용하는 양이 표시된다.
+5. `sui client verify-bytecode-meter`를 사용하여 모듈이 바이트코드 측정 테스트를 통과하는지 확인한다.
     ```sh
     Running bytecode verifier for 1 modules
     ╭──────────────────────────────────╮
@@ -475,22 +465,23 @@ transaction 재생 및 디버깅 또는 프로파일링에 transaction을 활용
     │ Used   │ 4565       │ 4565       │
     ╰────────┴────────────┴────────────╯
     ```
-6. `sui client gas`를 사용하여 활성 주소에 가스 요금 지불에 필요한 가스 코인이 있는지 확인한다.
+    콘솔에는 허용되는 최대값과 패키지가 사용하는 양이 표시된다.
     ```sh
     $ sui client gas
     ```
-    이 예시의 경우, 콘솔은 해당 주소에 코인이 없다는 정보를 표시한다.
+6. `sui client gas`를 사용하여 활성 주소에 가스 요금 지불에 필요한 가스 코인이 있는지 확인한다.
     ```sh
     No gas coins are owned by this address
     ```
-7. 코인이 필요한 경우, `sui client faucet` (메인넷에서는 사용 불가)를 이용한다. 가스 토큰 획득에 대한 자세한 내용은 [Get Sui Token](/getting-started/onboarding/get-coins)를 참조바란다.
+    이 예시의 경우, 콘솔은 해당 주소에 코인이 없다는 정보를 표시한다.
     ```sh
     $ sui client faucet
     ```
-8. `sui client gas`를 사용하여 현재 활성화된 주소가 코인을 수신했는지 확인한다.
+7. 코인이 필요한 경우, `sui client faucet` (메인넷에서는 사용 불가)를 이용한다. 가스 토큰 획득에 관한 자세한 내용은 [Get Sui Token](/getting-started/onboarding/get-coins)를 참조한다.
     ```sh
     $ sui client gas
     ```
+8. `sui client gas`를 사용하여 현재 활성화된 주소가 코인을 수신했는지 확인한다.
     ```sh
     ╭────────────────────────────────────────────────────────────────────┬─────────────╮
     │ gasCoinId                                                          │ gasBalance  │
@@ -498,10 +489,10 @@ transaction 재생 및 디버깅 또는 프로파일링에 transaction을 활용
     │ 0x01b2795ba5800c8f7cb7d7c56abe19e24c656ed6764f3ccc5e66da3de52402a8 │ 10000000000 │
     ╰────────────────────────────────────────────────────────────────────┴─────────────╯
     ```
-9. 패키지를 게시하려면 `sui client publish`를 사용한다. Sui 구버전을 사용하는 경우 `gas-budget` 플래그에 적절한 값을 설정해야 한다. 콘솔에 게시 세부 정보가 표시된다. `sui client object <OBJECT-ID>`를 사용하여 프로세스의 object 세부 정보를 확인할 수 있다.
     ```sh
     $ sui client publish --gas-budget 100000000 .
     ```
+9. 패키지를 게시하려면 `sui client publish`를 사용한다. Sui 구버전을 사용하는 경우 `gas-budget` 플래그에 적절한 값을 설정해야 한다. 콘솔에 게시 세부 정보가 표시된다. `sui client object <OBJECT-ID>`를 사용하여 프로세스의 object 세부 정보를 확인할 수 있다.
     ```sh
      Transaction Digest: ABPd7v8BxLkcyHvX8Jt1SbneQRwzE9WzcEoptT2RDNVF
     ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
@@ -646,6 +637,9 @@ transaction 재생 및 디버깅 또는 프로파일링에 transaction을 활용
     │  └──                                                                                              │
     ╰───────────────────────────────────────────────────────────────────────────────────────────────────╯
     ```
+```sh
+$ sui client call --help
+```
 
 ## 도움말
 

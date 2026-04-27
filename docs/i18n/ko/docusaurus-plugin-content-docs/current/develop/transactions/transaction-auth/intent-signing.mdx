@@ -59,7 +59,7 @@ pub struct Intent {
 
 ## User signature
 
-사용자 서명을 생성하려면 먼저 인텐트 메시지를 구성한 다음, transaction data의 인텐트 메시지(`intent || message`)를 BCS로 직렬화한 값의 32바이트 Blake2b 해시에 대해 서명을 생성한다.
+사용자 서명을 생성하려면 먼저 인텐트 메시지를 구성한 다음, 트랜잭션 data의 인텐트 메시지(`intent || message`)를 BCS로 직렬화한 값의 32바이트 Blake2b 해시에 대해 서명을 생성한다.
 
 다음 예시는 이를 보여준다:
 
@@ -87,7 +87,7 @@ const signature = await this.sign(intentMessage);
 
 내부적으로 Rust의 `new_secure` 메서드와 TypeScript의 `signData` 메서드는 다음을 수행한다:
 
-1.  인텐트 메시지를 3바이트 인텐트와 transaction data의 BCS 직렬화 바이트를 연결한 값으로 직렬화한다.
+1.  인텐트 메시지를 3바이트 인텐트와 트랜잭션 data의 BCS 직렬화 바이트를 연결한 값으로 직렬화한다.
 
 1.  Blake2b hash를 적용해 32바이트 digest를 얻는다.
 
@@ -103,7 +103,7 @@ Authority가 네트워크 참여를 요청할 때는 protocol public key와 proo
 
 Proof of possession은 authority protocol private key를 사용해 생성하는 BLS 서명이며, 다음 메시지에 커밋한다: `intent || pubkey || address || epoch`. 값은 다음과 같다:
 
-- `intent`: scope가 `Proof of Possession`, `version`이 `V0`, `app_id`가 `Sui`인 인텐트를 나타내는 `[5, 0, 0]`으로 직렬화된다.
+- `intent`: scope가 `[5, 0, 0]`, `Proof of Possession`이 `version`, `V0`가 `app_id`인 인텐트를 나타내는 `Sui`으로 직렬화된다.
 
 - `pubkey`: authority BLS protocol key의 직렬화된 public key bytes이다.
 

@@ -17,9 +17,9 @@ Sui는 플레이어 계정과 프로필 생성을 간소화하는 데 도움이 
 
 많은 플레이어는 single sign-on (SSO) 또는 social login을 사용해 게임 계정을 만든다. [zkLogin](https://www.sui.io/zklogin)은 Sui primitive로, 익숙한 인증 흐름을 통해 블록체인 계정 생성을 가능하게 하여 기존 지갑 설정 과정의 복잡성을 줄인다.
 
-### 스폰서 트랜잭션
+### 스폰서드 트랜잭션
 
-현대의 플레이어는 대체로 선불 비용이 필요 없는 free-to-play (F2P) 게임을 선택한다. Sponsored transactions를 사용하면 사용자 또는 지정된 엔터티가 플레이어에게 필요한 gas fees를 대신 부담할 수 있으므로, 처음에 SUI tokens를 구매할 필요가 없어진다.
+현대의 플레이어는 대체로 선불 비용이 필요 없는 free-to-play (F2P) 게임을 선택한다. 스폰서드 트랜잭션을 사용하면 사용자 또는 지정된 엔터티가 플레이어에게 필요한 가스 수수료를 대신 부담할 수 있으므로, 처음에 SUI tokens를 구매할 필요가 없어진다.
 
 ## game object를 on-chain에 표현하기
 
@@ -35,7 +35,7 @@ Off-chain computation도 [Nautilus 설계](/sui-stack/nautilus/nautilus-design)�
 
 ### 인게임 통화
 
-In-game currencies를 사용하면 사용자가 아이템, 업그레이드, 프리미엄 콘텐츠와 같은 게임 기능을 구매할 수 있다. Web2 게임에서는 이러한 화폐가 오직 게임 내에만 존재하며, 그 가치는 개발자가 정한다.
+In-game currencies를 사용하면 사용자가 아이템, 업그레이드, 프리미엄 콘텐츠와 같은 게임 기능을 구매할 수 있다. Web2 게임에서는 이 화폐가 오직 게임 내에만 존재하며, 그 가치는 개발자가 정한다.
 
 Sui를 사용하면 플레이어는 이제 [true ownership of their in-game currency](/onchain-finance/examples-patterns/in-game-currency)를 가질 수 있다. 이 화폐는 [token on the Sui blockchain](/onchain-finance/fungible-tokens/currency)으로 존재하므로, 플레이어는 그 화폐를 on-chain에 존재하는 다른 무엇과도 사고팔거나 교환할 수 있다고 상상할 수 있다. 게임 생태계를 만든다면 플레이어는 한 게임에서 화폐를 구매하고 동일한 화폐를 사용하는 다른 게임에서 그 화폐를 사용할 수 있다. 가능성은 광범위하지만, 먼저 그 화폐를 만드는 방법을 배워야 한다.
 
@@ -65,13 +65,13 @@ Smart contracts에는 objects를 생성하는 함수가 포함된다. 이전 예
 
 <ImportContent source="examples/tic-tac-toe/move/sources/owned.move" mode="code" fun="new" noComments />
 
-이는 on-chain action, 즉 transaction이다. 이 경우 transaction은 체인에 object를 생성해 달라는 요청이다. 함수에 필요한 데이터를 제공하고 네트워크 validators의 계산 노력에 대한 gas fee를 지불한다. 그 결과 address(`id`)에 존재하는 새로운 NFT가 Sui 블록체인에 생성된다.
+이는 on-chain action, 즉 transaction이다. 이 경우 transaction은 체인에 object를 생성해 달라는 요청이다. 함수에 필요한 데이터를 제공하고 네트워크 validators의 계산 노력에 대한 가스 수수료를 지불한다. 그 결과 address(`id`)에 존재하는 새로운 NFT가 Sui 블록체인에 생성된다.
 
 #### asset update
 
-Sui에서는 NFT를 정의하는 smart contract가 허용하는 경우 별도의 transaction을 사용해 NFT asset을 업데이트할 수 있다. 생성과 마찬가지로 관련 update 함수에 데이터를 제공하고 [pay the gas fee](/develop/transaction-payment/gas-in-sui)를 지불하면 smart contract가 올바른 address의 object를 새로운 정보로 업데이트한다.
+Sui에서는 NFT를 정의하는 smart contract가 허용하는 경우 별도의 transaction을 사용해 NFT asset을 업데이트할 수 있다. 생성과 마찬가지로 관련 update 함수에 데이터를 제공하고 [가스 수수료를 지불](/develop/transaction-payment/gas-in-sui)하면 smart contract가 올바른 address의 object를 새로운 정보로 업데이트한다.
 
-tic-tac-toe 예제를 사용하면, 사용 가능한 칸에 `x`를 놓기 위해 smart contract에 gameboard object를 업데이트하라고 지시할 수 있다. 대부분의 업데이트에 필요한 계산 노력은 원래 object를 생성하는 데 필요한 노력보다 적기 때문에, 결과로 발생하는 gas fees도 일반적으로 더 적다.
+tic-tac-toe 예제를 사용하면, 사용 가능한 칸에 `x`를 놓기 위해 smart contract에 gameboard object를 업데이트하라고 지시할 수 있다. 대부분의 업데이트에 필요한 계산 노력은 원래 object를 생성하는 데 필요한 노력보다 적기 때문에, 결과로 발생하는 가스 수수료도 일반적으로 더 적다.
 
 #### asset composition
 
@@ -85,7 +85,7 @@ Child objects를 parent에 추가하는 함수는 다음과 비슷할 수 있다
 
 <ImportContent source="examples/move/dynamic_fields/sources/example.move" mode="code" fun="add_child"/>
 
-Dynamic fields는 많은 사용 사례에 적용할 수 있다. 예를 들어 `TicketBooth`라는 object는 `ConcertTicket` 타입의 objects를 포함할 수 있다. `Car` 타입의 object는 `Engine`, `Tires`, `Body`, `Wheel`과 같은 필요한 모든 objects가 존재할 때까지 `false`인 `is_functioning` 필드를 가질 수 있으며, 이 시점에 `is_functioning` 필드를 자동으로 `true`로 업데이트할 수 있다.
+Dynamic fields는 많은 사용 사례에 적용할 수 있다. 예를 들어 `TicketBooth`라는 object는 `ConcertTicket` 타입의 objects를 포함할 수 있다. `Car` 타입의 object는 `is_functioning`, `false`, `Engine`, `Tires`과 같은 필요한 모든 objects가 존재할 때까지 `Body`인 `Wheel` 필드를 가질 수 있으며, 이 시점에 `is_functioning` 필드를 자동으로 `true`로 업데이트할 수 있다.
 
 Composability는 Sui의 매우 중요한 기능이다. 이는 Sui에서 아이디어를 개발할 때 많은 선택지를 제공할 뿐 아니라, 기존 프로젝트 위에 구축하고 프로젝트 안에서 third-party assets를 사용할 수 있게 한다. 이는 "*특정 NFT를 소유한 사용자만 할인을 받을 수 있다*"에서부터 두 개의 서로 다른 프로젝트 간 완전한 협업까지, 그리고 그 사이의 모든 것을 smart contract 수준에서 가능하게 할 수 있다.
 
@@ -133,11 +133,11 @@ Sui Object Display standard는 몇 가지 핵심 이점과 구성 요소를 제�
 
 1. 자신이 소유한 `Publisher` object를 사용하여 특정 타입에 대한 `sui::display`를 설정한다.
 2. Sui Move의 `Display<T>`는 다양한 타입이 어떻게 보이는지 정의한다. 예를 들어 `Display<0x2::capy::Capy>`는 타입의 외형을 형성한다.
-3. Sui Full nodes는 쿼리에서 `{ showDisplay: true }`로 요청될 때 Display definitions를 사용해 데이터를 정리한다.
+3. Sui 풀 노드는 쿼리에서 `{ showDisplay: true }`로 요청될 때 Display definitions를 사용해 데이터를 정리한다.
 
 Display는 keys와 values의 map이며 둘 다 strings이다. Values는 string interpolation을 허용하므로, 이는 보고 있는 NFT에 따라 value가 동적으로 바뀐다는 의미이다.
 
-기본 예제는 `Asset` objects를 위한 `Display`를 만드는 것이다:
+기본 예제는 `Display` objects를 위한 `Asset`를 만드는 것이다:
 
 ```move
 public struct Asset has key, store {
@@ -339,11 +339,11 @@ ShadowQuest는 특히 Web3에 익숙하지 않은 플레이어에게 복잡성�
 
 **Simplified transaction handling**
 
-ShadowQuest의 플레이어는 NFTs 또는 $SHADOW tokens와 같은 in-game assets를 획득하거나 사용한다. ShadowQuest는 Web3에 익숙하지 않은 플레이어를 끌어들이기 위해 transactions 서명을 위한 wallets 팝업과 같은 Web3 friction을 피할 수 있도록 game transactions를 관리한다. Player transactions를 sponsor함으로써 ShadowQuest 플레이어는 transaction costs와 gas fees를 직접 지불하지 않게 되므로 friction이 최소화된다.
+ShadowQuest의 플레이어는 NFTs 또는 $SHADOW tokens와 같은 in-game assets를 획득하거나 사용한다. ShadowQuest는 Web3에 익숙하지 않은 플레이어를 끌어들이기 위해 transactions 서명을 위한 wallets 팝업과 같은 Web3 friction을 피할 수 있도록 game transactions를 관리한다. Player transactions를 sponsor함으로써 ShadowQuest 플레이어는 transaction costs와 가스 수수료를 직접 지불하지 않게 되므로 friction이 최소화된다.
 
 Enoki transactions는 transaction 승인을 위해 플레이어의 confirmation을 요구하지 않고 서명될 수 있다.
 
-ShadowQuest는 Enoki Gas Pool을 사용해 transactions를 sponsor하고 플레이어의 gas fees를 부담한다. 이는 모든 in-game transactions가 플레이어에게 원활하고 무료가 되도록 하여 더 나은 user experience를 제공한다.
+ShadowQuest는 Enoki Gas Pool을 사용해 transactions를 sponsor하고 플레이어의 가스 수수료를 부담한다. 이는 모든 in-game transactions가 플레이어에게 원활하고 무료가 되도록 하여 더 나은 user experience를 제공한다.
 
 **NFT marketplace and royalty enforcement**
 

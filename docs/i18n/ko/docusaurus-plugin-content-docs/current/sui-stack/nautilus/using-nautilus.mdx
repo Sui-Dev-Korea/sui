@@ -180,23 +180,23 @@ aws sts get-caller-identity
 
 ```sh title="Repository structure"
 /move
-  /enclave          # enclave config와 public key registration을 위한 utility functions
-  /weather-example  # enclave functions를 사용하는 예제 onchain logic
-  /twitter-example  # 대체 예제 onchain logic
+  /enclave          # Utility functions for enclave config and public key registration
+  /weather-example  # Example onchain logic using enclave functions
+  /twitter-example  # Alternative example onchain logic
 
 /src
-  /aws              # AWS boilerplate; 수정할 필요가 없다.
-  /init             # AWS boilerplate; 수정할 필요가 없다.
-  /system           # AWS boilerplate; 수정할 필요가 없다.
-  /nautilus-server  # enclave 내부에서 실행되는 Nautilus server.
+  /aws              # AWS boilerplate; does not require modification.
+  /init             # AWS boilerplate; does not require modification.
+  /system           # AWS boilerplate; does not require modification.
+  /nautilus-server  # Nautilus server that runs inside the enclave.
     /src
       /apps
-        /weather-example    # 예제 directory. 필요에 따라 자체 application logic으로 교체한다.
-          mod.rs            # process_data endpoint와 관련 logic을 정의한다. 오프체인 계산 logic으로 교체한다.
-          allowed_endpoints.yaml  # enclave가 접근할 수 있는 모든 endpoint를 나열한다. 기본적으로 enclave는 internet access가 없다. 구성 중 이 파일은 traffic forwarding을 위한 code를 생성한다.
-        /twitter-example    # 유사한 구조의 또 다른 예제 directory.
-    run.sh           # enclave 내부에서 Rust server를 실행한다. 수정하지 않는다.
-    common.rs        # attestation을 가져오는 common code. 수정하지 않는다.
+        /weather-example    # Example directory. Replace with your own application logic as needed.
+          mod.rs            # Defines the process_data endpoint and related logic. Replace with your offchain computation logic.
+          allowed_endpoints.yaml  # Lists all endpoints the enclave can access. By default, the enclave has no internet access. During configuration, this file generates code for traffic forwarding.
+        /twitter-example    # Another example directory with a similar structure.
+    run.sh           # Runs the Rust server inside the enclave. Do not modify.
+    common.rs        # Common code for retrieving attestation. Do not modify.
 ```
 
 핵심 구현 파일:
@@ -262,11 +262,11 @@ public subnet이 있는 VPC를 생성해야 할 수 있다. 지침은 이 [AWS g
 weather example을 그대로 실행하려면 `allowed_endpoints.yaml`을 수정할 필요가 없다. 이미 `api.weatherapi.com`이 포함되어 있기 때문이다. 프롬프트에 따라 필요한 값을 입력한다. 이 단계는 AWS Secrets Manager를 사용해 secret(API key)을 저장하는 방법을 보여주므로 public application code에 secret을 포함하지 않아도 된다.
 
 ```sh
-Enter EC2 instance base name: weather # 원하는 이름
+Enter EC2 instance base name: weather # anything you like
 Do you want to use a secret? (y/n): y
 Do you want to create a new secret or use an existing secret ARN? (new/existing): new
-Enter secret name: weather-api-key # 원하는 이름
-Enter secret value: 045a27812dbe456392913223221306 # 예시 api key이며, weatherapi.com에서 본인 key를 받을 수 있다
+Enter secret name: weather-api-key # anything you like
+Enter secret value: 045a27812dbe456392913223221306 # this is an example api key, you can get your own at weatherapi.com
 ```
 
 출력에는 다음 항목이 포함된다.
@@ -326,7 +326,7 @@ $ make ENCLAVE_APP=<APP> && make run # this builds the enclave and runs it, ex. 
 $ sh expose_enclave.sh # this exposes port 3000 to the Internet for traffic
 ```
 
-enclave를 debug mode에서 실행하려면 `make run` 대신 `make run-debug`를 사용한다. 이는 production build와 달리 모든 log를 출력한다. debug mode에서는 PCR 값이 모두 0이며 production 용도로 유효하지 않다.
+enclave를 debug mode에서 실행하려면 `make run-debug` 대신 `make run`를 사용한다. 이는 production build와 달리 모든 log를 출력한다. debug mode에서는 PCR 값이 모두 0이며 production 용도로 유효하지 않다.
 
 이제 외부에서 enclave와 상호작용할 수 있다. `PUBLIC_IP`는 AWS console에서 확인할 수 있다.
 
@@ -483,7 +483,7 @@ Twitter example의 frontend code는 [이 repository](https://github.com/MystenLa
 non-production development에서는 enclave 내부에서 private key를 생성하는 대신 private key를 주입하고, 어느 곳에서나 debug mode로 enclave를 실행할 수 있다.
 
 1. enclave에 [deterministic private key를 주입](https://github.com/MystenLabs/nautilus/blob/main/src/nautilus-server/src/main.rs#L16)하도록 code를 수정한다. 이렇게 하면 AWS Nitro instance 없이도 동일한 private key로 server를 어디서나 실행할 수 있다.
-2. `make run` 대신 `make run-debug`를 사용한다. Debug mode는 all-zero PCR 값을 생성한다. 이 all-zero PCR로 enclave를 온체인에 한 번 등록하고 개발 중 PCR을 온체인에서 업데이트하지 않고 재사용할 수 있다.
+2. `make run-debug` 대신 `make run`를 사용한다. Debug mode는 all-zero PCR 값을 생성한다. 이 all-zero PCR로 enclave를 온체인에 한 번 등록하고 개발 중 PCR을 온체인에서 업데이트하지 않고 재사용할 수 있다.
 
 :::danger
 

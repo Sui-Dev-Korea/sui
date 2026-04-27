@@ -1,6 +1,6 @@
 ---
 title: 주소 잔액 마이그레이션 가이드
-description: Sui에서 Coin object에서 address balances로 마이그레이션하는 방법을 설명한다.
+description: Sui에서 Coin 객체에서 주소 잔액으로 마이그레이션하는 방법을 설명한다.
 keywords:
   [
     주소 잔액,
@@ -15,8 +15,8 @@ keywords:
 ---
 
 
-Address balances는 Sui address에 연결된 fungible asset용 canonical balance system을 도입한다.
-이는 UTXO-style `Coin<T>` model을 direct address-owned balance로 대체하여 transaction 구성을 단순화하고 coin selection 복잡성을 없앤다.
+Address Balances는 Sui 주소에 연결된 대체 가능 자산용 canonical balance system을 도입한다.
+이는 UTXO 스타일 `Coin<T>` 모델을 직접 주소 소유 잔액으로 대체하여 트랜잭션 구성을 단순화하고 코인 선택 복잡성을 없앤다.
 
 전체 명세는 [SIP-58: Sui Address Balances](https://github.com/sui-foundation/sips/blob/main/sips/sip-58.md)를 참조한다.
 
@@ -26,46 +26,46 @@ Address balances는 Sui address에 연결된 fungible asset용 canonical balance
 
 이 rollout은 처음에는 영향이 매우 제한적이다:
 
-- deprecate되거나 제거되는 것은 없다. 현재 유효한 모든 transaction은 계속 유효하다. Coin object가 address balances로 강제 마이그레이션되지는 않는다.
+- deprecated되거나 제거되는 것은 없다. 현재 유효한 모든 트랜잭션은 계속 유효하다. Coin 객체가 주소 잔액으로 강제 마이그레이션되지는 않는다.
 - contract를 다시 작성할 필요는 없다. contract는 이전과 같이 계속 `Coin<T>`와 `&mut Coin<T>`를 받을 수 있다.
-- coin은 여전히 `transfer::public_transfer` 또는 `TransferObjects` command를 통해 보낼 수 있다.
+- 코인은 여전히 `transfer::public_transfer` 또는 `TransferObjects` 명령를 통해 보낼 수 있다.
 
 ### 지갑, 거래소, 수탁 제공자에 미치는 영향
 
-wallet(custodial, non-custodial, exchange wallet 등)을 운영하는 누구나 이 변경의 영향을 받을 수 있다.
-이유는 **이제 사용자가 coin object를 transfer하는 대신 `send_funds()`를 통해 여러분의 address로 fund를 보낼 수 있기 때문이다**.
-wallet가 이 방식으로 fund를 받았지만 그 fund를 "보지" 못하거나 접근하지 못하면, 사용자는 fund가 사라졌다고 믿을 수 있다.
+지갑(custodial, non-custodial, exchange 지갑 등)을 운영하는 누구나 이 변경의 영향을 받을 수 있다.
+이유는 **이제 사용자가 코인 객체를 전송하는 대신 `send_funds()`를 통해 여러분의 주소로 fund를 보낼 수 있기 때문이다**.
+지갑가 이 방식으로 fund를 받았지만 그 fund를 "보지" 못하거나 접근하지 못하면, 사용자는 fund가 사라졌다고 믿을 수 있다.
 실제로 fund가 사라질 수는 없지만, 이는 영향을 받는 사용자에게 혼란과 우려를 일으킬 수 있다.
 
-처음에는 대부분의 ecosystem이 오늘날과 마찬가지로 계속 coin object를 transfer할 것이므로, 이런 일은 자주 일어나지 않을 것이다.
-하지만 어떤 wallet에도 fund가 address balance transfer로 도착할 가능성이 존재하므로, wallet 구현자는 이에 대비해야 한다.
+처음에는 대부분의 ecosystem이 오늘날과 마찬가지로 계속 코인 객체를 전송할 것이므로, 이런 일은 자주 일어나지 않을 것이다.
+하지만 어떤 지갑에도 fund가 주소 잔액 transfer로 도착할 가능성이 존재하므로, 지갑 구현자는 이에 대비해야 한다.
 
-또한 사용자 fund는 **coin과 address balances 양쪽에 분산될 수 있다**.
-balance query(JSON-RPC, gRPC, GraphQL을 통한)는 결합된 총합을 보여준다.
-하지만 address balance 부분이 포함된 fund를 보내려면 다음 중 하나를 해야 한다:
+또한 사용자 fund는 **코인과 주소 잔액 양쪽에 분산될 수 있다**.
+잔액 쿼리(JSON-RPC, gRPC, GraphQL을 통한)는 결합된 총합을 보여준다.
+하지만 주소 잔액 부분이 포함된 fund를 보내려면 다음 중 하나를 해야 한다:
 
 - 최근 버전의 TypeScript SDK(v2+)에 있는 `coinWithBalance`를 사용한다. 이는 두 source에서 자동으로 자금을 끌어온다.
-- 이 가이드에서 설명하는 수동 withdrawal logic을 구현한다.
+- 이 가이드에서 설명하는 수동 출금 logic을 구현한다.
 
 ## 개요
 
-이전에는 Sui의 balance를 address가 소유한 모든 `Coin<T>` object의 값을 합산하여 계산했다.
-address balances에서는 각 address가 각 currency type `T`마다 address-owned balance를 하나씩 추가로 가질 수 있다.
-총 balance는 모든 `Coin<T>` object와 해당 coin type의 address balance 값을 합한 값이다.
+이전에는 Sui의 잔액을 주소가 소유한 모든 `Coin<T>` 객체의 값을 합산하여 계산했다.
+주소 잔액에서는 각 주소가 각 currency 타입 `T`마다 주소 소유 잔액을 하나씩 추가로 가질 수 있다.
+총 잔액은 모든 `Coin<T>` 객체와 해당 코인 타입의 주소 잔액 값을 합한 값이다.
 
-`Coin<T>`와 address balances는 공존한다.
-기존 coin은 계속 동작하며 여전히 `transfer::public_transfer`로 transfer할 수 있다.
-하지만 address balances는 다음과 같은 중요한 운영상 이점을 제공한다:
+`Coin<T>`와 주소 잔액은 공존한다.
+기존 코인은 계속 동작하며 여전히 `transfer::public_transfer`로 전송할 수 있다.
+하지만 주소 잔액은 다음과 같은 중요한 운영상 이점을 제공한다:
 
-- coin selection logic이 필요 없다.
-- deposit가 하나의 canonical balance로 자동 병합된다.
-- object state를 질의하지 않고도 stateless한 transaction 구성이 가능하다.
-- SUI address balances에서 직접 gas를 지불할 수 있다.
+- 코인 선택 로직이 필요 없다.
+- 예치가 하나의 canonical balance으로 자동 병합된다.
+- 객체 상태를 질의하지 않고도 stateless한 트랜잭션 구성이 가능하다.
+- SUI 주소 잔액에서 직접 gas를 지불할 수 있다.
 
-## 주소 잔액에서 transaction funding
+## 주소 잔액에서 트랜잭션 funding
 
-gas나 transaction argument로 사용할 coin object를 명시적으로 선택하지 않는 경우, TypeScript SDK는 coin object와 address balances를 모두 자동으로 확인하고 올바른 source에서 자금을 끌어온다.
-gas는 기본적으로 address balances에서 지불되며, `coinWithBalance`는 먼저 address balances에서 자금을 끌어오고 필요할 때만 coin object로 fallback한다.
+gas나 트랜잭션 argument로 사용할 코인 객체를 명시적으로 선택하지 않는 경우, TypeScript SDK는 코인 객체와 주소 잔액을 모두 자동으로 확인하고 올바른 source에서 자금을 끌어온다.
+gas는 기본적으로 주소 잔액에서 지불되며, `coinWithBalance`는 먼저 주소 잔액에서 자금을 끌어오고 필요할 때만 코인 객체로 fallback한다.
 
 ### `coinWithBalance` 사용
 
@@ -78,19 +78,19 @@ const tx = new Transaction();
 tx.transferObjects([coinWithBalance({ balance: requiredAmount })], recipient);
 ```
 
-fund가 address balances와 coin object 양쪽에 분산되어 있어도, SDK가 이 조합을 자동으로 처리하여 먼저 address balances를 사용하고 필요할 때만 coin으로 fallback한다.
+fund가 주소 잔액와 코인 객체 양쪽에 분산되어 있어도, SDK가 이 조합을 자동으로 처리하여 먼저 주소 잔액을 사용하고 필요할 때만 코인으로 fallback한다.
 
 `coinWithBalance` option은 다음과 같다:
 
 - `balance` (required): base unit 금액이다(SUI의 경우 MIST).
-- `type` (optional): coin type이며 기본값은 `0x2::sui::SUI`이다.
-- `useGasCoin` (optional): SUI에 대해 gas coin에서 split할지 여부이다(기본값 `true`). sponsored transaction에는 `false`로 설정한다.
-- `forceAddressBalance` (optional): address balance withdrawal을 강제하고 balance/coin lookup을 건너뛴다.
+- `type` (optional): 코인 타입이며 기본값은 `0x2::sui::SUI`이다.
+- `useGasCoin` (optional): SUI에 대해 가스 코인에서 split할지 여부이다(기본값 `true`). sponsored 트랜잭션에는 `false`로 설정한다.
+- `forceAddressBalance` (optional): 주소 잔액 출금을 강제하고 잔액/코인 lookup을 건너뛴다.
 
 ### TypeScript SDK: 수동 인출
 
-address balance withdrawal을 명시적으로 제어하려면 `tx.withdrawal()`을 사용한다.
-usable한 `Coin<T>` 또는 `Balance<T>`를 만들려면 withdrawal을 `redeem_funds`로 redeem해야 한다.
+주소 잔액 출금을 명시적으로 제어하려면 `tx.withdrawal()`을 사용한다.
+usable한 `redeem_funds` 또는 `Coin<T>`를 만들려면 출금을 `Balance<T>`로 redeem해야 한다.
 
 [TypeScript SDK - 트랜잭션 레퍼런스](https://sui-typescript-docs-git-mh-address-balance-docs-mysten-labs.vercel.app/sui/transactions/reference#address-balance-withdrawals):
 
@@ -99,14 +99,14 @@ import { Transaction } from '@mysten/sui/transactions';
 
 const tx = new Transaction();
 
-// address balance에서 SUI를 인출하고 Coin으로 redeem한다
+// Withdraw SUI from address balance and redeem to Coin
 const [coin] = tx.moveCall({
 	target: '0x2::coin::redeem_funds',
 	typeArguments: ['0x2::sui::SUI'],
-	arguments: [tx.withdrawal({ amount: 1_000_000_000 })], // MIST 단위 1 SUI
+	arguments: [tx.withdrawal({ amount: 1_000_000_000 })], // 1 SUI in MIST
 });
 
-// custom coin type을 인출한다
+// Withdraw a custom coin type
 const coinType = '0xPackageId::module::CoinType';
 const [customCoin] = tx.moveCall({
 	target: '0x2::coin::redeem_funds',
@@ -114,16 +114,16 @@ const [customCoin] = tx.moveCall({
 	arguments: [tx.withdrawal({ amount: 1_000_000, type: coinType })],
 });
 
-// 수신자에게 전송한다
+// Transfer to recipient
 tx.transferObjects([coin], recipient);
 ```
 
-`tx.withdrawal()`의 parameter는 다음과 같다:
+`tx.withdrawal()`의 파라미터는 다음과 같다:
 
 - `amount` (required): base unit으로 인출할 금액이다(number, bigint, string).
-- `type` (optional): coin type이며 기본값은 SUI이다.
+- `type` (optional): 코인 타입이며 기본값은 SUI이다.
 
-참고: `tx.withdrawal()`은 coin 또는 balance를 생성하기 위해 redeem되어야 하는 `Withdrawal<Balance<T>>` capability를 만든다.
+참고: `tx.withdrawal()`은 코인 또는 잔액을 생성하기 위해 redeem되어야 하는 `Withdrawal<Balance<T>>` capability를 만든다.
 이를 위해 `0x2::coin::redeem_funds()` 또는 `0x2::balance::redeem_funds()`를 사용한다.
 `coinWithBalance` intent는 이를 자동으로 수행한다.
 
@@ -143,7 +143,7 @@ let withdrawal_arg = FundsWithdrawalArg {
 
 helper인 `FundsWithdrawalArg::balance_from_sender(amount, balance_type)`는 편리한 constructor를 제공한다.
 
-PTB에서는 withdrawal input을 다음 중 하나에 전달한다:
+PTB에서는 출금 입력을 다음 중 하나에 전달한다:
 
 - `0x2::balance::redeem_funds<T>()`를 사용해 `Balance<T>`를 얻는다.
 - `0x2::coin::redeem_funds<T>()`를 사용해 `Coin<T>`를 얻는다.
@@ -151,7 +151,7 @@ PTB에서는 withdrawal input을 다음 중 하나에 전달한다:
 [소스: `sui-types/src/programmable_transaction_builder.rs`](https://github.com/MystenLabs/sui/blob/main/crates/sui-types/src/programmable_transaction_builder.rs):
 
 ```rust
-// Rust 예시: 인출하고 전송한다
+// Rust example: withdraw and transfer
 let mut builder = ProgrammableTransactionBuilder::new();
 
 let withdraw_arg = FundsWithdrawalArg::balance_from_sender(
@@ -160,7 +160,7 @@ let withdraw_arg = FundsWithdrawalArg::balance_from_sender(
 );
 let withdraw_input = builder.funds_withdrawal(withdraw_arg).unwrap();
 
-// coin으로 redeem한다
+// Redeem to coin
 let coin = builder.programmable_move_call(
     SUI_FRAMEWORK_PACKAGE_ID,
     Identifier::new("coin").unwrap(),
@@ -172,19 +172,19 @@ let coin = builder.programmable_move_call(
 builder.transfer_arg(recipient, coin);
 ```
 
-같은 coin type에 대해서도 하나의 PTB에 여러 `FundsWithdrawalArg` input을 둘 수 있다.
+같은 코인 타입에 대해서도 하나의 PTB에 여러 `FundsWithdrawalArg` 입력을 둘 수 있다.
 
-### withdrawal split 및 join
+### 출금 split 및 join
 
-withdrawal은 PTB 안에서 split하고 merge할 수 있다.
+출금은 PTB 안에서 split하고 병합할 수 있다.
 
 [소스: `sui-framework/sources/funds_accumulator.move`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/funds_accumulator.move):
 
 ```move
-// 기존 withdrawal에서 하위 withdrawal을 split한다
+// Split a sub-withdrawal from an existing withdrawal
 public fun withdrawal_split<T: store>(withdrawal: &mut Withdrawal<T>, sub_limit: u256): Withdrawal<T>
 
-// 두 withdrawal을 합친다(반드시 owner가 같아야 한다)
+// Join two withdrawals together (must have same owner)
 public fun withdrawal_join<T: store>(withdrawal: &mut Withdrawal<T>, other: Withdrawal<T>)
 ```
 
@@ -192,7 +192,7 @@ public fun withdrawal_join<T: store>(withdrawal: &mut Withdrawal<T>, other: With
 
 ### 이전: Coin transfer
 
-coin을 transfer하면 수신자에게 coin object를 보낸다:
+코인을 transfer하면 수신자에게 코인 객체를 보낸다:
 
 ```typescript
 import { coinWithBalance, Transaction } from '@mysten/sui/transactions';
@@ -201,12 +201,12 @@ const tx = new Transaction();
 tx.transferObjects([coinWithBalance({ balance: amount })], recipient);
 ```
 
-각 transfer는 수신자를 위해 새로운 object를 만들어 object proliferation에 기여한다.
-수신자는 시간이 지나면서 많은 작은 coin object를 누적하게 되며, 주기적인 consolidation이 필요해진다.
+각 transfer는 수신자를 위해 새로운 객체를 만들어 객체 proliferation에 기여한다.
+수신자는 시간이 지나면서 많은 작은 코인 객체를 누적하게 되며, 주기적인 consolidation이 필요해진다.
 
-### 이후: address balance deposit
+### 이후: 주소 잔액 예치
 
-address balances에서는 `send_funds`를 사용해 수신자의 address balance에 직접 deposit한다:
+주소 잔액에서는 `send_funds`를 사용해 수신자의 주소 잔액에 직접 예치한다:
 
 ```typescript
 import { coinWithBalance, Transaction } from '@mysten/sui/transactions';
@@ -219,62 +219,62 @@ tx.moveCall({
 });
 ```
 
-수신자의 balance는 새로운 object를 만들지 않고 증가한다.
-서로 다른 sender가 여러 번 deposit해도 모두 하나의 balance로 병합된다.
+수신자의 잔액은 새로운 객체를 만들지 않고 증가한다.
+서로 다른 송신자가 여러 번 예치해도 모두 하나의 잔액으로 병합된다.
 
 [소스: `sui-framework/sources/coin.move` - `send_funds`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/coin.move#L176):
 
 ```move
-// After: Move contract에서
+// After: In Move contract
 public fun send_payment(coin: Coin<SUI>, recipient: address) {
     coin::send_funds(coin, recipient);
 }
 ```
 
-수신자의 balance는 새로운 object를 만들지 않고 증가한다.
-서로 다른 sender가 여러 번 deposit해도 모두 하나의 balance로 병합된다.
+수신자의 잔액은 새로운 객체를 만들지 않고 증가한다.
+서로 다른 송신자가 여러 번 예치해도 모두 하나의 잔액으로 병합된다.
 
 ### Move 함수
 
 [소스: `sui-framework/sources/balance.move` - `send_funds`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/balance.move#L102):
 
 ```move
-// Balance<T>를 address balance로 보낸다
+// Send a Balance<T> to an address balance
 public fun send_funds<T>(balance: Balance<T>, recipient: address)
 ```
 
 [소스: `sui-framework/sources/coin.move` - `send_funds`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/coin.move#L176):
 
 ```move
-// Coin<T>를 address balance로 보낸다(내부적으로 balance로 변환한다)
+// Send a Coin<T> to an address balance (converts to balance internally)
 public fun send_funds<T>(coin: Coin<T>, recipient: address)
 ```
 
 ### CLI를 통해 fund 보내기
 
-CLI는 현재 address balances에 대한 지원이 제한적이지만, 이를 수행하도록 PTB를 수동으로 구성하면 coin에서 address balances로 fund를 보내는 데 사용할 수 있다:
+CLI는 현재 주소 잔액에 대한 지원이 제한적이지만, 이를 수행하도록 PTB를 수동으로 구성하면 코인에서 주소 잔액으로 fund를 보내는 데 사용할 수 있다:
 
 [Sui CLI 레퍼런스 - PTB](/references/cli/ptb):
 
 ```bash
-# gas coin에서 address balance로 보낸다
+# Send from gas coin to address balance
 sui client ptb \
     --split-coins gas '[5000000]' \
     --assign coin \
     --move-call 0x2::coin::send_funds '<0x2::sui::SUI>' coin @<recipient_address>
 
-# 다른 coin에서 보낸다
+# Send from another coin
 sui client ptb \
     --split-coins @<coin_id> '[5000000]' \
     --assign coin \
     --move-call 0x2::coin::send_funds '<coin_type>' coin @<recipient_address>
 ```
 
-## address balance에서 가스 지불하기
+## 주소 잔액에서 가스 지불하기
 
-### address balance 가스 결제 활성화 여부 확인
+### 주소 잔액 가스 결제 활성화 여부 확인
 
-address balance gas payment를 사용하기 전에 protocol configuration flag를 확인하여 network에서 feature가 활성화되어 있는지 검증할 수 있다:
+주소 잔액 가스 결제를 사용하기 전에 protocol configuration flag를 확인하여 network에서 feature가 활성화되어 있는지 검증할 수 있다:
 
 ```typescript
 // Choose your network: 'mainnet', 'testnet', or 'devnet'
@@ -303,31 +303,31 @@ const enabled =
 console.log(`enable_address_balance_gas_payments on ${network}:`, enabled);
 ```
 
-### 이전: gas coin 관리
+### 이전: 가스 코인 관리
 
-coin 기반 gas payment에서는 gas coin을 질의하고 선택해야 한다:
+코인 기반 가스 결제에서는 가스 코인을 질의하고 선택해야 한다:
 
 ```typescript
 const tx = new Transaction();
-// gas coin은 build 시점에 자동 선택되며, 이를 위해 network query가 필요하다
+// Gas coins are selected automatically at build time, requiring network queries
 ```
 
-gas coin 관리는 coordination 문제를 만든다:
+가스 코인 관리는 coordination 문제를 만든다:
 
-- 각 transaction 전에 현재 gas coin 상태를 질의해야 한다.
-- 병렬 transaction에는 별도의 gas coin이 필요하거나 신중한 sequencing이 필요하다.
-- gas coin version은 각 transaction 후에 바뀐다.
+- 각 트랜잭션 전에 현재 가스 코인 상태를 질의해야 한다.
+- 병렬 트랜잭션에는 별도의 가스 코인이 필요하거나 신중한 sequencing이 필요하다.
+- 가스 코인 version은 각 트랜잭션 후에 바뀐다.
 
 ### 이후: stateless 가스 결제
 
-address balance gas payment에서는 `setGasPayment`에 빈 배열을 전달한다:
+주소 잔액 가스 결제에서는 `setGasPayment`에 빈 배열을 전달한다:
 
 ```typescript
 const tx = new Transaction();
-tx.setGasPayment([]); // 빈 배열 = gas에 address balance를 사용한다
+tx.setGasPayment([]); // Empty array = use address balance for gas
 ```
 
-이렇게 하면 조회할 coin object version이 없으므로 완전히 offline으로 transaction을 build할 수 있다.
+이렇게 하면 조회할 코인 객체 version이 없으므로 완전히 offline으로 트랜잭션을 build할 수 있다.
 
 Rust에서는 `gas_data.payment`를 빈 vector로 설정하고 `ValidDuring` expiration을 사용한다:
 
@@ -338,7 +338,7 @@ TransactionData::V1(TransactionDataV1 {
     kind: tx_kind,
     sender,
     gas_data: GasData {
-        payment: vec![],  // 비어 있음 - gas는 address balance에서 지불한다
+        payment: vec![],  // Empty - gas paid from address balance
         owner: sender,
         price: rgp,
         budget: 10_000_000,
@@ -354,59 +354,59 @@ TransactionData::V1(TransactionDataV1 {
 })
 ```
 
-address balance gas payment의 요구 사항은 다음과 같다:
+주소 잔액 가스 결제의 요구 사항은 다음과 같다:
 
 - `gas_data.payment`는 비어 있어야 한다.
-- `expiration`은 `min_epoch`와 `max_epoch`가 모두 지정된 `ValidDuring`이어야 한다.
+- `expiration`은 `ValidDuring`와 `min_epoch`가 모두 지정된 `max_epoch`이어야 한다.
 - `max_epoch`는 최대 `min_epoch + 1`이어야 한다(single epoch 또는 1-epoch range).
-- timestamp 기반 expiration은 현재 지원되지 않는다.
-- transaction kind는 `ProgrammableTransaction`이어야 한다.
+- 타임스탬프 기반 expiration은 현재 지원되지 않는다.
+- 트랜잭션 kind는 `ProgrammableTransaction`이어야 한다.
 
-`nonce` field는 그 외에는 동일한 transaction을 구분한다.
-EVM chain과 달리 nonce에는 semantic requirement가 없다.
+`nonce` 필드는 그 외에는 동일한 트랜잭션을 구분한다.
+EVM chain과 달리 nonce에는 semantic 요구 사항가 없다.
 sequential할 필요도 없고, "nonce gap" 문제도 없다.
-이는 단지 digest가 같아질 transaction 두 개를 제출할 수 있게 해준다.
+이는 단지 digest가 같아질 트랜잭션 두 개를 제출할 수 있게 해준다.
 대부분의 사용 사례에서는 nonce를 무작위로 생성하거나 애플리케이션에서 증가하는 counter를 사용한다:
 
 ```rust
-// 무작위 nonce
+// Random nonce
 let nonce: u32 = rand::random();
 
-// 또는 증가하는 counter
+// Or incrementing counter
 let nonce: u32 = self.next_nonce.fetch_add(1, Ordering::SeqCst);
 ```
 
-### 스폰서 트랜잭션
+### 스폰서드 트랜잭션
 
-#### 이전: coin을 사용하는 sponsored gas
+#### 이전: 코인을 사용하는 sponsored gas
 
-coin을 사용하는 gas sponsorship은 사용자와 sponsor 사이의 coordination을 요구한다:
+코인을 사용하는 gas sponsorship은 사용자와 sponsor 사이의 coordination을 요구한다:
 
-1. 사용자가 gas 없이 transaction을 구성한다.
-2. sponsor가 gas coin을 선택해 transaction에 추가한다.
+1. 사용자가 gas 없이 트랜잭션을 구성한다.
+2. sponsor가 가스 코인을 선택해 트랜잭션에 추가한다.
 3. 양쪽 모두가 서명한다.
-4. 위험: 사용자가 서명을 완료하지 않으면 sponsor의 gas coin이 lock될 수 있다.
+4. 위험: 사용자가 서명을 완료하지 않으면 sponsor의 가스 코인이 lock될 수 있다.
 
-#### 이후: address balances를 사용하는 sponsored gas
+#### 이후: 주소 잔액을 사용하는 sponsored gas
 
-address balances에서는 사용자가 sponsor보다 먼저 서명할 수 있으므로 더 단순한 async flow가 가능하다:
+주소 잔액에서는 사용자가 sponsor보다 먼저 서명할 수 있으므로 더 단순한 async flow가 가능하다:
 
 ```typescript
-// 1. 사용자가 먼저 transaction을 build하고 서명한다
+// 1. User builds and signs the transaction first
 const tx = new Transaction();
 tx.setSender(userAddress);
 tx.setGasOwner(sponsorAddress);
-tx.setGasPayment([]); // 빈 배열 = sponsor가 address balance에서 지불한다
-// ... command를 추가한다 ...
+tx.setGasPayment([]); // Empty array = sponsor pays from address balance
+// ... add commands ...
 
 const bytes = await tx.build({ client });
 const { signature: userSignature } = await userKeypair.signTransaction(bytes);
 
-// 옵션 A: transaction과 signature를 sponsor에게 보내면 sponsor가 즉시 서명하고 실행할 수 있다
-// (`send_tx_to_sponsor`는 placeholder이며, SDK에 이런 API는 없다)
+// Option A: Send transaction and signature to sponsor, sponsor can sign and execute immediately:
+// (`send_tx_to_sponsor` is a placeholder, there is no such API in the SDK)
 await send_tx_to_sponsor(userSignature, bytes);
 
-// 옵션 B: sponsor에게서 signature를 받아 우리가 직접 제출한다. Sponsor의 서명은 비동기로 일어날 수 있다
+// Option B: Get signature from sponsor and submit it ourselves. Sponsor signs (can happen asynchronously)
 const { signature: sponsorSignature } = await sponsorKeypair.signTransaction(bytes);
 
 const result = await client.executeTransaction({
@@ -415,32 +415,32 @@ const result = await client.executeTransaction({
 });
 ```
 
-sender와 sponsor는 모두 서명해야 한다.
-스토리지 리베이트는 sponsor의 address balance에 적립된다.
+송신자와 sponsor는 모두 서명해야 한다.
+스토리지 리베이트는 sponsor의 주소 잔액에 적립된다.
 
-coin 기반 sponsorship 대비 장점은 다음과 같다:
+코인 기반 sponsorship 대비 장점은 다음과 같다:
 
-- gas coin lock 위험이 없다.
-- sponsor가 gas coin inventory를 관리할 필요가 없다.
+- 가스 코인 lock 위험이 없다.
+- sponsor가 가스 코인 inventory를 관리할 필요가 없다.
 - 사용자가 sponsor보다 먼저 서명할 수 있어 더 단순한 async flow가 가능하다.
 - permissionless public 가스 스테이션(gas station)을 가능하게 한다.
 
-## RPC를 통해 balance 질의하기
+## RPC를 통해 잔액 질의하기
 
-### 이전: coin 기반 balance 질의
+### 이전: 코인 기반 잔액 질의
 
-총 balance를 구하려면 RPC layer가 모든 coin object를 대신 합산해 준다:
+총 잔액을 구하려면 RPC layer가 모든 코인 객체를 대신 합산해 준다:
 
 [TypeScript SDK - Core API](https://sdk.mystenlabs.com/sui/clients/core):
 
 ```typescript
-// 이전: balance를 가져온다(RPC가 모든 coin object를 합산한다)
+// Before: Get balance (RPC sums all coin objects)
 const balance = await client.core.getBalance({ owner: address, coinType: '0x2::sui::SUI' });
-console.log(balance.totalBalance); // 모든 Coin<SUI> object의 합계
+console.log(balance.totalBalance); // Sum of all Coin<SUI> objects
 ```
 
 ```typescript
-// address의 모든 balance를 나열한다
+// List all balances for an address
 const { balances } = await client.core.listBalances({ owner: address });
 for (const balance of balances) {
 	console.log(`${balance.coinType}: ${balance.totalBalance}`);
@@ -455,19 +455,19 @@ curl -s https://fullnode.testnet.sui.io \
     -d '{"jsonrpc":"2.0","id":1,"method":"suix_getBalance","params":["<address>", "0x2::sui::SUI"]}'
 ```
 
-`totalBalance` field는 address가 소유한 모든 `Coin<T>` object 값의 합계를 나타냈다.
+`totalBalance` 필드는 주소가 소유한 모든 `Coin<T>` 객체 값의 합계를 나타냈다.
 
-### 이후: address balance 포함
+### 이후: 주소 잔액 포함
 
-이제 같은 RPC method에 address balance 정보도 포함된다:
+이제 같은 RPC method에 주소 잔액 정보도 포함된다:
 
 ```typescript
 const balance = await client.core.getBalance({ owner: address, coinType: '0x2::sui::SUI' });
-console.log(balance.totalBalance); // coin + address balance의 합계
-console.log(balance.fundsInAddressBalance); // address balance에만 들어 있는 금액
+console.log(balance.totalBalance); // Sum of coins + address balance
+console.log(balance.fundsInAddressBalance); // Amount in address balance only
 ```
 
-새로운 `fundsInAddressBalance` field는 address balance 보유량을 나타낸다.
+새로운 `fundsInAddressBalance` 필드는 주소 잔액 보유량을 나타낸다.
 
 [JSON-RPC Reference - `suix_getBalance`](/sui-api-ref#suix_getbalance):
 
@@ -495,13 +495,13 @@ curl -s https://fullnode.testnet.sui.io \
 }
 ```
 
-`totalBalance`에는 coin object와 address balance fund가 모두 포함된다.
-coin 기반 balance만 얻으려면 `totalBalance`에서 `fundsInAddressBalance`를 뺀다.
+`totalBalance`에는 코인 객체와 주소 잔액 fund가 모두 포함된다.
+코인 기반 잔액만 얻으려면 `fundsInAddressBalance`에서 `totalBalance`를 뺀다.
 
 [JSON-RPC 레퍼런스 - `suix_getAllBalances`](/sui-api-ref#suix_getallbalances):
 
 ```bash
-# 모든 balance를 가져온다
+# Get all balances
 curl -s https://fullnode.testnet.sui.io \
     -H 'Content-Type: application/json' \
     -d '{
@@ -514,7 +514,7 @@ curl -s https://fullnode.testnet.sui.io \
 
 ### gRPC
 
-`StateService`의 `GetBalance`와 `ListBalances`를 사용한다.
+`GetBalance`의 `ListBalances`와 `StateService`를 사용한다.
 
 [gRPC 레퍼런스 - `GetBalanceRequest`](/references/fullnode-protocol#sui-rpc-v2-GetBalanceRequest):
 
@@ -541,14 +541,14 @@ buf curl --protocol grpc https://fullnode.testnet.sui.io/sui.rpc.v2.StateService
 
 Field는 다음과 같다:
 
-- `coinBalance`: coin object에 보유한 총합이다.
-- `addressBalance`: address balance에 보유한 금액이다.
+- `coinBalance`: 코인 객체에 보유한 총합이다.
+- `addressBalance`: 주소 잔액에 보유한 금액이다.
 - `balance`: 앞의 두 값을 합한 값이다.
 
 [gRPC 레퍼런스 - `ListBalancesRequest`](/references/fullnode-protocol#sui-rpc-v2-ListBalancesRequest):
 
 ```bash
-# 모든 balance를 나열한다
+# List all balances
 buf curl --protocol grpc https://fullnode.testnet.sui.io/sui.rpc.v2.StateService/ListBalances \
     -d '{"owner": "<address>"}'
 ```
@@ -559,7 +559,7 @@ buf curl --protocol grpc https://fullnode.testnet.sui.io/sui.rpc.v2.StateService
 아래 예시를 [GraphQL IDE (Testnet)](https://graphql.testnet.sui.io/graphql)에 복사해 시도해 본다.
 
 ```graphql
-# 단일 balance
+# Single balance
 {
 	address(address: "0xe4ee9c157b5eb185c2df885bd7dcb4be493630a913f4b0e0c7e8ecf77930a878") {
 		balance(coinType: "0x2::sui::SUI") {
@@ -573,7 +573,7 @@ buf curl --protocol grpc https://fullnode.testnet.sui.io/sui.rpc.v2.StateService
 	}
 }
 
-# 모든 balance
+# All balances
 {
 	address(address: "0xe4ee9c157b5eb185c2df885bd7dcb4be493630a913f4b0e0c7e8ecf77930a878") {
 		balances {
@@ -590,32 +590,32 @@ buf curl --protocol grpc https://fullnode.testnet.sui.io/sui.rpc.v2.StateService
 }
 ```
 
-## checkpoint data에서 balance change 계산하기
+## checkpoint data에서 잔액 change 계산하기
 
-### 이전: Coin object diff
+### 이전: Coin 객체 diff
 
-coin만 있는 checkpoint data에서 balance change를 계산하려면 다음을 수행한다:
+코인만 있는 checkpoint data에서 잔액 change를 계산하려면 다음을 수행한다:
 
-1. input object를 가져온다(transaction 이전 version의 coin).
-2. output object를 가져온다(transaction 이후 version의 coin).
-3. 각 `(address, coin_type)` 쌍에 대해 output coin 값의 합에서 input coin 값의 합을 뺀다.
+1. input 객체를 가져온다(트랜잭션 이전 version의 코인).
+2. output 객체를 가져온다(트랜잭션 이후 version의 코인).
+3. 각 `(address, coin_type)` 쌍에 대해 output 코인 값의 합에서 input 코인 값의 합을 뺀다.
 
 ```rust
-// 이전: coin만 있는 balance change
+// Before: Coin-only balance changes
 fn derive_coin_balance_changes(
     input_objects: &[Object],
     output_objects: &[Object],
 ) -> BTreeMap<(SuiAddress, TypeTag), i128> {
     let mut balances = BTreeMap::new();
 
-    // input coin을 뺀다
+    // Subtract input coins
     for obj in input_objects {
         if let Some((owner, coin_type, value)) = extract_coin_info(obj) {
             *balances.entry((owner, coin_type)).or_default() -= value as i128;
         }
     }
 
-    // output coin을 더한다
+    // Add output coins
     for obj in output_objects {
         if let Some((owner, coin_type, value)) = extract_coin_info(obj) {
             *balances.entry((owner, coin_type)).or_default() += value as i128;
@@ -626,14 +626,14 @@ fn derive_coin_balance_changes(
 }
 ```
 
-### 이후: coin 및 accumulator event
+### 이후: 코인 및 accumulator event
 
-address balances가 있으면 `TransactionEffects`의 accumulator event도 처리해야 한다.
+주소 잔액이 있으면 `TransactionEffects`의 accumulator event도 처리해야 한다.
 
 [소스: `sui-types/src/balance_change.rs`](https://github.com/MystenLabs/sui/blob/main/crates/sui-types/src/balance_change.rs):
 
 ```rust
-// 이후: accumulator event를 포함한다
+// After: Include accumulator events
 use sui_types::balance_change::{derive_balance_changes, BalanceChange};
 
 let balance_changes: Vec<BalanceChange> = derive_balance_changes(
@@ -645,11 +645,11 @@ let balance_changes: Vec<BalanceChange> = derive_balance_changes(
 
 algorithm은 다음과 같다:
 
-1. **input coin을 뺀다**: 각 input coin object에 대해 `(owner, coin_type)`에서 그 값을 뺀다.
-2. **output coin을 더한다**: 각 mutated/created coin object에 대해 `(owner, coin_type)`에 그 값을 더한다.
-3. **accumulator event를 처리한다**: `Balance<T>` type을 가진 각 accumulator event에 대해 다음을 수행한다:
-   - `Split` operation: 금액을 뺀다(address balance에서 인출된 fund).
-   - `Merge` operation: 금액을 더한다(address balance에 deposit된 fund).
+1. **input 코인을 뺀다**: 각 input 코인 객체에 대해 `(owner, coin_type)`에서 그 값을 뺀다.
+2. **output 코인을 더한다**: 각 mutated/created 코인 객체에 대해 `(owner, coin_type)`에 그 값을 더한다.
+3. **accumulator event를 처리한다**: `Balance<T>` 타입을 가진 각 accumulator event에 대해 다음을 수행한다:
+   - `Split` operation: 금액을 뺀다(주소 잔액에서 인출된 fund).
+   - `Merge` operation: 금액을 더한다(주소 잔액에 예치된 fund).
 
 [레퍼런스 구현](https://github.com/MystenLabs/sui/blob/e23cc4bb0215ec065785a19772f22eda8ada14ae/crates/sui-types/src/balance_change.rs#L86)
 
@@ -667,7 +667,7 @@ for event in events {
     let address = event.write.address.address;
     let balance_type = &event.write.address.ty;
 
-    // Balance<T> type만 balance change를 나타낸다
+    // Only Balance<T> types represent balance changes
     if let Some(coin_type) = Balance::maybe_get_balance_type_param(balance_type) {
         let amount = match &event.write.value {
             AccumulatorValue::Integer(v) => *v as i128,
@@ -679,7 +679,7 @@ for event in events {
             AccumulatorOperation::Merge => amount,   // Deposit
         };
 
-        // (address, coin_type, signed_amount)가 balance change를 나타낸다
+        // (address, coin_type, signed_amount) represents the balance change
     }
 }
 ```
@@ -692,16 +692,16 @@ for event in events {
 pub struct BalanceChange {
     pub address: SuiAddress,
     pub coin_type: TypeTag,
-    pub amount: i128,  // 음수 = 지출, 양수 = 수령
+    pub amount: i128,  // Negative = spent, positive = received
 }
 ```
 
-## 기존 coin을 address balance로 변환하기
+## 기존 코인을 주소 잔액으로 변환하기
 
 마이그레이션은 선택 사항이다.
-SDK는 필요에 따라 coin 또는 address balances를 자동으로 선택한다.
+SDK는 필요에 따라 코인 또는 주소 잔액을 자동으로 선택한다.
 
-coin을 address balances로 통합하려면 다음을 수행한다:
+코인을 주소 잔액으로 통합하려면 다음을 수행한다:
 
 [Sui CLI 레퍼런스 - PTB](/references/cli/ptb):
 
@@ -727,19 +727,19 @@ tx.moveCall({
 });
 ```
 
-이렇게 하면 삭제된 coin object에서 스토리지 리베이트를 얻을 수 있다.
+이렇게 하면 삭제된 코인 객체에서 스토리지 리베이트를 얻을 수 있다.
 
 ## 이전 버전과의 호환성
 
 ### 기존 contract
 
 `Coin<T>` 또는 `Balance<T>`를 받는 contract는 계속 호출할 수 있다.
-`redeem_funds` function는 PTB 안에서 withdrawal을 기대하는 type으로 변환한다.
+`redeem_funds` 함수는 PTB 안에서 출금을 기대하는 type으로 변환한다.
 
-### legacy client
+### legacy 클라이언트
 
-JSON-RPC compatibility layer는 address balance reservation을 나타내는 fake coins를 제공한다.
-이 layer는 업그레이드할 수 없는 client를 위해 기본 기능을 보존하지만, 새로운 개발에서 이에 의존해서는 안 된다.
+JSON-RPC compatibility layer는 주소 잔액 reservation을 나타내는 fake 코인을 제공한다.
+이 layer는 업그레이드할 수 없는 클라이언트를 위해 기본 기능을 보존하지만, 새로운 개발에서 이에 의존해서는 안 된다.
 
 ## Framework 함수 레퍼런스
 
@@ -748,13 +748,13 @@ JSON-RPC compatibility layer는 address balance reservation을 나타내는 fake
 [소스: `sui-framework/sources/balance.move`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/balance.move):
 
 ```move
-// balance를 address의 funds accumulator로 보낸다
+// Send balance to an address's funds accumulator
 public fun send_funds<T>(balance: Balance<T>, recipient: address)
 
-// withdrawal을 redeem해 Balance<T>를 얻는다
+// Redeem a withdrawal to get Balance<T>
 public fun redeem_funds<T>(withdrawal: Withdrawal<Balance<T>>): Balance<T>
 
-// object의 balance에서 withdrawal을 생성한다
+// Create a withdrawal from an object's balance
 public fun withdraw_funds_from_object<T>(obj: &mut UID, value: u64): Withdrawal<Balance<T>>
 ```
 
@@ -763,10 +763,10 @@ public fun withdraw_funds_from_object<T>(obj: &mut UID, value: u64): Withdrawal<
 [소스: `sui-framework/sources/coin.move`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/coin.move):
 
 ```move
-// withdrawal을 redeem해 Coin<T>를 만든다
+// Redeem a withdrawal and create a Coin<T>
 public fun redeem_funds<T>(withdrawal: Withdrawal<Balance<T>>, ctx: &mut TxContext): Coin<T>
 
-// coin을 address balance로 보낸다
+// Send a coin to an address balance
 public fun send_funds<T>(coin: Coin<T>, recipient: address)
 ```
 
@@ -775,21 +775,21 @@ public fun send_funds<T>(coin: Coin<T>, recipient: address)
 [소스: `sui-framework/sources/funds_accumulator.move`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/funds_accumulator.move):
 
 ```move
-// Withdrawal struct - FundsWithdrawalArg 또는 withdraw_from_object로 생성된다
+// Withdrawal struct - created via FundsWithdrawalArg or withdraw_from_object
 public struct Withdrawal<phantom T: store> has drop {
     owner: address,
     limit: u256,
 }
 
-// withdrawal limit를 가져온다
+// Get withdrawal limit
 public fun withdrawal_limit<T: store>(withdrawal: &Withdrawal<T>): u256
 
-// withdrawal owner를 가져온다
+// Get withdrawal owner
 public fun withdrawal_owner<T: store>(withdrawal: &Withdrawal<T>): address
 
-// 하위 withdrawal을 split한다
+// Split a sub-withdrawal
 public fun withdrawal_split<T: store>(withdrawal: &mut Withdrawal<T>, sub_limit: u256): Withdrawal<T>
 
-// withdrawal을 합친다(owner가 같아야 한다)
+// Join withdrawals (must have same owner)
 public fun withdrawal_join<T: store>(withdrawal: &mut Withdrawal<T>, other: Withdrawal<T>)
 ```

@@ -41,7 +41,7 @@ Move.toml
 
 ### Module 구성
 
-모듈은 Move 코드의 주요 구성 요소이다. 모듈은 관련된 기능을 조직화하고 캡슐화하는 데 사용된다. 하나의 object 또는 데이터 구조체를 중심으로 모듈을 설계한다. 변형 구조체는 복잡성과 버그를 피하기 위해 자체 모듈을 가져야 한다.
+모듈은 Move 코드의 주요 구성 요소이다. 모듈은 관련된 기능을 조직화하고 캡슐화하는 데 사용된다. 하나의 객체 또는 데이터 구조체를 중심으로 모듈을 설계한다. 변형 구조체는 복잡성과 버그를 피하기 위해 자체 모듈을 가져야 한다.
 
 모듈 선언은 더 이상 중괄호가 필요하지 않으며 컴파일러가 널리 사용되는 모듈에 대한 기본 `use` 문을 제공하므로 모든 모듈을 선언할 필요가 없다.
 
@@ -86,11 +86,11 @@ module conventions::comments;
 // === Test Functions ===
 ```
 
-여기서 public 함수는 상태를 수정하는 함수이고 view 함수는 종종 온체인 게터 또는 오프체인 헬퍼이다. 후자는 object를 쿼리하여 데이터를 읽을 수 있으므로 필요하지 않다. `init` 함수는 모듈에 존재하는 경우 모듈의 첫 번째 함수여야 한다.
+여기서 public 함수는 상태를 수정하는 함수가고 view 함수는 종종 온체인 게터 또는 오프체인 헬퍼이다. 후자는 객체를 쿼리하여 데이터를 읽을 수 있으므로 필요하지 않다. `init` 함수는 모듈에 존재하는 경우 모듈의 첫 번째 함수여야 한다.
 
 가독성을 높이기 위해 함수는 목적과 사용자 흐름에 따라 정렬하는 것이 좋다. 또한 `admin_set_fees`와 같이 명시적인 함수 이름을 사용하여 함수가 수행하는 작업을 명확하게 할 수 있다.
 
-이상적으로, 테스트 함수는 `tests` 디렉터리에 있는 실제 테스트를 위한 `[test_only]` 헬퍼로만 구성되어야 한다.
+이상적으로, 테스트 함수는 `[test_only]` 디렉터리에 있는 실제 테스트를 위한 `tests` 헬퍼로만 구성되어야 한다.
 
 종속성별로 import를 그룹화한다, 예를 들면:
 
@@ -115,13 +115,13 @@ use my_dep::battle::{Battle, Score};
 ```move
 module conventions::constants;
 
-// 올바른 오류 아닌 상수
+// correct non-error constant
 const MAX_NAME_LENGTH: u64 = 64;
 
-// 올바른 오류 상수
+// correct error constant
 const EInvalidName: u64 = 0;
 
-// 잘못된 오류 상수
+// wrong error constant
 const E_INVALID_NAME: u64 = 0;
 ```
 
@@ -131,7 +131,7 @@ const E_INVALID_NAME: u64 = 0;
 
 구조체 이름에 'potato'를 사용하지 않는다. Abilities가 없는 것은 potato 패턴으로 정의된다.
 
-구조체는 간단한 wrapper, dynamic field key 또는 튜플로 사용할 수 있는 위치 필드를 지원한다.
+구조체는 간단한 wrapper, dynamic 필드 key 또는 튜플로 사용할 수 있는 위치 필드를 지원한다.
 
 이벤트를 발생시키는 구조체 이름에는 `Event` 접미사를 사용한다.
 
@@ -147,31 +147,31 @@ public struct Receipt<Data> has key, store {
     data: Data
 }
 
-// 올바른 이름 지정
+// right naming
 public struct Request();
 
-// 잘못된 이름 지정
+// wrong naming
 public struct RequestPotato {}
 ```
 
-### CRUD function name 이름
+### CRUD 함수 name 이름
 
 다음 함수는 표준 CRUD (생성, 읽기, 업데이트, 삭제) 명명 규칙을 따른다:
 
-- `new`: 빈 object를 생성한다.
+- `new`: 빈 객체를 생성한다.
 - `empty`: 빈 구조체를 생성한다.
-- `create`: 초기화된 object 또는 구조체를 생성한다.
+- `create`: 초기화된 객체 또는 구조체를 생성한다.
 - `add`: 값을 추가한다.
 - `remove`: 값을 제거한다.
 - `exists`: 키가 존재하는지 확인한다.
 - `contains`: 컬렉션에 값이 포함되어 있는지 확인한다.
-- `borrow`: 구조체 또는 object의 불변 참조를 반환한다.
-- `borrow_mut`: 구조체 또는 object의 가변 참조를 반환한다.
+- `borrow`: 구조체 또는 객체의 불변 참조를 반환한다.
+- `borrow_mut`: 구조체 또는 객체의 가변 참조를 반환한다.
 - `property_name`: 필드의 불변 참조 또는 복사본을 반환한다.
 - `property_name_mut`: 필드의 가변 참조를 반환한다.
 - `drop`: 구조체를 드롭한다.
-- `destroy`: **drop** ability가 있는 값을 가진 object 또는 데이터 구조체를 파괴한다.
-- `destroy_empty`:  **drop** ability가 있는 값을 가진 빈 object 또는 데이터 구조체를 파괴한다
+- `destroy`: **drop** ability가 있는 값을 가진 객체 또는 데이터 구조체를 파괴한다.
+- `destroy_empty`:  **drop** ability가 있는 값을 가진 빈 객체 또는 데이터 구조체를 파괴한다
 - `to_name`: 타입 X를 타입 Y로 변환한다.
 - `from_name`: 타입 Y를 타입 X로 변환한다.
 
@@ -182,20 +182,20 @@ public struct RequestPotato {}
 ```move
 module conventions::generics;
 
-// 단일 문자 이름
+// single letter name
 public struct Receipt<T> has store { ... }
 
-// 전체 이름
+// full name
 public struct Receipt<Data> has store { ... }
 ```
 
 ## Code structure 구조
 
-다음 섹션에서는 object 소유권 모델 및 함수 설계 원칙을 포함하여 Sui에서 Move 개발에 특화된 일반적인 패턴과 모범 사례를 다룬다.
+다음 섹션에서는 객체 소유권 모델 및 함수 설계 원칙을 포함하여 Sui에서 Move 개발에 특화된 일반적인 패턴과 모범 사례를 다룬다.
 
-### Shared object 사용
+### 공유 객체 사용
 
-Object를 공유하는 라이브러리 모듈은 두 가지 함수를 제공해야 한다: object를 인스턴스화하고 반환하는 함수와 이를 공유하는 함수. 이를 통해 호출자는 이를 다른 함수에 전달하고 공유하기 전에 사용자 정의 기능을 실행할 수 있다.
+Object를 공유하는 라이브러리 모듈은 두 가지 함수를 제공해야 한다: 객체를 인스턴스화하고 반환하는 함수와 이를 공유하는 함수. 이를 통해 호출자는 이를 다른 함수에 전달하고 공유하기 전에 사용자 정의 기능을 실행할 수 있다.
 
 ```move
 module conventions::shop;
@@ -215,7 +215,7 @@ public fun share(shop: Shop) {
 }
 ```
 
-### Pure function 사용
+### Pure 함수 사용
 
 구성 가능성을 유지하기 위해 함수를 순수하게 유지한다. Object가 전송 불가능하고 수정되어서는 안 되는 특정 경우를 제외하고는 핵심 함수 내에서 `transfer::transfer` 또는 `transfer::public_transfer`를 사용하지 않는다.
 
@@ -228,13 +228,13 @@ public struct Pool has key {
     id: UID
 }
 
-// 올바른 방식 -> 값이 0이더라도 초과 코인을 반환한다.
+// right -> returns the excess coins even if they have zero value.
 public fun add_liquidity<CoinX, CoinY, LpCoin>(pool: &mut Pool, coin_x: Coin<CoinX>, coin_y: Coin<CoinY>): (Coin<LpCoin>, Coin<CoinX>, Coin<CoinY>) {
-    // 구현 생략됨.
+    // Implementation omitted.
     abort(0)
 }
 
-// 올바르지만 권장되지 않음
+// right but not recommended
 public fun add_liquidity_and_transfer<CoinX, CoinY, LpCoin>(pool: &mut Pool, coin_x: Coin<CoinX>, coin_y: Coin<CoinY>, recipient: address) {
     let (lp_coin, coin_x, coin_y) = add_liquidity<CoinX, CoinY, LpCoin>(pool, coin_x, coin_y);
     transfer::public_transfer(lp_coin, recipient);
@@ -242,7 +242,7 @@ public fun add_liquidity_and_transfer<CoinX, CoinY, LpCoin>(pool: &mut Pool, coi
     transfer::public_transfer(coin_y, recipient);
 }
 
-// 잘못된 방식
+// wrong
 public fun impure_add_liquidity<CoinX, CoinY, LpCoin>(pool: &mut Pool, coin_x: Coin<CoinX>, coin_y: Coin<CoinY>, ctx: &mut TxContext): Coin<LpCoin> {
     let (lp_coin, coin_x, coin_y) = add_liquidity<CoinX, CoinY, LpCoin>(pool, coin_x, coin_y);
     transfer::public_transfer(coin_x, tx_context::sender(ctx));
@@ -252,9 +252,9 @@ public fun impure_add_liquidity<CoinX, CoinY, LpCoin>(pool: &mut Pool, coin_x: C
 }
 ```
 
-### Coin argument 사용
+### Coin 인자 사용
 
-프론트엔드에서 transaction 가독성을 높이기 위해 정확한 양의 `Coin` object를 값으로 직접 전달한다.
+프론트엔드에서 트랜잭션 가독성을 높이기 위해 정확한 양의 `Coin` 객체를 값으로 직접 전달한다.
 
 ```move
 module conventions::amm;
@@ -265,22 +265,22 @@ public struct Pool has key {
     id: UID
 }
 
-// 올바른 방식
+// right
 public fun swap<CoinX, CoinY>(coin_in: Coin<CoinX>): Coin<CoinY> {
-    // 구현 생략됨.
+    // Implementation omitted.
     abort(0)
 }
 
-// 잘못된 방식
+// wrong
 public fun exchange<CoinX, CoinY>(coin_in: &mut Coin<CoinX>, value: u64): Coin<CoinY> {
-    // 구현 생략됨.
+    // Implementation omitted.
     abort(0)
 }
 ```
 
 ### Access control 관리
 
-구성 가능성을 유지하기 위해 접근 제어에는 address 배열 대신 capability object를 사용한다.
+구성 가능성을 유지하기 위해 접근 제어에는 address 배열 대신 capability 객체를 사용한다.
 
 ```move
 module conventions::access_control;
@@ -297,12 +297,12 @@ public struct Account has key, store {
 
 public struct State has key {
     id: UID,
-    // 상태가 Account object에 존재하므로 필드가 필요하지 않다
+    // field not necessary as the state lives in the Account objects
     accounts: Table<address, u64>,
     balance: Balance<SUI>
 }
 
-// 올바른 방식 -> 이 함수를 사용하면 다른 프로토콜이 사용자를 대신하여 `Account`를 보유할 수 있다.
+// right -> with this function, another protocol can hold the `Account` on behalf of a user.
 public fun withdraw(state: &mut State, account: &mut Account, ctx: &mut TxContext): Coin<SUI> {
     let authorized_balance = account.balance;
 
@@ -311,7 +311,7 @@ public fun withdraw(state: &mut State, account: &mut Account, ctx: &mut TxContex
     coin::take(&mut state.balance, authorized_balance, ctx)
 }
 
-// 잘못된 방식 -> 이것은 구성 가능성이 낮다.
+// wrong -> this is less composable.
 public fun wrong_withdraw(state: &mut State, ctx: &mut TxContext): Coin<SUI> {
     let sender = tx_context::sender(ctx);
 
@@ -322,9 +322,9 @@ public fun wrong_withdraw(state: &mut State, ctx: &mut TxContext): Coin<SUI> {
 }
 ```
 
-### Owned object와 shared object의 data storage
+### 소유 객체와 공유 객체의 data storage
 
-DApp 데이터가 일대일 관계를 갖는 경우 owned object를 사용하는 것이 가장 좋다.
+DApp 데이터가 일대일 관계를 갖는 경우 소유 객체를 사용하는 것이 가장 좋다.
 
 ```move
 module conventions::vesting_wallet;
@@ -346,18 +346,18 @@ public struct SharedWallet has key {
 }
 
 
-// 베스팅 지갑은 일정 기간 동안 일정량의 코인을 릴리스한다.
-// 전체 잔액이 한 명의 사용자에게 속하고 지갑에 추가 기능이 없는 경우, owned object에 저장하는 것이 가장 좋다.
+// A vesting wallet releases a certain amount of coin over a period of time.
+// If the entire balance belongs to one user and the wallet has no additional functionalities, it is best to store it in an owned object.
 public fun new(deposit: Coin<SUI>, ctx: &mut TxContext): OwnedWallet {
-    // 구현 생략됨.
+    // Implementation omitted.
     abort(0)
 }
 
-// 베스팅 지갑에 추가 기능을 추가하려면 object를 공유하는 것이 가장 좋다.
-// 예를 들어, 지갑 발행자가 나중에 계약을 취소할 수 있기를 원하는 경우이다.
+// If you wish to add extra functionality to a vesting wallet, it is best to share the object.
+// For example, if you wish the issuer of the wallet to be able to cancel the contract in the future.
 public fun new_shared(deposit: Coin<SUI>, ctx: &mut TxContext) {
-    // 구현 생략됨.
-    // `SharedWallet`를 공유한다.
+    // Implementation omitted.
+    // shares the `SharedWallet`.
     abort(0)
 }
 ```
@@ -380,15 +380,15 @@ public struct Admin has key {
     id: UID,
 }
 
-// 올바른 방식 -> cap.update(&mut account, b"jose".to_string());
-public fun update(_: &Admin, account: &mut Account, new_name: String) {
-    // 구현 생략됨.
+// right -> account.set(&cap, b"jose".to_string()); (normal method associativity)
+public fun set(account: &mut Account, _: &Admin, new_name: String) {
+    // Implementation omitted.
     abort(0)
 }
 
-// 잘못된 방식 -> account.update(&cap, b"jose".to_string());
-public fun set(account: &mut Account, _: &Admin, new_name: String) {
-    // 구현 생략됨.
+// wrong -> cap.update(&mut account, b"jose".to_string()); (reversed associativity)
+public fun update(_: &Admin, account: &mut Account, new_name: String) {
+    // Implementation omitted.
     abort(0)
 }
 ```
@@ -411,11 +411,11 @@ use sui::kiosk::{Kiosk, KioskOwnerCap};
 
 public struct Hero has key, store {
     id: UID,
-    // nft의 파워
+    // power of the nft
     power: u64
 }
 
-/// 새로운 Hero object를 생성하고 반환한다
+/// Creates and returns a new Hero object
 public fun new(ctx: &mut TxContext): Hero {
     Hero {
         id: object::new(ctx),
@@ -423,19 +423,19 @@ public fun new(ctx: &mut TxContext): Hero {
     }
 }
 
-// 공유하기 전에 초기화되어야 한다
+// should be initialized before being shared
 public fun initialize_hero(hero: &mut Hero) {
     hero.power = 100;
 }
 
 public fun start_battle(
-    self: &mut Kiosk, // 사용자 키오스크
-    cap: &KioskOwnerCap, // 사용자 키오스크 소유자 cap
-    _policy: &TransferPolicy<Hero>, // 게임의 전송 정책
-    hero_id: ID, // 사용할 히어로
-    battle_id: String // 시작할 배틀의 id
+    self: &mut Kiosk, // user kiosk
+    cap: &KioskOwnerCap, // user kiosk owner cap
+    _policy: &TransferPolicy<Hero>, // transfer policy for the game
+    hero_id: ID, // hero to use
+    battle_id: String // id of the battle to start
 ) {
-    // 구현 생략됨.
+    // Implementation omitted.
     abort(0)
 }
 ```

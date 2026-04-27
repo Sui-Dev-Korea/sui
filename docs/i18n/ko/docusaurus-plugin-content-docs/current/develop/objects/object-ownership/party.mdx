@@ -1,19 +1,19 @@
 ---
 title: Party 객체
-description: Party objects는 transfer 시점에 지정된 party가 소유하며 consensus에 의해 versioned된다. 이러한 objects를 만들고 access하는 방법을 배운다.
+description: Party 객체는 transfer 시점에 지정된 party가 소유하며 consensus에 의해 versioned된다. 이러한 객체를 만들고 access하는 방법을 배운다.
 ---
 
-Party object는 address-owned objects와 shared objects의 properties를 결합한다. Address-owned objects처럼 party objects는 single address가 소유할 수 있다. Shared objects처럼 consensus에 의해 versioned된다. Shared objects와 달리 다른 ownership types로 transfer하거나 다른 ownership types에서 transfer 받을 수 있고, wrapped될 수도 있다.
+Party 객체는 address-소유 객체와 공유 객체의 properties를 결합한다. Address-소유 객체처럼 party 객체는 single address가 소유할 수 있다. Shared 객체처럼 consensus에 의해 versioned된다. Shared 객체와 달리 다른 ownership types로 transfer하거나 다른 ownership types에서 transfer 받을 수 있고, wrapped될 수도 있다.
 
 Party objects는 [`sui::transfer::party_transfer`](/references/framework/sui_sui/transfer#sui_transfer_party_transfer) 또는 [`sui::transfer::public_party_transfer`](/references/framework/sui_sui/transfer#sui_transfer_public_party_transfer) function을 사용해 transfer된다. Transfer 대상 `Party`가 접근할 수 있다.
 
 :::info
 
-Party objects에는 single ownership만 지원된다.
+Party 객체에는 single ownership만 지원된다.
 
 :::
 
-## party object 생성
+## party 객체 생성
 
 Party objects를 만들려면 다음 [`transfer` module](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/packages/sui-framework/sources/transfer.move) functions를 사용한다:
 
@@ -22,15 +22,15 @@ public fun party_transfer<T: key>(obj: T, party: sui::party::Party)
 public fun public_party_transfer<T: key + store>(obj: T, party: sui::party::Party)
 ```
 
-- Object에 대해 [custom transfer policy](/develop/objects/transfers/custom-rules)를 정의하는 경우 [`sui::transfer::party_transfer`](/references/framework/sui_sui/transfer#sui_transfer_party_transfer) function을 사용한다.
+- Object에 대해 [custom transfer policy](/references/framework/sui_sui/transfer#sui_transfer_party_transfer)를 정의하는 경우 [`sui::transfer::party_transfer`](/develop/objects/transfers/custom-rules) function을 사용한다.
 
-- Object가 `store` capability를 가지면 [`sui::transfer::public_party_transfer`](/references/framework/sui_sui/transfer#sui_transfer_public_party_transfer) function을 사용한다.
+- Object가 `sui::transfer::public_party_transfer` capability를 가지면 [`store`](/references/framework/sui_sui/transfer#sui_transfer_public_party_transfer) function을 사용한다.
 
 Party object의 ownership은 lifetime 동안 변경될 수 있다. 예를 들어 [dynamic object field](/develop/objects/dynamic-fields)로 추가하거나, 다른 address 또는 ownership type으로 transfer하거나, [immutable](/develop/objects/object-ownership/immutable)로 만들 수 있다. 하지만 object를 만들고 ownership을 설정한 뒤에는 [shared](/develop/objects/object-ownership/shared)될 수 없다.
 
 <ImportContent source="examples/move/basics/sources/object_basics.move" mode="code" fun="create_party" noComments />
 
-## party object 사용 시점
+## party 객체 사용 시점
 
 Operational convenience처럼 [consensus](/develop/sui-architecture/consensus)에 의해 object가 versioned되기를 원할 때 party objects를 사용한다. Object가 다른 party 또는 [shared](/develop/objects/object-ownership/shared) objects와만 사용된다면, party object로 변환해도 추가 performance cost가 없다.
 
@@ -38,13 +38,13 @@ Party objects는 동시에 여러 inflight [transactions](/develop/transactions/
 
 :::info
 
-`Coin<SUI>`를 포함한 `Coin`s도 party objects가 될 수 있다. 하지만 party object `Coin<SUI>`는 gas payment에 사용할 수 없다. Gas에 party object `Coin<SUI>`를 사용하려면 먼저 address-owned로 다시 transfer해야 한다.
+`Coin`를 포함한 `Coin<SUI>`s도 party 객체가 될 수 있다. 하지만 party 객체 `Coin<SUI>`는 gas payment에 사용할 수 없다. Gas에 party 객체 `Coin<SUI>`를 사용하려면 먼저 address-owned로 다시 transfer해야 한다.
 
 :::
 
-## party object와 상호 작용
+## party 객체와 상호 작용
 
-Shared objects와 같은 방식으로 party objects를 transaction input으로 지정할 수 있다. Sui validators는 transaction sender가 object에 access할 수 있는지 보장한다. 이전 conflicting transaction 때문에 input party object의 owner가 변경된 경우 validator는 execution time에 transaction을 abort할 수 있다.
+Shared 객체와 같은 방식으로 party 객체를 트랜잭션 입력으로 지정할 수 있다. Sui validators는 트랜잭션 sender가 객체에 access할 수 있는지 보장한다. 이전 conflicting 트랜잭션 때문에 입력 party 객체의 owner가 변경된 경우 validator는 execution time에 트랜잭션을 abort할 수 있다.
 
 Owning address가 object ID에 해당하는 party objects는 [transfer to object](/develop/objects/transfers/transfer-to-object) mechanism을 통한 access를 지원하지 않는다. Account address가 소유한 party object를 transfer하려면:
 

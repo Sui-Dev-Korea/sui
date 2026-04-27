@@ -4,7 +4,7 @@ description: Sui의 cryptographic key, address, signature를 이해한다. Sui�
 keywords: [authentication, keys, addresses, signatures, Ed25519, ECDSA, multisig, zkLogin, passkey, BIP-32, BIP-44, BIP-39, key derivation, signature requirements]
 ---
 
-Sui의 transaction authentication은 사용자가 제어하는 cryptographic key, 온체인에서 account를 식별하는 address, 소유권을 증명하는 signature라는 세 가지 핵심 개념을 포함한다. Sui는 널리 쓰이는 wallet specification과 여러 signature scheme을 사용해 이 개념들을 구현한다.
+Sui의 트랜잭션 authentication은 사용자가 제어하는 cryptographic key, 온체인에서 account를 식별하는 address, 소유권을 증명하는 signature라는 세 가지 핵심 개념을 포함한다. Sui는 널리 쓰이는 wallet specification과 여러 signature scheme을 사용해 이 개념들을 구현한다.
 
 ## key와 address
 
@@ -42,7 +42,7 @@ $$
 
 `account` level은 user account를 논리적으로 분리하고 특정 account category를 만드는 데 사용된다.
 
-Account-based currency는 처음 3개 level만 정의하는 반면, UTXO-based currency는 `change`와 `address` level 정의를 추가한다. Sui의 object-oriented data model은 UTXO 기반도 account 기반도 아니며 두 방식을 결합하므로, 최대한의 호환성을 위해 5개 level을 모두 사용한다.
+Account-based currency는 처음 3개 level만 정의하는 반면, UTXO-based currency는 `change`와 `address` level 정의를 추가한다. Sui의 객체-oriented data model은 UTXO 기반도 account 기반도 아니며 두 방식을 결합하므로, 최대한의 호환성을 위해 5개 level을 모두 사용한다.
 
 | Scheme          | Path                                         | 설명                                           |
 | --------------- | -------------------------------------------- | ---------------------------------------------- |
@@ -89,7 +89,7 @@ Sui signature는 세 component를 연결한 값이다:
 
 signature는 transaction data의 intent message hash에 commit해야 한다. 이 hash는 BCS serialized transaction data 앞에 3-byte intent를 붙여 구성할 수 있다. intent가 무엇인지와 intent message를 구성하는 방법을 자세히 알아보려면 [Intent Signing](/develop/transactions/transaction-auth/intent-signing)을 참조한다.
 
-signing API를 호출할 때는 먼저 transaction data의 intent message를 Blake2b로 hash하여 32 byte로 만들어야 한다. 이 external hashing은 signing API 내부에서 수행되는 hashing과 별개이다. 기존 standard와 hardware secure module(HSM)과 호환되도록 signing algorithm은 내부적으로 추가 hashing을 수행한다. ECDSA Secp256k1과 Secp256r1의 경우 internal hash function으로 SHA-2 SHA256을 사용해야 한다. Pure Ed25519의 경우 SHA-512를 사용해야 한다.
+signing API를 호출할 때는 먼저 트랜잭션 data의 intent message를 Blake2b로 hash하여 32 byte로 만들어야 한다. 이 external hashing은 signing API 내부에서 수행되는 hashing과 별개이다. 기존 standard와 hardware secure 모듈(HSM)과 호환되도록 signing algorithm은 내부적으로 추가 hashing을 수행한다. ECDSA Secp256k1과 Secp256r1의 경우 internal hash 함수으로 SHA-2 SHA256을 사용해야 한다. Pure Ed25519의 경우 SHA-512를 사용해야 한다.
 
 ### ECDSA signature requirement
 
@@ -97,11 +97,11 @@ signing API를 호출할 때는 먼저 transaction data의 intent message를 Bla
 
 1. ECDSA가 사용하는 internal hash는 transaction data의 SHA256 [SHA-2](https://en.wikipedia.org/wiki/SHA-2) hash여야 한다. Sui가 SHA256을 사용하는 이유는 [Apple](https://developer.apple.com/forums/thread/89619), HSM에서 지원되고 [Bitcoin](https://en.bitcoin.it/wiki/Elliptic_Curve_Digital_Signature_Algorithm)에서도 널리 채택되었기 때문이다.
 
-1. signature는 첫 32 byte가 `r`, 두 번째 32 byte가 `s`인 `[r, s]` 형식의 64 byte 길이여야 한다.
+1. signature는 첫 32 byte가 `[r, s]`, 두 번째 32 byte가 `r`인 `s` 형식의 64 byte 길이여야 한다.
 
 1. `r` 값은 `0x1`부터 `0xFFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364140`까지의 범위(포함)에 있어야 한다.
 
-1. `s` 값은 curve order의 lower half에 있어야 한다. signature가 너무 높으면 해당 curve order에 대해 `order - s`를 사용해 [BIP-0062](https://github.com/bitcoin/bips/blob/master/bip-0062.mediawiki#low-s-values-in-signatures)에 따라 더 낮은 `s`로 변환한다. Secp256k1의 curve order는 `0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141`이다. Secp256r1의 curve order는 [Standards for Efficient Cryptography](https://secg.org/SEC2-Ver-1.0.pdf)에 정의된 `0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551`이다.
+1. `s` 값은 curve order의 lower half에 있어야 한다. signature가 너무 높으면 해당 curve order에 대해 `s`를 사용해 [BIP-0062](https://github.com/bitcoin/bips/blob/master/bip-0062.mediawiki#low-s-values-in-signatures)에 따라 더 낮은 `order - s`로 변환한다. Secp256k1의 curve order는 `0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141`이다. Secp256r1의 curve order는 [Standards for Efficient Cryptography](https://secg.org/SEC2-Ver-1.0.pdf)에 정의된 `0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551`이다.
 
 1. 이상적으로 signature는 [RFC6979](https://www.rfc-editor.org/rfc/rfc6979)에 따라 deterministic nonce로 생성되어야 한다.
 
@@ -131,9 +131,9 @@ Sui의 [validator collection](/operators/validator)은 서로 다른 목적을 �
 
 ### Protocol key pair {#protocol-pair}
 
-protocol key pair는 user-signed transaction이 검증되면 해당 transaction에 authority signature를 제공한다. user transaction에 signature를 제공하는 authority의 stake가 필요한 2/3 threshold를 넘으면 Sui는 transaction을 실행한다. Sui는 주어진 authority 수에 대해 aggregated signature를 빠르게 검증할 수 있도록 BLS12381 scheme을 사용한다. 특히 Sui는 각 public key가 96 byte이고 signature가 48 byte인 minSig BLS mode를 사용한다. 후자가 중요한 이유는 일반적으로 validator가 각 epoch 시작 시 key를 한 번 등록한 뒤 transaction에 계속 서명하기 때문에, Sui가 최소 signature size에 맞춰 최적화하기 때문이다.
+protocol key pair는 user-signed 트랜잭션이 검증되면 해당 트랜잭션에 authority signature를 제공한다. user 트랜잭션에 signature를 제공하는 authority의 stake가 필요한 2/3 threshold를 넘으면 Sui는 트랜잭션을 실행한다. Sui는 주어진 authority 수에 대해 aggregated signature를 빠르게 검증할 수 있도록 BLS12381 scheme을 사용한다. 특히 Sui는 각 public key가 96 byte이고 signature가 48 byte인 minSig BLS mode를 사용한다. 후자가 중요한 이유는 일반적으로 validator가 각 epoch 시작 시 key를 한 번 등록한 뒤 트랜잭션에 계속 서명하기 때문에, Sui가 최소 signature size에 맞춰 최적화하기 때문이다.
 
-BLS scheme과 마찬가지로 독립 signature를 aggregate해 단일 BLS signature payload로 만들 수 있다. Sui는 aggregate signature와 함께 어떤 validator가 서명했는지를 나타내는 bitmap도 제공한다. 이는 authority signature size를 (2f + 1) × `BLS_sig` size에서 하나의 `BLS_sig` payload로 줄인다. 이 방식은 validator set size와 독립적으로 transaction certificate를 압축하여 network cost를 크게 줄인다.
+BLS scheme과 마찬가지로 독립 signature를 aggregate해 단일 BLS signature payload로 만들 수 있다. Sui는 aggregate signature와 함께 어떤 validator가 서명했는지를 나타내는 bitmap도 제공한다. 이는 authority signature size를 (2f + 1) × `BLS_sig` size에서 하나의 `BLS_sig` payload로 줄인다. 이 방식은 validator set size와 독립적으로 트랜잭션 certificate를 압축하여 network cost를 크게 줄인다.
 
 BLS12381 aggregated signature에서 발생할 수 있는 rogue key attack에 대응하기 위해 authority registration 중 secret key에 대한 proof of knowledge(KOSK)를 사용한다. authority가 validator set에 추가되도록 요청하면 proof of possession이 제출되고 검증된다. proof of possession을 만드는 방법은 [Intent Signing](/develop/transactions/transaction-auth/intent-signing)을 참조한다. 대부분의 standard와 달리 Sui proof of knowledge scheme은 address에도 commit하므로, 악의적인 다른 validator의 validator BLS key를 재사용하는 공격에 대한 추가 보호를 제공한다.
 
@@ -174,11 +174,11 @@ const address = keypair.getPublicKey().toSuiAddress();
 
 ## 워크플로
 
-다음 상위 수준 과정은 온체인 transaction을 구성하고 서명하고 실행하는 전체 흐름을 설명한다:
+다음 상위 수준 과정은 온체인 트랜잭션을 구성하고 서명하고 실행하는 전체 흐름을 설명한다:
 
 1. 여러 command를 연결한 `Transaction`을 만들어 transaction data를 구성한다. 자세한 내용은 [Programmable Transaction Block 구성하기](/develop/transactions/ptbs/building-ptb)를 참조한다.
 
-2. SDK의 내장 gas estimation과 coin selection이 gas coin을 선택한다.
+2. SDK의 내장 gas estimation과 코인 selection이 가스 코인을 선택한다.
 
 3. [signature](/develop/transactions/transaction-auth/auth-overview)를 생성하도록 transaction에 서명한다.
 
@@ -186,34 +186,34 @@ const address = keypair.getPublicKey().toSuiAddress();
 
 :::info
 
-address balances feature를 사용하는 경우, 이 feature가 gas coin을 선택하거나 merge할 필요를 완전히 제거한다.
+Address Balances 기능을 사용하는 경우, 이 기능이 가스 코인을 선택하거나 병합할 필요를 완전히 제거한다.
 
-특정 gas coin을 사용하고 싶다면 먼저 gas 지불에 사용할 gas coin object ID를 찾고 이를 PTB에 명시적으로 사용한다.
-gas coin object가 없다면 [splitCoin](/develop/transactions/ptbs/building-ptb#gas-coin-사용) transaction을 사용해 gas coin object를 만든다.
-split coin transaction은 PTB의 첫 번째 transaction call이어야 한다.
+특정 가스 코인을 사용하고 싶다면 먼저 gas 지불에 사용할 가스 코인 객체 ID를 찾고 이를 PTB에 명시적으로 사용한다.
+가스 코인 객체가 없다면 [splitCoin](/develop/transactions/ptbs/building-ptb#available-transactions) 트랜잭션을 사용해 가스 코인 객체를 만든다.
+split coin 트랜잭션은 PTB의 첫 번째 트랜잭션 호출이어야 한다.
 
 :::
 
-## 같은 address의 여러 transaction 처리
+## 같은 address의 여러 트랜잭션 처리
 
-Sui SDK는 같은 address에서 여러 transaction을 처리하는 데 도움이 되는 transaction executor를 제공한다.
+Sui SDK는 같은 address에서 여러 트랜잭션을 처리하는 데 도움이 되는 트랜잭션 executor를 제공한다.
 
 ### `SerialTransactionExecutor`
 
-transaction을 하나씩 순차적으로 처리할 때는 `SerialTransactionExecutor`를 사용한다.
-이 executor는 sender의 모든 coin을 가져와 하나의 coin으로 합친 뒤 모든 transaction에 사용한다.
+트랜잭션을 하나씩 순차적으로 처리할 때는 `SerialTransactionExecutor`를 사용한다.
+이 executor는 sender의 모든 코인을 가져와 하나의 코인으로 합친 뒤 모든 트랜잭션에 사용한다.
 
-`SerialTransactionExecutor`를 사용하면 PTB 전반의 object 입력 versioning을 처리하여 `SequenceNumber` error를 방지할 수 있다.
+`SerialTransactionExecutor`를 사용하면 PTB 전반의 객체 입력 versioning을 처리하여 `SequenceNumber` error를 방지할 수 있다.
 
 ### `ParallelTransactionExecutor`
 
-같은 sender의 transaction을 동시에 처리하고 싶다면 `ParallelTransactionExecutor`를 사용한다.
-이 클래스는 병렬 transaction이 해당 coin에 대해 equivocate하지 않도록 관리하는 gas coin pool을 만든다.
-이 클래스는 transaction 전반에서 사용된 object를 추적하고, object 입력도 equivocate되지 않도록 그 처리 순서를 정렬한다.
+같은 sender의 트랜잭션을 동시에 처리하고 싶다면 `ParallelTransactionExecutor`를 사용한다.
+이 클래스는 병렬 트랜잭션이 해당 코인에 대해 equivocate하지 않도록 관리하는 가스 코인 pool을 만든다.
+이 클래스는 트랜잭션 전반에서 사용된 객체를 추적하고, 객체 입력도 equivocate되지 않도록 그 처리 순서를 정렬한다.
 
 ## Transaction signing 예시
 
-다음 예시는 Rust, TypeScript, Sui CLI를 사용해 transaction에 서명하고 실행하는 방법을 보여준다.
+다음 예시는 Rust, TypeScript, Sui CLI를 사용해 트랜잭션에 서명하고 실행하는 방법을 보여준다.
 
 <Tabs groupId="code-language">
 
@@ -244,7 +244,7 @@ const kp_import_2 = Secp256r1Keypair.fromSecretKey(
 	fromHex('0xd463e11c7915945e86ac2b72d88b8190cfad8ff7b48e7eb892c275a5cf0a3e82'),
 );
 
-// $MNEMONICS는 wordlist에 있는 12/15/18/21/24개 단어를 가리키며, 예를 들어 "retire skin goose will hurry this field stadium drastic label husband venture cruel toe wire" 같은 형태이다. 자세한 내용은 [Keys and addresses](/develop/transactions/transaction-auth/auth-overview)를 참조한다.
+// $MNEMONICS refers to 12/15/18/21/24 words from the wordlist, for example, "retire skin goose will hurry this field stadium drastic label husband venture cruel toe wire". Refer to [Keys and Addresses](/develop/transactions/transaction-auth/auth-overview) for more.
 const kp_derive_0 = Ed25519Keypair.deriveKeypair('$MNEMONICS');
 const kp_derive_1 = Secp256k1Keypair.deriveKeypair('$MNEMONICS');
 const kp_derive_2 = Secp256r1Keypair.deriveKeypair('$MNEMONICS');
@@ -253,11 +253,11 @@ const kp_derive_with_path_0 = Ed25519Keypair.deriveKeypair('$MNEMONICS', "m/44'/
 const kp_derive_with_path_1 = Secp256k1Keypair.deriveKeypair('$MNEMONICS', "m/54'/784'/1'/0/0");
 const kp_derive_with_path_2 = Secp256r1Keypair.deriveKeypair('$MNEMONICS', "m/74'/784'/1'/0/0");
 
-// `kp_rand_0` 자리에 위 변수 이름들 중 하나를 사용한다.
+// replace `kp_rand_0` with the variable names above.
 const pk = kp_rand_0.getPublicKey();
 const sender = pk.toSuiAddress();
 
-// 예시 transaction을 생성한다.
+// create an example transaction.
 const txb = new Transaction();
 txb.setSender(sender);
 txb.setGasPrice(5);
@@ -265,16 +265,16 @@ txb.setGasBudget(100);
 const bytes = await txb.build();
 const serializedSignature = (await keypair.signTransaction(bytes)).signature;
 
-// 로컬에서 signature를 검증한다
+// verify the signature locally
 expect(await keypair.getPublicKey().verifyTransaction(bytes, serializedSignature)).toEqual(true);
 
-// 원하는 network용 sui client를 정의한다.
+// define sui client for the desired network.
 const client = new SuiGrpcClient({
 	baseUrl: 'https://fullnode.testnet.sui.io:443',
 	network: 'testnet',
 });
 
-// transaction을 실행한다.
+// execute transaction.
 let res = await client.executeTransaction({
 	transaction: bytes,
 	signatures: [serializedSignature],
@@ -291,7 +291,7 @@ console.log(res);
 Sui Rust SDK를 사용하면 `SuiKeyPair`를 인스턴스화하고 그 public key와 Sui address를 파생하는 여러 방법이 있다.
 
 ```rust
-    // key pair를 결정론적으로 생성한다. test 전용이며 mainnet에서는 사용하지 말고, 무작위 key pair를 생성하려면 다음 섹션을 사용한다.
+    // deterministically generate a key pair, testing only, do not use for mainnet, use the next section to randomly generate a key pair instead.
     let skp_determ_0 =
         SuiKeyPair::Ed25519(Ed25519KeyPair::generate(&mut StdRng::from_seed([0; 32])));
     let _skp_determ_1 =
@@ -299,12 +299,12 @@ Sui Rust SDK를 사용하면 `SuiKeyPair`를 인스턴스화하고 그 public ke
     let _skp_determ_2 =
         SuiKeyPair::Secp256r1(Secp256r1KeyPair::generate(&mut StdRng::from_seed([0; 32])));
 
-    // 무작위 key pair를 생성한다.
+    // randomly generate a key pair.
     let _skp_rand_0 = SuiKeyPair::Ed25519(get_key_pair_from_rng(&mut rand::rngs::OsRng).1);
     let _skp_rand_1 = SuiKeyPair::Secp256k1(get_key_pair_from_rng(&mut rand::rngs::OsRng).1);
     let _skp_rand_2 = SuiKeyPair::Secp256r1(get_key_pair_from_rng(&mut rand::rngs::OsRng).1);
 
-    // base64로 인코딩된 32-byte `private key`에서 key pair를 import한다.
+    // import a key pair from a base64 encoded 32-byte `private key`.
     let _skp_import_no_flag_0 = SuiKeyPair::Ed25519(Ed25519KeyPair::from_bytes(
         &Base64::decode("1GPhHHkVlF6GrCty2IuBkM+tj/e0jn64ksJ1pc8KPoI=")
             .map_err(|_| anyhow!("Invalid base64"))?,
@@ -318,7 +318,7 @@ Sui Rust SDK를 사용하면 `SuiKeyPair`를 인스턴스화하고 그 public ke
             .map_err(|_| anyhow!("Invalid base64"))?,
     )?);
 
-    // base64로 인코딩된 33-byte `flag || private key`에서 key pair를 import한다. signature scheme은 flag가 결정한다.
+    // import a key pair from a base64 encoded 33-byte `flag || private key`. The signature scheme is determined by the flag.
     let _skp_import_with_flag_0 =
         SuiKeyPair::decode_base64("ANRj4Rx5FZRehqwrctiLgZDPrY/3tI5+uJLCdaXPCj6C")
             .map_err(|_| anyhow!("Invalid base64"))?;
@@ -329,16 +329,16 @@ Sui Rust SDK를 사용하면 `SuiKeyPair`를 인스턴스화하고 그 public ke
         SuiKeyPair::decode_base64("AtRj4Rx5FZRehqwrctiLgZDPrY/3tI5+uJLCdaXPCj6C")
             .map_err(|_| anyhow!("Invalid base64"))?;
 
-    // `skp_determ_0` 자리에 위 변수 이름들 중 하나를 사용한다
+    // replace `skp_determ_0` with the variable names above
     let pk = skp_determ_0.public();
     let sender = SuiAddress::from(&pk);
 ```
 
-기본 gas coin, gas budget, gas price를 사용한 예시 programmable transaction으로 구성한 transaction data에 다음으로 서명한다.
+기본 가스 코인, 가스 예산, 가스 가격를 사용한 예시 programmable 트랜잭션으로 구성한 트랜잭션 data에 다음으로 서명한다.
 자세한 내용은 [Programmable Transaction Block 구성하기](/develop/transactions/ptbs/building-ptb)를 참조한다.
 
 ```rust
-    // 예시 programmable transaction을 구성한다.
+    // construct an example programmable transaction.
     let pt = {
         let mut builder = ProgrammableTransactionBuilder::new();
         builder.pay_sui(vec![sender], vec![1])?;
@@ -348,7 +348,7 @@ Sui Rust SDK를 사용하면 `SuiKeyPair`를 인스턴스화하고 그 public ke
     let gas_budget = 5_000_000;
     let gas_price = sui_client.read_api().get_reference_gas_price().await?;
 
-    // network로 전송할 transaction data를 생성한다.
+    // create the transaction data that will be sent to the network.
     let tx_data = TransactionData::new_programmable(
         sender,
         vec![gas_coin.object_ref()],
@@ -361,17 +361,17 @@ Sui Rust SDK를 사용하면 `SuiKeyPair`를 인스턴스화하고 그 public ke
 intent message의 Blake2b hash digest(`intent || bcs bytes of tx_data`)에 signature를 commit한다.
 
 ```rust
-    // key pair가 서명해야 할 digest, 즉 `intent || tx_data`의 blake2b hash를 파생한다.
+    // derive the digest that the key pair should sign on, that is, the blake2b hash of `intent || tx_data`.
     let intent_msg = IntentMessage::new(Intent::sui_transaction(), tx_data);
     let raw_tx = bcs::to_bytes(&intent_msg).expect("bcs should not fail");
     let mut hasher = sui_types::crypto::DefaultHash::default();
     hasher.update(raw_tx.clone());
     let digest = hasher.finalize().digest;
 
-    // digest에 서명하기 위해 SuiKeyPair를 사용한다.
+    // use SuiKeyPair to sign the digest.
     let sui_sig = skp_determ_0.sign(&digest);
 
-    // 제출 전에 로컬에서 signature를 검증하려면 이 함수를 사용한다. 로컬 검증에 실패하면 transaction은 Sui에서 실행되지 않는다.
+    // if you would like to verify the signature locally before submission, use this function. if it fails to verify locally, the transaction will fail to execute in Sui.
     let res = sui_sig.verify_secure(
         &intent_msg,
         sender,
@@ -380,7 +380,7 @@ intent message의 Blake2b hash digest(`intent || bcs bytes of tx_data`)에 signa
     assert!(res.is_ok());
 ```
 
-마지막으로 signature와 함께 transaction을 제출한다.
+마지막으로 signature와 함께 트랜잭션을 제출한다.
 
 ```rust
     let transaction_response = sui_client
@@ -402,34 +402,34 @@ intent message의 Blake2b hash digest(`intent || bcs bytes of tx_data`)에 signa
 <TabItem value="cli" label="Sui CLI">
 
 [Sui CLI](/references/cli)를 처음 사용할 때는 머신의 `~/.sui/keystore`에 private key 목록(Base64로 인코딩된 `flag || 32-byte-private-key`)을 담은 로컬 파일을 만든다.
-address를 지정하면 어떤 key든 사용해 transaction에 서명할 수 있다.
+address를 지정하면 어떤 key든 사용해 트랜잭션에 서명할 수 있다.
 address 목록을 보려면 `sui keytool list`를 사용한다.
 
 key를 초기화하는 방법은 3가지가 있다:
 
 ```sh
-# 무작위로 생성한다.
+# generate randomly.
 sui client new-address ed25519
 sui client new-address secp256k1
 sui client new-address secp256r1
 
-# 32-byte private key를 keystore로 import한다.
+# import the 32-byte private key to keystore.
 sui keytool import "0xd463e11c7915945e86ac2b72d88b8190cfad8ff7b48e7eb892c275a5cf0a3e82" ed25519
 sui keytool import "0xd463e11c7915945e86ac2b72d88b8190cfad8ff7b48e7eb892c275a5cf0a3e82" secp256k1
 sui keytool import "0xd463e11c7915945e86ac2b72d88b8190cfad8ff7b48e7eb892c275a5cf0a3e82" secp256r1
 
-# derivation path가 있는 mnemonics(복구 구문)를 keystore로 import한다.
-# $MNEMONICS는 wordlist에 있는 12/15/18/21/24개 단어를 가리키며, 예를 들어 "retire skin goose will hurry this field stadium drastic label husband venture cruel toe wire" 같은 형태이다. 자세한 내용은 [Keys and addresses](/develop/transactions/transaction-auth/auth-overview)를 참조한다.
+# import the mnemonics (recovery phrase) with derivation path to keystore.
+# $MNEMONICS refers to 12/15/18/21/24 words from the wordlist, for example, "retire skin goose will hurry this field stadium drastic label husband venture cruel toe wire". Refer to [Keys and Addresses](/develop/transactions/transaction-auth/auth-overview) for more.
 
 sui keytool import "$MNEMONICS" ed25519
 sui keytool import "$MNEMONICS" secp256k1
 sui keytool import "$MNEMONICS" secp256r1
 ```
 
-CLI에서 transfer transaction을 생성한다.
+CLI에서 transfer 트랜잭션을 생성한다.
 `$SUI_ADDRESS`는 서명에 사용할 key pair에 대응하는 값으로 설정한다.
-`$GAS_COIN_ID`는 gas에 사용할 sender 소유 object ID를 가리킨다.
-`$GAS_BUDGET`은 transaction 실행에 사용할 예산을 가리킨다.
+`$GAS_COIN_ID`는 gas에 사용할 sender 소유 객체 ID를 가리킨다.
+`$GAS_BUDGET`은 트랜잭션 실행에 사용할 예산을 가리킨다.
 그 다음 sender address에 대응하는 private key로 서명한다.
 `$MNEMONICS`는 wordlist에 있는 12/15/18/21/24개 단어를 가리키며, 예를 들어 "retire skin goose will hurry this field stadium drastic label husband venture cruel toe wire" 같은 형태이다. 자세한 내용은 [Keys and addresses](/develop/transactions/transaction-auth/auth-overview)를 참조한다.
 

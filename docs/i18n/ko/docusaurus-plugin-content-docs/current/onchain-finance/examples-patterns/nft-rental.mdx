@@ -1,28 +1,28 @@
 ---
 title: NFT rental
-description: 사용자가 NFT를 완전히 소유하지 않고, 제공된 policy의 rules에 따라 NFT를 rent할 수 있게 하는 예시이다.
+description: 사용자가 NFT를 완전히 소유하지 않고, 제공된 정책의 규칙에 따라 NFT를 rent할 수 있게 하는 예시이다.
 keywords: [ERC-721, NFT]
 ---
 
-Non-fungible tokens(NFTs) renting은 개인이 ownership이나 possession 없이도 일시적으로 NFT의 benefits를 사용할 수 있게 하는 mechanism이다. 이 implementation은 [Kiosk Apps standard](/onchain-finance/kiosk/kiosk-apps)를 사용해 rental transactions를 위한 infrastructure를 구성한다. 이 접근 방식은 [Ethereum ERC-4907](https://eips.ethereum.org/EIPS/eip-4907) renting standard와 일치하므로, Sui에서 구현하려는 Solidity 기반 use cases에 적합한 선택지이다.
+Non-fungible 토큰(NFTs) renting은 개인이 ownership이나 possession 없이도 일시적으로 NFT의 benefits를 사용할 수 있게 하는 메커니즘이다. 이 implementation은 [Kiosk Apps standard](/onchain-finance/kiosk/kiosk-apps)를 사용해 rental 트랜잭션을 위한 infrastructure를 구성한다. 이 접근 방식은 [Ethereum ERC-4907](https://eips.ethereum.org/EIPS/eip-4907) renting standard와 일치하므로, Sui에서 구현하려는 Solidity 기반 사용 사례에 적합한 선택지이다.
 
-NFT rentals는 여러 real-world scenarios에 적용된다:
+NFT rentals는 여러 real-world 시나리오s에 적용된다:
 
-- **Gaming:** Players는 in-game items, characters, skins, accessories를 rent할 수 있다. NFTs는 transparent ownership records를 제공하므로, rented items는 rental period가 만료되면 owner에게 돌아간다. Platforms가 interoperability를 지원하면 rented NFTs는 여러 games에서도 동작할 수 있다.
+- **Gaming:** Players는 in-game items, characters, skins, accessories를 rent할 수 있다. NFTs는 transparent ownership records를 제공하므로, rented items는 rental period가 만료되면 소유자에게 돌아간다. Platforms가 interoperability를 지원하면 rented NFTs는 여러 games에서도 동작할 수 있다.
 - **Ticketing:** NFTs는 안전하고 traceable한 ticket resale 또는 rental을 가능하게 하여 secondary markets에서 counterfeit tickets의 risk를 줄인다.
-- **Temporary assets and subscriptions:** Rental NFTs는 subscription 기반의 digital experiences 또는 asset pools에 time-limited access를 제공한다. Holders는 사용하지 않는 subscriptions를 rent out할 수 있고, temporary holders는 long-term commitment 없이 service를 시도할 수 있다.
+- **Temporary 자산 and subscriptions:** Rental NFTs는 subscription 기반의 digital experiences 또는 자산 풀에 time-limited access를 제공한다. Holders는 사용하지 않는 subscriptions를 rent out할 수 있고, temporary holders는 long-term commitment 없이 service를 시도할 수 있다.
 
 ## NFT rental workflow
 
 Rent 가능한 NFTs를 만들려면 다음 workflows를 사용한다:
 
-- **New rentable type:** `setup_renting`을 호출하고 optional lock rule이 있는 `TransferPolicy`를 만든다.
-- **First-time borrower:** User에게 kiosk가 없으면 kiosk를 만든 다음 kiosk에 extension을 install한다.
-- **First-time lender:** User에게 kiosk가 없으면 kiosk를 만든 다음 kiosk에 extension을 install한다.
+- **New rentable type:** `setup_renting`을 호출하고 optional lock 규칙이 있는 `TransferPolicy`를 만든다.
+- **First-time 차입자:** User에게 kiosk가 없으면 kiosk를 만든 다음 kiosk에 extension을 install한다.
+- **First-time 대여자:** User에게 kiosk가 없으면 kiosk를 만든 다음 kiosk에 extension을 install한다.
 
 ## 예시
 
-이 NFT rental example은 단일 module인 [`nft_rental.move`](https://github.com/MystenLabs/sui/tree/main/examples/move/nft-rental/sources/nft_rental.move)를 사용한다.
+이 NFT rental example은 단일 모듈인 [`nft_rental.move`](https://github.com/MystenLabs/sui/tree/main/examples/move/nft-rental/sources/nft_rental.move)를 사용한다.
 
 <details>
 <summary>`nft_rental.move`</summary>
@@ -31,23 +31,23 @@ Rent 가능한 NFTs를 만들려면 다음 workflows를 사용한다:
 
 </details>
 
-`nft_rental` module은 다음 operations를 통해 lending과 borrowing을 지원하는 API를 제공한다:
+`nft_rental` 모듈은 다음 operations를 통해 lending과 borrowing을 지원하는 API를 제공한다:
 
 - List for renting
 - Delist from renting
 - Rent
-- Borrow by reference and borrow by value
-- Reclaim for the lender
+- Borrow by reference and 차입 by value
+- Reclaim for the 대여자
 
-이 module은 다음 behaviors를 가능하게 한다:
+이 모듈은 다음 behaviors를 가능하게 한다:
 
-- Lender는 지정된 기간 동안 assets를 renting 대상으로 제공할 수 있다.
+- Lender는 지정된 기간 동안 자산을 renting 대상으로 제공할 수 있다.
 - Lender는 rental duration을 정의할 수 있다. Borrower는 renting period를 따라야 한다.
-- Borrower는 NFT에 대한 mutable 또는 immutable access를 얻을 수 있다. Immutable access는 read-only이다. Mutable access의 경우 lender는 downgrade 및 upgrade operations를 고려하고 이를 renting fee에 포함해야 한다.
+- Borrower는 NFT에 대한 mutable 또는 immutable access를 얻을 수 있다. Immutable access는 read-only이다. Mutable access의 경우 대여자는 downgrade 및 upgrade operations를 고려하고 이를 renting fee에 포함해야 한다.
 - Renting period가 끝나면 item은 정상적으로 sold될 수 있다.
-- Creator-defined royalties는 [transfer policy rules](/develop/objects/transfers/custom-rules)를 포함하여 존중된다.
+- Creator-defined 로열티는 [transfer 정책 규칙](/develop/objects/transfers/custom-rules)를 포함하여 존중된다.
 
-Rental smart contract는 [Kiosk Apps](/onchain-finance/kiosk/kiosk-apps) standard를 사용한다. Lender와 borrower 모두 참여하려면 kiosk extension을 install해야 한다. Borrowed asset type의 creator는 extension이 royalties를 enforce하면서 rentals를 관리할 수 있도록 rental policy와 `ProtectedTP` object를 만들어야 한다.
+Rental 스마트 계약은 [Kiosk Apps](/onchain-finance/kiosk/kiosk-apps) standard를 사용한다. Lender와 차입자 모두 참여하려면 kiosk extension을 install해야 한다. Borrowed 자산 타입의 creator는 extension이 로열티를 enforce하면서 rentals를 관리할 수 있도록 rental 정책와 `ProtectedTP` 객체를 만들어야 한다.
 
 :::caution
 

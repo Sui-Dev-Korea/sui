@@ -15,13 +15,13 @@ Permissioned Assets Standard (PAS)와 통합하려면 다음을 수행해야 한
 
 1. `public struct MyApproval() has drop;`을 사용해 approval witness를 정의한다.
 
-2. `policy::new_for_currency`로 policy를 만들고 action별 required approval을 설정한다.
+2. `policy::new_for_currency`로 정책을 만들고 액션별 required approval을 설정한다.
 
-3. `&mut Request<...>`를 받고 validation을 수행한 뒤 `request.approve(MyApproval())`을 호출하는 function으로 approval logic을 빌드한다.
+3. `&mut Request<...>`를 받고 validation을 수행한 뒤 `request.approve(MyApproval())`을 호출하는 함수으로 approval logic을 빌드한다.
 
-4. client가 programmable transaction block (PTB)을 자동으로 빌드할 수 있도록 template command를 설정한다.
+4. 클라이언트가 programmable 트랜잭션 블록 (PTB)을 자동으로 빌드할 수 있도록 template 명령를 설정한다.
 
-[TypeScript package](https://www.npmjs.com/package/@mysten/pas)를 통해 PAS를 사용할 수 있으며, [GitHub repo](https://github.com/MystenLabs/pas)에서 더 자세히 알아볼 수 있다.
+[TypeScript 패키지](https://www.npmjs.com/package/@mysten/pas)를 통해 PAS를 사용할 수 있으며, [GitHub repo](https://github.com/MystenLabs/pas)에서 더 자세히 알아볼 수 있다.
 
 ## approval witness 정의
 
@@ -35,13 +35,13 @@ public struct MyTransferApproval() has drop;
 public struct MyClawbackApproval() has drop;
 ```
 
-action마다 하나의 witness type을 정의해 해당 action의 approval로 사용할 수 있다. 각 witness는 policy에 독립적으로 등록되며, 선택적으로 자체 template command를 가질 수 있다.
+액션마다 하나의 witness 타입을 정의해 해당 액션의 approval로 사용할 수 있다. 각 witness는 정책에 독립적으로 등록되며, 선택적으로 자체 template 명령를 가질 수 있다.
 
-## currency용 policy 설정
+## currency용 정책 설정
 
-`Policy<Balance<C>>`는 각 action type에 어떤 approval이 필요한지 정의한다. currency ownership을 증명하려면 `TreasuryCap<C>`가 필요하다.
+`Policy<Balance<C>>`는 각 액션 type에 어떤 approval이 필요한지 정의한다. currency ownership을 증명하려면 `TreasuryCap<C>`가 필요하다.
 
-다음 예시는 package 안에서 policy를 생성한다.
+다음 예시는 패키지 안에서 정책을 생성한다.
 
 ```move
 let (mut policy, policy_cap) = policy::new_for_currency(
@@ -59,11 +59,11 @@ policy.set_required_approval<Balance<T>, MyClawbackApproval>(&policy_cap, "clawb
 policy.share();
 ```
 
-지원되는 action은 `"send_funds"`, `"unlock_funds"`, `"clawback_funds"`이다.
+지원되는 액션은 `"send_funds"`, `"unlock_funds"`, `"clawback_funds"`이다.
 
 ## approval logic 정의
 
-approval function은 `Request`에 대한 mutable reference를 받고 validation을 실행한 뒤 witness로 stamp한다.
+approval 함수는 `Request`에 대한 mutable 레퍼런스를 받고 validation을 실행한 뒤 witness로 stamp한다.
 
 transfer에는 예를 들어 KYC registry 같은 external check가 필요하다.
 
@@ -79,31 +79,31 @@ public fun approve_transfer(
 
 완전한 구현은 [KYC example `kyc_registry`](https://github.com/MystenLabs/pas/blob/main/packages/examples/kyc/sources/kyc_registry.move)를 참조한다.
 
-## template command 설정
+## template 명령 설정
 
-Template은 client-side automation을 위해 미리 빌드된 Move call command structure를 온체인에 저장한다. SDK는 이를 통해 package ID나 function signature를 hardcoding하지 않고 approval resolution에 필요한 올바른 Move call을 구성할 수 있다.
+Template은 클라이언트-side automation을 위해 미리 빌드된 Move call 명령 structure를 온체인에 저장한다. SDK는 이를 통해 패키지 ID나 함수 서명을 hardcoding하지 않고 approval resolution에 필요한 올바른 Move call을 구성할 수 있다.
 
 :::tip
 
-Template은 순수하게 offchain utility이다. onchain execution이나 security에는 영향을 주지 않는다. Template은 SDK가 어떤 Move call을 만들어야 하는지 설명한다. 이 덕분에 하나의 generic SDK가 구체적인 approval logic과 관계없이 어떤 PAS-managed asset도 지원할 수 있다.
+Template은 순수하게 offchain utility이다. onchain execution이나 security에는 영향을 주지 않는다. Template은 SDK가 어떤 Move call을 만들어야 하는지 설명한다. 이 덕분에 하나의 generic SDK가 구체적인 approval logic과 관계없이 어떤 PAS-managed 자산도 지원할 수 있다.
 
 :::
 
-Template은 transfer가 발생할 때 PAS SDK가 다음을 알아야 하므로 유용하다.
+Template은 전송이 발생할 때 PAS SDK가 다음을 알아야 하므로 유용하다.
 
 1. approval을 위해 어떤 contract를 호출해야 하는지
 
 2. 그 contract가 어떤 argument를 기대하는지
 
-3. 어떤 type parameter를 사용해야 하는지
+3. 어떤 타입 파라미터를 사용해야 하는지
 
-Template은 이 정보를 approval witness type으로 keying된 온체인 `Command` object로 저장한다.
+Template은 이 정보를 approval witness type으로 keying된 온체인 `Command` 객체로 저장한다.
 
-issuer가 approval logic을 upgrade하면(예: `TransferApproval`에서 `TransferApprovalV2`로) template을 온체인에서 업데이트한다. 모든 client는 client-side update, redeployment, wallet 및 frontend 간 coordination 없이 새 resolution path를 자동으로 사용한다.
+issuer가 approval logic을 upgrade하면(예: `TransferApproval`에서 `TransferApprovalV2`로) template을 온체인에서 업데이트한다. 모든 클라이언트는 클라이언트-side update, redeployment, 지갑 및 frontend 간 coordination 없이 새 resolution path를 자동으로 사용한다.
 
 ### template 설정
 
-template command는 호출할 approval function을 설명하는 `MoveCall`이다. `ptb::move_call`로 빌드하고 `set_template_command`를 통해 등록한다.
+template 명령은 호출할 approval 함수를 설명하는 `MoveCall`이다. `ptb::move_call`로 빌드하고 `set_template_command`를 통해 등록한다.
 
 ```move
 public fun set_template_command<A: drop>(
@@ -113,11 +113,11 @@ public fun set_template_command<A: drop>(
 )
 ```
 
-Template은 request approval에 사용되는 witness type인 `A`를 key로 사용한다. 이로써 각 approval type마다 정확히 하나의 template command가 있는 one-to-one mapping이 만들어진다.
+Template은 요청 approval에 사용되는 witness type인 `A`를 key로 사용한다. 이로써 각 approval 타입마다 정확히 하나의 template 명령이 있는 one-to-one mapping이 만들어진다.
 
 ### 예시
 
-[KYC example `kyc_registry`](https://github.com/MystenLabs/pas/blob/main/packages/examples/kyc/sources/kyc_registry.move)의 approval function이 다음과 같다고 하자.
+[KYC example `kyc_registry`](https://github.com/MystenLabs/pas/blob/main/packages/examples/kyc/sources/kyc_registry.move)의 approval 함수가 다음과 같다고 하자.
 
 ```move
 public fun approve_transfer(
@@ -152,30 +152,30 @@ templates.set_template_command(internal::permit<MyTransferApproval>(), cmd);
 
 | **Constructor** | **Description** |
 |---|---|
-| `ptb::ext_input<T>(name)` | SDK가 offchain에서 resolve하는 custom input이며, type `T`로 namespacing된다. |
-| `ptb::object_by_id(id)` | ID로 offchain에서 resolve되는 object이다. |
-| `ptb::receiving_object_by_id(id)` | ID로 offchain에서 resolve되는 receiving object이다. |
+| `ptb::ext_input<T>(name)` | SDK가 offchain에서 해결하는 custom input이며, type `T`로 namespacing된다. |
+| `ptb::object_by_id(id)` | ID로 offchain에서 해결되는 객체이다. |
+| `ptb::receiving_object_by_id(id)` | ID로 offchain에서 해결되는 receiving 객체이다. |
 | `ptb::pure(value)` | BCS-encoded pure value이다. |
 
-전체 `ptb` constructor 목록(system shorthand 및 fully-resolved ref 포함)은 PTB package를 참조한다.
+전체 `ptb` constructor 목록(system shorthand 및 fully-해결d ref 포함)은 PTB 패키지를 참조한다.
 
 ### 지원되는 `ext_input` 이름
 
-다음은 PAS SDK가 PTB construction 시 resolve하는 custom input 이름이다. `ptb::ext_input<PAS>(name)`을 사용할 때 `PAS` type(`pas::templates`에서 제공)이 namespace를 제공한다.
+다음은 PAS SDK가 PTB construction 시 해결하는 custom input 이름이다. `ptb::ext_input<PAS>(name)`을 사용할 때 `PAS` type(`pas::templates`에서 제공)이 namespace를 제공한다.
 
 | **Name** | **Resolves to** |
 |---|---|
-| `"request"` | approval 중인 active `Request` object. |
-| `"policy"` | managed asset의 `Policy` object. |
-| `"sender_account"` | sender의 `Account` object. |
-| `"receiver_account"` | receiver의 `Account` object. |
+| `"request"` | approval 중인 active `Request` 객체. |
+| `"policy"` | managed 자산의 `Policy` 객체. |
+| `"sender_account"` | 송신자의 `Account` 객체. |
+| `"receiver_account"` | receiver의 `Account` 객체. |
 
-### client가 template을 사용하는 방식
+### 클라이언트가 template을 사용하는 방식
 
-1. client가 `Templates` shared object에서 template을 읽는다.
+1. 클라이언트가 `Templates` 공유 객체에서 template을 읽는다.
 
-2. template은 필요한 Move call(package, module, function, arguments)을 설명한다.
+2. template은 필요한 Move call(패키지, 모듈, 함수, arguments)을 설명한다.
 
-3. client는 PTB를 빌드한다: request 생성, template command(approval), resolve.
+3. 클라이언트는 PTB를 빌드한다: 요청 생성, template 명령(approval), 해결.
 
-이를 통해 generic wallet과 frontend는 구체적인 compliance contract detail을 알지 못해도 compliant transfer를 실행할 수 있다.
+이를 통해 generic 지갑과 frontend는 구체적인 컴플라이언스 contract detail을 알지 못해도 compliant 전송을 실행할 수 있다.

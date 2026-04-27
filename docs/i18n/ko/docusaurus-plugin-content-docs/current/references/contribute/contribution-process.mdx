@@ -11,61 +11,61 @@ Sui 문서는 오픈 소스이며 커뮤니티 기여를 기반으로 성장한�
 
 ## Follow the style guide
 
-모든 문서 변경은 [스타일 가이드](./style-guide)를 따라야 한다. 검토자는 톤과 품질의 일관성을 보장하기 위해 피드백을 제공한다. pull request(PR)에 여러 검토 댓글이 달려도 낙담하지 말아야 하며, 이 과정은 모든 문서 전반의 명확성과 일관성을 유지하는 데 도움이 된다. PR이 merge된 후에도 이후 업데이트에서 여러분의 콘텐츠를 더 다듬을 수 있다.
+모든 문서 변경은 [스타일 가이드](/references/contribute/style-guide)를 따라야 한다. 검토자는 톤과 품질의 일관성을 보장하기 위해 피드백을 제공한다. pull request(PR)에 여러 검토 댓글이 달려도 낙담하지 말아야 하며, 이 과정은 모든 문서 전반의 명확성과 일관성을 유지하는 데 도움이 된다. PR이 merge된 후에도 이후 업데이트에서 여러분의 콘텐츠를 더 다듬을 수 있다.
 
 작성할 때는 다음 핵심 원칙을 염두에 둔다:
 
-- 능동태를 사용한다.  
-- 현재 시제로 작성한다.  
-- 명확하고 간결하게 쓴다. 필요한 만큼의 단어만 사용한다.  
+- 능동태를 사용한다.
+- 현재 시제로 작성한다.
+- 명확하고 간결하게 쓴다. 필요한 만큼의 단어만 사용한다.
 
 ## GitHub web editor
 
 Git이 익숙하지 않거나 더 단순한 워크플로를 선호한다면 GitHub의 웹 인터페이스에서 직접 작은 수정을 할 수 있다.
 
-- **새 페이지 추가**  
-  1. `docs/content` 디렉터리로 이동한다.  
-  1. 관련 하위 디렉터리를 연다.  
-  1. **Add file** → **Create new file**를 클릭한다.  
-  1. 콘텐츠를 작성하고 변경 사항을 커밋한다.  
+- **새 페이지 추가**
+  1. `docs/content` 디렉터리로 이동한다.
+  1. 관련 하위 디렉터리를 연다.
+  1. **Add file** → **Create new file**를 클릭한다.
+  1. 콘텐츠를 작성하고 변경 사항을 커밋한다.
 
-- **기존 페이지 수정**  
+- **기존 페이지 수정**
   1. 문서 웹사이트에서는 각 문서 페이지 하단의 "Edit this page" 링크를 사용할 수 있다.
-  1. GitHub에서는 업데이트할 파일로 이동하고 오른쪽 위의 **pencil icon**을 클릭한다.  
-  1. 수정한 뒤 변경 사항을 커밋한다.  
+  1. GitHub에서는 업데이트할 파일로 이동하고 오른쪽 위의 **pencil icon**을 클릭한다.
+  1. 수정한 뒤 변경 사항을 커밋한다.
 
 ## Set up a local environment {#local-environment}
 
-문서에 더 크고 중요한 변경을 만들 때는 문서를 로컬에 복제하는 것을 권장한다. Sui 저장소를 fork하고 clone하는 방법은 [Sui 환경 설정](./sui-environment)을 참조한다. 문서는 `docs/content` 디렉터리에 있다.
+문서에 더 크고 중요한 변경을 만들 때는 문서를 로컬에 복제하는 것을 권장한다. Sui 저장소를 fork하고 clone하는 방법은 [Sui 환경 설정](/references/contribute/sui-environment)을 참조한다. 문서는 `docs/content` 디렉터리에 있다.
 
-1. **의존성 설치**  
-   - [Visual Studio Code](https://code.visualstudio.com/)를 사용한다면 포맷 일관성을 유지하기 위해 [Prettier extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)을 설치한다.  
-1. **변경 사항 작성**  
-   - `docs/content` 디렉터리에서 파일을 수정하거나 추가한다.  
-   - 변경 사항을 stage하고 commit한다:  
+1. **의존성 설치**
+   - [Visual Studio Code](https://code.visualstudio.com/)를 사용한다면 포맷 일관성을 유지하기 위해 [Prettier extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)을 설치한다.
+1. **변경 사항 작성**
+   - `docs/content` 디렉터리에서 파일을 수정하거나 추가한다.
+   - 변경 사항을 stage하고 commit한다:
      ```bash
      git add .
      git commit -m "Describe your changes"
      git push
-     ```  
-1. **로컬에서 미리 보기**  
-   - `docs/site` 디렉터리로 이동한다.  
-   - 의존성을 설치한다(`pnpm`이 설치되어 있지 않다면 [pnpm installation guide](https://pnpm.io/installation)를 참조한다):  
+     ```
+1. **로컬에서 미리 보기**
+   - `docs/site` 디렉터리로 이동한다.
+   - 의존성을 설치한다(`pnpm`이 설치되어 있지 않다면 [pnpm installation guide](https://pnpm.io/installation)를 참조한다):
      ```bash
      pnpm install
-     ```  
-   - 로컬 dev server를 시작한다:  
+     ```
+   - 로컬 dev server를 시작한다:
      ```bash
      pnpm start
-     ```  
-   - `http://localhost:3000`을 열어 업데이트를 확인한다.  
+     ```
+   - `http://localhost:3000`을 열어 업데이트를 확인한다.
 
 
 ## Review process {#review-process}
 
-변경 사항이 준비되면 다음을 수행한다:  
+변경 사항이 준비되면 다음을 수행한다:
 
-1. Sui 저장소의 `main` branch에 PR을 제출한다.  
+1. Sui 저장소의 `main` branch에 PR을 제출한다.
 1. 변경 사항을 확인할 수 있도록 [Vercel](https://vercel.com) preview가 생성된다. 이 preview는 변경 사항이 merge된 후 온라인에서 보게 될 내용을 보여준다.
-1. 검토자는 피드백을 제공한다. 댓글에 따라 PR을 업데이트하는 것은 여러분의 책임이다. 여러 검토자가 의견을 줄 수도 있다.  
-1. 최소 한 명의 검토자가 PR을 승인하면 `main`에 merge되고 여러분의 기여가 공개된다. 변경 사항은 PR이 `main`에 merge된 후 5-10분 안에 라이브 웹사이트에 반영된다. 
+1. 검토자는 피드백을 제공한다. 댓글에 따라 PR을 업데이트하는 것은 여러분의 책임이다. 여러 검토자가 의견을 줄 수도 있다.
+1. 최소 한 명의 검토자가 PR을 승인하면 `main`에 merge되고 여러분의 기여가 공개된다. 변경 사항은 PR이 `main`에 merge된 후 5-10분 안에 라이브 웹사이트에 반영된다.

@@ -68,9 +68,9 @@ let builder = ptb.finish();
 
 - `deny_list`는 `(ObjectID, SequenceNumber)` 타입이다.
   - `ObjectID`는 `0x403`이다.
-  - `SequenceNumber`는 `DenyList` 싱글톤의 `initial_shared_version`이다.
-- `deny_cap`은 게시자가 받은 `DenyCapV2<REGULATED_COIN>`의 `ObjectRef` (`(ObjectID, SequenceNumber, ObjectDigest)`)이다.
-- `otw_type`은 `<PACKAGE_ID>::regulated_coin::REGULATED_COIN` 타입에서 생성된 `TypeTag`이다.
+  - `SequenceNumber`는 `initial_shared_version` 싱글톤의 `DenyList`이다.
+- `deny_cap`은 게시자가 받은 `ObjectRef`의 `(ObjectID, SequenceNumber, ObjectDigest)` (`DenyCapV2<REGULATED_COIN>`)이다.
+- `otw_type`은 `TypeTag` 타입에서 생성된 `<PACKAGE_ID>::regulated_coin::REGULATED_COIN`이다.
 - `cmd.address()`는 차단할 address를 `SuiAddress`로 반환한다.
 
 </TabItem>

@@ -4,18 +4,18 @@ sidebar_label: 알림 레퍼런스
 description: Validator와 Full node에서 알림과 경고를 트리거하는 Prometheus Alertmanager 규칙 모음이다.
 ---
 
-Sui Validator 또는 full node를 실행할 때는 node의 health를 모니터링하고 문제에 대한 alert를 설정하는 것이 권장된다.
+Sui Validator 또는 풀 노드를 실행할 때는 노드의 health를 모니터링하고 문제에 대한 alert를 설정하는 것이 권장된다.
 crash와 기타 일반적인 문제에 대한 alert 외에도, 다음 예시 규칙을 기반으로 alerting을 구성할 수 있다.
 
-다음 섹션은 alert query를 다루지만, 세부 사항은 인프라에 맞게 custom해야 한다.
+다음 섹션은 alert 쿼리를 다루지만, 세부 사항은 인프라에 맞게 custom해야 한다.
 
-## 높은 우선순위의 health alert
+## 높은 우선순위 health alert
 
 이 alert들은 사용자 또는 팀이 가장 즉시 주의를 기울여야 한다.
 
 ### Crash loop
 
-| Key          | 값                                          |
+| 키          | 값                                          |
 | ------------ | ------------------------------------------- |
 | **이름**     | `Crash loop`                                |
 | **요약**     | Node가 crash loop 상태이다                  |
@@ -34,47 +34,47 @@ Node가 60초보다 오래 실행 상태를 유지하지 못한다. 가능한 �
 
 ### Consensus proposal failure
 
-| Key          | 값                                          |
+| 키          | 값                                          |
 | ------------ | ------------------------------------------- |
 | **이름**     | `Consensus proposals failure`               |
-| **요약**     | Consensus block proposal rate가 낮다        |
+| **요약**     | Consensus 블록 proposal rate가 낮다        |
 | **기간**     | `1h` 후 trigger 권장                        |
 
 ```promql
 sum without(force) (rate(consensus_proposed_blocks[5m])) < 1.0
 ```
 
-consensus proposal rate가 느린 validator는 network latency와 throughput에 악영향을 줄 수 있다.
-보통 network, disk 또는 CPU performance issue로 인해 발생한다.
+consensus proposal rate가 느린 validator는 네트워크 지연 시간와 처리량에 악영향을 줄 수 있다.
+보통 네트워크, disk 또는 CPU performance issue로 인해 발생한다.
 
-### Checkpoint execution rate가 낮음
+### 체크포인트 execution rate가 낮음
 
-| Key          | 값                                                    |
+| 키          | 값                                                    |
 | ------------ | ----------------------------------------------------- |
 | **이름**     | `Checkpoint execution rate is low`                    |
-| **요약**     | Validator가 checkpoints를 충분히 빠르게 실행하지 않는다 |
+| **요약**     | Validator가 체크포인트를 충분히 빠르게 실행하지 않는다 |
 | **기간**     | `1h` 후 trigger 권장                                  |
 
 ```promql
 rate(last_executed_checkpoint[5m]) < 1.0
 ```
 
-checkpoint execution이 느린 validator와 full node는 network의 최신 정보를 보유하지 못한다.
-보통 network, disk 또는 CPU performance issue로 인해 발생한다.
+체크포인트 execution이 느린 validator와 풀 노드는 네트워크의 최신 정보를 보유하지 못한다.
+보통 네트워크, disk 또는 CPU performance issue로 인해 발생한다.
 
 ### Reconfiguration 중 safe mode
 
-| Key          | 값                                                                       |
+| 키          | 값                                                                       |
 | ------------ | ------------------------------------------------------------------------ |
 | **이름**     | `Safe mode during reconfiguration`                                       |
-| **요약**     | Validator 또는 full node가 epoch advance에 실패하고 safe mode에 진입했다 |
+| **요약**     | Validator 또는 풀 노드가 에포크 advance에 실패하고 safe mode에 진입했다 |
 | **기간**     | `15m` 후 trigger 권장                                                    |
 
 ```promql
 is_safe_mode > 0.5
 ```
 
-보통 이 문제는 validator 또는 full node operator가 제어할 수 있는 범위를 벗어난다.
+보통 이 문제는 validator 또는 풀 노드 operator가 제어할 수 있는 범위를 벗어난다.
 이 상황이 관찰되면 Discord에서 Sui community에 알린다.
 
 ## 긴급하지 않은 alert와 warning
@@ -83,7 +83,7 @@ is_safe_mode > 0.5
 
 ### System invariant violation
 
-| Key          | 값                                        |
+| 키          | 값                                        |
 | ------------ | ----------------------------------------- |
 | **이름**     | `System invariant violations`             |
 | **요약**     | Node가 invariant violation을 보고한다     |
@@ -93,5 +93,5 @@ is_safe_mode > 0.5
 system_invariant_violations > 0
 ```
 
-보통 이 문제는 validator 또는 full node operator가 제어할 수 있는 범위를 벗어난다.
+보통 이 문제는 validator 또는 풀 노드 operator가 제어할 수 있는 범위를 벗어난다.
 이 상황이 관찰되면 Discord에서 Sui community에 알린다.

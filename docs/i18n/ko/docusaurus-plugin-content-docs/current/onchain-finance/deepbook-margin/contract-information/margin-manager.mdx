@@ -16,18 +16,18 @@ keywords:
 ---
 
 
-`MarginManager`는 `BalanceManager`를 감싸며 deposit, withdraw, trade, 그리고 leveraged position을 관리하는 데 필요한 capability를 제공하는 shared object이다. 이는 사용자가 margin pool에서 asset을 차입하여 trading position을 확대할 수 있게 하면서, collateralization을 통해 risk를 관리하도록 한다.
+`MarginManager`는 `BalanceManager`를 감싸며 예치, 출금, trade, 그리고 leveraged 포지션을 관리하는 데 필요한 capability를 제공하는 공유 객체이다. 이는 사용자가 마진 풀에서 자산을 차입하여 trading 포지션을 확대할 수 있게 하면서, collateralization을 통해 risk를 관리하도록 한다.
 
-각 `MarginManager`는 특정 DeepBook pool과 연관되며, 해당 pool에서 trading을 허용하는 margin pool로부터 차입할 수 있다. margin manager는 차입 position을 추적하고 시스템 건전성을 유지하기 위해 risk ratio limit을 강제한다.
+각 `MarginManager`는 특정 DeepBook 풀과 연관되며, 해당 풀에서 trading을 허용하는 마진 풀로부터 차입할 수 있다. margin manager는 차입 포지션을 추적하고 시스템 건전성을 유지하기 위해 risk ratio limit을 강제한다.
 
 ## API
 
-다음은 `MarginManager`가 노출하는 서로 다른 public 함수이다.
+다음은 `MarginManager`가 노출하는 서로 다른 public 함수가다.
 
 <details>
 <summary>`MarginManager` 생성</summary>
 
-`new()` 함수는 하나의 transaction에서 `MarginManager`를 생성하고 공유한다. 지정된 pool에 대해 margin trading이 활성화되어 있는지 검증한다.
+`new()` 함수는 하나의 트랜잭션에서 `MarginManager`를 생성하고 공유한다. 지정된 풀에 대해 margin trading이 활성화되어 있는지 검증한다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_manager.move"
@@ -59,7 +59,7 @@ keywords:
 <details>
 <summary>Set or unset referral</summary>
 
-`MarginManager`의 소유자는 trading fee 혜택을 위해 pool별 referral을 설정하거나 해제할 수 있다. referral은 margin manager와 연관된 pool에 대해 mint된 `DeepBookPoolReferral`이어야 한다. 각 margin manager는 서로 다른 pool에 대해 서로 다른 referral을 가질 수 있다.
+`MarginManager`의 소유자는 거래 수수료 혜택을 위해 풀별 referral을 설정하거나 해제할 수 있다. referral은 margin manager와 연관된 풀에 대해 민트된 `DeepBookPoolReferral`이어야 한다. 각 margin manager는 서로 다른 풀에 대해 서로 다른 referral을 가질 수 있다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_manager.move"
@@ -72,9 +72,9 @@ keywords:
 </details>
 
 <details>
-<summary>Deposit funds</summary>
+<summary>Deposit 자금</summary>
 
-소유자만 `MarginManager`에 fund를 deposit할 수 있다. deposit하는 asset은 base asset, quote asset, 또는 DEEP token이어야 한다.
+소유자만 `MarginManager`에 fund를 예치할 수 있다. 예치하는 자산은 베이스 자산, 견적 자산, 또는 DEEP 토큰이어야 한다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_manager.move"
@@ -87,7 +87,7 @@ keywords:
 </details>
 
 <details>
-<summary>Withdraw funds</summary>
+<summary>Withdraw 자금</summary>
 
 소유자만 `MarginManager`에서 fund를 인출할 수 있다. manager에 활성 loan이 있을 때 인출은 risk ratio limit의 적용을 받는다.
 
@@ -102,9 +102,9 @@ keywords:
 </details>
 
 <details>
-<summary>Borrow assets</summary>
+<summary>Borrow 자산</summary>
 
-position 크기를 늘리기 위해 margin pool에서 base asset 또는 quote asset을 차입한다. 차입에는 risk ratio limit이 적용되며 margin pool은 manager의 DeepBook pool에서 trading을 허용해야 한다.
+포지션 크기를 늘리기 위해 마진 풀에서 베이스 자산 또는 견적 자산을 차입한다. 차입에는 risk ratio limit이 적용되며 마진 풀은 manager의 DeepBook 풀에서 trading을 허용해야 한다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_manager.move"
@@ -119,7 +119,7 @@ position 크기를 늘리기 위해 margin pool에서 base asset 또는 quote as
 <details>
 <summary>Repay loans</summary>
 
-debt를 줄이기 위해 차입한 asset을 상환한다. 정확한 amount를 지정하거나, 총 debt까지 사용 가능한 balance 전체를 상환할 수 있다.
+debt를 줄이기 위해 차입한 자산을 상환한다. 정확한 amount를 지정하거나, 총 debt까지 사용 가능한 잔액 전체를 상환할 수 있다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_manager.move"
@@ -132,9 +132,9 @@ debt를 줄이기 위해 차입한 asset을 상환한다. 정확한 amount를 �
 </details>
 
 <details>
-<summary>Liquidate position</summary>
+<summary>Liquidate 포지션</summary>
 
-담보가 부족한 margin manager를 liquidation한다. liquidator는 상환을 제공하고 담보 asset과 liquidation reward를 받는다. margin pool은 position 상태에 따라 보상을 받거나 bad debt가 발생할 수 있다.
+담보가 부족한 margin manager를 liquidation한다. liquidator는 상환을 제공하고 담보 자산과 liquidation reward를 받는다. 마진 풀은 포지션 상태에 따라 보상을 받거나 bad debt가 발생할 수 있다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_manager.move"
@@ -149,7 +149,7 @@ debt를 줄이기 위해 차입한 asset을 상환한다. 정확한 amount를 �
 <details>
 <summary>Calculate risk ratio</summary>
 
-margin manager의 risk ratio를 반환하며, 이는 asset 대비 debt의 비율을 나타낸다. ratio가 높을수록 더 건강한 position을 의미한다.
+margin manager의 risk ratio를 반환하며, 이는 자산 대비 debt의 비율을 나타낸다. ratio가 높을수록 더 건강한 포지션을 의미한다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_manager.move"
@@ -194,7 +194,7 @@ margin manager의 risk ratio를 반환하며, 이는 asset 대비 debt의 비율
 <details>
 <summary>`DepositCollateralEvent`</summary>
 
-담보가 margin manager에 deposit될 때 발생한다.
+담보가 margin manager에 예치될 때 발생한다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_manager.move"
@@ -224,7 +224,7 @@ margin manager의 risk ratio를 반환하며, 이는 asset 대비 debt의 비율
 <details>
 <summary>`LoanBorrowedEvent`</summary>
 
-asset이 margin pool에서 차입될 때 발생한다.
+자산이 마진 풀에서 차입될 때 발생한다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_manager.move"
@@ -239,7 +239,7 @@ asset이 margin pool에서 차입될 때 발생한다.
 <details>
 <summary>`LoanRepaidEvent`</summary>
 
-차입한 asset이 상환될 때 발생한다.
+차입한 자산이 상환될 때 발생한다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_manager.move"
