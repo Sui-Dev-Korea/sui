@@ -251,7 +251,7 @@ keywords: [asset tokenization, fractionalization, NFT, fungible token, tokenized
 
 - `new_display`
 
-  registry 안에 nested된 publisher와 sender publisher를 사용해 `TokenizedAsset<T>` type에 대한 빈 `Display`를 생성하고 반환한다. 여기서 `T`는 `Publisher` object 안에 encapsulate되어 있다.
+  registry 안에 nested된 publisher와 sender publisher를 사용해 `Display` type에 대한 빈 `TokenizedAsset<T>`를 생성하고 반환한다. 여기서 `T`는 `Publisher` object 안에 encapsulate되어 있다.
 
   ```rust
   public fun new_display<T: drop>(
@@ -288,7 +288,7 @@ platform cap의 owner만 접근할 수 있다. publisher에 대한 mutable refer
 
 `unlock` module은 authorized burning 및 joining을 위해 tokenized asset을 unlock하는 과정을 지원한다.
 
-tokenized asset type creator가 rule 또는 policy 같은 default requirement set을 따르지 않고도 kiosk asset에 대해 이러한 operation을 활성화할 수 있게 한다.
+tokenized asset type creator가 rule 또는 policy 같은 default requirement set을 따르지 않고도 kiosk asset에 대해 이 operation을 활성화할 수 있게 한다.
 
 #### struct
 
@@ -377,7 +377,7 @@ tokenized asset type creator가 rule 또는 policy 같은 default requirement se
 
 browser에서 seamless asset creation을 지원하도록 Rust WASM functionality를 활성화하는 example use case package이다.
 
-이는 launchpad approach와 유사하며, 새 asset이 tokenized asset으로 표현되어야 할 때마다 template package 역할을 한다. 이 package는 template contract의 field를 즉석에서 edit하고 edit이 포함된 상태로 publish할 수 있게 한다. 이 package는 asset tokenization에 필요한 distinct functionality를 담당하는 두 essential module을 구현한다. Rust WASM이 구현된 방식에 대한 자세한 내용은 [WebAssembly 및 template package](/onchain-finance/tokenized-assets/deploy-tokenized-asset#webassembly-wasm-and-template-package) section에서 확인할 수 있다.
+이는 launchpad approach와 유사하며, 새 asset이 tokenized asset으로 표현되어야 할 때마다 template package 역할을 한다. 이 package는 template contract의 field를 즉석에서 edit하고 edit이 포함된 상태로 publish할 수 있게 한다. 이 package는 asset tokenization에 필요한 distinct functionality를 담당하는 두 essential module을 구현한다. Rust WASM이 구현된 방식에 관한 자세한 내용은 [WebAssembly 및 template package](#webassembly-wasm-and-template-package) section에서 확인할 수 있다.
 
 package는 다음 module을 포함한다:
 

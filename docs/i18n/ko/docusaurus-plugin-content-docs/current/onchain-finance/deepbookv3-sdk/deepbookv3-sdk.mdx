@@ -5,14 +5,14 @@ keywords: [ deepbook, deep book, deepbook v3, typescript, typescript SDK, mysten
 ---
 
 
-DeepBookV3 TypeScript SDK는 transaction calls를 추상화하여 `DeepBook` package와 직접 상호작용할 수 있도록 한다.
+DeepBookV3 TypeScript SDK는 트랜잭션 calls를 추상화하여 `DeepBook` 패키지와 직접 상호작용할 수 있도록 한다.
 
 - [SDK repository](https://github.com/MystenLabs/ts-sdks/tree/main/packages/deepbook-v3)
 - [NPM version](https://www.npmjs.com/package/@mysten/deepbook-v3)
 
 ## 설치
 
-프로젝트에서 SDK를 사용하려면 `@mysten/deepbook` package를 설치한다.
+프로젝트에서 SDK를 사용하려면 `@mysten/deepbook` 패키지를 설치한다.
 
 ```sh npm2yarn
 npm install @mysten/deepbook-v3
@@ -20,7 +20,7 @@ npm install @mysten/deepbook-v3
 
 ## constant
 
-DeepBookV3 SDK에는 DeepBookV3의 최신 deployed addresses와 몇 가지 staple coins 및 pools를 유지하는 constants file(`/utils/constants.ts`)이 포함되어 있다.
+DeepBookV3 SDK에는 DeepBookV3의 최신 deployed 주소와 몇 가지 staple 코인 및 풀을 유지하는 constants file(`/utils/constants.ts`)이 포함되어 있다.
 
 <details>
 <summary>
@@ -35,7 +35,7 @@ https://github.com/MystenLabs/ts-sdks/blob/main/packages/deepbook-v3/src/utils/c
 
 ## DeepBookClient
 
-DeepBookV3로 작업하려면 client extension을 사용하여 Sui client에 DeepBook 기능을 추가한다. [Sui TypeScript SDK](https://sdk.mystenlabs.com/typescript)는 transaction을 처리하는 데 필요한 `SuiGrpcClient`와 주요 기능을 제공한다. 다음 예시는 해당 라이브러리도 함께 import한다.
+DeepBookV3로 작업하려면 클라이언트 extension을 사용하여 Sui 클라이언트에 DeepBook 기능을 추가한다. [Sui TypeScript SDK](https://sdk.mystenlabs.com/typescript)는 트랜잭션을 처리하는 데 필요한 `SuiGrpcClient`와 주요 기능을 제공한다. 다음 예시는 해당 라이브러리도 함께 import한다.
 
 ```tsx
 import { deepbook, type DeepBookClient } from '@mysten/deepbook-v3';
@@ -78,13 +78,13 @@ class DeepBookMarketMaker {
 
 ## Keys: Coin, Pool, and Manager {#keys}
 
-coin, pool, 또는 manager를 입력으로 요구하는 함수는 parameter로 해당 object의 key를 요구한다. SDK는 이 데이터의 `key:value` 관계를 memory에서 관리한다. 일부 default data는 SDK에 포함되어 있다(`utils/constants.ts`에서 볼 수 있다). coins는 `CoinMap`에 저장되고 pools는 config의 `PoolMap`에 저장된다.
+코인, 풀, 또는 manager를 입력으로 요구하는 함수는 파라미터로 해당 객체의 key를 요구한다. SDK는 이 데이터의 `key:value` 관계를 memory에서 관리한다. 일부 기본값 data는 SDK에 포함되어 있다(`utils/constants.ts`에서 볼 수 있다). 코인은 `CoinMap`에 저장되고 풀은 config의 `PoolMap`에 저장된다.
 
 ### BalanceManager
 
-어떤 trade를 배치하기 전에 client에 balance manager address를 제공해야 한다. manager key는 client의 `BalanceManager` 인터페이스로 정의된 object를 가리킨다. [BalanceManager docs](/onchain-finance/deepbookv3/contract-information/balance-manager). client로 balance manager를 초기화한다. balance manager를 생성하지 않으면 client가 대신 생성하도록 할 수 있지만, 그러면 사용자는 client를 다시 초기화해야 한다.
+어떤 trade를 배치하기 전에 클라이언트에 BalanceManager 주소를 제공해야 한다. manager key는 클라이언트의 `BalanceManager` 인터페이스로 정의된 객체를 가리킨다. [BalanceManager docs](/onchain-finance/deepbookv3/contract-information/balance-manager). 클라이언트로 BalanceManager를 초기화한다. BalanceManager를 생성하지 않으면 클라이언트가 대신 생성하도록 할 수 있지만, 그러면 사용자는 클라이언트를 다시 초기화해야 한다.
 
-기존 balance manager를 사용하는 예시:
+기존 BalanceManager를 사용하는 예시:
 
 ```tsx
 import { deepbook, type DeepBookClient } from '@mysten/deepbook-v3';
@@ -146,7 +146,7 @@ class DeepBookMarketMaker {
 }
 ```
 
-balance manager를 생성하는 예시:
+BalanceManager를 생성하는 예시:
 
 ```tsx
 import { deepbook, type DeepBookClient } from '@mysten/deepbook-v3';
@@ -233,16 +233,16 @@ class DeepBookMarketMaker {
 
 ### Coin
 
-SDK는 Testnet에서 네 개의 default coins와 Mainnet에서 다섯 개의 default coins를 제공한다.
+SDK는 Testnet에서 네 개의 기본 코인과 Mainnet에서 다섯 개의 기본 코인을 제공한다.
 
-**Default Testnet coins**
+**Default Testnet 코인**
 
 - DEEP
 - SUI
 - DBUSDC
 - DBUSDT
 
-**Default Mainnet coins**
+**Default Mainnet 코인**
 
 - DEEP
 - SUI
@@ -250,11 +250,11 @@ SDK는 Testnet에서 네 개의 default coins와 Mainnet에서 다섯 개의 def
 - USDT
 - WETH
 
-default로 지원되지 않는 pools와 상호작용하기 위해 custom coins로 SDK를 초기화할 수도 있다. 이를 위해 `CoinMap` object를 생성하여 client의 constructor에 전달한다.
+기본적으로 지원되지 않는 풀과 상호작용하기 위해 custom 코인으로 SDK를 초기화할 수도 있다. 이를 위해 `CoinMap` 객체를 생성하여 클라이언트의 constructor에 전달한다.
 
-### pool
+### 풀
 
-coins와 마찬가지로 SDK에는 default pools가 포함되어 있다. 이 동작을 override하려면 생성 시 `PoolMap`을 제공할 수 있다.
+코인과 마찬가지로 SDK에는 기본 풀이 포함되어 있다. 이 동작을 override하려면 생성 시 `PoolMap`을 제공할 수 있다.
 
 ```tsx
 import { deepbook, type DeepBookClient } from '@mysten/deepbook-v3';
@@ -324,7 +324,7 @@ export class DeepBookMarketMaker {
 
 ### 예시 setup
 
-다음 예시는 제공된 default pools와 coins를 사용한다.
+다음 예시는 제공된 기본 풀과 코인을 사용한다.
 
 ```tsx
 import { Transaction } from '@mysten/sui/transactions';
@@ -332,9 +332,9 @@ import { Transaction } from '@mysten/sui/transactions';
 import { DeepBookMarketMaker } from './deepbookMarketMaker.js';
 
 (async () => {
-	const privateKey = ''; // 이를 .env 파일에 넣을 수 있다
+	const privateKey = ''; // Can encapsulate this in a .env file
 
-	// 생성된 balance managers가 있으면 함께 초기화한다
+	// Initialize with balance managers if created
 	const balanceManagers = {
 		MANAGER_1: {
 			address: '',
@@ -345,11 +345,11 @@ import { DeepBookMarketMaker } from './deepbookMarketMaker.js';
 
 	const tx = new Transaction();
 
-	// 읽기 전용 호출
+	// Read only call
 	console.log(await mmClient.client.deepbook.checkManagerBalance('MANAGER_1', 'SUI'));
 	console.log(await mmClient.client.deepbook.getLevel2Range('SUI_DBUSDC', 0.1, 100, true));
 
-	// Balance manager contract 호출
+	// Balance manager contract call
 	mmClient.client.deepbook.balanceManager.depositIntoManager('MANAGER_1', 'DBUSDT', 10000)(tx);
 	mmClient.client.deepbook.balanceManager.withdrawAllFromManager(
 		'MANAGER_1',
@@ -365,11 +365,11 @@ import { DeepBookMarketMaker } from './deepbookMarketMaker.js';
 
 ## 리퍼럴 함수
 
-SDK는 pool-specific referrals를 관리하기 위한 함수를 제공한다. Referrals는 사용자가 자신이 refer한 traders로부터 trading fees의 일부를 벌 수 있도록 한다.
+SDK는 풀-specific referrals를 관리하기 위한 함수를 제공한다. Referrals는 사용자가 자신이 refer한 traders로부터 거래 수수료의 일부를 벌 수 있도록 한다.
 
-### Pool referral functions
+### Pool referral 함수
 
-이 함수는 pool level에서 referrals를 관리하기 위해 `deepbook` contract에서 사용할 수 있다.
+이 함수는 풀 level에서 referrals를 관리하기 위해 `deepbook` contract에서 사용할 수 있다.
 
 :::info Multiplier constraints
 
@@ -378,47 +378,47 @@ referral multiplier는 0.1의 배수(예: 0.1, 0.2, 0.3, ...)여야 하며 2.0�
 :::
 
 ```tsx
-// 특정 pool용 새 referral을 mint한다
-// multiplier는 referrer에게 할당되는 fee 비율을 결정한다
-// 유효한 값: 0.1, 0.2, 0.3, ... 최대 2.0
+// Mint a new referral for a specific pool
+// multiplier determines the portion of fees allocated to the referrer
+// Valid values: 0.1, 0.2, 0.3, ... up to 2.0
 client.deepbook.mintReferral('SUI_DBUSDC', 0.1)(tx);
 
-// 기존 referral의 multiplier를 업데이트한다
+// Update the multiplier for an existing referral
 client.deepbook.updatePoolReferralMultiplier('SUI_DBUSDC', referralId, 0.2)(tx);
 
-// 누적 referral reward를 청구한다(base, quote, DEEP coin 반환)
+// Claim accumulated referral rewards (returns base, quote, and DEEP coins)
 const { baseRewards, quoteRewards, deepRewards } = tx.add(
 	client.deepbook.claimPoolReferralRewards('SUI_DBUSDC', referralId)
 );
 
-// referral의 현재 balance를 가져온다
+// Get the current balances for a referral
 client.deepbook.getPoolReferralBalances('SUI_DBUSDC', referralId)(tx);
 
-// referral의 multiplier를 가져온다
+// Get the multiplier for a referral
 client.deepbook.poolReferralMultiplier('SUI_DBUSDC', referralId)(tx);
 ```
 
-### BalanceManager referral function
+### BalanceManager referral 함수
 
-이 함수는 referrals를 balance managers와 연결하기 위해 `balanceManager` contract에서 사용할 수 있다.
+이 함수는 referrals를 BalanceManager와 연결하기 위해 `balanceManager` contract에서 사용할 수 있다.
 
 ```tsx
-// 먼저 TradeCap을 생성한다(referral 설정에 필요하다)
+// Generate a trade cap first (needed for setting referrals)
 const tradeCap = tx.add(client.deepbook.balanceManager.mintTradeCap('MANAGER_1'));
 
-// balance manager에 referral을 설정한다(pool-specific)
-// 각 balance manager는 pool마다 다른 referral을 가질 수 있다
+// Set a referral for a balance manager (pool-specific)
+// Each balance manager can have different referrals for different pools
 client.deepbook.balanceManager.setBalanceManagerReferral('MANAGER_1', referralId, tradeCap)(tx);
 
-// 특정 pool에 대한 referral 설정을 해제한다
+// Unset the referral for a specific pool
 client.deepbook.balanceManager.unsetBalanceManagerReferral('MANAGER_1', 'SUI_DBUSDC', tradeCap)(tx);
 
-// 특정 pool에 대해 balance manager와 연결된 referral ID를 가져온다
+// Get the referral ID associated with a balance manager for a specific pool
 client.deepbook.balanceManager.getBalanceManagerReferralId('MANAGER_1', 'SUI_DBUSDC')(tx);
 
-// referral의 owner를 가져온다
+// Get the owner of a referral
 client.deepbook.balanceManager.balanceManagerReferralOwner(referralId)(tx);
 
-// referral과 연결된 pool ID를 가져온다
+// Get the pool ID associated with a referral
 client.deepbook.balanceManager.balanceManagerReferralPoolId(referralId)(tx);
 ```

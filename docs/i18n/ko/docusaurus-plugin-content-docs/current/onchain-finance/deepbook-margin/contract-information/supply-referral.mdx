@@ -1,6 +1,6 @@
 ---
 title: 공급 리퍼럴
-description: DeepBook Margin에서 supply referral이 작동하는 방식과 liquidity supplier를 추천해 fee를 얻는 방법을 설명한다.
+description: DeepBook Margin에서 supply referral이 작동하는 방식과 유동성 supplier를 추천해 fee를 얻는 방법을 설명한다.
 keywords:
   [
     supply referral,
@@ -12,28 +12,28 @@ keywords:
 ---
 
 
-supply referral 시스템은 사용자가 추천한 liquidity supplier가 생성한 protocol fee의 일부를 얻을 수 있게 한다. supplier가 referral ID를 사용해 asset을 deposit하면, 시간에 따라 지급되는 interest에 비례해 fee를 얻게 된다.
+supply referral 시스템은 사용자가 추천한 유동성 supplier가 생성한 프로토콜 수수료의 일부를 얻을 수 있게 한다. supplier가 referral ID를 사용해 자산을 예치하면, 시간에 따라 지급되는 interest에 비례해 fee를 얻게 된다.
 
 ## 작동 방식
 
-1. **Create a referral**: 특정 margin pool에 대해 `SupplyReferral` object를 mint한다
-2. **Referral ID**: supplier는 liquidity를 공급할 때 referral ID를 포함한다
-3. **Earn fees**: 추천된 supplier가 interest를 얻는 동안, protocol fee의 일부가 referral에 누적된다
-4. **Claim fees**: 누적된 referral fee를 언제든지 인출한다
+1. **Create a referral**: 특정 마진 풀에 대해 `SupplyReferral` 객체를 민트한다
+2. **Referral ID**: supplier는 유동성을 공급할 때 referral ID를 포함한다
+3. **Earn fees**: 추천된 supplier가 interest를 얻는 동안, 프로토콜 수수료의 일부가 referral에 누적된다
+4. **Claim fees**: 누적된 리퍼럴 수수료를 언제든지 인출한다
 
-referral 시스템은 shares 기반 추적 메커니즘을 사용한다. supplier가 referral과 함께 deposit하면:
-- supplier의 position에 비례해 referral의 share가 증가한다
-- interest가 누적되고 protocol fee가 수집됨에 따라 claim 가능한 fee가 증가한다
+referral 시스템은 shares 기반 추적 메커니즘을 사용한다. supplier가 referral과 함께 예치하면:
+- supplier의 포지션에 비례해 referral의 share가 증가한다
+- interest가 누적되고 프로토콜 수수료가 수집됨에 따라 claim 가능한 fee가 증가한다
 - supplier가 인출하면, referral의 share가 그에 맞춰 감소한다
 
 ## API
 
-다음은 supply referral을 관리하기 위한 함수이다.
+다음은 supply referral을 관리하기 위한 함수가다.
 
 <details>
 <summary>Mint a `SupplyReferral`</summary>
 
-추천된 supplier에서 fee를 얻기 위한 새 supply referral을 생성한다. 반환되는 `SupplyReferral` object는 전송 가능하며, 누적된 fee를 claim하는 데 사용할 수 있다.
+추천된 supplier에서 fee를 얻기 위한 새 supply referral을 생성한다. 반환되는 `SupplyReferral` 객체는 전송 가능하며, 누적된 fee를 claim하는 데 사용할 수 있다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_pool.move"
@@ -48,7 +48,7 @@ referral 시스템은 shares 기반 추적 메커니즘을 사용한다. supplie
 <details>
 <summary>Supply with referral</summary>
 
-선택적 referral ID와 함께 margin pool에 asset을 공급한다. referral ID가 제공되면 referrer는 supplier의 position에서 발생하는 protocol fee의 일부를 얻는다.
+선택적 referral ID와 함께 마진 풀에 자산을 공급한다. referral ID가 제공되면 referrer는 supplier의 포지션에서 발생하는 프로토콜 수수료의 일부를 얻는다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_pool.move"
@@ -61,9 +61,9 @@ referral 시스템은 shares 기반 추적 메커니즘을 사용한다. supplie
 </details>
 
 <details>
-<summary>Withdraw referral fees</summary>
+<summary>Withdraw 리퍼럴 수수료</summary>
 
-누적된 referral fee를 인출한다. `SupplyReferral` object의 소유자만 fee를 claim할 수 있다.
+누적된 리퍼럴 수수료를 인출한다. `SupplyReferral` 객체의 소유자만 fee를 claim할 수 있다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_pool.move"
@@ -110,7 +110,7 @@ referral의 현재 share와 미청구 fee를 쿼리한다.
 <details>
 <summary>`ReferralFeesClaimed`</summary>
 
-referral 소유자가 referral fee를 claim할 때 발생한다.
+referral 소유자가 리퍼럴 수수료를 claim할 때 발생한다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/margin_pool/protocol_fees.move"
@@ -124,9 +124,9 @@ referral 소유자가 referral fee를 claim할 때 발생한다.
 
 ## Fee distribution
 
-referral spread parameter(일반적으로 20%)는 protocol fee의 어느 정도 비율이 referrer에게 전달되는지를 결정한다. 예를 들어:
+referral spread 파라미터(일반적으로 20%)는 프로토콜 수수료의 어느 정도 비율이 referrer에게 전달되는지를 결정한다. 예를 들어:
 
-- **Without referral**: protocol fee의 100%가 프로토콜에 전달된다
+- **Without referral**: 프로토콜 수수료의 100%가 프로토콜에 전달된다
 - **With referral**: 80%는 프로토콜에, 20%는 referrer에게 전달된다(20% referral spread 기준)
 
-referral spread는 margin pool별로 구성되며, [컨트랙트 정보](../contract-information)에서 확인할 수 있다.
+referral spread는 마진 풀별로 구성되며, [컨트랙트 정보](/onchain-finance/deepbook-margin/contract-information)에서 확인할 수 있다.

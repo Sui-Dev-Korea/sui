@@ -1,6 +1,6 @@
 ---
 title: 자주 발생하는 오류 해결하기
-description: address, transaction, Move package에서 자주 발생하는 문제의 해결책을 찾는다.
+description: address, 트랜잭션, Move 패키지에서 자주 발생하는 문제의 해결책을 찾는다.
 keywords: [ address errors, package errors, system errors, transaction errors, troubleshooting ]
 ---
 
@@ -46,13 +46,13 @@ Sui address는 다음 조건을 충족해야 한다:
 
 ---
 
-## Move package 오류
-이 섹션의 error는 Move package와 관련이 있다.
+## Move 패키지 오류
+이 섹션의 error는 Move 패키지와 관련이 있다.
 
 #### `Invalid URL: Invalid URL: relative URL without a base`
 
 이 error는 system이 URL string을 relative URL(`/path/to/file`)로 해석하지만 코드가 absolute URL(`https://example.com/path/to/file`)을 기대할 때 발생한다.
-이 error는 URL과 상호작용하기 위한 `Url` struct와 function을 제공하는 `sui::url` module에서 발생한다.
+이 error는 URL과 상호작용하기 위한 `Url` struct와 함수를 제공하는 `sui::url` 모듈에서 발생한다.
 Move는 URL 자체의 format을 검증하지 않는다.
 
 ##### 해결 방법
@@ -66,7 +66,7 @@ Move는 URL 자체의 format을 검증하지 않는다.
 
 #### `Failed to build Move modules: Failed to resolve dependencies for package`
 
-이 error는 system이 Move package의 `Move.toml` file에 나열한 dependency 중 하나 이상을 찾을 수 없음을 나타낸다.
+이 error는 system이 Move 패키지의 `Move.toml` file에 나열한 dependency 중 하나 이상을 찾을 수 없음을 나타낸다.
 system이 dependency를 찾을 수 없는 경우는 다음과 같다:
 
 - path가 잘못되었거나 typo가 있거나 존재하지 않는다.
@@ -87,12 +87,12 @@ typo가 없는지 확인하고 모든 dependency를 initialize했는지 확인�
 
 #### `Duplicate module found: 0x0000000000000000000000000000000000000000000000000000000000000002::groth16`
 
-이 error는 프로젝트 또는 그 dependency에 같은 이름이나 address를 가진 module이 둘 이상 정의되어 있음을 나타낸다.
-각 module에는 고유한 이름과 address 조합을 부여해야 한다.
+이 error는 프로젝트 또는 그 dependency에 같은 이름이나 address를 가진 모듈이 둘 이상 정의되어 있음을 나타낸다.
+각 모듈에는 고유한 이름과 address 조합을 부여해야 한다.
 
 ##### 해결 방법
-source file에서 같은 module 이름이나 address를 두 번 사용하지 않는지 확인한다.
-package의 dependency에 duplicate name이 정의되어 있는지 확인한다.
+source file에서 같은 모듈 이름이나 address를 두 번 사용하지 않는지 확인한다.
+패키지의 dependency에 duplicate name이 정의되어 있는지 확인한다.
 `Move.toml` file에 충돌하는 address assignment가 있는지 확인한다.
 
 **리소스**
@@ -103,34 +103,34 @@ package의 dependency에 duplicate name이 정의되어 있는지 확인한다.
 
 #### `Internal error occurred while processing request: Error resolving Move location: Linkage not found for package`
 
-이 error는 environment 또는 tooling이 지정된 address에서 Move package를 찾을 수 없음을 나타낸다.
+이 error는 environment 또는 tooling이 지정된 address에서 Move 패키지를 찾을 수 없음을 나타낸다.
 가능한 원인은 다음과 같다:
 
-- package를 network에 publish하지 않았다.
+- 패키지를 network에 publish하지 않았다.
 
 - address가 잘못되었다.
 
 ##### 해결 방법
-지정된 address에 package가 network에 존재하는지 확인한다.
+지정된 address에 패키지가 network에 존재하는지 확인한다.
 
 ---
 
 #### `Failed to build Move modules: Compilation error.`
 
-이 error는 Move code 어딘가가 compiler의 규칙을 위반하여 compiler가 package를 bytecode로 compile할 수 없음을 나타내는 generic error이다.
+이 error는 Move code 어딘가가 compiler의 규칙을 위반하여 compiler가 패키지를 bytecode로 compile할 수 없음을 나타내는 generic error이다.
 
 ##### 해결 방법
 이 error의 일반적인 원인으로는 다음이 있다:
 
-- Unbound variable or module: package에서 참조하는 모든 module과 variable을 선언했고 scope 안에 있는지 확인한다.
+- Unbound variable or 모듈: 패키지에서 참조하는 모든 모듈과 variable을 선언했고 scope 안에 있는지 확인한다.
 
-- Duplicate declaration, item, or annotation: function, struct, module 이름이 namespace 안에서 모두 고유한지 확인한다.
+- Duplicate declaration, item, or annotation: 함수, struct, 모듈 이름이 namespace 안에서 모두 고유한지 확인한다.
 
-- Invalid declaration: module을 올바르게 선언하려면 항상 module에 address를 지정한다.
+- Invalid declaration: 모듈을 올바르게 선언하려면 항상 모듈에 address를 지정한다.
 
 - Unbound type or member: 모든 type과 member를 올바르게 정의하고 import해야 한다.
 
-- Edition not specified: 모든 `Move.toml` file에 `edition = "2024"` field를 정의해야 한다.
+- Edition not specified: 모든 `Move.toml` file에 `edition = "2024"` 필드를 정의해야 한다.
 
 **리소스**
 
@@ -142,14 +142,14 @@ package의 dependency에 duplicate name이 정의되어 있는지 확인한다.
 
 #### `Failed to publish the Move module(s), reason: Modules must all have 0x0 as their addresses.`
 
-이 error는 package 안의 module이 `0x0` address를 가지지 않음을 나타낸다.
-Move에서는 source code에서 모든 module의 self-address를 `0x0`으로 설정해야 한다.
-package를 publish할 때 Sui가 올바른 address를 자동으로 할당한다.
+이 error는 패키지 안의 모듈이 `0x0` address를 가지지 않음을 나타낸다.
+Move에서는 source code에서 모든 모듈의 self-address를 `0x0`으로 설정해야 한다.
+패키지를 publish할 때 Sui가 올바른 address를 자동으로 할당한다.
 
 
 ##### 해결 방법
 Move source file에서 명시적인 address block을 제거한다.
-module을 `address ... { ... }` block으로 감싸지 않는다.
+모듈을 `address ... { ... }` block으로 감싸지 않는다.
 
 **리소스**
 
@@ -159,13 +159,13 @@ module을 `address ... { ... }` block으로 감싸지 않는다.
 
 #### `The signer only expects one signature, not two`
 
-이 error는 Move module에서 호출하는 function이 signer argument 1개를 기대하는데 2개를 제공했음을 나타낸다.
-Sui에서는 function signature의 signer argument 수가 제공하는 signer 수와 일치해야 한다.
+이 error는 Move 모듈에서 호출하는 함수가 signer 인자 1개를 기대하는데 2개를 제공했음을 나타낸다.
+Sui에서는 함수 signature의 signer 인자 수가 제공하는 signer 수와 일치해야 한다.
 
 ##### 해결 방법
-function을 `fun main(s: signer)`로 정의했다면 signer도 1개만 제공해야 하는지 확인한다.
+함수를 `fun main(s: signer)`로 정의했다면 signer도 1개만 제공해야 하는지 확인한다.
 
-signer 2개를 사용하려면 `fun main(s1: signer, s2: signer) { ... }`로 function을 정의한다.
+signer 2개를 사용하려면 `fun main(s1: signer, s2: signer) { ... }`로 함수를 정의한다.
 
 **리소스**
 
@@ -180,7 +180,7 @@ signer 2개를 사용하려면 `fun main(s1: signer, s2: signer) { ... }`로 fun
 
 ##### 해결 방법
 resource의 값이 0인지 확인한다.
-coin이나 token의 경우 값이 0이 될 때까지 split하거나 burn한다.
+코인이나 token의 경우 값이 0이 될 때까지 split하거나 burn한다.
 
 **리소스**
 
@@ -202,7 +202,7 @@ coin이나 token의 경우 값이 0이 될 때까지 split하거나 burn한다.
 build를 정리한다:
 
 ```
-$ sui move clean 
+$ sui move clean
 ```
 
 다른 시나리오에서는 오래되었거나 맞지 않는 tooling version이 이 error의 원인이 될 수 있다.
@@ -261,7 +261,7 @@ request를 다시 시도하거나 client를 제어할 수 있다면 timeout 시�
 ---
 
 ## Transaction 오류
-이 섹션의 error는 transaction과 관련이 있다.
+이 섹션의 error는 트랜잭션과 관련이 있다.
 
 #### `Requires a connection to the network. Current active network is [testnet/mainnet/devnet] but failed to connect to it.`
 
@@ -278,7 +278,7 @@ $ sui client envs
 
 ```
 localnet => http://0.0.0.0:9000
-testnet => https://fullnode.testnet.sui.io:443 
+testnet => https://fullnode.testnet.sui.io:443
 devnet => https://fullnode.devnet.sui.io:443 (active)
 ```
 
@@ -298,17 +298,17 @@ $ sui client switch --env testnet
 
 #### `Unable to process transaction. Dry run failed, could not automatically determine a budget: UnusedValueWithoutDrop { result_idx: 0, secondary_idx: 0 }`
 
-이 error는 Move transaction에 `drop` ability가 없거나 이를 명시적으로 drop하지 않았을 때 발생한다.
-Sui runtime system은 transaction 끝에 값을 사용하지 않은 채 남겨두면 이 error를 발생시키는 resource safety를 강제한다.
+이 error는 Move 트랜잭션에 `drop` ability가 없거나 이를 명시적으로 drop하지 않았을 때 발생한다.
+Sui runtime system은 트랜잭션 끝에 값을 사용하지 않은 채 남겨두면 이 error를 발생시키는 resource safety를 강제한다.
 
 ##### 해결 방법
-Sui Move package에서는 `drop` ability가 없는 모든 값을 다른 address로 transfer하거나, 명시적으로 destroy하거나, 다른 function의 input으로 사용해 소비해야 한다.
+Sui Move 패키지에서는 `drop` ability가 없는 모든 값을 다른 address로 transfer하거나, 명시적으로 destroy하거나, 다른 함수의 입력으로 사용해 소비해야 한다.
 
 **리소스**
 
 - [resource safety](/getting-started/onboarding/hello-world#resource-safety)에 대해 더 알아본다.
 
---- 
+---
 
 #### `Error executing transaction: VMVerificationOrDeserializationError in command 0`
 
@@ -317,11 +317,11 @@ Sui Move package에서는 `drop` ability가 없는 모든 값을 다른 address�
 ##### 해결 방법
 이 error의 일반적인 원인으로는 다음이 있다:
 
-- `ZERO_SIZED_STRUCT`: field가 하나도 없는 struct를 정의했다. struct에 field를 하나 이상 추가한다.
+- `ZERO_SIZED_STRUCT`: 필드가 하나도 없는 struct를 정의했다. struct에 필드를 하나 이상 추가한다.
 
-- `FIELD_MISSING_TYPE_ABILITY`: struct에 `key` 또는 `store` 같은 required ability가 없다. 모든 field가 필요한 ability를 가지는지 확인한다.
+- `FIELD_MISSING_TYPE_ABILITY`: struct에 `key` 또는 `store` 같은 required ability가 없다. 모든 필드가 필요한 ability를 가지는지 확인한다.
 
-- `UNKNOWN_VERSION`: module 또는 enum이 system이 인식하지 못하는 version 또는 feature를 사용한다. 지원되는 feature와 올바른 Sui toolchain version을 사용하고 있는지 확인한다.
+- `UNKNOWN_VERSION`: 모듈 또는 enum이 system이 인식하지 못하는 version 또는 feature를 사용한다. 지원되는 feature와 올바른 Sui toolchain version을 사용하고 있는지 확인한다.
 
 - `CONSTRAINT_NOT_SATISFIED`: struct 또는 type parameter가 required ability를 충족하지 않는다. struct 또는 type에 필요한 ability를 추가한다.
 
@@ -339,15 +339,15 @@ Sui Move package에서는 `drop` ability가 없는 모든 값을 다른 address�
 
 #### `Failed to sign transaction by a quorum of validators because one or more of its objects is reserved for another transaction. Other transactions locking these objects`
 
-이 error는 transaction이 다른 transaction이 이미 사용 중인 Sui object 하나 이상을 사용하려 한다는 뜻이다.
-transaction에서 object를 사용하면 system은 object를 lock하여 object에 대한 여러 개의 충돌 가능한 수정이 발생하지 않도록 한다.
-DeFi object의 경우 이는 이중 지출을 방지한다.
+이 error는 트랜잭션이 다른 트랜잭션이 이미 사용 중인 Sui 객체 하나 이상을 사용하려 한다는 뜻이다.
+트랜잭션에서 객체를 사용하면 system은 객체를 lock하여 객체에 대한 여러 개의 충돌 가능한 수정이 발생하지 않도록 한다.
+DeFi 객체의 경우 이는 이중 지출을 방지한다.
 
 ##### 해결 방법
-다른 transaction이 완료될 때까지 기다린 다음 transaction을 다시 시도한다.
-transaction이 멈췄거나 실패했다면 transaction을 다시 시도하기 전에 다음 epoch까지 기다려야 할 수 있다.
+다른 트랜잭션이 완료될 때까지 기다린 다음 트랜잭션을 다시 시도한다.
+트랜잭션이 멈췄거나 실패했다면 트랜잭션을 다시 시도하기 전에 다음 epoch까지 기다려야 할 수 있다.
 
-code가 여러 object를 동시에 사용하지 않도록 확인한다.
+code가 여러 객체를 동시에 사용하지 않도록 확인한다.
 
 **리소스**
 
@@ -357,8 +357,8 @@ code가 여러 object를 동시에 사용하지 않도록 확인한다.
 
 #### `Failed to sign transaction by a quorum of validators because one or more of its objects is equivocated until the next epoch.`
 
-이 error는 사용하려는 object가 equivocated state에 있음을 나타내며, 이는 충돌하는 transaction 때문에 network가 그 state에 대해 consensus에 도달할 수 없다는 뜻이다.
-그 결과 system은 그 object를 freeze하고, 다음 epoch까지 그 object를 사용할 수 없다.
+이 error는 사용하려는 객체가 equivocated state에 있음을 나타내며, 이는 충돌하는 트랜잭션 때문에 network가 그 state에 대해 consensus에 도달할 수 없다는 뜻이다.
+그 결과 system은 그 객체를 freeze하고, 다음 epoch까지 그 객체를 사용할 수 없다.
 
 ##### 해결 방법
 다음 epoch까지 기다린다.
@@ -391,10 +391,10 @@ rate limit 여부를 확인하고 더 긴 시간 간격으로 request를 보내 
 
 #### `Failed to submit transaction: ErrorObject { code: ServerError(-32002), message: "Transaction validator signing failed due to issues with transaction inputs, please review the errors and try again`
 
-이 error는 Sui network가 잘못된 transaction input 때문에 transaction을 거부함을 나타낸다.
+이 error는 Sui network가 잘못된 트랜잭션 입력 때문에 트랜잭션을 거부함을 나타낸다.
 
 ##### 해결 방법
-transaction에서 참조하는 모든 object가 다음 조건을 충족하는지 확인한다:
+트랜잭션에서 참조하는 모든 객체가 다음 조건을 충족하는지 확인한다:
 
 - 존재한다
 
@@ -402,15 +402,15 @@ transaction에서 참조하는 모든 object가 다음 조건을 충족하는지
 
 - 두 번 참조되지 않는다
 
-- 최대 object 수라는 protocol limit를 초과하지 않는다.
+- 최대 객체 수라는 protocol limit를 초과하지 않는다.
 
-gas balance가 충분한지, 그리고 transaction signature가 유효한지 확인한다.
+gas balance가 충분한지, 그리고 트랜잭션 signature가 유효한지 확인한다.
 
 ---
 
 #### `Unable to process transaction. No valid gas coins found for the transaction.`
 
-이 error는 transaction gas fee를 지불할 만큼 충분한 token이 없음을 나타낸다.
+이 error는 트랜잭션 가스 수수료를 지불할 만큼 충분한 token이 없음을 나타낸다.
 
 ##### 해결 방법
 token을 확보한다.

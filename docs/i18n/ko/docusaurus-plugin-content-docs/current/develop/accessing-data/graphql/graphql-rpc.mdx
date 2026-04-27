@@ -45,11 +45,11 @@ GraphQL과 General-purpose Indexer 스택의 핵심 구성 요소는 다음을 �
 
 - **GraphQL service:** indexed 데이터에 대해 구조화된 queries를 제공한다. [GraphQL specification](https://graphql.org/)을 따르며 지원되는 schema는 [Sui RPC용 GraphQL (베타)](/references/sui-graphql)에 문서화되어 있다.
 
-- **Archival Service:** key-value store에서 과거 데이터에 대한 point lookup을 가능하게 한다. 사용할 수 없는 경우 GraphQL service는 lookups를 위해 Postgres-compatible database로 폴백하며, 이 경우 해당 데이터베이스의 retention policy에 의해 제한될 수 있다. 자세한 내용은 [아카이브 서비스 사용하기](/develop/accessing-data/archival-store/using-archival-store)를 참조하라.
+- **Archival Service:** key-value store에서 과거 데이터에 대한 point lookup을 가능하게 한다. 사용할 수 없는 경우 GraphQL service는 lookups를 위해 Postgres-compatible database로 폴백하며, 이 경우 해당 데이터베이스의 retention policy에 의해 제한될 수 있다. 자세한 내용은 [아카이브 서비스 사용하기](/develop/accessing-data/archival-store)를 참조하라.
 
-- **Consistent Store:** 최근 1시간 이내 네트워크의 최신 상태(objects owned by addresses, objects by type, balances by address and type)에 대한 queries에 응답한다. 일관성은 queries를 특정 최근 checkpoint에 고정함으로써 보장된다.
+- **Consistent Store:** 최근 1시간 이내 네트워크의 최신 상태(객체 owned by addresses, 객체 by type, balances by address and type)에 대한 queries에 응답한다. 일관성은 queries를 특정 최근 checkpoint에 고정함으로써 보장된다.
 
-- **Full node:** transaction 실행과 simulation을 가능하게 한다.
+- **Full node:** 트랜잭션 실행과 simulation을 가능하게 한다.
 
 ## 사용 시점
 
@@ -57,13 +57,13 @@ GraphQL과 General-purpose Indexer 스택의 핵심 구성 요소는 다음을 �
 
 애플리케이션이 다음에 해당한다면 GraphQL을 사용하라:
 
-- address가 보낸 모든 transactions와 같이 구성 가능한 retention 또는 필터링된 데이터 접근을 갖는 과거 데이터가 필요하다.
+- address가 보낸 모든 트랜잭션와 같이 구성 가능한 retention 또는 필터링된 데이터 접근을 갖는 과거 데이터가 필요하다.
 
 - wallets와 dashboards와 같이 frontend에서 구조화된 결과를 표시해야 한다.
 
 - overfetching을 줄이는 유연하고 composable한 queries의 이점을 얻는다.
 
-- transactions, objects, events와 같은 여러 데이터 엔티티에 단일 요청에서 의존하거나, 일부 checkpoint의 스냅샷에서 온 응답처럼 여러 요청에 걸쳐 일관된 방식으로 의존한다.
+- 트랜잭션, 객체, events와 같은 여러 데이터 엔티티에 단일 요청에서 의존하거나, 일부 checkpoint의 스냅샷에서 온 응답처럼 여러 요청에 걸쳐 일관된 방식으로 의존한다.
 
 ## GraphQL RPC와 General-purpose Indexer가 application stack에 맞는 방식
 
@@ -101,21 +101,21 @@ GraphQL service는 stateless하고 수평 확장이 가능한 단일 binary로 �
 
 GraphQL에 대한 요청은 여러 제한을 받으며, 이는 리소스가 클라이언트 간에 공정하게 공유되도록 하기 위함이다. 각 제한은 구성 가능하며 인스턴스에 구성된 값은 [`Query.serviceConfig`](/references/sui-api/sui-graphql/beta/reference/operations/queries/service-config)를 통해 조회할 수 있다. 제한을 충족하지 않는 요청은 오류를 반환한다. 현재 적용되는 제한은 다음과 같다:
 
-- **Request size:** 요청은 일정 바이트 크기를 초과할 수 없다. 제한은 transaction signing, execution, simulation fields의 파라미터인 모든 values와 variable bindings에 적용되는 transaction payload limit(기본값: 175KB)과 쿼리의 다른 모든 부분에 적용되는 query payload limit(기본값: 5KB)으로 나뉜다.
+- **Request size:** 요청은 일정 바이트 크기를 초과할 수 없다. 제한은 트랜잭션 signing, execution, simulation 필드의 파라미터인 모든 values와 variable bindings에 적용되는 트랜잭션 payload limit(기본값: 175KB)과 쿼리의 다른 모든 부분에 적용되는 query payload limit(기본값: 5KB)으로 나뉜다.
 
 - **Request timeout:** 각 요청에 소요되는 시간은 제한되며 execution(기본값: 74s)과 일반 읽기(기본값: 40s)에 대해 서로 다른 제한을 둔다.
 
-- **Query input nodes and depth:** query는 너무 복잡할 수 없으며, 너무 많은 input nodes 또는 field names(기본값: 300)를 포함하거나 너무 깊게 중첩될 수 없다(기본값: 20).
+- **Query 입력 nodes and depth:** query는 너무 복잡할 수 없으며, 너무 많은 입력 nodes 또는 필드 names(기본값: 300)를 포함하거나 너무 깊게 중첩될 수 없다(기본값: 20).
 
-- **Output nodes:** 서비스는 요청된 모든 field가 존재하고, 모든 paginated field가 전체 페이지를 반환하며, 모든 multi-get이 요청된 모든 keys를 찾는다고 가정해 query가 생성할 수 있는 최대 output nodes 수를 추정한다. 이 추정치는 제한되어야 한다(기본값: 1,000,000).
+- **Output nodes:** 서비스는 요청된 모든 필드가 존재하고, 모든 paginated 필드가 전체 페이지를 반환하며, 모든 multi-get이 요청된 모든 keys를 찾는다고 가정해 query가 생성할 수 있는 최대 output nodes 수를 추정한다. 이 추정치는 제한되어야 한다(기본값: 1,000,000).
 
-- **Page and multi-get size:** 각 paginated field(기본값: 50)와 multi-get(기본값: 200)은 최대 크기 제한을 받는다. 특정 paginated fields는 더 높거나 더 낮은 최대값을 제공하기 위해 이를 재정의할 수 있다.
+- **Page and multi-get size:** 각 paginated 필드(기본값: 50)와 multi-get(기본값: 200)은 최대 크기 제한을 받는다. 특정 paginated 필드는 더 높거나 더 낮은 최대값을 제공하기 위해 이를 재정의할 수 있다.
 
 - **(TBD) Rich queries:** 요청은 데이터베이스에 대한 전용 접근이 필요한 queries를 제한된 수(기본값: 5)만 포함할 수 있다(다른 요청과 그룹화할 수 없다).
 
 ## General-purpose Indexer 작업
 
-General-purpose Indexer는 remote object store, local files, full node RPC 중 하나에서 checkpoints 데이터를 가져오고, 특화된 pipelines 집합을 통해 여러 데이터베이스 테이블에 데이터를 인덱싱한다. 각 pipeline은 특정 데이터를 추출하여 대상 테이블에 기록하는 역할을 한다.
+General-purpose Indexer는 remote 객체 store, local files, full node RPC 중 하나에서 checkpoints 데이터를 가져오고, 특화된 pipelines 집합을 통해 여러 데이터베이스 테이블에 데이터를 인덱싱한다. 각 pipeline은 특정 데이터를 추출하여 대상 테이블에 기록하는 역할을 한다.
 
 <details>
 <summary>
@@ -128,23 +128,23 @@ Full list of tables and their schemas
 
 ### Blockchain raw content pipeline
 
-이 pipelines는 핵심 blockchain 데이터를 원시 형태로 캡처하여 complete checkpoint 정보, full transaction 및 objects contents, Move package bytecode와 metadata를 보존한다. 이를 통해 object ID와 version, transaction digest, checkpoint sequence number 같은 key로 직접 조회할 수 있도록 complete blockchain state를 사용할 수 있게 한다. 일부 프로덕션 배포는 해당 `kv_` 테이블 대신 Archival Store를 사용해 checkpoints, transactions, objects contents를 조회한다.
+이 pipelines는 핵심 blockchain 데이터를 원시 형태로 캡처하여 complete checkpoint 정보, full 트랜잭션 및 객체 contents, Move 패키지 bytecode와 메타데이터를 보존한다. 이를 통해 객체 ID와 version, 트랜잭션 digest, checkpoint sequence number 같은 key로 직접 조회할 수 있도록 complete blockchain state를 사용할 수 있게 한다. 일부 프로덕션 배포는 해당 `kv_` 테이블 대신 Archival Store를 사용해 checkpoints, 트랜잭션, 객체 contents를 조회한다.
 
-다음 pipelines는 object owner, transaction type, affected addresses, event type 같은 서로 다른 속성에 따라 효율적으로 filtering 및 querying할 수 있는 indexed views를 생성한다. 이러한 indexes는 관심 있는 keys를 식별하는 데 도움을 주며, 그런 다음 raw content `kv_` 테이블에서 상세 content를 가져올 수 있다:
+다음 pipelines는 객체 owner, 트랜잭션 type, affected addresses, event type 같은 서로 다른 속성에 따라 효율적으로 filtering 및 querying할 수 있는 indexed views를 생성한다. 이러한 indexes는 관심 있는 keys를 식별하는 데 도움을 주며, 그런 다음 raw content `kv_` 테이블에서 상세 content를 가져올 수 있다:
 
 **Tables:** `kv_checkpoints`, `kv_transactions`, `kv_objects`, `kv_packages`
 
 ### Transaction pipeline
 
-이 pipelines는 효율적인 filtering과 querying를 지원하기 위해 핵심 transaction 속성을 추출하고 인덱싱한다. `tx_kinds`, `tx_calls`, `tx_affected_addresses`, `tx_affected_objects`는 types, function calls, sender 및 receiver addresses, 변경된 objects를 기준으로 transactions를 빠르게 조회할 수 있게 한다. `tx_digests`는 `kv_` 테이블에서 digests로 transactions를 조회하는 데 필요한 transaction sequence numbers와 transaction digests 간의 변환을 가능하게 하고, `tx_balance_changes`는 각 transaction의 balance changes 정보를 저장한다.
+이 pipelines는 효율적인 filtering과 querying를 지원하기 위해 핵심 트랜잭션 속성을 추출하고 인덱싱한다. `tx_kinds`, `tx_calls`, `tx_affected_addresses`, `tx_affected_objects`는 types, 함수 calls, sender 및 receiver addresses, 변경된 객체를 기준으로 트랜잭션을 빠르게 조회할 수 있게 한다. `tx_digests`는 `kv_` 테이블에서 digests로 트랜잭션을 조회하는 데 필요한 트랜잭션 sequence numbers와 트랜잭션 digests 간의 변환을 가능하게 하고, `tx_balance_changes`는 각 트랜잭션의 balance changes 정보를 저장한다.
 
 **Tables** : `tx_digests`, `tx_kinds`, `tx_calls`, `tx_affected_addresses`, `tx_affected_objects`, `tx_balance_changes`
 
 ### Object pipeline
 
-이 pipelines는 현재 및 과거 object 정보를 관리한다. active object metadata를 저장하고, 각 object의 version history를 유지하며, balances로 정렬된 효율적인 coin queries를 위해 coin balances를 buckets로 분류한다. `obj_versions` 테이블은 GraphQL service에 특히 중요하다. 이 테이블은 모든 blockchain objects의 version history를 추적하며 object ID, version number, digest, checkpoint sequence number를 저장한다. GraphQL service는 전체 object 데이터를 불러오지 않고도 version bounds, checkpoint bounds, exact versions 기준으로 object queries를 해결하는 효율적인 index로 이 테이블을 사용하여 version pagination과 temporal consistency 같은 기능을 가능하게 한다.
+이 pipelines는 현재 및 과거 객체 정보를 관리한다. active 객체 메타데이터를 저장하고, 각 객체의 version history를 유지하며, balances로 정렬된 효율적인 코인 queries를 위해 코인 balances를 buckets로 분류한다. `obj_versions` 테이블은 GraphQL service에 특히 중요하다. 이 테이블은 모든 blockchain 객체의 version history를 추적하며 객체 ID, version number, digest, checkpoint sequence number를 저장한다. GraphQL service는 전체 객체 데이터를 불러오지 않고도 version bounds, checkpoint bounds, exact versions 기준으로 객체 queries를 해결하는 효율적인 index로 이 테이블을 사용하여 version pagination과 temporal consistency 같은 기능을 가능하게 한다.
 
-Pruning policies는 `obj_info`와 `coin_balance_buckets`에 대해 구성할 수 있으며, 이를 통해 지정된 시간 범위 내에서 과거 데이터를 유지하여 query 요구사항과 storage 관리를 균형 있게 맞출 수 있다. 이는 모든 과거 데이터를 무기한 보관하지 않고 최근 object history를 조회해야 하는 사용 사례를 지원할 수 있게 한다.
+Pruning policies는 `obj_info`와 `coin_balance_buckets`에 대해 구성할 수 있으며, 이를 통해 지정된 시간 범위 내에서 과거 데이터를 유지하여 query 요구사항과 storage 관리를 균형 있게 맞출 수 있다. 이는 모든 과거 데이터를 무기한 보관하지 않고 최근 객체 history를 조회해야 하는 사용 사례를 지원할 수 있게 한다.
 
 **Tables**: `obj_info`, `obj_versions`, `coin_balance_buckets`
 
@@ -156,7 +156,7 @@ Pruning policies는 `obj_info`와 `coin_balance_buckets`에 대해 구성할 수
 
 ### Event processing pipeline
 
-이 pipelines는 sender, emitting module, event type 기준의 효율적인 querying를 위해 blockchain events를 인덱싱한다.
+이 pipelines는 sender, emitting 모듈, event type 기준의 효율적인 querying를 위해 blockchain events를 인덱싱한다.
 
 **Tables**: `ev_emit_mod`, `ev_struct_inst`
 
@@ -168,17 +168,17 @@ Pruning policies는 `obj_info`와 `coin_balance_buckets`에 대해 구성할 수
 
 ### 기타 pipeline
 
-`sum_displays` 테이블은 각 object type에 대한 최신 버전의 `Display` object를 저장하며, 이는 [the off-chain representation (display) for a type](/develop/objects/display/using-display)를 렌더링하는 데 사용된다.
+`sum_displays` 테이블은 각 object type에 대한 최신 버전의 `Display` object를 저장하며, 이는 [the off-chain representation (display) for a type](/develop/objects/display/display-overview)를 렌더링하는 데 사용된다.
 
 ## Consistent Store 작업
 
 Consistent Store는 온체인의 실시간 데이터를 인덱싱하고 최근 checkpoints에 대한 queries를 제공하는 combined indexer 및 RPC service이다. Retention은 구성 가능하며 일반적으로 분 또는 시간 단위로 측정된다. 이 service의 indexer는 General-purpose Indexer와 동일한 소스에서 checkpoints를 가져오고, 요청은 gRPC를 통해 제공되면서 데이터를 embedded RocksDB store에 기록하며, 다음 queries에 응답한다:
 
-- 최근 checkpoint에서 owner의 실시간 objects, 필요에 따라 type으로 필터링
+- 최근 checkpoint에서 owner의 실시간 객체, 필요에 따라 type으로 필터링
 
-- 최근 checkpoint에서 주어진 type의 실시간 objects
+- 최근 checkpoint에서 주어진 type의 실시간 객체
 
-- 최근 checkpoint에서의 address balance
+- 최근 checkpoint에서의 주소 잔액
 
 이 service는 자체 데이터베이스를 유지하므로 stateless하지 않다. 새로운 인스턴스는 genesis부터 동기화하거나, 형식 스냅샷에서 복원하는 방식으로 indexer와 유사하게 띄울 수 있다.
 
@@ -194,7 +194,7 @@ Postgres-compatible database에는 최근 checkpoint 데이터를 30일에서 90
 
 - 90일은 더 긴 범위의 pagination, 과거 조회, 참여 주기가 더 느린 앱에 대한 지원을 개선한다.
 
-events, objects, transactions와 같이 포함할 데이터를 인덱싱 pipelines에서 범위 지정할 수 있으며, 필요하지 않은 구성 요소는 비활성화할 수 있다.
+events, 객체, 트랜잭션와 같이 포함할 데이터를 인덱싱 pipelines에서 범위 지정할 수 있으며, 필요하지 않은 구성 요소는 비활성화할 수 있다.
 
 :::note
 
@@ -204,7 +204,7 @@ events, objects, transactions와 같이 포함할 데이터를 인덱싱 pipelin
 
 ### Historical lookup에 Archival Service와 Store 사용
 
-모든 프로덕션 배포에서는 Postgres와 [Archival Service](/develop/accessing-data/archival-store/using-archival-store)를 함께 사용하여 관련 데이터가 Postgres에 존재하지 않을 때 transactions, objects, checkpoints의 point lookup을 지원하라. Archival Service는 과거 버전과 checkpoint 데이터의 백엔드 역할을 하여 Postgres 인스턴스에 가해지는 부담을 줄인다. 엄밀히 필수는 아니지만, 높은 retention의 GraphQL 또는 gRPC 워크로드를 지원하려는 모든 프로덕션 구성에서는 Archival Service를 사용하는 것이 좋다.
+모든 프로덕션 배포에서는 Postgres와 [Archival Service](/develop/accessing-data/archival-store)를 함께 사용하여 관련 데이터가 Postgres에 존재하지 않을 때 transactions, objects, checkpoints의 point lookup을 지원하라. Archival Service는 과거 버전과 checkpoint 데이터의 백엔드 역할을 하여 Postgres 인스턴스에 가해지는 부담을 줄인다. 엄밀히 필수는 아니지만, 높은 retention의 GraphQL 또는 gRPC 워크로드를 지원하려는 모든 프로덕션 구성에서는 Archival Service를 사용하는 것이 좋다.
 
 현재 구현은 매우 확장 가능하고 성능 좋은 데이터 스토어인 [GCP Bigtable](https://cloud.google.com/bigtable)을 지원한다. 자체 archival store를 운영할 계획이라면 indexer 설정과 RPC service 구현을 위해 각각 `sui-kvstore`와 `sui-kv-rpc`를 참조하라. indexer 설정 시에는 반드시 [커스텀 인덱싱 프레임워크](/develop/accessing-data/custom-indexer/custom-indexers)를 사용하라. 다른 확장형 데이터 스토어 지원에 기여하고 싶다면 GitHub에서 새 이슈를 만들어 문의하라.
 
@@ -224,7 +224,7 @@ events, objects, transactions와 같이 포함할 데이터를 인덱싱 pipelin
 
 ### Deployment strategy와 trade-off
 
-신뢰할 수 있고 성능 좋은 GraphQL RPC service를 제공하기 위해 모든 것을 인덱싱할 필요는 없다. 실제로 많은 개발자는 최신 object 및 transaction 데이터와 몇 주에서 몇 개월의 이력만 필요할 수 있다. 다음과 같은 방식으로 운영 오버헤드를 줄이고 query 성능을 개선할 수 있다:
+신뢰할 수 있고 성능 좋은 GraphQL RPC service를 제공하기 위해 모든 것을 인덱싱할 필요는 없다. 실제로 많은 개발자는 최신 객체 및 트랜잭션 데이터와 몇 주에서 몇 개월의 이력만 필요할 수 있다. 다음과 같은 방식으로 운영 오버헤드를 줄이고 query 성능을 개선할 수 있다:
 
 - Postgres에서 30일에서 90일과 같은 명확한 retention window를 구성한다.
 

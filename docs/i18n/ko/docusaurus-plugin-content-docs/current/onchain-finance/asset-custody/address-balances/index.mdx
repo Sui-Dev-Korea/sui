@@ -1,12 +1,12 @@
 ---
 title: 주소 잔액
-description: Address balances는 Sui address에 연결된 fungible asset을 위한 canonical balance system을 도입한다.
+description: Address Balances는 Sui 주소에 연결된 대체 가능 자산을 위한 canonical balance system을 도입한다.
 keywords:
   [
     address balances,
     migration,
     coin objects,
-    funds withdrawal,
+    자금 인출,
     balance transfer,
     gas payment,
     SIP-58,
@@ -15,18 +15,18 @@ keywords:
 draft: true
 ---
 
-Address balances는 Sui address에 연결된 fungible asset을 위한 canonical balance system을 도입한다. 이는 UTXO-style `Coin<T>` model을 direct address-owned balance로 대체하여 transaction construction을 단순화하고 coin selection complexity를 제거한다.
+Address Balances는 Sui 주소에 연결된 대체 가능 자산을 위한 canonical balance system을 도입한다. 이는 UTXO 스타일 `Coin<T>` 모델을 직접 주소 소유 잔액으로 대체하여 트랜잭션 구성을 단순화하고 코인 선택 복잡성을 제거한다.
 
-전체 specification은 [SIP-58: Sui Address Balances](https://github.com/sui-foundation/sips/blob/main/sips/sip-58.md)를 참조한다.
+전체 명세는 [SIP-58: Sui Address Balances](https://github.com/sui-foundation/sips/blob/main/sips/sip-58.md)를 참조한다.
 
-이전에는 Sui의 balance가 address가 소유한 모든 `Coin<T>` object의 value를 합산해 계산되었다. Address balances를 사용하면 각 address가 currency type `T`마다 하나의 address-owned balance를 추가로 가질 수 있다. Total balance는 모든 `Coin<T>` object의 합계에 해당 coin type의 address balance value를 더한 값이다.
+이전에는 Sui의 잔액이 주소가 소유한 모든 `Coin<T>` 객체의 value를 합산해 계산되었다. Address Balances를 사용하면 각 주소가 currency 타입 `T`마다 하나의 주소 소유 잔액을 추가로 가질 수 있다. Total 잔액은 모든 `Coin<T>` 객체의 합계에 해당 코인 타입의 주소 잔액 value를 더한 값이다.
 
-`Coin<T>`와 address balances는 공존한다. Existing coin은 계속 동작하며 `transfer::public_transfer`로 여전히 transfer할 수 있다. 그러나 address balances는 중요한 operational advantage를 제공한다:
+`Coin<T>`와 주소 잔액은 공존한다. Existing 코인은 계속 동작하며 `transfer::public_transfer`로 여전히 전송할 수 있다. 그러나 주소 잔액은 중요한 operational advantage를 제공한다:
 
-- coin selection logic이 필요 없다.
-- deposit이 단일 canonical balance로 자동 병합된다.
-- object state를 query하지 않고 stateless transaction construction이 가능하다.
-- SUI address balance에서 직접 gas payment를 수행한다.
+- 코인 선택 로직이 필요 없다.
+- 예치가 단일 canonical balance으로 자동 병합된다.
+- 객체 상태를 조회하지 않고 stateless 트랜잭션 구성이 가능하다.
+- SUI 주소 잔액에서 직접 가스 결제를 수행한다.
 
 import DocCardList from '@theme/DocCardList';
 

@@ -41,11 +41,11 @@ $ npm install @mysten/sui@experimental
 import { generateNonce, generateRandomness } from '@mysten/sui/zklogin';
 import { SuiGrpcClient } from '@mysten/sui/grpc';
 
-const FULLNODE_URL = 'https://fullnode.devnet.sui.io:443'; // 사용하려는 RPC URL로 바꾼다
+const FULLNODE_URL = 'https://fullnode.devnet.sui.io:443'; // replace with the RPC URL you want to use
 const suiClient = new SuiGrpcClient({ baseUrl: FULLNODE_URL, network: 'devnet' });
 const { epoch, epochDurationMs, epochStartTimestampMs } = await suiClient.core.getLatestSuiSystemState();
 
-const maxEpoch = Number(epoch) + 2; // 이는 ephemeral key가 지금부터 2 epoch 동안 활성 상태임을 의미한다.
+const maxEpoch = Number(epoch) + 2; // this means the ephemeral key will be active for 2 epochs from now.
 const ephemeralKeyPair = new Ed25519Keypair();
 const randomness = generateRandomness();
 const nonce = generateNonce(ephemeralKeyPair.getPublicKey(), maxEpoch, randomness);
@@ -80,14 +80,14 @@ http://host/auth?id_token=tokenPartA.tokenPartB.tokenPartC&authuser=0&prompt=non
 `id_token` param이 encoded format의 JWT이다.
 [jwt.io](https://jwt.io) 웹사이트에 붙여넣으면 encoded token의 유효성을 검증하고 그 구조를 조사할 수 있다.
 
-JWT를 decode하려면 `jwt_decode:` 같은 library를 사용하고 response를 제공된 `JwtPayload` type에 매핑할 수 있다:
+JWT를 decode하려면 `jwt_decode` 같은 library를 사용하고 response를 제공된 `JwtPayload` type에 매핑할 수 있다:
 
 ```typescript
 const decodedJwt = jwt_decode(encodedJWT) as JwtPayload;
 
 export interface JwtPayload {
 	iss?: string;
-	sub?: string; // Subject ID
+	sub?: string; //Subject ID
 	aud?: string[] | string;
 	exp?: number;
 	nbf?: number;
@@ -207,6 +207,7 @@ Response:
 			],
 			["1", "0"]
 		],
+
 		"c": [
 			"14769767061575837119226231519343805418804298487906870764117230269550212315249",
 			"19108054814174425469923382354535700312637807408963428646825944966509611405530",
@@ -267,7 +268,7 @@ services:
   backend:
     image: mysten/zklogin:prover-stable
     volumes:
-      # ZKEY environment variable은 zkey file 경로로 설정되어야 한다.
+      # The ZKEY environment variable must be set to the path of the zkey file.
       - ${ZKEY}:/app/binaries/zkLogin.zkey
     environment:
       - ZKEY=/app/binaries/zkLogin.zkey
@@ -277,13 +278,13 @@ services:
     image: mysten/zklogin:prover-fe-stable
     command: '8080'
     ports:
-      # PROVER_PORT environment variable은 원하는 port로 설정되어야 한다.
+      # The PROVER_PORT environment variable must be set to the desired port.
       - '${PROVER_PORT}:8080'
     environment:
       - PROVER_URI=http://backend:8080/input
       - NODE_ENV=production
       - DEBUG=zkLogin:info,jwks
-      # 기본 timeout은 15초이다. 변경하려면 다음 줄의 주석을 해제한다.
+      # The default timeout is 15 seconds. Uncomment the following line to change it.
       # - PROVER_TIMEOUT=30
 ```
 
@@ -320,7 +321,7 @@ txb.setSender(zkLoginUserAddress);
 
 const { bytes, signature: userSignature } = await txb.sign({
 	client,
-	signer: ephemeralKeyPair, // 이는 ZKP request에 사용한 것과 동일한 ephemeral key pair여야 한다
+	signer: ephemeralKeyPair, // This must be the same ephemeral key pair used in the ZKP request
 });
 ```
 

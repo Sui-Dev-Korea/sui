@@ -1,6 +1,6 @@
 ---
 title: 이자율
-description: margin pool 차입에 대한 interest rate가 어떻게 계산되는지 설명한다.
+description: 마진 풀 차입에 대한 금리가 어떻게 계산되는지 설명한다.
 keywords:
   [
     interest rate,
@@ -13,11 +13,11 @@ keywords:
 ---
 
 
-Margin pool은 kinked interest rate model을 사용하며, 이 모델에서는 borrow rate가 optimal utilization 지점까지는 점진적으로 증가하고 그 이후에는 과도한 차입을 억제하고 출금을 위한 liquidity를 유지하기 위해 급격히 상승한다.
+마진 풀은 kinked 금리 모델을 사용하며, 이 모델에서는 차입 금리가 optimal 이용률 지점까지는 점진적으로 증가하고 그 이후에는 과도한 차입을 억제하고 출금을 위한 유동성을 유지하기 위해 급격히 상승한다.
 
 ## Borrow interest formula
 
-Borrow interest rate (APR)의 공식은 다음과 같다:
+차입 금리 (APR)의 공식은 다음과 같다:
 
 ```
 if utilization < optimalUtilization:
@@ -27,13 +27,13 @@ else:
 ```
 
 여기서:
-- **Utilization**: 총 borrowed asset 대비 총 supplied asset의 비율이다
-- **Base Rate**: utilization이 0%일 때의 최소 interest rate이다
-- **Base Slope**: optimal utilization 이하에서의 증가율이다
-- **Optimal Utilization**: 목표 utilization rate이다(보통 80%)
-- **Excess Slope**: optimal utilization 초과 구간에서의 가파른 증가율이다
+- **Utilization**: 총 borrowed 자산 대비 총 supplied 자산의 비율이다
+- **Base Rate**: 이용률이 0%일 때의 최소 금리이다
+- **Base Slope**: optimal 이용률 이하에서의 증가율이다
+- **Optimal Utilization**: 목표 이용률 rate이다(보통 80%)
+- **Excess Slope**: optimal 이용률 초과 구간에서의 가파른 증가율이다
 
-## Current parameters
+## Current 파라미터
 
 | Asset | Base Rate | Base Slope | Optimal Utilization | Excess Slope | Max Utilization |
 | ----- | --------- | ---------- | ------------------- | ------------ | --------------- |
@@ -43,21 +43,21 @@ else:
 | DEEP    | 5%        | 25%        | 80%                 | 500%         | 90%             |
 | WAL     | 5%        | 25%        | 80%                 | 500%         | 90%             |
 
-**Max Utilization** rate는 pool liquidity 중 얼마나 많이 차입될 수 있는지를 제한하여 supplier가 항상 자신의 fund 일부를 출금할 수 있도록 보장한다.
+**Max Utilization** rate는 풀 유동성 중 얼마나 많이 차입될 수 있는지를 제한하여 supplier가 항상 자신의 fund 일부를 출금할 수 있도록 보장한다.
 
 ## 예시
 
-**At 50% utilization in the USDC pool (below optimal):**
+**At 50% 이용률 in the USDC 풀 (below optimal):**
 ```
 borrowRate = 0% + 50% × 15% = 0% + 7.5% = 7.5% APR
 ```
 
-**At 80% utilization (at optimal):**
+**At 80% 이용률 (at optimal):**
 ```
 borrowRate = 0% + 80% × 15% = 0% + 12% = 12% APR
 ```
 
-**At 85% utilization (above optimal, below max):**
+**At 85% 이용률 (above optimal, below max):**
 ```
 borrowRate = 0% + 80% × 15% + (85% - 80%) × 500% = 0% + 12% + 25% = 37% APR
 ```

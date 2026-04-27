@@ -64,6 +64,6 @@ gRPC와 GraphQL의 일반적인 차이를 설명하는 다음 글을 참조한�
 
 :::
 
-Sui [full nodes](/operators/full-node/sui-full-node)에 hosted된 [JSON-RPC](/references/sui-api)에 직접 연결한다. 이 full node는 [RPC providers](https://sui.io/developers#dev-tools)(`RPC`로 filter) 또는 [data indexer operators](https://github.com/sui-foundation/awesome-sui?tab=readme-ov-file#indexers--data-services)가 운영한다. Mainnet, Testnet, Devnet load balancer URL은 Sui Foundation-managed full node를 추상화한다. production에서는 사용하지 않는다.
+Sui [full nodes](/references/sui-api)에 hosted된 [JSON-RPC](/operators/full-node/sui-full-node)에 직접 연결한다. 이 full node는 [RPC providers](https://sui.io/developers#dev-tools)(`RPC`로 filter) 또는 [data indexer operators](https://github.com/sui-foundation/awesome-sui?tab=readme-ov-file#indexers--data-services)가 운영한다. Mainnet, Testnet, Devnet load balancer URL은 Sui Foundation-managed full node를 추상화한다. production에서는 사용하지 않는다.
 
-JSON-RPC를 사용해 real-time 또는 historical data를 얻을 수 있다. historical data의 retention period는 node operator가 구현하는 [pruning strategy](/operators/data-management/managing-data#sui-node-pruning-policy)에 따라 달라지지만, 모든 full node의 default configuration은 Sui Foundation이 관리하는 [Archival Store](/develop/accessing-data/archival-store)로 암묵적으로 fallback한다.
+JSON-RPC를 사용해 real-time 또는 historical data를 얻을 수 있다. historical data의 retention period는 node operator가 구현하는 [pruning strategy](/operators/data-management/managing-data#sui-full-node-pruning-policies)에 따라 달라지지만, 모든 full node의 default configuration은 Sui Foundation이 관리하는 [Archival Store](#archival-store-and-service)로 암묵적으로 fallback한다.

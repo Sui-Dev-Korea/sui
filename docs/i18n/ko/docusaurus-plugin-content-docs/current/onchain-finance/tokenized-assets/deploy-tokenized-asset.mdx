@@ -1,32 +1,32 @@
 ---
-title: tokenized asset 배포
-description: Sui에 asset_tokenization 및 template package를 publish하고 CLI와 TypeScript script로 tokenized asset과 상호작용한다.
+title: 토큰화된 자산 배포
+description: Sui에 자산_tokenization 및 template 패키지를 publish하고 CLI와 TypeScript script로 토큰화된 자산과 상호작용한다.
 keywords: [asset tokenization, deploy, publish, WASM, bytecode, template, Move, CLI]
 ---
 
-이 가이드는 [asset tokenization](/onchain-finance/tokenized-assets/asset-tokenization) package를 publish하고 tokenized asset과 상호작용하는 방법을 다룬다.
- 
+이 가이드는 [자산 tokenization](/onchain-finance/tokenized-assets/asset-tokenization) 패키지를 publish하고 토큰화된 자산과 상호작용하는 방법을 다룬다.
+
 <Tabs className="tabsHeadingCentered--small">
 <TabItem value="prereq" label="전제 조건">
 - [x] [Sui 설치](/getting-started/onboarding/sui-install)
-- [x] [Sui client 구성](/getting-started/onboarding/configure-sui-client)
+- [x] [Sui 클라이언트 구성](/getting-started/onboarding/configure-sui-client)
 - [x] [faucet에서 SUI 받기](/getting-started/onboarding/get-coins)
 - [x] Node.js 및 npm 설치
 - [x] Git 설치
 </TabItem>
 </Tabs>
- 
+
 ## repository clone
- 
+
 `asset-tokenization` repository를 clone하고 `setup` directory로 이동한다:
- 
+
 ```sh
 $ git clone https://github.com/MystenLabs/asset-tokenization.git
 $ cd asset-tokenization
 ```
- 
+
 `.env.template` file을 `.env`로 copy하고 dependency를 설치한다:
- 
+
 ```sh
 $ cp setup/.env.template setup/.env
 $ cd setup && npm install
@@ -37,29 +37,29 @@ $ cd setup && npm install
 <ImportContent source="initialize-sui-client-cli" mode="snippet" />
 
 ## publishing
- 
-Sui CLI로 contract를 수동 publish하거나, 제공되는 bash script를 사용해 자동으로 deploy하고 대부분의 `.env` field를 채울 수 있다.
- 
+
+Sui CLI로 contract를 수동 publish하거나, 제공되는 bash script를 사용해 자동으로 deploy하고 대부분의 `.env` 필드를 채울 수 있다.
+
 [`setup/.env.template`](https://github.com/MystenLabs/asset-tokenization/blob/main/setup/.env.template) file은 모든 required variable을 정의한다. 자세한 내용은 setup folder의 [README](https://github.com/MystenLabs/asset-tokenization/tree/main/setup)를 참조한다.
 
-### package publish
- 
-두 package를 순서대로 publish한다. 먼저 `asset_tokenization`, 그다음 `template`이다.
- 
+### 패키지 publish
+
+두 패키지를 순서대로 publish한다. 먼저 `asset_tokenization`, 그다음 `template`이다.
+
 <ImportContent source="info-gas-budget" mode="snippet" />
- 
+
 #### `asset_tokenization` 패키지
- 
-`sui client publish`로 `asset_tokenization` package를 수동 publish하거나 제공되는 bash script(`npm run publish-asset-tokenization`)로 자동 publish할 수 있다. 이 script는 `.env` file의 `SUI_NETWORK`, `ASSET_TOKENIZATION_PACKAGE_ID`, `REGISTRY`도 채운다.
- 
+
+`asset_tokenization`로 `sui client publish` 패키지를 수동 publish하거나 제공되는 bash script(`npm run publish-asset-tokenization`)로 자동 publish할 수 있다. 이 script는 `SUI_NETWORK` file의 `ASSET_TOKENIZATION_PACKAGE_ID`, `REGISTRY`, `.env`도 채운다.
+
 수동으로 publish하려면 `move/asset_tokenization` directory에서 다음을 실행한다:
- 
+
 ```sh
 $ sui client publish --gas-budget <GAS-BUDGET>
 ```
- 
-package가 성공적으로 deploy되면 다음이 표시된다:
- 
+
+패키지가 성공적으로 deploy되면 다음이 표시된다:
+
 ```sh
 UPDATING GIT DEPENDENCY https://github.com/MystenLabs/sui.git
 INCLUDING DEPENDENCY Sui
@@ -67,23 +67,23 @@ INCLUDING DEPENDENCY MoveStdlib
 BUILDING asset_tokenization
 Successfully verified dependencies on-chain against source.
 ```
- 
-생성된 object의 `package ID`와 `registry ID`를 `.env` file에 저장한다. 그런 다음 `Move.toml`을 수정한다. `[addresses]` section 아래에서 `0x0`을 같은 `package ID`로 바꾼다. 선택적으로 `[package]` section 아래에 `published-at = <package ID>`를 추가한다(`sui client publish` 실행 후 `Move.lock` file이 보이면 이 단계는 필요하지 않다).
- 
+
+생성된 객체의 `package ID`와 `registry ID`를 `.env` file에 저장한다. 그런 다음 `Move.toml`을 수정한다. `[addresses]` section 아래에서 `0x0`을 같은 `package ID`로 바꾼다. 선택적으로 `[package]` section 아래에 `published-at = <package ID>`를 추가한다(`Move.lock` 실행 후 `sui client publish` file이 보이면 이 단계는 필요하지 않다).
+
 자세한 내용은 setup folder의 [README](https://github.com/MystenLabs/asset-tokenization/tree/main/setup)를 참조한다.
- 
+
 #### `template` 패키지
- 
-`sui client publish`로 `template` package를 수동 publish하거나, `npm run publish-template`을 사용해 WASM library를 통해 자동 publish할 수 있다. automatic flow를 실행하기 전에 `asset_tokenization/Move.toml`의 `[addresses]` section에 `asset_tokenization` package address가 설정되어 있고 original deployment와 일치하는지 확인한다. `Move.lock` file이 없으면 `published-at` field도 최신 package deployment address로 채운다.
- 
+
+`template`로 `sui client publish` 패키지를 수동 publish하거나, `npm run publish-template`을 사용해 WASM library를 통해 자동 publish할 수 있다. automatic flow를 실행하기 전에 `asset_tokenization`의 `[addresses]` section에 `asset_tokenization/Move.toml` 패키지 주소가 설정되어 있고 original deployment와 일치하는지 확인한다. `Move.lock` file이 없으면 `published-at` 필드도 최신 패키지 deployment 주소로 채운다.
+
 수동으로 publish하려면 `move/template` directory에서 다음을 실행한다:
- 
+
 ```sh
 $ sui client publish --gas-budget <GAS-BUDGET>
 ```
- 
-package가 성공적으로 deploy되면 다음이 표시된다:
- 
+
+패키지가 성공적으로 deploy되면 다음이 표시된다:
+
 ```sh
 UPDATING GIT DEPENDENCY https://github.com/MystenLabs/sui.git
 INCLUDING DEPENDENCY asset_tokenization
@@ -92,36 +92,36 @@ INCLUDING DEPENDENCY MoveStdlib
 BUILDING template
 Successfully verified dependencies on-chain against source.
 ```
- 
-생성된 object의 `package ID`, `asset metadata ID`, `asset cap ID`, `Publisher ID`를 `.env` file에 저장한다.
- 
+
+생성된 객체의 `package ID`, `asset metadata ID`, `asset cap ID`, `Publisher ID`를 `.env` file에 저장한다.
+
 자세한 내용은 setup folder의 [README](https://github.com/MystenLabs/asset-tokenization/tree/main/setup)를 참조한다.
- 
-## WebAssembly (WASM)과 template package {#webassembly-wasm-and-template-package}
- 
+
+## WebAssembly (WASM)과 template 패키지 {#webassembly-wasm-and-template-package}
+
 :::tip
-[move-binary-format-wasm](https://www.npmjs.com/package/@mysten/move-bytecode-template) Sui repo subfolder에서 WASM library의 public-facing reference를 찾을 수 있다.
+[move-binary-format-wasm](https://www.npmjs.com/package/@mysten/move-bytecode-template) Sui repo subfolder에서 WASM library의 public-facing 레퍼런스를 찾을 수 있다.
 :::
- 
-WASM 기능은 browser environment에서 Move bytecode serialization 및 deserialization을 가능하게 하여 local build environment 없이 existing contract를 edit할 수 있게 한다. asset tokenization에서는 browser에서 직접 새 asset type을 만들고 publish할 수 있다.
- 
+
+WASM 기능은 browser environment에서 Move bytecode serialization 및 deserialization을 가능하게 하여 local build environment 없이 existing contract를 edit할 수 있게 한다. 자산 tokenization에서는 browser에서 직접 새 자산 타입을 만들고 publish할 수 있다.
+
 ### bytecode 조작 {#bytecode-manipulation}
- 
+
 :::caution
-template package를 수정하면 이 process를 반복해야 한다. constant name 변경 같은 일부 alteration은 생성된 bytecode에 영향을 주지 않는다.
+template 패키지를 수정하면 이 process를 반복해야 한다. constant name 변경 같은 일부 alteration은 생성된 bytecode에 영향을 주지 않는다.
 :::
- 
-WASM library는 `template` module의 compiled bytecode를 조작한다. 이를 가져오려면 `template` folder 안으로 이동해 다음을 실행한다:
- 
+
+WASM library는 `template` 모듈의 compiled bytecode를 조작한다. 이를 가져오려면 `template` folder 안으로 이동해 다음을 실행한다:
+
 ```sh
 $ xxd -c 0 -p build/template/bytecode_modules/template.mv | head -n 1
 ```
- 
+
 <details>
 <summary>console response</summary>
- 
+
 response는 다음과 유사하다:
- 
+
 ```sh
 a11ceb0b060000000a010010021026033637046d0a05776807df01ec0108cb03800106cb043
 e0a8905050c8e0549001303140107010d01120215021602170004020001000c01000101010c
@@ -145,25 +145,25 @@ a6563740f7075626c69635f7472616e736665720673656e64657204736f6d6506737472696e
 738000c02050b0704110938010c020b020c050b0007000701110207021105070311050b0507
 050a0138020c040c030b0438030b030b012e110838040200
 ```
- 
+
 </details>
- 
-output을 copy하여 [bytecode-template.ts](https://github.com/MystenLabs/asset-tokenization/blob/main/setup/src/utils/bytecode-template.ts)의 `getBytecode` method return statement에 paste한다.
- 
-template package는 2개의 module을 포함하므로 `genesis` module의 bytecode도 가져와야 한다. 이 bytecode는 edit되지 않지만 template module을 deploy하는 데 필요하다. `template` folder로 이동해 다음을 실행한다:
- 
+
+출력을 copy하여 [bytecode-template.ts](https://github.com/MystenLabs/asset-tokenization/blob/main/setup/src/utils/bytecode-template.ts)의 `getBytecode` method return statement에 paste한다.
+
+template 패키지는 2개의 모듈을 포함하므로 `genesis` 모듈의 bytecode도 가져와야 한다. 이 bytecode는 edit되지 않지만 template 모듈을 deploy하는 데 필요하다. `template` folder로 이동해 다음을 실행한다:
+
 ```sh
 $ xxd -c 0 -p build/template/bytecode_modules/genesis.mv | head -n 1
 ```
- 
-output을 copy하여 [genesis_bytecode.ts](https://github.com/MystenLabs/asset-tokenization/blob/main/setup/src/utils/genesis_bytecode.ts)의 bytecode constant에 paste한다.
- 
+
+출력을 copy하여 [genesis_bytecode.ts](https://github.com/MystenLabs/asset-tokenization/blob/main/setup/src/utils/genesis_bytecode.ts)의 bytecode constant에 paste한다.
+
 이 setup을 마치면 library가 bytecode를 deserialize하고 edit을 적용한 뒤 publish를 위해 다시 serialize할 수 있다.
- 
-### template module constant
- 
-`template` module은 WASM library가 수정할 수 있는 constant 집합을 정의한다:
- 
+
+### template 모듈 constant
+
+`template` 모듈은 WASM library가 수정할 수 있는 constant 집합을 정의한다:
+
 ```rust
 ...
 const TOTAL_SUPPLY: u64 = 100;
@@ -174,13 +174,13 @@ const ICON_URL: vector<u8> = b"icon_url";
 const BURNABLE: bool = true;
 ...
 ```
- 
+
 edit과 deploy를 수행하는 TypeScript code는 이러한 constant를 식별하고 update한다:
- 
+
 ```tsx
 ...
 const template = getBytecode();
- 
+
 const compiledModule = new CompiledModule(
   JSON.parse(wasm.deserialize(template))
 )
@@ -194,22 +194,22 @@ const compiledModule = new CompiledModule(
     template: moduleName,
     TEMPLATE: moduleName.toUpperCase(),
   });
- 
+
 const bytesToPublish = wasm.serialize(JSON.stringify(compiledModule));
 ...
 ```
- 
+
 `updateConstant` method는 4개의 argument를 받는다:
- 
-- `idx`: constant pool 안에서 constant의 index이며 0부터 sequential하게 시작한다.
+
+- `idx`: constant 풀 안에서 constant의 index이며 0부터 sequential하게 시작한다.
 - `value`: constant의 updated value이다.
 - `expectedValue`: constant의 current value이며, 실수로 잘못된 constant를 update할 risk를 줄이는 데 사용된다.
 - `expectedType`: 같은 이유로 사용하는 constant의 current type이다.
- 
-`changeIdentifiers` method는 module name 및 struct name 같은 identifier를 update한다. current identifier name을 key로, 원하는 name을 value로 갖는 JSON object를 받는다.
- 
-변경된 template module을 deploy하려면 build하고 publish한다:
- 
+
+`changeIdentifiers` method는 모듈 이름 및 struct name 같은 identifier를 update한다. current identifier name을 key로, 원하는 name을 value로 갖는 JSON 객체를 받는다.
+
+변경된 template 모듈을 deploy하려면 build하고 publish한다:
+
 ```tsx
 ...
 const tx = new Transaction();
@@ -222,16 +222,16 @@ const tx = new Transaction();
       normalizeSuiObjectId(packageId),
     ],
   });
- 
+
   tx.transferObjects(
     [upgradeCap],
     tx.pure(signer.getPublicKey().toSuiAddress(), "address")
   );
 ...
 ```
- 
-`modules` array에는 edit된 template module과 genesis module이라는 2개의 element가 포함된다. `packageId`는 `asset_tokenization` package가 deploy된 address이다.
- 
-## TypeScript command
- 
-publish 후 TypeScript setup script를 사용해 tokenized asset과 상호작용한다. 사용할 수 있는 command의 전체 reference는 [Asset Tokenization TypeScript CLI Reference](/references/ts-asset-tokenization)를 참조한다.
+
+`modules` array에는 edit된 template 모듈과 genesis 모듈이라는 2개의 element가 포함된다. `packageId`는 `asset_tokenization` 패키지가 deploy된 주소이다.
+
+## TypeScript 명령
+
+publish 후 TypeScript setup script를 사용해 토큰화된 자산과 상호작용한다. 사용할 수 있는 명령의 전체 레퍼런스는 [Asset Tokenization TypeScript CLI Reference](/references/ts-asset-tokenization)를 참조한다.

@@ -1,32 +1,32 @@
 ---
 title: 로열티 토큰
-description: Sui Closed-Loop Token standard를 사용해 특정 workflow와 service 안에서만 유효한 token을 생성한다. Closed-Loop Token의 한 예시는 loyalty token이다.
+description: Sui Closed-Loop Token standard를 사용해 특정 workflow와 service 안에서만 유효한 토큰을 생성한다. Closed-Loop Token의 한 예시는 loyalty 토큰이다.
 keywords: [ closed-loop tokens, closed-loop, closed loop, loyalty tokens, token example, create a token, how to create token, SUI token standards ]
 ---
 
-Sui [Closed-Loop Token](/onchain-finance/closed-loop-token/) standard를 사용하면, 항공사가 항공권이나 업그레이드를 구매하도록 상용 고객에게 token을 지급하고 싶어 하는 경우처럼, 특정 service에 대해서만 유효한 token을 생성할 수 있다.
+Sui [Closed-Loop Token](/onchain-finance/closed-loop-token) standard를 사용하면, 항공사가 항공권이나 업그레이드를 구매하도록 상용 고객에게 토큰을 지급하고 싶어 하는 경우처럼, 특정 service에 대해서만 유효한 토큰을 생성할 수 있다.
 
-이 예시에서 Admin은 지속적인 이용에 대한 보상으로 service 사용자에게 `LOYALTY` token을 보낸다. 예시는 holder가 `LOYALTY` token을 사용해 `Gift`를 구매할 수 있는 `GiftShop`을 만든다.
+이 예시에서 Admin은 지속적인 이용에 대한 보상으로 service 사용자에게 `LOYALTY` 토큰을 보낸다. 예시는 holder가 `GiftShop` 토큰을 사용해 `LOYALTY`를 구매할 수 있는 `Gift`을 만든다.
 
-`loyalty.move` source file에는 loyalty token을 만드는 `examples::loyalty` module code가 들어 있다. 이 module에는 coin을 생성하는 One-Time Witness(OTW)가 포함되어 있으며(이름은 module과 같은 `LOYALTY`), `drop` ability만 가지고 field는 없다.
+`loyalty.move` source file에는 loyalty 토큰을 만드는 `examples::loyalty` 모듈 code가 들어 있다. 이 모듈에는 코인을 생성하는 One-Time Witness(OTW)가 포함되어 있으며(이름은 모듈과 같은 `LOYALTY`), `drop` ability만 가지고 필드는 없다.
 
 <ImportContent source="examples/move/token/sources/loyalty.move" mode="code" struct="LOYALTY" />
 
-module의 `init` 함수는 `LOYALTY` OTW를 사용해 token을 생성한다. 이 함수는 앞서 정의한 OTW `LOYALTY` type을 사용해 `create_currency`를 호출한다. 또한 policy를 정의하고 policy capability와 treasury capability 둘 다 publish event와 연결된 address로 보낸다. 이 transferable capability의 holder는 새로운 `LOYALTY` token을 mint하고 policy를 수정할 수 있다.
+모듈의 `init` 함수는 `LOYALTY` OTW를 사용해 토큰을 생성한다. 이 함수는 앞서 정의한 OTW `LOYALTY` 타입을 사용해 `create_currency`를 호출한다. 또한 정책을 정의하고 정책 capability와 treasury capability 둘 다 publish event와 연결된 주소로 보낸다. 이 transferable capability의 holder는 새로운 `LOYALTY` 토큰을 민트하고 정책을 수정할 수 있다.
 
 :::info
 
-`init` 함수는 package publish event 중에만 실행된다.
+`init` 함수는 패키지 publish event 중에만 실행된다.
 
 :::
 
 <ImportContent source="examples/move/token/sources/loyalty.move" mode="code" fun="init" noComments />
 
-`LOYALTY` minting 함수의 이름은 `reward_user`이다. `TreasuryCap` holder는 이 함수를 호출해 새 loyalty token을 mint할 수 있다. 이 함수는 `token::mint` 함수를 사용해 token을 생성하고 `token::transfer`를 사용해 의도한 recipient에게 보낸다.
+`LOYALTY` 민트 함수의 이름은 `reward_user`이다. `TreasuryCap` holder는 이 함수를 호출해 새 loyalty 토큰을 민트할 수 있다. 이 함수는 `token::mint` 함수를 사용해 토큰을 생성하고 `token::transfer`를 사용해 의도한 recipient에게 보낸다.
 
 <ImportContent source="examples/move/token/sources/loyalty.move" mode="code" fun="reward_user" noComments />
 
-마지막으로 `buy_a_gift` 함수는 `LOYALTY` token을 `Gift` type으로 redeem하는 작업을 처리한다. 이 함수는 gift 가격이 사용된 loyalty token 수와 일치하는지 확인한 다음 `token::spend` 함수를 사용해 treasury bookkeeping을 처리한다.
+마지막으로 `buy_a_gift` 함수는 `LOYALTY` 토큰을 `Gift` type으로 redeem하는 작업을 처리한다. 이 함수는 gift 가격이 사용된 loyalty 토큰 수와 일치하는지 확인한 다음 `token::spend` 함수를 사용해 treasury bookkeeping을 처리한다.
 
 <ImportContent source="examples/move/token/sources/loyalty.move" mode="code" fun="buy_a_gift" noComments />
 

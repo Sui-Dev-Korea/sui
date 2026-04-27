@@ -4,32 +4,32 @@ description: Coin Registry system과 deny list capability를 사용해 Sui에서
 keywords: [regulated coin list, regulated coins, regulate coin, allow list, deny list, stablecoins, token example, create a token, how to create token, SUI token standards, coin registry]
 ---
 
-Regulated currency는 **deny list**를 통해 access control이 관리되는 asset이다. Deny list는 해당 asset을 send하거나 receive할 수 없는 address를 식별한다. 예를 들어 stablecoin은 regulated currency의 한 유형이다.
+Regulated currency는 **deny list**를 통해 access control이 관리되는 자산이다. Deny list는 해당 자산을 send하거나 receive할 수 없는 주소를 식별한다. 예를 들어 stablecoin은 regulated currency의 한 유형이다.
 
-Sui에서 regulated currency를 만들려면 Currency Standard의 Coin Registry가 `sui::coin_registry` module을 통해 regulatory feature를 제공한다. 이는 global pause functionality와 ecosystem integration을 built-in으로 지원한다.
+Sui에서 regulated currency를 만들려면 Currency Standard의 Coin Registry가 `sui::coin_registry` 모듈을 통해 regulatory feature를 제공한다. 이는 global pause 기능와 ecosystem integration을 built-in으로 지원한다.
 
 이 regulatory feature의 장점은 다음과 같다:
 
 - **Centralized tracking:** Regulatory status가 registry에 저장되어 쉽게 discover할 수 있다.
-- **Global pause support:** Emergency situation을 위한 pause 또는 unpause functionality.
-- **Compliance tooling:** Wallet, exchange, compliance system과의 integration.
-- **Migration support:** Legacy regulated coin에서 seamless migration.
+- **Global pause support:** Emergency situation을 위한 pause 또는 unpause 기능.
+- **Compliance tooling:** Wallet, exchange, 컴플라이언스 system과의 integration.
+- **Migration support:** Legacy regulated 코인에서 seamless 마이그레이션.
 
 ## `DenyList`
 
-`DenyList`는 network의 shared object이다. `DenyCapV2`를 가진 address는 여기에 access하여 Sui core type을 사용할 수 없는 address list를 지정할 수 있다. `DenyList`의 primary use case는 특정 type의 coin 또는 currency에 대한 access 제한에 초점을 둔다. Sui의 regulated coin은 알려진 bad actor가 해당 coin에 access하지 못하도록 해야 하는 regulation을 충족한다.
+`DenyList`는 network의 공유 객체이다. `DenyCapV2`를 가진 주소는 여기에 access하여 Sui core 타입을 사용할 수 없는 주소 list를 지정할 수 있다. `DenyList`의 primary 사용 사례는 특정 타입의 코인 또는 currency에 대한 access 제한에 초점을 둔다. Sui의 regulated 코인은 알려진 bad actor가 해당 코인에 access하지 못하도록 해야 하는 규제을 충족한다.
 
 :::info
 
-`DenyList` object는 address `0x403`의 system object이다. 직접 만들 수 없다.
+`DenyList` 객체는 주소 `0x403`의 system 객체이다. 직접 만들 수 없다.
 
 :::
 
-사용 가능한 feature는 [Currency Standard](/onchain-finance/fungible-tokens/currency)와 Sui framework의 `coin_registry` module을 참조한다.
+사용 가능한 feature는 [Currency Standard](/onchain-finance/fungible-tokens/currency)와 Sui 프레임워크의 `coin_registry` 모듈을 참조한다.
 
 ## Create regulated currency
 
-Regulatory feature를 사용하려면 [create a currency](/onchain-finance/fungible-tokens/create-a-fungible-token)가 필요하다. Currency initialization 중 `finalize()`를 호출하기 전에 `CurrencyInitializer<T>`에서 `make_regulated()` function을 사용한다. 이렇게 하면 `Currency<T>`에 deny list capability가 추가되고 registry system 안에서 regulatory status가 tracking된다:
+Regulatory feature를 사용하려면 [create a currency](/onchain-finance/fungible-tokens/create-a-fungible-token)가 필요하다. Currency initialization 중 `make_regulated()`를 호출하기 전에 `CurrencyInitializer<T>`에서 `finalize()` 함수를 사용한다. 이렇게 하면 `Currency<T>`에 deny list capability가 추가되고 registry system 안에서 regulatory status가 tracking된다:
 
 <details>
 <summary>
@@ -44,7 +44,7 @@ Regulated currency creation
 
 <ImportContent source="prerequisites" mode="snippet" />
 
-이 example은 project의 smart contract(`regulated_coin.move`)를 만들기 위해 단일 file을 사용한다. Contract는 network에 publish할 때 regulated coin을 정의한다. Treasury capability(`TreasuryCap`)와 deny capability(`DenyCapV2`)는 contract를 publish하는 address로 transfer된다. `TreasuryCap`은 bearer가 coin(이 example에서는 `REGULATED_COIN`)을 mint하거나 burn할 수 있게 하고, `DenyCapV2` bearer는 unauthorized user list에 address를 add하거나 remove할 수 있다.
+이 example은 project의 스마트 계약(`regulated_coin.move`)를 만들기 위해 단일 file을 사용한다. Contract는 network에 publish할 때 regulated 코인을 정의한다. Treasury capability(`TreasuryCap`)와 deny capability(`DenyCapV2`)는 contract를 publish하는 주소로 transfer된다. `TreasuryCap`은 bearer가 코인(이 example에서는 `REGULATED_COIN`)을 민트하거나 burn할 수 있게 하고, `DenyCapV2` bearer는 unauthorized user list에 주소를 add하거나 remove할 수 있다.
 
 <details>
 
@@ -60,16 +60,16 @@ Regulated currency creation
 
 | **Constant name** | **Description** |
 | --- | --- |
-| `PACKAGE_ID` | Publish한 package의 object ID이다. 이 data는 publish 시 Sui가 제공하는 response의 일부이다. |
-| `ADMIN_SECRET_KEY` | Package를 publish하는 address의 secret key이다. `sui keytool export --key-identity <SUI_ADDRESS>` 또는 wallet UI를 사용해 값을 얻을 수 있다. 값을 public에 노출하지 않는다. |
-| `ADMIN_ADDRESS` | Contract를 publish하는 address이다. |
-| `DENY_CAP_ID` | Deny capability object ID이다. 이 data는 publish 시 Sui가 제공하는 response의 일부이다. |
-| `TREASURY_CAP_ID` | Bearer가 새 coin을 mint할 수 있게 하는 treasury cap object ID이다. 이 data는 publish 시 Sui가 제공하는 response의 일부이다. |
-| `MODULE_NAME` | Publish하는 module의 name이다. |
-| `COIN_NAME` | Regulated coin의 name이다. |
+| `PACKAGE_ID` | Publish한 패키지의 객체 ID이다. 이 data는 publish 시 Sui가 제공하는 response의 일부이다. |
+| `ADMIN_SECRET_KEY` | Package를 publish하는 주소의 secret key이다. `sui keytool export --key-identity <SUI_ADDRESS>` 또는 지갑 UI를 사용해 값을 얻을 수 있다. 값을 public에 노출하지 않는다. |
+| `ADMIN_ADDRESS` | Contract를 publish하는 주소이다. |
+| `DENY_CAP_ID` | Deny capability 객체 ID이다. 이 data는 publish 시 Sui가 제공하는 response의 일부이다. |
+| `TREASURY_CAP_ID` | Bearer가 새 코인을 민트할 수 있게 하는 treasury cap 객체 ID이다. 이 data는 publish 시 Sui가 제공하는 response의 일부이다. |
+| `MODULE_NAME` | Publish하는 모듈의 name이다. |
+| `COIN_NAME` | Regulated 코인의 name이다. |
 | `SUI_FULLNODE_URL` | Transaction을 process하는 full node network의 URL이다. Testnet에서는 `https://fullnode.testnet.sui.io:443`이다. |
 
-TypeScript 및 Rust client는 `coin` package의 `mint` function 호출을 처리한다. `coin` package에는 동일한 작업을 수행하는 데 사용할 수 있는 `mint_and_transfer` function도 포함되어 있지만, 한 command에서 coin을 mint하고 다른 command에서 transfer하는 composability가 더 바람직하다. 두 개의 explicit command를 사용하면 mint와 transfer 사이에 future logic을 구현할 수 있다. Programmable transaction block structure 덕분에 network에서는 여전히 단일 transaction만 만들고 지불한다.
+TypeScript 및 Rust 클라이언트는 `coin` 패키지의 `mint` 함수 호출을 처리한다. `coin` 패키지에는 동일한 작업을 수행하는 데 사용할 수 있는 `mint_and_transfer` 함수도 포함되어 있지만, 한 명령에서 코인을 민트하고 다른 명령에서 전송하는 composability가 더 바람직하다. 두 개의 explicit 명령를 사용하면 민트와 transfer 사이에 future logic을 구현할 수 있다. Programmable 트랜잭션 블록 structure 덕분에 network에서는 여전히 단일 트랜잭션만 만들고 지불한다.
 
 <Tabs groupId="code-language">
 
@@ -87,7 +87,7 @@ TypeScript 및 Rust client는 `coin` package의 `mint` function 호출을 처리
 
 </Tabs>
 
-사용 가능한 모든 `Coin` function은 Sui framework [`coin` module documentation](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/coin.md)을 참조한다. 가장 일반적인 function은 다음과 같다:
+사용 가능한 모든 `Coin` 함수는 Sui 프레임워크 [`coin` 모듈 documentation](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/coin.md)을 참조한다. 가장 일반적인 함수는 다음과 같다:
 
 <details>
 
@@ -138,11 +138,11 @@ TypeScript 및 Rust client는 `coin` package의 `mint` function 호출을 처리
 
 ### Managing the deny list
 
-Frontend code는 coin의 deny list에 할당된 address를 관리하는 function을 제공한다. 이 function은 `coin` module의 `deny_list_v2_add` 및 `deny_list_v2_remove` function을 호출한다.
+Frontend code는 코인의 deny list에 할당된 주소를 관리하는 함수를 제공한다. 이 함수는 `deny_list_v2_add` 모듈의 `deny_list_v2_remove` 및 `coin` 함수를 호출한다.
 
-Address를 deny list에 추가하면 해당 address로 token을 여전히 보낼 수 있다는 점을 볼 수 있다. 그 address는 function을 호출한 epoch가 끝날 때까지 coin을 받을 수 있다. Blocked address에서 regulated coin을 보내려고 하면 error가 발생한다. 다음 epoch가 시작된 후에는 해당 address가 coin을 더 이상 받을 수도 없다. Address를 remove하면 즉시 coin을 받을 수 있지만, removal 이후 다음 epoch까지는 그 address가 coin을 transaction input으로 포함할 수 없다.
+Address를 deny list에 추가하면 해당 주소로 토큰을 여전히 보낼 수 있다는 점을 볼 수 있다. 그 주소는 함수를 호출한 epoch가 끝날 때까지 코인을 받을 수 있다. Blocked 주소에서 regulated 코인을 보내려고 하면 error가 발생한다. 다음 epoch가 시작된 후에는 해당 주소가 코인을 더 이상 받을 수도 없다. Address를 remove하면 즉시 코인을 받을 수 있지만, removal 이후 다음 epoch까지는 그 주소가 코인을 트랜잭션 입력으로 포함할 수 없다.
 
-이 function을 사용하려면 add하거나 remove하려는 address를 전달한다. 그러면 frontend function이 framework의 관련 Move module을 호출하고 `DenyList` object(`0x403`)와 `DenyCapV2` object ID를 추가한다. `DenyCapV2` ID는 smart contract를 publish할 때 받는다. 이 example에서는 frontend function이 읽는 `.env` file에 해당 값을 추가한다.
+이 함수를 사용하려면 add하거나 remove하려는 주소를 전달한다. 그러면 frontend 함수가 프레임워크의 관련 Move 모듈을 호출하고 `DenyList` 객체(`0x403`)와 `DenyCapV2` 객체 ID를 추가한다. `DenyCapV2` ID는 스마트 계약을 publish할 때 받는다. 이 example에서는 frontend 함수가 읽는 `.env` file에 해당 값을 추가한다.
 
 <Tabs groupId="code-language">
 

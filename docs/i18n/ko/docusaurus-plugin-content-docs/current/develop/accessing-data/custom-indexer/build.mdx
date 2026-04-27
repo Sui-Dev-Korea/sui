@@ -1,6 +1,6 @@
 ---
 title: 커스텀 인덱서 만들기
-description: "`sui-indexer-alt-framework` 모듈을 사용해 custom indexer를 구축한다. example indexer는 Sui checkpoint에서 transaction digest를 추출해 로컬 PostgreSQL에 저장하는 sequential pipeline을 보여준다."
+description: "`sui-indexer-alt-framework` 모듈을 사용해 custom indexer를 구축한다. example indexer는 Sui checkpoint에서 트랜잭션 digest를 추출해 로컬 PostgreSQL에 저장하는 sequential pipeline을 보여준다."
 keywords:
   - indexer
   - custom indexer
@@ -50,7 +50,7 @@ $ diesel --version
 
 - Sui Testnet에 연결한다: https://checkpoints.testnet.sui.io 에 있는 remote checkpoint store를 fallback source로 사용한다. Testnet은 여전히 전체 checkpoint history를 제공한다.
 - checkpoint를 처리한다: checkpoint 데이터를 지속적으로 스트리밍한다.
-- transaction 데이터를 추출한다: 각 checkpoint에서 transaction digest를 끌어온다.
+- 트랜잭션 데이터를 추출한다: 각 checkpoint에서 트랜잭션 digest를 끌어온다.
 - 로컬 PostgreSQL에 저장한다: 데이터를 로컬 PostgreSQL 데이터베이스에 commit한다.
 - sequential pipeline을 구현한다: 최적의 일관성과 성능을 위해 in-order 처리와 batching을 사용한다.
 
@@ -85,7 +85,7 @@ $ cd simple-sui-indexer
 - `sui-indexer-alt-framework`: pipeline 인프라를 제공하는 core framework이다.
 - `diesel/diesel-async`: asynchronous 지원을 제공하는 type-safe database ORM이다.
 - `tokio`: framework에 필요한 async runtime이다.
-- `clap`: 설정을 위한 command-line argument parsing을 제공한다.
+- `clap`: 설정을 위한 command-line 인자 parsing을 제공한다.
 - `anyhow`: trait 구현을 위한 error handling과 async-trait을 제공한다.
 - `dotenvy`: PostgreSQL URL을 저장하는 `.env` 파일을 읽어 들인다.
 
@@ -146,7 +146,7 @@ $ psql $PSQL_URL -c "SELECT 'Connected';"
 
 ##step Database setup
 
-코드를 작성하기 전에 이전 단계에서 로컬 PostgreSQL 데이터베이스를 설정했는지 반드시 확인해야 하며, 이는 indexer가 추출된 transaction 데이터를 저장하는 데 필요하다.
+코드를 작성하기 전에 이전 단계에서 로컬 PostgreSQL 데이터베이스를 설정했는지 반드시 확인해야 하며, 이는 indexer가 추출된 트랜잭션 데이터를 저장하는 데 필요하다.
 
 다음 데이터베이스 설정 단계에서는 다음을 수행한다:
 
@@ -156,7 +156,7 @@ $ psql $PSQL_URL -c "SELECT 'Connected';"
 
 ###substep Configure Diesel
 
-먼저 데이터베이스 migration을 구성하기 위해 (`cargo.toml`과 동일한 폴더에) `diesel.toml` 파일을 생성한다.
+먼저 데이터베이스 migration을 구성하기 위해 (`diesel.toml`과 동일한 폴더에) `cargo.toml` 파일을 생성한다.
 
 ```sh
 $ touch diesel.toml
@@ -173,7 +173,7 @@ Diesel migration은 SQL 파일을 사용해 데이터베이스 테이블을 생�
 - `up.sql`: 테이블을 생성하고 변경한다.
 - `down.sql`: 변경 사항을 제거하고 되돌린다.
 
-데이터베이스 URL을 `--database-url` 인수로 전달하여 필요한 디렉터리 구조를 생성하려면 `diesel setup` 명령을 사용한다.
+데이터베이스 URL을 `diesel setup` 인수로 전달하여 필요한 디렉터리 구조를 생성하려면 `--database-url` 명령을 사용한다.
 
 ```sh
 $ diesel setup --database-url $PSQL_URL
@@ -193,7 +193,7 @@ $ diesel migration generate transaction_digests
 
 :::tip
 
-이 예제에서는 `tx_digest`에 대해 `TEXT` 데이터 타입을 사용하지만, 운영 환경의 indexer에서는 `BYTEA` 데이터 타입을 사용하는 것이 모범 사례이다.
+이 예제에서는 `TEXT`에 대해 `tx_digest` 데이터 타입을 사용하지만, 운영 환경의 indexer에서는 `BYTEA` 데이터 타입을 사용하는 것이 모범 사례이다.
 
 `TEXT` 타입은 transaction digest를 쉽게 읽을 수 있고 외부 도구에서 바로 사용할 수 있도록 하기 위해 사용된다. digest는 `Base58`로 인코딩되며 PostgreSQL은 이 형식으로 `BYTEA` 데이터를 기본적으로 표시할 수 없기 때문에 이를 `TEXT`로 저장하면 쿼리에서 digest를 복사해 [SuiScan](https://suiscan.xyz/testnet/home)과 같은 explorer에 붙여넣어 바로 사용할 수 있다.
 
@@ -245,7 +245,7 @@ Diesel에 대한 write 작업을 단순화하기 위해 `transaction_digests` �
 
 ##step Define the `Handler` struct in `handler.rs`
 
-`src` 디렉터리에 `handlers.rs` 파일을 생성한다.
+`handlers.rs` 디렉터리에 `src` 파일을 생성한다.
 
 ```sh
 $ touch ./src/handlers.rs
@@ -299,7 +299,7 @@ Processor trait 정의
 
 <ImportContent source="examples/rust/basic-sui-indexer/src/handlers.rs" mode="code" tag="handlerdeps" />
 
-`Processor` 코드 뒤에 `Handler` 로직을 추가한다.
+`Handler` 코드 뒤에 `Processor` 로직을 추가한다.
 
 완전한 코드는 이 단계의 끝에서 확인할 수 있다.
 
@@ -377,7 +377,7 @@ echo "DATABASE_URL=$PSQL_URL" > .env
 
 환경에 맞는 명령을 실행한 후 프로젝트 루트에 `.env` 파일이 존재하고 올바른 데이터가 들어 있는지 확인해야 한다.
 
-##step Create main function
+##step Create main 함수
 
 이제 모든 요소를 main 함수에서 하나로 묶기 위해 `main.rs` 파일을 열고 기본 코드를 다음 코드로 교체한 뒤 파일을 저장해야 한다.
 
@@ -416,7 +416,7 @@ $ cargo run -- --remote-store-url https://checkpoints.testnet.sui.io
 $ cargo run -- --remote-store-gcs mysten-mainnet-checkpoints-use4
 ```
 
-공개 HTTPS checkpoint endpoint는 가장 최근 30일의 checkpoint만 보관한다. 30일보다 오래된 Mainnet backfill에는 `--remote-store-gcs mysten-mainnet-checkpoints-use4`를 통해 `gs://mysten-mainnet-checkpoints-use4`를 사용한다. 이 bucket은 Requester Pays가 활성화되어 있으며 `--remote-store-url` 대신 indexing framework의 `--remote-store-gcs` 옵션으로 접근해야 한다. [Use Requester Pays](https://cloud.google.com/storage/docs/using-requester-pays)와 [Running a Remote Store](/operators/data-management/remote-store-setup)를 참고한다.
+공개 HTTPS checkpoint endpoint는 가장 최근 30일의 checkpoint만 보관한다. 30일보다 오래된 Mainnet backfill에는 `gs://mysten-mainnet-checkpoints-use4`를 통해 `--remote-store-gcs mysten-mainnet-checkpoints-use4`를 사용한다. 이 bucket은 Requester Pays가 활성화되어 있으며 `--remote-store-gcs` 대신 indexing framework의 `--remote-store-url` 옵션으로 접근해야 한다. [Use Requester Pays](https://cloud.google.com/storage/docs/using-requester-pays)와 [Running a Remote Store](/operators/data-management/remote-store-setup)를 참고한다.
 
 :::info
 
@@ -426,7 +426,7 @@ $ cargo run -- --remote-store-gcs mysten-mainnet-checkpoints-use4
 
 성공하면 콘솔에서 indexer가 실행 중임을 알려 준다.
 
-##step Verify results
+##step Verify 결과
 
 결과를 확인하려면 새 터미널이나 콘솔을 열고 데이터베이스에 연결해야 한다.
 
@@ -436,7 +436,7 @@ $ psql sui_indexer
 
 연결된 후에는 indexer가 제대로 동작하는지 확인하기 위해 몇 가지 쿼리를 실행해야 한다:
 
-index된 transaction digest 개수를 확인한다:
+index된 트랜잭션 digest 개수를 확인한다:
 
 ```sql
 $ SELECT COUNT(*) FROM transaction_digests;

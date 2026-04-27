@@ -1,6 +1,6 @@
 ---
-title: Hello, World!
-description: 기본적인 'Hello, World!' 예제를 사용해 첫 번째 Move package를 생성하고 게시한다.
+title: 패키지 빌드 및 게시
+description: 기본적인 'Hello, World!' 예제로 첫 번째 Move 패키지를 빌드하고 게시한다.
 keywords: [ first dapp, first package, move package, first move package, hello world, hello, world, what is move, what is a package, what is an object, move object, sui move object, sui move package, sui move module, move module, build package, publish package, call package, make call to package, how to call package ]
 pagination_prev: null
 pagination_next: null
@@ -9,80 +9,76 @@ pagination_next: null
 
 Sui 프로그래밍의 기초를 배우기 위해 "Hello, World!" 프로그램을 빌드한다.
 
-Sui에서는 네트워크에 smart contract를 작성하고 배포하여 프로그램을 만든다.
+Sui에서는 네트워크에 스마트 계약을 작성하고 배포하여 프로그램을 만든다.
 
-Sui에서 가장 기본적인 storage 단위는 [object](/develop/sui-architecture/object-model)이다.
+Sui에서 가장 기본적인 스토리지 단위는 [객체](/develop/sui-architecture/object-model)이다.
 
-다른 블록체인은 일반적으로 key-value store를 사용해 storage를 구조화한다.
+다른 블록체인은 일반적으로 key-value store를 사용해 스토리지를 구조화한다.
 
-Sui는 온체인에서 고유 ID address를 가진 object를 중심으로 storage를 구성한다.
+Sui는 온체인에서 고유 ID 주소를 가진 객체를 중심으로 스토리지를 구성한다.
 
-모든 Sui smart contract는 다른 object를 조작하는 object이다.
+모든 Sui 스마트 계약은 다른 객체를 조작하는 객체이다.
 
-Object는 immutable이거나 mutable일 수 있다:
+객체는 불변이거나 가변일 수 있다:
 
-- **Immutable** object는 전송, 변경, 삭제할 수 없다.
+- **불변** 객체는 전송, 변경, 삭제할 수 없다. 아무도 소유하지 않으며 누구나 공개적으로 접근할 수 있다.
 
-- 아무도 소유하지 않으며 누구나 공개적으로 접근할 수 있다.
+- **가변** 객체는 전송, 변경, 삭제할 수 있다. Sui 주소가 소유할 수도 있고, 공개 접근을 위해 공유될 수도 있다.
 
-- **Mutable** object는 전송, 변경, 삭제할 수 있다.
+각 객체의 고유 ID와 버전 번호는 온체인에서 해당 객체를 참조한다.
 
-- Sui address가 소유할 수도 있고, 공개 접근을 위해 shared될 수도 있다.
+네트워크의 모든 트랜잭션은 객체를 입력으로 받아 입력을 읽고 쓰고 변경하여 새 객체 또는 변경된 객체를 출력으로 생성한다.
 
-각 object의 고유 ID와 version number는 온체인에서 해당 object를 참조한다.
+각 객체는 자신을 생성한 트랜잭션의 해시를 알고 있다.
 
-네트워크의 모든 transaction은 object를 입력으로 받아 입력을 읽고 쓰고 변경하여 새로운 object 또는 변경된 object를 출력으로 생성한다.
+객체가 트랜잭션에 의해 수정되면 트랜잭션 출력은 해당 객체의 변경된 내용을 같은 객체 ID에 새 버전 번호와 함께 기록한다.
 
-각 object는 자신을 생성한 transaction의 hash를 알고 있다.
+Sui에는 트랜잭션에 사용되는 최대 트랜잭션 크기(128KB)와 객체 수(2,048)에 제한이 있다.
 
-Object가 transaction에 의해 수정되면 transaction 출력은 해당 object의 변경된 내용을 같은 object ID에 새 version number와 함께 기록한다.
-
-Sui에는 transaction에 사용되는 최대 transaction 크기(128KB)와 object 수(2,048)에 대한 제한이 있다.
-
-제한에 대한 자세한 내용은 The Move Book의 [Building Against Limits](https://move-book.com/guides/building-against-limits/)를 참조한다.
+제한에 관한 자세한 내용은 The Move Book의 [Building Against Limits](https://move-book.com/guides/building-against-limits/)를 참조한다.
 
 ## Move란 무엇인가?
 
-[Move](/develop/write-move/sui-move-concepts)는 Sui가 smart contract를 생성하는 데 사용하는 프로그래밍 언어이다.
+[Move](/develop/write-move/sui-move-concepts)는 Sui가 스마트 계약을 생성하는 데 사용하는 프로그래밍 언어이다.
 
-이는 플랫폼에 구애받지 않으며 데이터와 실행 모델이 매우 다른 블록체인 전반에 걸쳐 공통 라이브러리, 도구, developer 커뮤니티를 가능하게 한다.
+Move는 플랫폼에 구애받지 않으며 데이터와 실행 모델이 매우 다른 블록체인 전반에서 공통 라이브러리, 도구, 개발자 커뮤니티를 가능하게 한다.
 
-Sui 맥락에서 Move를 사용하는 방법은 Move package, Move module, Move object의 세 가지이다.
+Sui 맥락에서 Move를 사용하는 방법은 Move 패키지, Move 모듈, Move 객체의 세 가지이다.
 
-Sui **Move package**는 Move smart contract라고도 한다.
+Sui **Move 패키지**는 Move 스마트 계약이라고도 한다.
 
-이는 Sui 네트워크에 게시되는 Move bytecode 집합이다.
+이는 Sui 네트워크에 게시되는 Move 바이트코드 집합이다.
 
-이는 immutable이어서 변경하거나 제거할 수 없지만 업그레이드는 할 수 있다.
+이는 불변이어서 변경하거나 제거할 수 없지만 업그레이드는 할 수 있다.
 
-업그레이드는 온체인에서 package object의 새 version을 생성하고 원래 version은 그대로 둔다.
+업그레이드는 온체인에서 패키지 객체의 새 버전을 생성하고 원래 버전은 그대로 둔다.
 
-Package의 이전 version은 모두 온체인에 계속 존재한다.
+패키지의 이전 버전은 모두 온체인에 계속 존재한다.
 
-게시한 후에는 다른 package가 해당 package가 제공하는 module을 import하고 사용할 수 있다.
+게시한 후에는 다른 패키지가 해당 패키지가 제공하는 모듈을 가져와 사용할 수 있다.
 
-누구나 package의 내용을 볼 수 있고 Sui Explorer를 사용해 그 logic이 다른 object를 어떻게 조작하는지 확인할 수 있다.
+누구나 패키지의 내용을 볼 수 있고 Sui Explorer를 사용해 그 로직이 다른 객체를 어떻게 조작하는지 확인할 수 있다.
 
-Sui의 모든 Move package에는 온체인 object와 package의 상호작용을 정의하는 하나 이상의 **Sui Move module**이 포함된다.
+Sui의 모든 Move 패키지에는 온체인 객체와 패키지의 상호작용을 정의하는 하나 이상의 **Sui Move 모듈**이 포함된다.
 
-Module의 이름은 해당 module을 포함하는 package 안에서 항상 고유하다.
+모듈 이름은 해당 모듈을 포함하는 패키지 안에서 항상 고유하다.
 
-Sui Move module은 Sui Move package의 typed data인 Sui **Move object**를 다룬다.
+Sui Move 모듈은 Sui Move 패키지의 타입이 지정된 데이터인 Sui **Move 객체**를 다룬다.
 
-각 Move object 값은 integer와 address 같은 primitive type, 다른 object, object가 아닌 struct를 포함할 수 있는 field를 가진 struct이다.
+각 Move 객체 값은 integer와 address 같은 primitive type, 다른 객체, 객체가 아닌 struct를 포함할 수 있는 필드를 가진 struct이다.
 
-## "Hello, World!" clone
+## "Hello, World!" 클론
 
 <Tabs className="tabsHeadingCentered--small">
-<TabItem value="prereq" label="Prerequisites">
+<TabItem value="prereq" label="사전 요구 사항">
 
-- [x] [Sui 설치](/getting-started/onboarding/sui-install).
+- [x] [최신 버전의 Sui를 설치한다](/getting-started/onboarding/sui-install).
 
-- [x] [Sui 클라이언트 설정](/getting-started/onboarding/configure-sui-client).
+- [x] [Sui 클라이언트를 설정한다](/getting-started/onboarding/configure-sui-client).
 
-- [x] [Sui 주소 만들기](/getting-started/onboarding/get-address).
+- [x] [Sui 주소를 생성한다](/getting-started/onboarding/get-address).
 
-- [x] [Faucet에서 SUI 받기](/getting-started/onboarding/get-coins).
+- [x] [SUI Testnet 토큰을 받는다](/getting-started/onboarding/get-coins).
 
 - [x] Move extension을 제공하므로 권장되는 다음 IDE 중 하나를 다운로드해 설치한다:
 
@@ -94,16 +90,14 @@ Sui Move module은 Sui Move package의 typed data인 Sui **Move object**를 다�
 
     - [Zed](https://zed.dev/), 해당 [Move extension](https://github.com/Tzal3x/move-zed-extension)
 
-        또는 다운로드가 필요 없는 [Move web IDE](https://www.playmove.dev/)를 사용할 수 있다.
+        또는 다운로드가 필요 없는 [Move web IDE](https://www.playmove.dev/)를 사용할 수 있다. 다만 이 가이드에 필요한 모든 기능을 지원하지는 않는다.
 
-        그러나 이 가이드에 필요한 모든 기능을 지원하지는 않는다.
-
-- [x] [Download and install Git](https://git-scm.com/downloads).
+- [x] [Git을 다운로드하고 설치한다](https://git-scm.com/downloads).
 
 </TabItem>
 </Tabs>
 
-Object와 package를 생성하는 방법과 첫 번째 Sui application을 빌드하는 방법을 보여 주기 위해 먼저 "Hello, World!" 예제를 clone한다:
+객체와 패키지를 생성하는 방법, 첫 번째 Sui 애플리케이션을 빌드하는 방법을 보여 주기 위해 먼저 "Hello, World!" 예제를 클론한다:
 
 ```
 $ git clone \
@@ -111,13 +105,11 @@ $ git clone \
 $ cd sui-stack-hello-world/move/hello-world
 ```
 
-이 project에는 package의 logic, 정보, dependency를 정의하는 중요한 파일이 두 개 있다:
+이 프로젝트에는 패키지의 로직, 정보, 의존성을 정의하는 중요한 파일이 두 개 있다:
 
-- `move/hello-world/sources/greeting.move`: package의 logic을 정의한다.
+- `move/hello-world/sources/greeting.move`: 패키지의 로직을 정의한다. 이 예제에서는 기본 공유 greeting 객체와 이 객체와 상호작용하는 public function을 정의한다.
 
-- 이 예제에서는 기본적인 shared greeting object와 그와 상호작용하는 public function을 정의한다.
-
-- `move/hello-world/Move.toml`: package 이름, dependency, address를 정의하는 package의 구성 파일이다.
+- `move/hello-world/Move.toml`: 패키지 이름, 의존성, address를 정의하는 패키지 구성 파일이다.
 
 <details>
 
@@ -127,7 +119,7 @@ $ cd sui-stack-hello-world/move/hello-world
 
 </details>
 
-### smart contract code 보기
+### 스마트 계약 코드 보기
 
 선택한 IDE에서 `greeting.move` 파일을 연다.
 
@@ -135,9 +127,9 @@ $ cd sui-stack-hello-world/move/hello-world
 
 <ImportContent source="/move/hello-world/sources/greeting.move" mode="code" org="MystenLabs" repo="sui-stack-hello-world" />
 
-### code 설명
+### 코드 설명
 
-먼저 이 코드는 `greeting`이라는 module을 정의한다:
+먼저 이 코드는 `greeting`이라는 모듈을 정의한다:
 
 ```move
 module hello_world::greeting {
@@ -146,75 +138,75 @@ module hello_world::greeting {
 }
 ```
 
-그런 다음 이 코드는 고유 object ID와 text를 포함하는 `Greeting`이라는 public struct를 정의한다.
+그런 다음 이 코드는 고유 객체 ID와 text를 포함하는 `Greeting`이라는 public struct를 정의한다.
 
-Struct는 _resource_의 한 type이다:
+Struct는 _resource_의 한 타입이다:
 
 <ImportContent source="/move/hello-world/sources/greeting.move" mode="code" struct="Greeting" org="MystenLabs" repo="sui-stack-hello-world" />
 
-그런 다음 이 코드는 `Greeting` struct에 API call을 수행하고 text `"Hello world!"`로 초기화한 뒤 이를 새로운 shared object에 저장하는 함수 `new`를 정의한다:
+그런 다음 이 코드는 `Greeting` struct에 API 호출을 수행하고 text `"Hello world!"`로 초기화한 뒤 이를 새 공유 객체에 저장하는 함수 `new`를 정의한다:
 
 <ImportContent source="/move/hello-world/sources/greeting.move" mode="code" fun="new" org="MystenLabs" repo="sui-stack-hello-world" />
 
-마지막으로 package는 `Greeting`에 저장된 text를 업데이트하기 위해 호출할 수 있는 `update_text`라는 함수를 정의한다:
+마지막으로 패키지는 `Greeting`에 저장된 text를 업데이트하기 위해 호출할 수 있는 `update_text`라는 함수를 정의한다:
 
 <ImportContent source="/move/hello-world/sources/greeting.move" mode="code" fun="update_text" org="MystenLabs" repo="sui-stack-hello-world" />
 
-### resource safety
+### Resource safety
 
-Sui에서 애플리케이션을 프로그래밍할 때의 고유한 측면은 Move Bytecode Verifier가 강제하는 resource safety이다.
+Sui에서 애플리케이션을 프로그래밍할 때의 고유한 특징은 Move Bytecode Verifier가 resource safety를 강제한다는 점이다.
 
-Move package는 다음 resource safety 조건을 충족해야 한다:
+Move 패키지는 다음 resource safety 조건을 충족해야 한다:
 
-- 모든 resource는 transaction이 끝날 때까지 global storage로 이동되거나 파기되어야 한다.
+- 모든 resource는 트랜잭션이 끝날 때까지 global storage로 이동되거나 파기되어야 한다.
 
 - Resource는 복사할 수 없다.
 
-"Hello, World!" 예제에서 `Greeting` struct는 resource type이다.
+"Hello, World!" 예제에서 `Greeting` struct는 resource 타입이다.
 
-모든 resource가 transaction이 끝날 때까지 이동되거나 파기되어야 한다는 요구 사항을 충족하기 위해 `Greeting`은 `new_greeting`에 할당되고, `transfer::share_object(new_greeting)` 호출이 이를 global storage로 이동한다.
+모든 resource가 트랜잭션이 끝날 때까지 이동되거나 파기되어야 한다는 요구 사항을 충족하기 위해 `Greeting`은 `new_greeting`에 할당되고, `transfer::share_object(new_greeting)` 호출이 이를 global storage로 이동한다.
 
 `Greeting`을 변경하기 위해 `update_text` 함수는 resource 자체가 아니라 입력 `(&mut Greeting)`을 받는다.
 
-이 함수는 resource를 복사하지 않고 reference를 통해 이를 변경하므로 resource safety를 충족한다.
+이 함수는 resource를 복사하지 않고 reference로 변경하므로 resource safety를 충족한다.
 
-Move Bytecode Verifier에 대해 [Learn more](https://github.com/MystenLabs/sui/blob/main/external-crates/move/move-execution/v1/crates/move-bytecode-verifier/README.md).
+Move Bytecode Verifier에 관한 자세한 내용은 [자세히 알아보기](https://github.com/MystenLabs/sui/blob/main/external-crates/move/move-execution/v1/crates/move-bytecode-verifier/README.md)를 참조한다.
 
-#### EVM application과의 차이
+#### EVM 애플리케이션과의 차이
 
 Ethereum Virtual Machine은 가스 기반 resource safety 전략을 채택한다.
 
-EVM 체인의 모든 opcode에는 연관된 gas 가격이 있어 transaction 비용이 발생하고, 이는 네트워크가 하나의 transaction을 무기한 실행하지 못하게 한다.
+EVM 체인의 모든 opcode에는 연관된 gas 가격이 있어 트랜잭션 비용이 발생하고, 이는 네트워크가 하나의 트랜잭션을 무기한 실행하지 못하게 한다.
 
-## Move package build
+## Move 패키지 빌드
 
-Move package를 네트워크에 게시하려면 먼저 이를 빌드해야 한다.
+Move 패키지를 네트워크에 게시하려면 먼저 빌드해야 한다.
 
-`.move` source file은 사람이 읽을 수 있는 코드이지만 네트워크는 bytecode만 이해할 수 있으므로 package를 빌드해야 한다.
+`.move` 소스 파일은 사람이 읽을 수 있는 코드이지만 네트워크는 바이트코드만 이해할 수 있으므로 패키지를 빌드해야 한다.
 
-"Hello, World!" package를 빌드하려면 먼저 작업 디렉터리가 `~/sui-stack-hello-world/move/hello-world`인지 확인한 다음 다음 명령을 실행한다:
+"Hello, World!" 패키지를 빌드하려면 먼저 작업 디렉터리가 `~/sui-stack-hello-world/move/hello-world`인지 확인한 다음 다음 명령을 실행한다:
 
 ```
 $ sui move build
 ```
 
-빌드 프로세스는 `Move.toml` 파일에 정의된 dependency를 가져와 compile한다.
+빌드 프로세스는 `Move.toml` 파일에 정의된 의존성을 가져와 컴파일한다.
 
-Move compiler는 `.move` 코드의 type error와 syntax error를 검사하고 [resource safety](#resource-safety)를 강제한 다음 `.move` 코드를 Sui가 실행할 수 있는 bytecode로 변환한다.
+Move 컴파일러는 `.move` 코드의 type error와 syntax error를 검사하고 [resource safety](#resource-safety)를 강제한 다음 `.move` 코드를 Sui가 실행할 수 있는 바이트코드로 변환한다.
 
 :::info
 
-Package를 게시하기 전에 빌드해야 하며, 테스트하기 전에 역시 빌드해야 한다.
+패키지를 게시하기 전에 빌드해야 하며, 테스트하기 전에도 빌드해야 한다.
 
 코드가 빌드되기 전에는 테스트(`sui move test`)를 실행할 수 없다.
 
 :::
 
-## Move package publish
+## Move 패키지 게시
 
-이제 package가 빌드되었으므로 이를 게시해야 한다.
+이제 패키지가 빌드되었으므로 게시해야 한다.
 
-게시한 후에는 다른 package와 사용자가 package ID를 호출해 이 package의 module과 function을 사용할 수 있다.
+게시한 후에는 다른 패키지와 사용자가 패키지 ID를 호출해 이 패키지의 모듈과 함수를 사용할 수 있다.
 
 먼저 client가 활성 환경으로 Testnet을 사용하도록 구성되어 있는지 확인한다:
 
@@ -224,15 +216,15 @@ $ sui client active-env
 
 이 명령은 `testnet`을 반환해야 한다.
 
-`testnet`을 반환하지 않으면 계속하기 전에 [client configuration instructions](/getting-started/onboarding/configure-sui-client)를 따른다.
+`testnet`을 반환하지 않으면 계속하기 전에 [클라이언트 구성 지침](/getting-started/onboarding/configure-sui-client)을 따른다.
 
-그런 다음 Testnet에 게시하기에 충분한지 확인하기 위해 SUI token 잔액을 점검한다:
+그런 다음 Testnet에 게시하기에 충분한지 확인하기 위해 SUI 토큰 잔액을 점검한다:
 
 ```
 $ sui client balance
 ```
 
-SUI token 잔액이 표시되어야 한다:
+SUI 토큰 잔액이 표시되어야 한다:
 
 ```
 ╭────────────────────────────────────────────╮
@@ -246,9 +238,9 @@ SUI token 잔액이 표시되어야 한다:
 ╰────────────────────────────────────────────╯
 ```
 
-잔액이 없다면 [SUI faucet instructions](/getting-started/onboarding/get-coins)를 따른다.
+잔액이 없다면 [SUI faucet 지침](/getting-started/onboarding/get-coins)을 따른다.
 
-이제 다음 명령으로 package를 Testnet에 게시한다:
+이제 다음 명령으로 패키지를 Testnet에 게시한다:
 
 ```
 $ sui client publish
@@ -381,7 +373,7 @@ Transaction Digest: 8R39iKKLGPDG3QkW2SrRW3QX71csRP2BLhK9H7oz9SwW
 │  └──                                                                                             │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭───────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ Balance Changes                                                                                  │
+│ Balance Changes                                                                                   │
 ├───────────────────────────────────────────────────────────────────────────────────────────────────┤
 │  ┌──                                                                                              │
 │  │ Owner: Account Address ( 0x9ac241b2b3cb87ecd2a58724d4d182b5cd897ad307df62be2ae84beddc9d9803 )  │
@@ -393,13 +385,13 @@ Transaction Digest: 8R39iKKLGPDG3QkW2SrRW3QX71csRP2BLhK9H7oz9SwW
 
 </details>
 
-Move package를 네트워크에 게시하면 네트워크는 bytecode를 고유한 package ID와 version number를 가진 Move package로 업로드하고 저장한다.
+Move 패키지를 네트워크에 게시하면 네트워크는 바이트코드를 고유한 패키지 ID와 버전 번호를 가진 Move 패키지로 업로드하고 저장한다.
 
-네트워크는 SUI token을 gas로 소비하고 transaction을 온체인에서 처리한다.
+네트워크는 SUI 토큰을 gas로 소비하고 트랜잭션을 온체인에서 처리한다.
 
-성공적으로 실행된 후 출력은 gas cost, transaction digest, dependency, owner, sender를 포함해 package 게시에 사용된 transaction의 세부 정보를 제공한다.
+성공적으로 실행된 후 출력은 가스 비용, 트랜잭션 다이제스트, 의존성, 소유자, 송신자를 포함해 패키지 게시에 사용된 트랜잭션의 세부 정보를 제공한다.
 
-이 가이드에서 가장 중요한 섹션은 package의 ID, version, module이 포함된 **Published Objects**이다:
+이 가이드에서 가장 중요한 섹션은 패키지의 ID, 버전, 모듈이 포함된 **Published Objects**이다:
 
 ```
 │ Published Objects:                                                                               │
@@ -411,23 +403,23 @@ Move package를 네트워크에 게시하면 네트워크는 bytecode를 고유�
 │  └──
 ```
 
-Package ID와 module은 모두 command line에서 package와 상호작용하는 데 필요하다.
+패키지 ID와 모듈은 모두 명령줄에서 패키지와 상호작용하는 데 필요하다.
 
 나중에 [Move 패키지에 프런트엔드 연결](/getting-started/onboarding/app-frontends) 가이드에서 사용하므로 두 값을 모두 기록해 둔다.
 
-## Move package와 상호 작용
+## Move 패키지와 상호작용
 
-새로 게시된 package와 상호작용하려면 먼저 새로운 `Greeting` object를 만들고 이를 text `"Hello world!"`로 초기화하는 `new` 함수에 call한다:
+새로 게시된 패키지와 상호작용하려면 먼저 새 `Greeting` 객체를 만들고 text `"Hello world!"`로 초기화하는 `new` 함수를 호출한다:
 
 ```
 $ sui client call --package <PACKAGE_ID> --module greeting --function new
 ```
 
-`sui client publish` 명령 출력이 반환한 package ID로 `<PACKAGE_ID>`를 바꾼다.
+`sui client publish` 명령 출력이 반환한 패키지 ID로 `<PACKAGE_ID>`를 바꾼다.
 
 반드시 `--package`, `--module`, `--function` 플래그를 포함해야 한다.
 
-이 call의 출력에는 새로 생성된 object가 포함된다:
+이 호출의 출력에는 새로 생성된 객체가 포함된다:
 
 ```
 ╭───────────────────────────────────────────────────────────────────────────────────────────────────╮
@@ -447,7 +439,7 @@ $ sui client call --package <PACKAGE_ID> --module greeting --function new
 ...
 ```
 
-Object에 text `"Hello world!"`가 들어 있는지 확인하려면 object 정보를 조회하는 call을 수행한다:
+객체에 text `"Hello world!"`가 들어 있는지 확인하려면 객체 정보를 조회하는 호출을 수행한다:
 
 ```
 $ sui client object <OBJECT_ID>
@@ -455,7 +447,7 @@ $ sui client object <OBJECT_ID>
 
 `Created Objects, ID:` 아래 값을 `<OBJECT_ID>`에 넣는다.
 
-`text: Hello world!` 값을 포함한 object 세부 정보를 볼 수 있어야 한다:
+`text: Hello world!` 값을 포함한 객체 세부 정보를 볼 수 있어야 한다:
 
 ```
 ╭───────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
@@ -484,25 +476,25 @@ $ sui client object <OBJECT_ID>
 ╰───────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
-### 중요한 transaction 고려 사항
+### 중요한 트랜잭션 고려 사항
 
-동시에 2개 이상의 transaction을 보낼 수 없으며, 그렇지 않으면 다음과 같은 오류가 발생한다:
+동시에 2개 이상의 트랜잭션을 보낼 수 없으며, 그렇지 않으면 다음과 같은 오류가 발생한다:
 
 ```
 Failed to sign transaction by a quorum of validators because one or more of its objects is reserved for another transaction.
 ```
 
-이 오류를 받으면 현재 epoch가 끝날 때까지 기다린 다음 transaction을 다시 제출해야 한다.
+이 오류를 받으면 현재 에포크가 끝날 때까지 기다린 다음 트랜잭션을 다시 제출해야 한다.
 
-[Sui Explorer](https://suivision.xyz/) 또는 [SuiScan](https://suiscan.xyz/mainnet/home) 같은 다른 네트워크 explorer를 사용해 현재 epoch에 남은 시간을 확인할 수 있다.
+[Sui Explorer](https://suivision.xyz/) 또는 [SuiScan](https://suiscan.xyz/mainnet/home) 같은 다른 네트워크 익스플로러를 사용해 현재 에포크에 남은 시간을 확인할 수 있다.
 
-같은 object가 동시에 여러 transaction에 의해 수정되지 않도록 address가 object를 '잠가' 충돌하는 수정을 방지한다.
+같은 객체가 동시에 여러 트랜잭션에 의해 수정되지 않도록 주소가 객체를 '잠가' 충돌하는 수정을 방지한다.
 
-여러 transaction command를 함께 batch하고 싶다면 [프로그래머블 트랜잭션 블록 (PTB)](/develop/transactions/ptbs/prog-txn-blocks)를 사용할 수 있다.
+여러 트랜잭션 명령을 함께 배치하고 싶다면 [프로그래머블 트랜잭션 블록 (PTB)](/develop/transactions/ptbs/prog-txn-blocks)를 사용할 수 있다.
 
-Transaction에는 전체 크기, object 수, 입력 수와 관련된 제한도 있다.
+트랜잭션에는 전체 크기, 객체 수, 입력 수와 관련된 제한도 있다.
 
-제한에 대한 자세한 내용은 The Move Book의 [Building Against Limits](https://move-book.com/guides/building-against-limits/)를 참조한다.
+제한에 관한 자세한 내용은 The Move Book의 [Building Against Limits](https://move-book.com/guides/building-against-limits/)를 참조한다.
 
 <div className="next-steps-module">
   <div className="next-steps-header">
@@ -510,22 +502,22 @@ Transaction에는 전체 크기, object 수, 입력 수와 관련된 제한도 �
   </div>
   <div className="next-steps-grid">
       <Card className="plausible-event-name=hello+frontend+button"
-      title="Move 패키지에 프런트엔드 연결"
+      title="풀 스택 앱 만들기"
       href="/getting-started/onboarding/app-frontends"
     >
-      "Hello, World!" smart contract에 frontend interface를 연결한다.
+      "Hello, World!" 스마트 계약에 프런트엔드 인터페이스를 연결한다.
     </Card>
     <Card className="plausible-event-name=hello+data+button"
-      title="데이터 접근"
+      title="Sui 데이터 접근"
       href="/develop/accessing-data/data-serving"
     >
-      Sui에서 data에 접근하는 방법을 더 알아본다.
+      Sui에서 데이터에 접근하는 방법을 더 알아본다.
     </Card>
     <Card className="plausible-event-name=hello+community+button"
-      title="다음 단계"
+      title="커뮤니티 참여"
       href="/getting-started/onboarding/next-steps"
     >
-      Sui developer 커뮤니티에 참여하고, 다른 example project를 시도하거나, 더 많은 문서를 읽는다.
+      Sui 개발자 커뮤니티에 참여하고, 다른 예시 프로젝트를 시도하거나, 더 많은 문서를 읽는다.
     </Card>
   </div>
 </div>

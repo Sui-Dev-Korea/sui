@@ -32,19 +32,19 @@ Automated address management는 하나 이상의 Sui 네트워크에 게시된 �
 
 1. 패키지가 게시된 체인의 활성 환경으로 전환한다:
 
-    ```sh
-    sui client --switch --env <YOUR-CHAIN-ENVIRONMENT>
-    ```
+```sh
+sui client --switch --env <YOUR-CHAIN-ENVIRONMENT>
+```
 
 2. 게시된 패키지의 세부 정보와 함께 `manage-package` 명령을 실행한다:
 
-    ```sh
-    sui move manage-package --environment "$(sui client active-env)" \
-                            --network-id "$(sui client chain-identifier)" \
-                            --original-id 'ORIGINAL-ADDRESS' \
-                            --latest-id 'LATEST-ADDRESS' \
-                            --version-number 'VERSION-NUMBER'
-    ```
+```sh
+sui move manage-package --environment "$(sui client active-env)" \
+                        --network-id "$(sui client chain-identifier)" \
+                        --original-id 'ORIGINAL-ADDRESS' \
+                        --latest-id 'LATEST-ADDRESS' \
+                        --version-number 'VERSION-NUMBER'
+```
 
     - `ORIGINAL-ADDRESS`: 패키지가 처음 게시된 address이다. 업그레이드한 적이 없다면, 이는  `Move.toml`의 `published-at` address와 일치한다.
     - `LATEST-ADDRESS`: 최신 패키지 address이다. 업그레이드한 적이 없다면, 이는 `ORIGINAL-ADDRESS`와 일치한다. 업그레이드한 경우, 현재의 `published-at` address와 일치한다.
@@ -54,22 +54,22 @@ Automated address management는 하나 이상의 Sui 네트워크에 게시된 �
 
 4. `[addresses]` 섹션에서 패키지의 address를 `0x0`으로 설정한다:
 
-    ```toml
-    [package]
-    name = "Kiosk"
+```toml
+[package]
+name = "Kiosk"
 
-    [dependencies]
-    # ... your dependencies ...
+[dependencies]
+# ... your dependencies ...
 
-    [addresses]
-    kiosk = "0x0"
-    ```
+[addresses]
+kiosk = "0x0"
+```
 
 이제 패키지가 추적된다. 추가 환경의 address를 추적하려면 이 단계를 반복한다.
 
 ## Package upgrade guidance
 
-[upgrading](/develop/publish-upgrade-packages/upgrade#업그레이드-요구-사항) 시, 패키지의 `UpgradeCap` ID가 필요하다. Automated address management는 `UpgradeCap`을 추적하지 않는다.
+[upgrading](/develop/publish-upgrade-packages/upgrade#upgrade-requirements) 시, 패키지의 `UpgradeCap` ID가 필요하다. Automated address management는 `UpgradeCap`을 추적하지 않는다.
 
 또한 패키지의 `[addresses]` 값을 `Move.toml`에서 `0x0`으로 설정하고, 업그레이드 후 `ORIGINAL-ADDRESS`로 복원해야 한다.
 
@@ -84,7 +84,7 @@ Automated address management는 하나 이상의 Sui 네트워크에 게시된 �
 - **자신의 패키지의 경우:**
 
     - 더 이상 필요하지 않은 경우 `Move.toml`에서 `published-at` 값을 삭제한다. 그런 다음 `[addresses]`에서 패키지의 address를 `0x0`으로 설정한다.
-    - 또는, 위의 [adoption steps](#automated-address-management-도입)를 따른다.
+    - 또는, 위의 [adoption steps](#adopting-automated-address-management)를 따른다.
 
 - **종속성 패키지의 경우:**
 
@@ -116,5 +116,5 @@ published-version = "1"
 
 - 각 `[env]` 테이블 항목은 하나의 환경을 나타낸다. 패키지가 게시되면 해당 항목이 추가되거나 업데이트된다.
 - 항목은 `[env.NAME]`이 아닌 `chain-id`를 키로 사용한다. 이는 사용자가 임의의 환경 이름을 할당하더라도 address가 일관되게 확인되도록 보장한다.
-- 키-값 쌍은 [adopting automated address management](#automated-address-management-도입)에서 설명된 데이터에 대응한다. 이러한 값을 수정하기 위한 진입점으로 `sui move manage-package` 명령을 사용한다.
+- 키-값 쌍은 [adopting automated address management](#adopting-automated-address-management)에서 설명된 데이터에 대응한다. 이러한 값을 수정하기 위한 진입점으로 `sui move manage-package` 명령을 사용한다.
 :::

@@ -1,22 +1,22 @@
 ---
 title: 풀 조회
-description: Pool은 SUI/USDC와 같은 고유한 market pair를 나타내는 shared object이다.
-keywords: [ deepbook, deepbookv3, pool, balancemanager, tradeproof, query a pool, query pool, whitelist status, base quantity against quote, quote quantity against base, DEEP fees, input token fees, quote quantity against quote or base, check fee required, reserve mid price, reserve pool mid price ]
+description: Pool은 SUI/USDC와 같은 고유한 market pair를 나타내는 공유 객체이다.
+keywords: [ deepbook, deepbookv3, pool, balancemanager, tradeproof, query a pool, query pool, whitelist status, base quantity against quote, quote quantity against base, DEEP fees, 입력 토큰 fees, quote quantity against quote or base, check fee required, reserve mid price, reserve pool mid price ]
 ---
 
 
-`Pool` shared object는 SUI/USDC 시장과 같은 시장을 나타낸다. 해당 `Pool`은 그 고유한 쌍(SUI/USDC)을 나타내는 유일한 object이며, 그 쌍은 해당 `Pool`의 유일한 member이다. pools의 구조에 대해 더 알아보려면 [설계](../design#pool)을 참조한다.
+`Pool` 공유 객체는 SUI/USDC 시장과 같은 시장을 나타낸다. 해당 `Pool`은 그 고유한 쌍(SUI/USDC)을 나타내는 유일한 객체이며, 그 쌍은 해당 `Pool`의 유일한 member이다. 풀의 구조에 대해 더 알아보려면 [설계](/onchain-finance/deepbookv3/design#pool)을 참조한다.
 
-거래를 수행하려면 관련 `Pool`에 `BalanceManager`와 `TradeProof`를 전달한다. `Pool`과 달리 `BalanceManager` shared object는 어떤 타입의 토큰도 포함할 수 있으므로, 동일한 `BalanceManager`가 여러 `Pool`에 접근하여 다양한 거래 페어링과 상호작용할 수 있다. 더 알아보려면 [BalanceManager](./balance-manager)를 참조한다.
+거래를 수행하려면 관련 `BalanceManager`에 `TradeProof`와 `Pool`를 전달한다. `Pool`과 달리 `BalanceManager` 공유 객체는 어떤 타입의 토큰도 포함할 수 있으므로, 동일한 `BalanceManager`가 여러 `Pool`에 접근하여 다양한 거래 페어링과 상호작용할 수 있다. 더 알아보려면 [BalanceManager](/onchain-finance/deepbookv3/contract-information/balance-manager)를 참조한다.
 
 ## API
 
-DeepBookV3는 어떤 pool이든 query하는 데 사용할 수 있는 엔드포인트 세트를 노출한다.
+DeepBookV3는 어떤 풀이든 query하는 데 사용할 수 있는 엔드포인트 세트를 노출한다.
 
 <details>
 <summary>Check whitelist status</summary>
 
-pool이 whitelisted인지 확인하기 위한 accessor이다.
+풀이 whitelisted인지 확인하기 위한 accessor이다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="whitelisted" noComments />
 
@@ -41,7 +41,7 @@ pool이 whitelisted인지 확인하기 위한 accessor이다.
 </details>
 
 <details>
-<summary>Check quote quantity against base (input token fees)</summary>
+<summary>Check quote quantity against base (입력 토큰 fees)</summary>
 
 주어진 base 수량에 대해 quote 수량 out을 결정하는 dry run이다. fee로 입력 토큰을 사용한다.
 
@@ -50,7 +50,7 @@ pool이 whitelisted인지 확인하기 위한 accessor이다.
 </details>
 
 <details>
-<summary>Check base quantity against quote (input token fees)</summary>
+<summary>Check base quantity against quote (입력 토큰 fees)</summary>
 
 주어진 quote 수량에 대해 base 수량 out을 결정하는 dry run이다. fee로 입력 토큰을 사용한다.
 
@@ -77,88 +77,88 @@ pool이 whitelisted인지 확인하기 위한 accessor이다.
 </details>
 
 <details>
-<summary>Retrieve mid price for a pool</summary>
+<summary>Retrieve mid price for a 풀</summary>
 
-pool의 mid price를 반환한다.
+풀의 mid price를 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="mid_price" noComments />
 
 </details>
 
 <details>
-<summary>Retrieve order IDs</summary>
+<summary>Retrieve 주문 IDs</summary>
 
-pool에서 `balance_manager`의 모든 open orders에 대한 `order_id`를 반환한다.
+풀에서 `order_id`의 모든 open 주문에 대한 `balance_manager`를 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="account_open_orders" noComments />
 
 </details>
 
 <details>
-<summary>Retrieve prices and quantities for an order book</summary>
+<summary>Retrieve prices and quantities for an 오더북</summary>
 
-level2 order book에 대한 가격(`price_vec`)과 수량(`quantity_vec`)을 보관하는 vector를 반환한다. `price_low`와 `price_high`는 inclusive이며, 범위 내의 모든 주문이 반환된다. `is_bid`는 bids에는 `true`이고 asks에는 `false`이다.
+level2 오더북에 대한 가격(`price_vec`)과 수량(`quantity_vec`)을 보관하는 vector를 반환한다. `price_low`와 `price_high`는 inclusive이며, 범위 내의 모든 주문이 반환된다. `is_bid`는 bids에는 `true`이고 asks에는 `false`이다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_level2_range" noComments />
 
-level2 order book에 대한 가격(`price_vec`)과 수량(`quantity_vec`)을 보관하는 vector를 반환한다. `ticks`는 best bid와 best ask에서 시작하여 반환할 최대 ticks 수이다. (`bid_price`, `bid_quantity`, `ask_price`, `ask_quantity`)는 네 개의 vector로 반환된다. 가격 vector는 bids에는 내림차순으로, asks에는 오름차순으로 정렬된다.
+level2 오더북에 대한 가격(`price_vec`)과 수량(`quantity_vec`)을 보관하는 vector를 반환한다. `ticks`는 best bid와 best ask에서 시작하여 반환할 최대 ticks 수이다. (`bid_price`, `bid_quantity`, `ask_price`, `ask_quantity`)는 네 개의 vector로 반환된다. 가격 vector는 bids에는 내림차순으로, asks에는 오름차순으로 정렬된다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_level2_ticks_from_mid" noComments />
 
 </details>
 
 <details>
-<summary>Retrieve balances</summary>
+<summary>Retrieve 잔액</summary>
 
-이 pool에 보관된 모든 balance를 가져온다.
+이 풀에 보관된 모든 잔액을 가져온다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="vault_balances" noComments />
 
 </details>
 
 <details>
-<summary>Retrieve pool ID</summary>
+<summary>Retrieve 풀 ID</summary>
 
-자산 타입이 주어지면 pool의 ID를 가져온다.
+자산 타입이 주어지면 풀의 ID를 가져온다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_pool_id_by_asset" noComments />
 
 </details>
 
 <details>
-<summary>Retrieve order information</summary>
+<summary>Retrieve 주문 information</summary>
 
-order ID를 사용하여 `Order` struct를 반환한다.
+주문 ID를 사용하여 `Order` struct를 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_order" noComments />
 
-order IDs의 vector를 사용하여 `Order` structs의 vector를 반환한다.
+주문 IDs의 vector를 사용하여 `Order` structs의 vector를 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_orders" noComments />
 
-pool에서 `BalanceManager`에 속하는 모든 주문에 대한 `Order` structs의 vector를 반환한다.
+풀에서 `Order`에 속하는 모든 주문에 대한 `BalanceManager` structs의 vector를 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_account_order_details" noComments />
 
 </details>
 
 <details>
-<summary>Retrieve locked balance</summary>
+<summary>Retrieve locked 잔액</summary>
 
-pool에서 `BalanceManager`의 locked balance (`base_quantity`, `quote_quantity`, `deep_quantity`)를 반환한다.
+풀에서 `BalanceManager`의 locked 잔액 (`base_quantity`, `quote_quantity`, `deep_quantity`)를 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="locked_balance" noComments />
 
 </details>
 
 <details>
-<summary>Retrieve pool parameters</summary>
+<summary>Retrieve 풀 파라미터</summary>
 
-pool의 trade parameters (`taker_fee`, `maker_fee`, `stake_required`)를 반환한다.
+풀의 trade 파라미터 (`taker_fee`, `maker_fee`, `stake_required`)를 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="pool_trade_params" noComments />
 
-pool의 currently leading proposal에 대해 다음 epoch의 trade parameters (`taker_fee`, `maker_fee`, `stake_required`)를 반환한다.
+풀의 currently leading proposal에 대해 다음 epoch의 trade 파라미터 (`taker_fee`, `maker_fee`, `stake_required`)를 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="pool_trade_params_next" noComments />
 
@@ -166,11 +166,11 @@ pool의 currently leading proposal에 대해 다음 epoch의 trade parameters (`
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="quorum" noComments />
 
-pool의 book parameters (`tick_size`, `lot_size`, `min_size`)를 반환한다.
+풀의 book 파라미터 (`tick_size`, `lot_size`, `min_size`)를 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="pool_book_params" noComments />
 
-DEEP fees에 대한 conversion을 결정하는 pool의 `OrderDeepPrice` struct를 반환한다.
+DEEP fees에 대한 conversion을 결정하는 풀의 `OrderDeepPrice` struct를 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="get_order_deep_price" noComments />
 
@@ -192,19 +192,19 @@ DEEP fees에 대한 conversion을 결정하는 pool의 `OrderDeepPrice` struct�
 <details>
 <summary>Pre-trade validation</summary>
 
-주어진 parameters로 limit order를 배치할 수 있는지 확인한다. order를 배치할 수 있으면 `true`를, 그렇지 않으면 `false`를 반환한다.
+주어진 파라미터로 지정가 주문을 배치할 수 있는지 확인한다. 주문을 배치할 수 있으면 `true`를, 그렇지 않으면 `false`를 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="can_place_limit_order" noComments />
 
-주어진 parameters로 market order를 배치할 수 있는지 확인한다. order를 배치할 수 있으면 `true`를, 그렇지 않으면 `false`를 반환한다.
+주어진 파라미터로 시장가 주문을 배치할 수 있는지 확인한다. 주문을 배치할 수 있으면 `true`를, 그렇지 않으면 `false`를 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="can_place_market_order" noComments />
 
-limit order parameters를 검증하고 invalid이면 detailed error information을 반환한다.
+지정가 주문 파라미터를 검증하고 invalid이면 detailed error information을 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="check_limit_order_params" noComments />
 
-market order parameters를 검증하고 invalid이면 detailed error information을 반환한다.
+시장가 주문 파라미터를 검증하고 invalid이면 detailed error information을 반환한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="check_market_order_params" noComments />
 
@@ -213,11 +213,11 @@ market order parameters를 검증하고 invalid이면 detailed error information
 <details>
 <summary>Pool status</summary>
 
-pool이 stable pool인지 확인한다(stable curve pricing을 사용한다).
+풀이 stable 풀인지 확인한다(stable curve pricing을 사용한다).
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="stable_pool" noComments />
 
-pool이 registry에 등록되어 있는지 확인한다.
+풀이 registry에 등록되어 있는지 확인한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="registered_pool" noComments />
 
@@ -226,11 +226,11 @@ pool이 registry에 등록되어 있는지 확인한다.
 <details>
 <summary>Account queries</summary>
 
-pool에서 `BalanceManager`에 대한 account가 존재하는지 확인한다.
+풀에서 `BalanceManager`에 대한 계정이 존재하는지 확인한다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="account_exists" noComments />
 
-pool에서 `BalanceManager`에 대한 `Account` struct를 가져온다.
+풀에서 `Account`에 대한 `BalanceManager` struct를 가져온다.
 
 <ImportContent source="packages/deepbook/sources/pool.move" mode="code" org="MystenLabs" repo="deepbookv3" fun="account" noComments />
 

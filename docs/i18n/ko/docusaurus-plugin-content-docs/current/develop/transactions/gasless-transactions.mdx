@@ -1,15 +1,15 @@
 ---
 draft: true
-title: Gasless transaction
-description: Sui의 gasless transaction은 적격 stablecoin의 peer-to-peer payment를 SUI gas fee 없이 실행할 수 있게 한다.
+title: Gasless 트랜잭션
+description: Sui의 gasless 트랜잭션은 적격 스테이블코인의 peer-to-peer payment를 SUI 가스 수수료 없이 실행할 수 있게 한다.
 keywords: [ usdc, stable coins, sui dollar, usdy, ausd, fdusd, buck, ysld, usdt, gasless, free tier, free ]
 ---
 
-Chain-specific gas fee는 end user에게 여러 friction point를 만들고 asset trading 또는 payment의 institutional compliance에 복잡성을 더할 수 있다. Chain-specific gas를 제거하면 regulated institution은 가치가 변동할 수 있는 digital asset을 보유해야 하는 부담 없이 payment를 수행할 수 있으므로 크게 단순화된다.
+체인별 가스 수수료는 최종 사용자에게 여러 friction point를 만들고 자산 거래 또는 결제의 institutional compliance에 복잡성을 더할 수 있다. 체인별 가스를 제거하면 규제 대상 기관은 가치가 변동할 수 있는 디지털 자산을 보유해야 하는 부담 없이 결제를 수행할 수 있으므로 크게 단순화된다.
 
-Sui의 gasless transaction은 적격 stablecoin의 peer-to-peer payment를 SUI gas fee 없이 실행할 수 있게 한다. Transaction sender는 wallet에 SUI를 보유할 필요가 없다. 다만 network가 congestion 상태일 때는 gas fee를 지불하는 transaction이 gasless transaction보다 우선 처리된다.
+Sui의 gasless 트랜잭션은 적격 스테이블코인의 peer-to-peer payment를 SUI 가스 수수료 없이 실행할 수 있게 한다. 트랜잭션 송신자는 지갑에 SUI를 보유할 필요가 없다. 다만 네트워크가 혼잡할 때는 가스 수수료를 지불하는 트랜잭션이 gasless 트랜잭션보다 우선 처리된다.
 
-Gasless transaction에 적격인 stablecoin은 다음과 같다:
+Gasless 트랜잭션에 적격인 스테이블코인은 다음과 같다:
 
 - USDC
 
@@ -29,8 +29,8 @@ Gasless transaction에 적격인 stablecoin은 다음과 같다:
 
 - USDT(출시 예정)
 
-Sui gasless transaction은 [Address Balances](/guides/developer/digital-assets/address-balances/migrate-address-balances) 기능의 extension이며, Address Balances Move API `send_funds()`를 `gas=0` 및 `gas_budget=0`으로 호출해 활성화된다.
+Sui gasless 트랜잭션은 [Address Balances](/guides/developer/digital-assets/address-balances/migrate-address-balances) 기능의 extension이며, Address Balances Move API `send_funds()`를 `gas=0` 및 `gas_budget=0`으로 호출해 활성화된다.
 
-TypeScript SDK는 gRPC 또는 GraphQL transport를 사용할 때 gasless transaction을 자동으로 감지한다. [TypeScript SDK 문서에서 자세히 알아본다](https://sdk.mystenlabs.com/sui/transactions/coins-and-balances#sdk-support-grpc-and-graphql).
+TypeScript SDK는 gRPC 또는 GraphQL transport를 사용할 때 gasless 트랜잭션을 자동으로 감지한다. [TypeScript SDK 문서에서 자세히 알아본다](https://sdk.mystenlabs.com/sui/transactions/coins-and-balances#sdk-support-grpc-and-graphql).
 
-Gasless transaction은 Move function `withdrawal_split`, `redeem_funds`, `send_funds`로 제한된다. Gasless transaction은 어떤 object도 write하는 데 사용할 수 없다.
+Gasless 트랜잭션은 Move 함수 `withdrawal_split`, `redeem_funds`, `send_funds`로 제한된다. Gasless 트랜잭션은 어떤 객체도 write하는 데 사용할 수 없다.

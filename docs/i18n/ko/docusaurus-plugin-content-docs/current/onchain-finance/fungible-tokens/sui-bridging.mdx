@@ -11,15 +11,15 @@ Sui는 Sui Bridge, Wormhole Connect, Wormhole Portal Bridge, ZetaChain을 통한
 
 ## Sui Bridge
 
-Sui Bridge는 Sui 네트워크의 native bridge이며 코어 아키텍처에 내장되어 있다. 이는 최적의 통합과 운영을 제공하며, 보안을 유지하고 상호운용성을 보존하면서 Sui와 다른 블록체인 사이의 디지털 자산 이동을 가능하게 한다. Sui Bridge는 Sui의 기능을 활용해 빠른 transactions, 더 낮은 비용, 탈중앙화 아키텍처를 제공하면서 native ETH와 wrapped ETH를 Sui와 오가는 안전하고 효율적인 전송을 지원한다.
+Sui Bridge는 Sui 네트워크의 native bridge이며 코어 아키텍처에 내장되어 있다. 이는 최적의 통합과 운영을 제공하며, 보안을 유지하고 상호운용성을 보존하면서 Sui와 다른 블록체인 사이의 디지털 자산 이동을 가능하게 한다. Sui Bridge는 Sui의 기능을 활용해 빠른 트랜잭션, 더 낮은 비용, 탈중앙화 아키텍처를 제공하면서 native ETH와 wrapped ETH를 Sui와 오가는 안전하고 효율적인 전송을 지원한다.
 
 [bridge.sui.io](https://bridge.sui.io/)에서 토큰을 브리지한다.
 
 ### 운영 및 거버넌스
 
-Sui Bridge는 Sui 네트워크를 보호하는 동일한 집합인 Sui validators에 의해 운영되고 거버넌스된다. Bridge transfers 및 기타 actions에는 투표권 임계값을 충족하는 validator signatures가 필요하다. Governance는 validator voting으로 처리된다.
+Sui Bridge는 Sui 네트워크를 보호하는 동일한 집합인 Sui validators에 의해 운영되고 거버넌스된다. Bridge transfers 및 기타 액션에는 투표권 임계값을 충족하는 validator signatures가 필요하다. Governance는 validator voting으로 처리된다.
 
-Sui Bridge full node를 설정하는 방법은 [Sui Bridge validator 노드 구성](../../operators/bridge-node-configuration)을 참조한다.
+Sui Bridge full node를 설정하는 방법은 [Sui Bridge validator 노드 구성](/operators/bridge-node-configuration)을 참조한다.
 
 ### 지원 자산
 
@@ -35,12 +35,12 @@ Sui Bridge는 다음 자산으로 Sui와 다른 네트워크 사이의 브리징
 
 ### 패키지 ID 및 컨트랙트 주소
 
-다음 package IDs와 addresses는 Sui Bridge에 예약되어 있다:
+다음 패키지 IDs와 주소는 Sui Bridge에 예약되어 있다:
 
 | Asset | Address/ID |
 | --- | --- |
-| Sui Bridge package on Sui | [`0xb`](https://suiscan.xyz/mainnet/object/0x000000000000000000000000000000000000000000000000000000000000000b/txs) |
-| Sui Bridge object on Sui | [`0x9`](https://suiscan.xyz/mainnet/object/0x0000000000000000000000000000000000000000000000000000000000000009) |
+| Sui Bridge 패키지 on Sui | [`0xb`](https://suiscan.xyz/mainnet/object/0x000000000000000000000000000000000000000000000000000000000000000b/txs) |
+| Sui Bridge 객체 on Sui | [`0x9`](https://suiscan.xyz/mainnet/object/0x0000000000000000000000000000000000000000000000000000000000000009) |
 | Sui Bridge contract on Ethereum Mainnet | [`0xda3bD1fE1973470312db04551B65f401Bc8a92fD`](https://etherscan.io/address/0xda3bd1fe1973470312db04551b65f401bc8a92fd) |
 | ETH on Sui | [`0xd0e89b2af5e4910726fbcd8b8dd37bb79b29e5f83f7491bca830e94f7f226d29::eth::ETH`](https://suiscan.xyz/mainnet/coin/0xd0e89b2af5e4910726fbcd8b8dd37bb79b29e5f83f7491bca830e94f7f226d29::eth::ETH/txs) |
 | ETH on Ethereum | Native Ether |
@@ -70,11 +70,11 @@ Sui Bridge는 오픈 소스이다:
 
 ### global limiter {#global-limiter}
 
-Limiter는 24시간 창에서 Sui Bridge를 떠나는 assets의 총 가치를 제한하여 funds를 보호한다. 이는 가치를 시간별로 추적하고 지난 24시간을 집계하며, 매시간 갱신된다. 제한은 전역적으로 적용되며 방향(Ethereum → Sui 대 Sui → Ethereum)에 따라 달라진다. 또한 단일 transfer의 최대값도 상한한다.
+Limiter는 24시간 창에서 Sui Bridge를 떠나는 자산의 총 가치를 제한하여 자금을 보호한다. 이는 가치를 시간별로 추적하고 지난 24시간을 집계하며, 매시간 갱신된다. 제한은 전역적으로 적용되며 방향(Ethereum → Sui 대 Sui → Ethereum)에 따라 달라진다. 또한 단일 transfer의 최대값도 상한한다.
 
 한도는 validator 위원회 투표로 설정되며 Discord의 [mn-validator-announcements channel](https://discord.com/channels/916379725201563759/1093852827627040768)에서 공지된다. 현재 전역 한도는 24시간당 Ethereum에서 Sui로 \$16 million, Sui에서 Ethereum으로 \$7 million이다.
 
-### asset pricing
+### 자산 pricing
 
 Sui Bridge v1은 한도를 계산하기 위해 정적 pricing을 사용한다. ETH는 \$2,600으로 가격이 책정된다. ETH 1개는 한도에서 \$2,600을 소모한다. Pricing은 validator 위원회가 투표를 통해 거버넌스한다.
 
@@ -91,7 +91,7 @@ Sui Bridge v1은 한도를 계산하기 위해 정적 pricing을 사용한다. E
 
 ## Wormhole Connect {#wormhole-connect}
 
-Wormhole Connect를 사용하면 지원되는 모든 Wormhole chain에서 Sui로 토큰을 브리지할 수 있고, gas fees를 위한 SUI를 추가로 받을 수 있다. Developers는 자신의 웹사이트와 apps에 Connect를 embed할 수도 있다.
+Wormhole Connect를 사용하면 지원되는 모든 Wormhole chain에서 Sui로 토큰을 브리지할 수 있고, 가스 수수료를 위한 SUI를 추가로 받을 수 있다. Developers는 자신의 웹사이트와 apps에 Connect를 embed할 수도 있다.
 
 :::tip
 
@@ -101,7 +101,7 @@ Wormhole Connect를 사용하면 지원되는 모든 Wormhole chain에서 Sui로
 
 ### 지원 자산
 
-Wormhole Connect는 Ethereum, Polygon, BSC, Avalanche, Celo, Moonbeam, Solana, Sui 전반에서 ETH, WETH, USDC, MATIC, WMATIC, BNB, WBNB, AVAX, WAVAX, FTM, WFTM, CELO, GLMR, WGLRM, SOL에 대한 lock-and-mint 브리징을 지원한다. 브리지된 토큰은 대상 chain에서 Wormhole이 mint한 토큰으로 수령된다. [Wormhole token list](https://github.com/wormhole-foundation/wormhole-token-list)를 참조한다. 일부 토큰은 대상 DEXs에서 swapping을 지원한다.
+Wormhole Connect는 Ethereum, Polygon, BSC, Avalanche, Celo, Moonbeam, Solana, Sui 전반에서 ETH, WETH, USDC, MATIC, WMATIC, BNB, WBNB, AVAX, WAVAX, FTM, WFTM, CELO, GLMR, WGLRM, SOL에 대한 lock-and-민트 브리징을 지원한다. 브리지된 토큰은 대상 chain에서 Wormhole이 민트한 토큰으로 수령된다. [Wormhole 토큰 list](https://github.com/wormhole-foundation/wormhole-token-list)를 참조한다. 일부 토큰은 대상 DEXs에서 swapping을 지원한다.
 
 ### 기능
 
@@ -117,7 +117,7 @@ Wormhole이 제공하는 [Portal Bridge](https://www.portalbridge.com/sui)는 [2
 
 ## ZetaChain {#zetachain}
 
-[ZetaChain](https://www.zetachain.com/)은 Sui와 다른 블록체인 사이의 omnichain smart contracts와 cross-chain messaging을 가능하게 한다. ZetaChain 프로토콜은 Bitcoin, Ethereum, Polygon, BSC, Avalanche 및 기타 주요 chains 전반에서 디지털 assets 브리징과 임의의 메시지 전송을 지원한다.
+[ZetaChain](https://www.zetachain.com/)은 Sui와 다른 블록체인 사이의 omnichain smart contracts와 cross-chain messaging을 가능하게 한다. ZetaChain 프로토콜은 Bitcoin, Ethereum, Polygon, BSC, Avalanche 및 기타 주요 chains 전반에서 디지털 자산 브리징과 임의의 메시지 전송을 지원한다.
 
 ### 지원 자산
 
@@ -135,43 +135,43 @@ ZetaChain은 다음과 같은 토큰의 native cross-chain transfers를 지원�
 
 - **Layer 2 chains**: Arbitrum, Optimism, Base
 
-ZetaChain을 통해 브리지된 assets는 ZetaChain 네트워크에서 ZRC-20 토큰으로 표현되며 연결된 어떤 chain으로도 전송될 수 있다.
+ZetaChain을 통해 브리지된 자산는 ZetaChain 네트워크에서 ZRC-20 토큰으로 표현되며 연결된 어떤 chain으로도 전송될 수 있다.
 
 전체 목록은 [ZetaChain supported networks](https://www.zetachain.com/docs/developers/chains/list)를 참조한다.
 
 ### Omnichain messaging
 
-Asset transfers를 넘어, ZetaChain의 Universal App framework는 smart contracts가 연결된 모든 chains 전반에서 통신할 수 있게 한다. Developers는 다음을 수행하는 applications를 구축할 수 있다:
+Asset transfers를 넘어, ZetaChain의 Universal App 프레임워크는 smart contracts가 연결된 모든 chains 전반에서 통신할 수 있게 한다. Developers는 다음을 수행하는 애플리케이션을 구축할 수 있다:
 
-- 여러 블록체인에 걸쳐 contracts의 functions를 호출한다.
+- 여러 블록체인에 걸쳐 contracts의 함수를 호출한다.
 
 - ZetaChain의 validators를 통해 chains 전반에서 state를 읽고 쓴다.
 
-- 단일 transaction에서 복잡한 multi-chain workflows를 실행한다.
+- 단일 트랜잭션에서 복잡한 multi-chain workflows를 실행한다.
 
 ### 작동 방식
 
-ZetaChain은 proof-of-stake validator network를 사용해 외부 chains의 transactions를 관찰하고 그들 사이에 messages를 relay한다. Cross-chain transaction을 시작하면 다음과 같이 동작한다:
+ZetaChain은 proof-of-stake validator network를 사용해 외부 chains의 트랜잭션을 관찰하고 그들 사이에 messages를 relay한다. Cross-chain 트랜잭션을 시작하면 다음과 같이 동작한다:
 
 1. 사용자는 source chain(Sui 또는 지원되는 어떤 chain)이든 그 위의 gateway contract와 상호작용한다.
 
-1. ZetaChain validators가 transaction을 관찰하고 검증한다.
+1. ZetaChain validators가 트랜잭션을 관찰하고 검증한다.
 
 1. Validators가 ZetaChain에서 omnichain contract logic을 실행한다.
 
-1. Validators가 destination chain에서 대응하는 action을 트리거한다.
+1. Validators가 destination chain에서 대응하는 액션을 트리거한다.
 
 모든 cross-chain operations는 수동 개입 없이 자동으로 처리된다.
 
 ### gas handling
 
-ZetaChain은 유연한 gas payment options를 제공한다:
+ZetaChain은 유연한 가스 결제 options를 제공한다:
 
 - **Pay on source chain**: source chain에서 ZETA, USDC, 또는 USDT로 모든 fees를 선불로 지불한다.
 
-- **Automatic gas drop**: destination chain에서 transaction fees를 위한 native tokens를 받는다.
+- **Automatic gas drop**: destination chain에서 트랜잭션 fees를 위한 native 토큰을 받는다.
 
-- **Custom gas logic**: application-specific gas payment models를 구현한다.
+- **Custom gas logic**: 애플리케이션-specific 가스 결제 모델s를 구현한다.
 
 ### gateway contract
 
@@ -187,7 +187,7 @@ ZetaChain은 유연한 gas payment options를 제공한다:
 
 - BSC Testnet: `0x0c487a766110c85d301d96e33579c5b317fa4995`
 
-통합 전에 [공식 ZetaChain 문서](https://www.zetachain.com/docs/reference/network/contracts)에서 gateway addresses를 항상 검증해야 한다.
+통합 전에 [공식 ZetaChain 문서](https://www.zetachain.com/docs/reference/network/contracts)에서 gateway 주소를 항상 검증해야 한다.
 
 ### 시작하기
 
@@ -205,15 +205,15 @@ npm install -g zetachain
 
 - [Example Contracts](https://github.com/zeta-chain/example-contracts)
 
-ZetaChain explorers에서 transactions를 확인한다:
+ZetaChain explorers에서 트랜잭션을 확인한다:
 
 - [Testnet Explorer](https://testnet.zetascan.com/)
 
 - [Mainnet Explorer](https://zetascan.com/)
 
-## token address list {#token-address-list}
+## 토큰 주소 list {#token-address-list}
 
-다음 표는 각 토큰 type의 address를 나열한다. Address가 일치하는지 검증하여 토큰의 적법성을 확인한다.
+다음 표는 각 토큰 타입의 주소를 나열한다. Address가 일치하는지 검증하여 토큰의 적법성을 확인한다.
 
 | Token   | Address                                                            |
 | ------- | ------------------------------------------------------------------ |

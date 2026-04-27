@@ -1,12 +1,12 @@
 ---
 title: 타원 곡선 검증 가능 랜덤 함수
 sidebar_label: 타원 곡선 검증 가능 랜덤 함수
-description: Elliptic curve verifiable random function은 난수를 생성하고 그 수가 secret key를 사용해 생성되었음을 증명할 수 있게 하는 cryptographic algorithm이다.
+description: Elliptic curve verifiable random 함수는 난수를 생성하고 그 수가 secret key를 사용해 생성되었음을 증명할 수 있게 하는 cryptographic algorithm이다.
 keywords: [ elliptic curve, elliptic, verifiable, verifiable randomness, VRF, verifiable random function ]
 ---
 
 
-verifiable random function(VRF)은 난수를 생성하고 그 수가 secret key를 사용해 생성되었음을 증명할 수 있게 하는 cryptographic primitive이다.
+verifiable random 함수(VRF)은 난수를 생성하고 그 수가 secret key를 사용해 생성되었음을 증명할 수 있게 하는 cryptographic primitive이다.
 누구나 secret key에 대응하는 public key를 사용해 그 증명을 검증할 수 있으므로, 이는 누구나 검증할 수 있는 출력을 생성하는 random number generator(RNG)로 사용할 수 있다.
 온체인에서 verifiable randomness가 필요한 애플리케이션도 이를 통해 이점을 얻을 수 있다.
 
@@ -53,14 +53,14 @@ Output: 2b7e45821d80567761e8bb3fc519efe5ad80cdb4423227289f960319bbcf6eea1aef30c0
 
 ### Verify proof
 
-Sui Move framework의 `sui::ecvrf::ecvrf_verify`를 사용하면 smart contract 안에서 proof와 output을 검증할 수 있다:
+Sui Move framework의 `sui::ecvrf::ecvrf_verify`를 사용하면 스마트 계약 안에서 proof와 output을 검증할 수 있다:
 
 ```move
 module math::ecvrf_test {
     use sui::ecvrf;
     use sui::event;
 
-    /// output이 검증되었는지 여부에 대한 event이다.
+    /// Event on whether the output is verified
     struct VerifiedEvent has copy, drop {
         is_verified: bool,
     }

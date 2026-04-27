@@ -6,17 +6,17 @@ keywords: [asset tokenization, WASM, bytecode template]
 
 이 기능은 web에서 Move bytecode serialization 및 deserialization을 가능하게 하기 위해 개발되었다. 본질적으로 web environment에서 existing contract를 edit할 수 있게 한다.
 
-asset tokenization의 경우 이러한 edit을 통해 tokenize하려는 physical 또는 digital asset을 나타내는 새 type을 만들고 publish할 수 있다.
+자산 tokenization의 경우 이러한 edit을 통해 tokenize하려는 physical 또는 digital 자산을 나타내는 새 타입을 만들고 publish할 수 있다.
 
 ## bytecode 조작 {#bytecode-manipulation}
 
 :::caution
 
-template package를 수정하면 이 process를 반복해야 한다. constant name 변경 같은 일부 alteration은 생성된 bytecode에 영향을 주지 않는다.
+template 패키지를 수정하면 이 process를 반복해야 한다. constant name 변경 같은 일부 alteration은 생성된 bytecode에 영향을 주지 않는다.
 
 :::
 
-이러한 edit을 수행하기 전에 library가 template module bytecode를 노출하는 방식을 이해해야 한다. 이 process는 현재 수동이다. compiled bytecode를 build하고 가져와야 한다. 이를 위해 template folder 안으로 이동해 다음 command를 실행한다:
+이러한 edit을 수행하기 전에 library가 template 모듈 bytecode를 노출하는 방식을 이해해야 한다. 이 process는 현재 수동이다. compiled bytecode를 build하고 가져와야 한다. 이를 위해 template folder 안으로 이동해 다음 명령를 실행한다:
 
 ```sh
 $ xxd -c 0 -p build/template/bytecode_modules/template.mv | head -n 1
@@ -55,21 +55,21 @@ a6563740f7075626c69635f7472616e736665720673656e64657204736f6d6506737472696e
 
 </details>
 
-받은 output을 [bytecode-template.ts](https://github.com/MystenLabs/asset-tokenization/blob/main/setup/src/utils/bytecode-template.ts) file 안의 `getBytecode` method return instruction에 paste한다.
+받은 출력을 [bytecode-template.ts](https://github.com/MystenLabs/asset-tokenization/blob/main/setup/src/utils/bytecode-template.ts) file 안의 `getBytecode` method return instruction에 paste한다.
 
-template package는 두 module을 포함하므로 다른 dependency가 하나 더 있다. 따라서 genesis module의 bytecode도 비슷한 방식으로 가져와야 한다. 이 module bytecode는 edit되지 않고 그대로 사용된다. 이 operation은 WASM library와 직접 관련되지는 않지만, edited template module을 성공적으로 deploy하는 데 필요하다. genesis용 bytecode를 얻으려면 `template` folder로 이동해 다음을 실행한다:
+template 패키지는 두 모듈을 포함하므로 다른 dependency가 하나 더 있다. 따라서 genesis 모듈의 bytecode도 비슷한 방식으로 가져와야 한다. 이 모듈 bytecode는 edit되지 않고 그대로 사용된다. 이 operation은 WASM library와 직접 관련되지는 않지만, edited template 모듈을 성공적으로 deploy하는 데 필요하다. genesis용 bytecode를 얻으려면 `template` folder로 이동해 다음을 실행한다:
 
 ```sh
 $ xxd -c 0 -p build/template/bytecode_modules/genesis.mv | head -n 1
 ```
 
-output format은 template module과 비슷하지만 길이가 더 짧다. 이 output을 copy하여 [genesis_bytecode.ts](https://github.com/MystenLabs/asset-tokenization/blob/main/setup/src/utils/genesis_bytecode.ts) file에 있는 bytecode constant variable에 paste한다.
+output format은 template 모듈과 비슷하지만 길이가 더 짧다. 이 출력을 copy하여 [genesis_bytecode.ts](https://github.com/MystenLabs/asset-tokenization/blob/main/setup/src/utils/genesis_bytecode.ts) file에 있는 bytecode constant variable에 paste한다.
 
 위 setup을 마치면 library가 bytecode를 deserialize하고 edit한 뒤 다시 serialize하여 publish할 수 있다.
 
-### template module 자세히 보기
+### template 모듈 자세히 보기
 
-template module을 살펴보면 몇 가지 constant가 정의되어 있음을 볼 수 있다:
+template 모듈을 살펴보면 몇 가지 constant가 정의되어 있음을 볼 수 있다:
 
 ```rust
 ...
@@ -82,7 +82,7 @@ const BURNABLE: bool = true;
 ...
 ```
 
-이 constant들은 WASM library가 수정할 수 있는 reference point 역할을 한다. edit과 deploy를 수행하는 TypeScript code를 보면 이러한 field가 어떻게 식별되고 update되는지 확인할 수 있다:
+이 constant들은 WASM library가 수정할 수 있는 reference point 역할을 한다. edit과 deploy를 수행하는 TypeScript code를 보면 이러한 필드가 어떻게 식별되고 update되는지 확인할 수 있다:
 
 ```tsx
 ...
@@ -108,16 +108,16 @@ const bytesToPublish = wasm.serialize(JSON.stringify(compiledModule));
 
 `updateConstant` method는 constant를 update하며 네 argument를 받는다:
 
-- `idx` (index): declared constant가 constant pool에서 갖는 position이다. 순서는 Move file에서 정의된 첫 constant의 0부터 시작해 각 consecutive constant마다 1씩 증가한다.
+- `idx` (index): declared constant가 constant 풀에서 갖는 포지션이다. 순서는 Move file에서 정의된 첫 constant의 0부터 시작해 각 consecutive constant마다 1씩 증가한다.
 - `value`: 변경하려는 constant의 updated value이다.
 - `expectedValue`: constant의 current value이다.
 - `expectedType`: constant의 current type이다.
 
 이 library는 compiled bytecode를 직접 조작하므로, 실수로 잘못된 constant를 update할 risk를 최소화하기 위해 마지막 두 argument가 필요하다.
 
-`changeIdentifiers` method는 identifier를 update하며, 이 경우 module name과 struct name이 대상이다. 이 method는 module 안의 current identifier name을 key로, 바꾸려는 desired name을 value로 갖는 JSON object를 argument로 받는다.
+`changeIdentifiers` method는 identifier를 update하며, 이 경우 모듈 이름과 struct name이 대상이다. 이 method는 모듈 안의 current identifier name을 key로, 바꾸려는 desired name을 value로 갖는 JSON 객체를 argument로 받는다.
 
-변경된 template module을 deploy하려면 build하고 publish한다:
+변경된 template 모듈을 deploy하려면 build하고 publish한다:
 
 ```tsx
 ...
@@ -139,4 +139,4 @@ const tx = new Transaction();
 ...
 ```
 
-[bytecode 조작](#bytecode-manipulation) section에서 언급했듯이 publish해야 하는 module은 template과 genesis이므로 `modules` array에는 2개의 element가 있다. 관련 package의 `Move.toml` file에 정의된 모든 dependency를 포함하는 것도 중요하다. 사용되는 `packageId`는 `asset_tokenization` package가 deploy된 address이다.
+[bytecode 조작](#bytecode-manipulation) section에서 언급했듯이 publish해야 하는 모듈은 template과 genesis이므로 `modules` array에는 2개의 element가 있다. 관련 패키지의 `Move.toml` file에 정의된 모든 dependency를 포함하는 것도 중요하다. 사용되는 `packageId`는 `asset_tokenization` 패키지가 deploy된 주소이다.

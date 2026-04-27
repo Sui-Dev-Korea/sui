@@ -1,6 +1,6 @@
 ---
 title: 주문
-description: margin manager를 사용해 order를 배치하고 관리하는 방법을 설명한다.
+description: margin manager를 사용해 주문을 배치하고 관리하는 방법을 설명한다.
 keywords:
   [
     orders,
@@ -15,16 +15,16 @@ keywords:
 ---
 
 
-`pool_proxy` module은 margin manager로 거래하기 위한 wrapper 함수를 제공한다. 이 함수들은 order 배치, 수정, 취소를 가능하게 하며, margin manager를 통해 staking 및 governance 참여도 관리할 수 있게 한다. 모든 거래 작업은 margin manager가 올바른 DeepBook pool과 연결되어 있어야 한다.
+`pool_proxy` 모듈은 margin manager로 거래하기 위한 wrapper 함수를 제공한다. 이 함수들은 주문 배치, 수정, 취소를 가능하게 하며, margin manager를 통해 staking 및 governance 참여도 관리할 수 있게 한다. 모든 거래 작업은 margin manager가 올바른 DeepBook 풀과 연결되어 있어야 한다.
 
 ## API
 
-다음은 margin manager로 order를 관리하기 위한 public 함수이다.
+다음은 margin manager로 주문을 관리하기 위한 public 함수가다.
 
 <details>
-<summary>Place orders</summary>
+<summary>Place 주문</summary>
 
-margin manager를 통해 limit order와 market order를 배치한다. Order는 pool에서 margin trading이 활성화된 경우에만 배치할 수 있다.
+margin manager를 통해 지정가 주문와 시장가 주문을 배치한다. Order는 풀에서 margin trading이 활성화된 경우에만 배치할 수 있다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/pool_proxy.move"
@@ -37,9 +37,9 @@ margin manager를 통해 limit order와 market order를 배치한다. Order는 p
 </details>
 
 <details>
-<summary>Place reduce-only orders</summary>
+<summary>Place reduce-only 주문</summary>
 
-debt position만 줄일 수 있는 reduce-only order를 배치한다. 이 order는 margin trading이 비활성화되어 있고 기존 position을 닫아야 할 때 유용하다.
+debt 포지션만 줄일 수 있는 reduce-only 주문을 배치한다. 이 주문은 margin trading이 비활성화되어 있고 기존 포지션을 닫아야 할 때 유용하다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/pool_proxy.move"
@@ -52,9 +52,9 @@ debt position만 줄일 수 있는 reduce-only order를 배치한다. 이 order�
 </details>
 
 <details>
-<summary>Modify order</summary>
+<summary>Modify 주문</summary>
 
-quantity를 변경하여 기존 order를 수정한다.
+quantity를 변경하여 기존 주문을 수정한다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/pool_proxy.move"
@@ -67,9 +67,9 @@ quantity를 변경하여 기존 order를 수정한다.
 </details>
 
 <details>
-<summary>Cancel orders</summary>
+<summary>Cancel 주문</summary>
 
-margin manager의 order 하나, 여러 개, 또는 전체를 취소한다.
+margin manager의 주문 하나, 여러 개, 또는 전체를 취소한다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/pool_proxy.move"
@@ -84,7 +84,7 @@ margin manager의 order 하나, 여러 개, 또는 전체를 취소한다.
 <details>
 <summary>Withdraw settled amounts</summary>
 
-완료된 거래의 settled amount를 margin manager의 balance manager로 다시 인출한다.
+완료된 거래의 settled amount를 margin manager의 BalanceManager로 다시 인출한다.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/pool_proxy.move"
@@ -99,7 +99,7 @@ margin manager의 order 하나, 여러 개, 또는 전체를 취소한다.
 <details>
 <summary>Staking</summary>
 
-margin manager를 통해 DEEP token을 stake하고 unstake한다. base asset 또는 quote asset으로 DEEP를 사용하는 pool의 margin manager는 stake할 수 없다는 점에 유의하라.
+margin manager를 통해 DEEP 토큰을 stake하고 unstake한다. 베이스 자산 또는 견적 자산으로 DEEP를 사용하는 풀의 margin manager는 stake할 수 없다는 점에 유의하라.
 
 <ImportContent
 	source="packages/deepbook_margin/sources/pool_proxy.move"

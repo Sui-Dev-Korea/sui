@@ -5,7 +5,7 @@ keywords: [authenticated events, light client, event verification, MMR, Merkle M
 ---
 
 
-Authenticated Events는 Sui smart contract의 Move event stream을 암호학적으로 검증 가능하게 제공한다.
+Authenticated Events는 Sui 스마트 계약의 Move event stream을 암호학적으로 검증 가능하게 제공한다.
 일반 event와 달리 Authenticated Events는 intermediary를 신뢰하지 않고도 light client가 검증할 수 있으므로, trustless event consumption이 필요한 애플리케이션에 적합하다.
 
 ## Authenticated Events가 필요한 이유
@@ -34,7 +34,7 @@ public struct MyEvent has copy, drop {
 }
 
 public entry fun do_something(value: u64) {
-    // authenticated event를 발생시킨다
+    // Emit an authenticated event
     event::emit_authenticated(MyEvent {
         value,
         data: vector::empty(),
@@ -42,17 +42,17 @@ public entry fun do_something(value: u64) {
 }
 ```
 
-event는 event type을 정의한 package와 자동으로 연결된다.
-해당 stream에 event를 발생시킬 수 있는 것은 그 package뿐이다.
+event는 event type을 정의한 패키지와 자동으로 연결된다.
+해당 stream에 event를 발생시킬 수 있는 것은 그 패키지뿐이다.
 
 ### Events와의 backward compatibility
 
 Authenticated Events는 일반 Sui event와 완전히 backwards-compatible하다.
-Authenticated event는 검증용 추가 metadata를 가진 일반 event일 뿐이므로, 기존 event consumer는 수정 없이 그대로 동작한다.
+Authenticated event는 검증용 추가 메타데이터를 가진 일반 event일 뿐이므로, 기존 event consumer는 수정 없이 그대로 동작한다.
 
 업그레이드하려면:
 1. **Contract change**: Move code에서 `event::emit(...)` 호출을 `event::emit_authenticated(...)`로 바꾼다
-2. **Package upgrade**: 업데이트된 package를 배포한다(contract upgrade 필요)
+2. **Package upgrade**: 업데이트된 패키지를 배포한다(contract upgrade 필요)
 3. **Optional**: 암호학적 검증을 위해 consumer를 authenticated events client로 업데이트한다
 
 일반 event를 소비하는 기존 indexer, explorer, 도구는 수정 없이도 authenticated event를 계속 볼 수 있다.
@@ -65,29 +65,29 @@ use sui_types::base_types::SuiAddress;
 use futures::StreamExt;
 use std::sync::Arc;
 
-// genesis committee로 초기화한다(trust root를 수립한다)
+// Initialize with genesis committee (establishes trust root)
 let client = Arc::new(
     AuthenticatedEventsClient::new(rpc_url, genesis_committee)
         .await?
 );
 
-// package에서 event를 stream한다
+// Stream events from your package
 let stream_id = SuiAddress::from(package_id);
 let mut stream = client.clone().stream_events(stream_id).await?;
 
 while let Some(result) = stream.next().await {
     match result {
         Ok(event) => {
-            // event.event는 검증된 Move event 데이터를 담고 있다
-            // event.checkpoint는 언제 commit되었는지를 나타낸다
+            // event.event contains the verified Move event data
+            // event.checkpoint indicates when it was committed
             println!("Verified event at checkpoint {}", event.checkpoint);
         }
         Err(e) => {
-            // 일시적 error(TransportError, RpcError)는 자동으로 재시도된다.
-            // terminal error는 조치가 필요하다:
-            // - VerificationError: 데이터 무결성 문제이므로 다른 RPC endpoint를 시도한다
-            // - InternalError: 상태가 유효하지 않으므로 원인을 조사한다
-            // 자세한 내용은 "Error Handling" 섹션을 참조한다.
+            // Transient errors (TransportError, RpcError) are retried automatically.
+            // Terminal errors require action:
+            // - VerificationError: Data integrity issue, try a different RPC endpoint
+            // - InternalError: Invalid state, investigate the cause
+            // See "Error Handling" section for details.
             eprintln!("Terminal error: {:?}", e);
             break;
         }
@@ -120,7 +120,7 @@ let mut stream = client.clone()
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    EventStreamHead (On-chain)                   │
+│                    EventStreamHead (Onchain)                   │
 │  ┌─────────────────────────────────────────────────────────┐   │
 │  │  mmr: vector<u256>     // Merkle Mountain Range root    │   │
 │  │  checkpoint_seq: u64   // Last update checkpoint        │   │
@@ -151,15 +151,15 @@ let mut stream = client.clone()
 ### `emit_authenticated` and Accumulator Settlement
 
 사용자는 authenticated event를 발생시키기 위해 `emit_authenticated()`를 호출한다.
-이는 `stream_id`를 포함한 metadata와 함께 일반 Event를 Transaction Effects에 기록한다.
+이는 `stream_id`를 포함한 메타데이터와 함께 일반 Event를 Transaction Effects에 기록한다.
 
 event는 **accumulator settlement** 과정을 통해 checkpoint 경계에서 batch로 정산된다:
 
-1. **Event Emission**: transaction 실행 중 authenticated event가 발생한다
+1. **Event Emission**: 트랜잭션 실행 중 authenticated event가 발생한다
 2. **Consensus Commit Batching**: Authenticated Events는 consensus commit별로 그룹화되고, 각 `stream_id`에 대한 event 위로 merkle tree가 계산된다
-3. **Checkpoint Settlement**: 각 checkpoint에서 validator는 다음을 수행하는 settlement transaction을 실행한다:
+3. **Checkpoint Settlement**: 각 checkpoint에서 validator는 다음을 수행하는 settlement 트랜잭션을 실행한다:
    - 각 consensus commit의 merkle root를 stream의 MMR에 append한다
-   - 새 MMR 상태와 event 수로 해당 `stream_id`의 `EventStreamHead` object를 업데이트한다
+   - 새 MMR 상태와 event 수로 해당 `stream_id`의 `EventStreamHead` 객체를 업데이트한다
 
 ## API reference
 
@@ -173,13 +173,13 @@ service EventService {
 ```
 
 **Request Parameters:**
-- `stream_id` (required): event를 발생시킨 package address
+- `stream_id` (required): event를 발생시킨 패키지 address
 - `start_checkpoint`: 시작할 checkpoint(default: 0)
 - `page_size`: page당 event 수(default: 1000, max: 1000)
 - `page_token`: 이전 응답의 pagination token
 
 **Response:**
-- `events`: checkpoint, transaction index, event index, payload를 담은 `AuthenticatedEvent` 목록
+- `events`: checkpoint, 트랜잭션 index, event index, payload를 담은 `AuthenticatedEvent` 목록
 - `highest_indexed_checkpoint`: 가장 최근에 index된 checkpoint
 - `next_page_token`: 다음 page용 token(더 없으면 비어 있음)
 
@@ -192,19 +192,19 @@ service ProofService {
 }
 ```
 
-특정 checkpoint에 EventStreamHead object가 존재함을 검증하는 데 사용한다.
+특정 checkpoint에 EventStreamHead 객체가 존재함을 검증하는 데 사용한다.
 
 **Request Parameters:**
-- `object_id` (required): EventStreamHead object ID(package address에서 파생)
+- `object_id` (required): EventStreamHead 객체 ID(패키지 address에서 파생)
 - `checkpoint` (required): inclusion을 증명할 checkpoint sequence number
 
 **Response:**
-- `object_ref`: object reference(object_id, version, digest)
+- `object_ref`: 객체 reference(object_id, version, digest)
 - `inclusion_proof`: 다음을 포함하는 OCS (Object Checkpoint State) merkle proof:
   - `merkle_proof`: BCS로 인코딩된 proof node
   - `leaf_index`: merkle tree에서의 위치
   - `tree_root`: root digest(32 byte)
-- `object_data`: BCS로 인코딩된 EventStreamHead object
+- `object_data`: BCS로 인코딩된 EventStreamHead 객체
 - `checkpoint_summary`: 검증용 BCS 인코딩 checkpoint summary
 
 이 inclusion proof는 지정한 checkpoint에서 EventStreamHead가 기록되었음을 검증한다.
@@ -214,10 +214,10 @@ service ProofService {
 
 ```rust
 let config = ClientConfig::new(
-    page_size,                    // RPC 호출당 event 수 (max 1000)
-    poll_interval,                // 새 event를 polling하는 주기
-    max_pagination_iterations,    // checkpoint 경계를 강제하기 전 최대 page 수
-    rpc_timeout,                  // RPC 호출 timeout
+    page_size,                    // Events per RPC call (max 1000)
+    poll_interval,                // How often to poll for new events
+    max_pagination_iterations,    // Max pages before forcing checkpoint boundary
+    rpc_timeout,                  // RPC call timeout
 )?;
 
 let client = AuthenticatedEventsClient::new_with_config(
@@ -231,7 +231,7 @@ let client = AuthenticatedEventsClient::new_with_config(
 
 MMR은 완전 이진 트리("mountain")의 forest이다.
 `n`개의 leaf가 append된 뒤 mountain 크기는 `n`의 이진 표현에서 set된 bit에 대응한다.
-예를 들어 `n = 13 (binary 1101에서 bit 3, 2, 0이 set)`일 때 mountain 크기는 `2^3 = 8`, `2^2 = 4`, `2^0 = 1`이다.
+예를 들어 `n = 13 (1101 in binary with bit 3, 2, and 0 set)`일 때 mountain 크기는 `2^3 = 8`, `2^2 = 4`, `2^0 = 1`이다.
 아래 diagram은 확장된 MMR(내부 node와 leaf)을 보여준다.
 
 `EventStreamHead`의 MMR 상태는 tree height로 index된 digest의 compact vector로 저장되며(전체 확장 트리가 아님), append된 leaf 수에 대해 온체인 상태를 `O(log n)`으로 유지한다.
@@ -274,7 +274,7 @@ leaf(`Lx`)는 consensus commit별 merkle tree digest에 대응하고, 그 merkle
 1. **Genesis Committee**: client는 genesis validator committee public key로 초기화된다
 2. **Trust Ratcheting**: epoch가 바뀌면 client는 새 committee가 이전 committee에 의해 서명되었는지 검증한다
 3. **Checkpoint Verification**: 각 checkpoint summary는 committee의 aggregate signature에 대해 검증된다
-4. **Object Inclusion Proof**: EventStreamHead object가 특정 checkpoint에서 수정되었음이 증명된다
+4. **Object Inclusion Proof**: EventStreamHead 객체가 특정 checkpoint에서 수정되었음이 증명된다
 5. **MMR Verification**: event는 EventStreamHead의 MMR commitment에 대해 검증된다
 
 client는 다음 방식으로 checkpoint 범위를 검증한다:
@@ -300,7 +300,7 @@ client는 epoch 전환과 committee 변경을 자동으로 처리한다.
 - event는 full node에 index되어 있고 pruning되지 않은 경우에만 가져올 수 있다
 - event는 checkpoint 순서대로 소비해야 한다
 - resume checkpoint에서는 EventStreamHead가 업데이트되어 있어야 한다(authenticated event가 발생했어야 한다)
-- package당 하나의 stream만 존재한다(stream_id = package address)
+- 패키지당 하나의 stream만 존재한다(stream_id = 패키지 address)
 - event 수준 MMR inclusion proof는 지원되지 않는다
 
 ## error handling

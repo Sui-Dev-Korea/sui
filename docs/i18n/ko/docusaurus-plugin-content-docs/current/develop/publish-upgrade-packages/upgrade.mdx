@@ -15,7 +15,7 @@ keywords:
 
 Sui smart contracts는 Move 모듈의 컬렉션으로 구성된 변경 불가능한 패키지 object이다. 패키지가 변경 불가능하기 때문에 transaction은 전체 합의 없이도 smart contract에 안전하게 접근할 수 있다(fastpath transactions). 만약 누군가 이러한 패키지를 변경할 수 있다면, 이는 [shared objects](/develop/objects/object-ownership/shared)가 되어 transaction을 완료하기 전에 전체 합의가 필요하다.
 
-그러나 패키지 object를 변경할 수 없다는 점은 코드 개발의 반복적인 특성을 고려할 때 문제가 된다. 빌더는 fastpath transactions의 이점을 계속 누리면서도 자신의 코드를 업데이트하고 다른 개발자의 변경 사항을 가져올 수 있는 능력이 필요하다. 다행히도 Sui 네트워크는 변경 불가능한 속성을 유지하면서 패키지를 업그레이드할 수 있는 메커니즘을 제공한다.
+그러나 패키지 객체를 변경할 수 없다는 점은 코드 개발의 반복적인 특성을 고려할 때 문제가 된다. 빌더는 fastpath 트랜잭션의 이점을 계속 누리면서도 자신의 코드를 업데이트하고 다른 개발자의 변경 사항을 가져올 수 있는 능력이 필요하다. 다행히도 Sui 네트워크는 변경 불가능한 속성을 유지하면서 패키지를 업그레이드할 수 있는 메커니즘을 제공한다.
 
 ## upgrade 고려 사항
 
@@ -50,7 +50,7 @@ Sui smart contracts는 Move 모듈의 컬렉션으로 구성된 변경 불가능
 
 <ImportContent source="info-gas-budget" mode="snippet" />
 
-- `--gas-budget`: 네트워크가 transaction을 취소하기 전에 소모될 수 있는 gas 단위의 최대 수이다.
+- `--gas-budget`: 네트워크가 트랜잭션을 취소하기 전에 소모될 수 있는 gas 단위의 최대 수이다.
 - `--cap`: `UpgradeCap`의 ID이다. 이 ID는 publish 명령의 반환값으로 제공된다.
 
 Move 코드를 사용하여 패키지를 업그레이드하는 개발자는 사용자 정의 업그레이드 정책을 정의하기 위한 타입과 함수에 접근할 수 있다. 예를 들어 Move 개발자는 현재 패키지 소유자와 관계없이 패키지 업그레이드를 허용하지 않기를 원할 수 있다. 이러한 동작을 생성하기 위해 [`make_immutable` function](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/package.md#0x2_package_make_immutable)를 사용할 수 있다. `UpgradeTicket` 및 `Upgrade Receipt`와 같은 사용 가능한 타입을 활용하는 더 고급 정책도 가능하며, 예시는 GitHub의 [custom upgrade policy](https://github.com/MystenLabs/sui/issues/2045#:~:text=Implement%20a%20custom%20upgrade%20policy)를 참조한다.
@@ -87,13 +87,13 @@ public fun increment(c: &mut Counter) {
 
 이전 버전과 업그레이드된 `increment` 함수를 호출하는 호출자가 혼재되어 있으면, 이전 함수는 `Progress` 이벤트를 인지하지 못하므로 프로세스가 실패한다.
 
-함수 정의 불일치와 유사하게, 구조체의 원래 필드와 동기화된 상태로 유지되어야 하는 dynamic fields를 유지 관리하는 과정에서도 문제에 직면할 수 있다. 이러한 문제를 해결하기 위해 업그레이드의 일부로 새로운 타입을 도입하고 사용자를 해당 타입으로 이전하여 하위 호환성을 깨뜨릴 수 있다. 예를 들어 소유권 증명과 같은 증명을 보여주기 위해 owned object를 사용하고 있고, 문제가 있는 코드를 해결하기 위해 패키지의 새 버전을 개발하는 경우 업그레이드된 패키지에 새로운 타입을 도입할 수 있다. 그런 다음 이전 object를 새로운 object로 교환하는 함수를 패키지에 추가할 수 있다. 로직이 새로운 타입을 가진 object만 인식하므로 사용자가 사실상 업그레이드하도록 강제하게 된다.
+함수 정의 불일치와 유사하게, 구조체의 원래 필드와 동기화된 상태로 유지되어야 하는 dynamic 필드를 유지 관리하는 과정에서도 문제에 직면할 수 있다. 이러한 문제를 해결하기 위해 업그레이드의 일부로 새로운 타입을 도입하고 사용자를 해당 타입으로 이전하여 하위 호환성을 깨뜨릴 수 있다. 예를 들어 소유권 증명과 같은 증명을 보여주기 위해 소유 객체를 사용하고 있고, 문제가 있는 코드를 해결하기 위해 패키지의 새 버전을 개발하는 경우 업그레이드된 패키지에 새로운 타입을 도입할 수 있다. 그런 다음 이전 객체를 새로운 객체로 교환하는 함수를 패키지에 추가할 수 있다. 로직이 새로운 타입을 가진 객체만 인식하므로 사용자가 사실상 업그레이드하도록 강제하게 된다.
 
-사용자가 최신 패키지로 업데이트하도록 하는 또 다른 예로는 패키지에 장부 관리를 위한 shared object가 있는데, 해당 로직에 결함이 있어 기대한 대로 동작하지 않는 경우가 있다. 이전 예와 마찬가지로, 올바른 로직을 가진 업그레이드된 패키지에 정의된 object만 사용자가 사용하도록 하려면 패키지 업그레이드에 새로운 타입과 마이그레이션 함수를 추가한다. 이 프로세스에는 두 개의 transaction이 필요하며, 하나는 업그레이드를 위한 것이고 다른 하나는 기존 shared object를 대체하는 새로운 shared object를 설정하기 위해 업그레이드된 패키지에서 호출하는 것이다. 설정 함수를 보호하기 위해 패키지의 일부로 `AdminCap` object 또는 이와 유사한 것을 생성하여 패키지 소유자인 본인만 해당 함수를 시작할 수 있는 권한을 갖도록 해야 한다. 아마도 더 유용한 방법으로는 shared object에 플래그를 포함시켜 패키지 소유자인 본인이 해당 shared object의 활성화 상태를 전환할 수 있도록 할 수 있다. 마이그레이션을 수행하는 동안 온체인 public에서 해당 object에 대한 접근을 방지하기 위해 활성화 상태를 확인하는 검사를 추가할 수 있다. 물론 이러한 플래그는 로직에 결함이 있는 object를 의도적으로 개발하기 때문이 아니라, 향후 어느 시점에 이와 같은 마이그레이션을 수행할 가능성이 있다고 예상되는 경우에만 생성할 것이다.
+사용자가 최신 패키지로 업데이트하도록 하는 또 다른 예로는 패키지에 장부 관리를 위한 공유 객체가 있는데, 해당 로직에 결함이 있어 기대한 대로 동작하지 않는 경우가 있다. 이전 예와 마찬가지로, 올바른 로직을 가진 업그레이드된 패키지에 정의된 객체만 사용자가 사용하도록 하려면 패키지 업그레이드에 새로운 타입과 마이그레이션 함수를 추가한다. 이 프로세스에는 두 개의 트랜잭션이 필요하며, 하나는 업그레이드를 위한 것이고 다른 하나는 기존 공유 객체를 대체하는 새로운 공유 객체를 설정하기 위해 업그레이드된 패키지에서 호출하는 것이다. 설정 함수를 보호하기 위해 패키지의 일부로 `AdminCap` 객체 또는 이와 유사한 것을 생성하여 패키지 소유자인 본인만 해당 함수를 시작할 수 있는 권한을 갖도록 해야 한다. 아마도 더 유용한 방법으로는 공유 객체에 플래그를 포함시켜 패키지 소유자인 본인이 해당 공유 객체의 활성화 상태를 전환할 수 있도록 할 수 있다. 마이그레이션을 수행하는 동안 온체인 public에서 해당 객체에 대한 접근을 방지하기 위해 활성화 상태를 확인하는 검사를 추가할 수 있다. 물론 이러한 플래그는 로직에 결함이 있는 객체를 의도적으로 개발하기 때문이 아니라, 향후 어느 시점에 이와 같은 마이그레이션을 수행할 가능성이 있다고 예상되는 경우에만 생성할 것이다.
 
-### Versioned shared objects
+### Versioned 공유 객체
 
-shared object를 포함하는 패키지를 생성할 때는 **패키지의 모든 이전 버전이 온체인에 계속 존재한다**는 점을 고려하여 처음부터 업그레이드와 버저닝을 염두에 두어야 한다. 유용한 패턴은 shared object에 버저닝을 도입하고 버전 검사를 사용하여 패키지의 함수에 대한 접근을 보호하는 것으로, 이를 통해 패키지의 최신 버전에만 shared object에 대한 접근을 제한할 수 있다.
+공유 객체를 포함하는 패키지를 생성할 때는 **패키지의 모든 이전 버전이 온체인에 계속 존재한다**는 점을 고려하여 처음부터 업그레이드와 버저닝을 염두에 두어야 한다. 유용한 패턴은 공유 객체에 버저닝을 도입하고 버전 검사를 사용하여 패키지의 함수에 대한 접근을 보호하는 것으로, 이를 통해 패키지의 최신 버전에만 공유 객체에 대한 접근을 제한할 수 있다.
 
 앞서 살펴본 `counter` 예제는, 처음에는 다음과 같은 형태로 시작했을수도 있다:
 
@@ -117,32 +117,32 @@ public fun increment(c: &mut Counter) {
 }
 ```
 
-이 패키지에 대한 업그레이드가 shared object에 대한 접근을 패키지의 최신 버전으로 제한할 수 있도록 하려면 다음을 수행해야 한다:
+이 패키지에 대한 업그레이드가 공유 객체에 대한 접근을 패키지의 최신 버전으로 제한할 수 있도록 하려면 다음을 수행해야 한다:
 
 1. 상수 `VERSION`에 모듈의 현재 버전을 추적한다.
-2. 새로운 `version` 필드에서 shared object인 `Counter`의 현재 버전을 추적한다.
-3. 권한이 필요한 호출을 보호하기 위해 `AdminCap`를 도입하고, 새로운 필드를 통해 `Counter`를 해당 `AdminCap`와 연결한다(이미 shared object 관리를 위한 유사한 타입이 있다면 이를 재사용할 수 있다). 이 cap은 shared object를 버전 간에 마이그레이션하는 호출을 보호하는 데 사용된다.
-4. shared object에 접근하는 모든 함수의 엔트리를 해당 `version`이 패키지 `VERSION`과 일치하는지 확인하는 검사로 보호한다.
+2. 새로운 `version` 필드에서 공유 객체인 `Counter`의 현재 버전을 추적한다.
+3. 권한이 필요한 호출을 보호하기 위해 `AdminCap`를 도입하고, 새로운 필드를 통해 `Counter`를 해당 `AdminCap`와 연결한다(이미 공유 객체 관리를 위한 유사한 타입이 있다면 이를 재사용할 수 있다). 이 cap은 공유 객체를 버전 간에 마이그레이션하는 호출을 보호하는 데 사용된다.
+4. 공유 객체에 접근하는 모든 함수의 엔트리를 해당 `version`이 패키지 `VERSION`과 일치하는지 확인하는 검사로 보호한다.
 
 이러한 모든 아이디어를 통합한 업그레이드 인식 `counter` 모듈은 다음과 같다:
 
 ```move
 module example::counter;
 
-/// 이 카운터에 대한 올바른 관리자가 아님
+/// Not the right admin for this counter
 const ENotAdmin: u64 = 0;
 
-/// 잘못된 패키지 버전에서 함수 호출
+/// Calling functions from the wrong package version
 const EWrongVersion: u64 = 1;
 
-// 1. 모듈의 현재 버전을 추적
+// 1. Track the current version of the module
 const VERSION: u64 = 1;
 
 public struct Counter has key {
     id: UID,
-    // 2. shared object의 현재 버전을 추적
+    // 2. Track the current version of the shared object
     version: u64,
-    // 3. `Counter`를 해당 `AdminCap`과 연결
+    // 3. Associate the `Counter` with its `AdminCap`
     admin: ID,
     value: u64,
 }
@@ -165,8 +165,8 @@ fun init(ctx: &mut TxContext) {
 }
 
 public fun increment(c: &mut Counter) {
-    // 4. shared object에 접근하는 모든 함수의 엔트리를 보호
-    //    버전 검사를 통해 보호
+    // 4. Guard the entry of all functions that access the shared object
+    //    with a version check.
     assert!(c.version == VERSION, EWrongVersion);
     c.value = c.value + 1;
 }
@@ -175,7 +175,7 @@ public fun increment(c: &mut Counter) {
 이 패턴을 사용하여 모듈을 업그레이드하려면 업그레이드에 필요한 구현 변경 사항 외에도 두 가지 추가 변경을 수행해야 한다:
 
 1. 패키지의 `VERSION`을 증가시킨다.
-2. shared object를 업그레이드하기 위해 `migrate` 함수를 도입한다.
+2. 공유 객체를 업그레이드하기 위해 `migrate` 함수를 도입한다.
 
 다음 모듈은 앞서 논의한 대로 `Progress` 이벤트를 발생시키는 업그레이드된 `counter`이며, 관리자(`AdminCap` 보유자)가 이전 패키지 버전에서 카운터에 접근하는 것을 방지할 수 있는 도구도 제공한다:
 
@@ -184,16 +184,16 @@ module example::counter;
 
 use sui::event;
 
-/// 이 카운터에 대한 올바른 관리자가 아님
+/// Not the right admin for this counter
 const ENotAdmin: u64 = 0;
 
-/// 마이그레이션은 업그레이드가 아님
+/// Migration is not an upgrade
 const ENotUpgrade: u64 = 1;
 
-/// 잘못된 패키지 버전에서 함수 호출
+/// Calling functions from the wrong package version
 const EWrongVersion: u64 = 2;
 
-// 1. 패키지의 `VERSION`을 증가
+// 1. Bump the `VERSION` of the package.
 const VERSION: u64 = 2;
 
 public struct Counter has key {
@@ -235,7 +235,7 @@ public fun increment(c: &mut Counter) {
     }
 }
 
-// 2. migrate 함수 도입
+// 2. Introduce a migrate function
 entry fun migrate(c: &mut Counter, a: &AdminCap) {
     assert!(c.admin == object::id(a), ENotAdmin);
     assert!(c.version < VERSION, ENotUpgrade);
@@ -243,26 +243,26 @@ entry fun migrate(c: &mut Counter, a: &AdminCap) {
 }
 ```
 
-이 버전의 패키지로 업그레이드하려면 패키지 업그레이드를 수행한 다음 후속 transaction에서 `migrate` 함수를 호출해야 한다. `migrate` 함수는 다음과 같은 점에 유의해야 한다:
+이 버전의 패키지로 업그레이드하려면 패키지 업그레이드를 수행한 다음 후속 트랜잭션에서 `migrate` 함수를 호출해야 한다. `migrate` 함수는 다음과 같은 점에 유의해야 한다:
 
-- `entry` 함수이며 **`public`이 아니다**. 이는 이후 업그레이드에서 해당 함수를 완전히 변경하거나(시그니처 변경 포함) 아예 제거하는 것을 가능하게 한다.
+- `entry` 함수가며 **`public`이 아니다**. 이는 이후 업그레이드에서 해당 함수를 완전히 변경하거나(시그니처 변경 포함) 아예 제거하는 것을 가능하게 한다.
 - `AdminCap`을 인자로 받아 해당 ID가 마이그레이션되는 카운터의 ID와 일치하는지 확인함으로써 이를 권한이 필요한 작업으로 만든다.
-- 모듈의 버전이 실제로 해당 object에 대한 업그레이드인지 확인하는 정상성 검사를 포함한다. 이는 업그레이드 전에 모듈 버전을 증가시키지 못하는 것과 같은 오류를 발견하는 데 도움이 된다.
+- 모듈의 버전이 실제로 해당 객체에 대한 업그레이드인지 확인하는 정상성 검사를 포함한다. 이는 업그레이드 전에 모듈 버전을 증가시키지 못하는 것과 같은 오류를 발견하는 데 도움이 된다.
 
 업그레이드가 성공적으로 완료된 이후에는 이전 버전의 패키지에서 `increment`를 호출하면 버전 검사에서 중단되고, 이후 버전에서의 호출은 성공해야 한다.
 
 ### Extensions
 
-이 패턴은 shared object를 포함하는 업그레이드 가능한 패키지의 기초를 이루지만, 패키지의 요구 사항에 따라 여러 방식으로 확장할 수 있다:
+이 패턴은 공유 객체를 포함하는 업그레이드 가능한 패키지의 기초를 이루지만, 패키지의 요구 사항에 따라 여러 방식으로 확장할 수 있다:
 
 - 버전 제약 조건은 더 표현력 있게 만들 수 있다:
     - 단일 `u64`를 사용하는 대신, 버전을 `String`으로 지정하거나 상한과 하한의 쌍으로 지정할 수 있다.
-    - shared object에 dynamic fields로 마커 타입을 추가하거나 제거함으로써 특정 함수 또는 함수 집합에 대한 접근을 제어할 수 있다.
-- `migrate` 함수는 더 정교하게 만들 수 있으며(shared object의 다른 필드를 수정하거나, dynamic fields를 추가 또는 제거하거나, 여러 shared object를 동시에 마이그레이션하는 등).
-- 여러 transaction에 걸쳐 실행되어야 하는 대규모 마이그레이션은 세 단계 설정으로 구현할 수 있다:
-    - `AdminCap`으로 보호된 호출을 사용하여 shared object의 버전을 센티널 값(예: `U64_MAX`)으로 설정함으로써 일반적인 접근을 비활성화한다.
-    - 여러 transaction에 걸쳐 마이그레이션을 실행한다(예: 많은 양의 object를 이동해야 하는 경우 transaction 한도에 도달하는 것을 피하기 위해 배치로 수행하는 것이 가장 좋다).
-    - shared object의 버전을 다시 사용 가능한 값으로 설정한다.
+    - 공유 객체에 dynamic 필드로 마커 타입을 추가하거나 제거함으로써 특정 함수 또는 함수 집합에 대한 접근을 제어할 수 있다.
+- `migrate` 함수는 더 정교하게 만들 수 있으며(공유 객체의 다른 필드를 수정하거나, dynamic 필드를 추가 또는 제거하거나, 여러 공유 객체를 동시에 마이그레이션하는 등).
+- 여러 트랜잭션에 걸쳐 실행되어야 하는 대규모 마이그레이션은 세 단계 설정으로 구현할 수 있다:
+    - `AdminCap`으로 보호된 호출을 사용하여 공유 객체의 버전을 센티널 값(예: `U64_MAX`)으로 설정함으로써 일반적인 접근을 비활성화한다.
+    - 여러 트랜잭션에 걸쳐 마이그레이션을 실행한다(예: 많은 양의 객체를 이동해야 하는 경우 트랜잭션 한도에 도달하는 것을 피하기 위해 배치로 수행하는 것이 가장 좋다).
+    - 공유 객체의 버전을 다시 사용 가능한 값으로 설정한다.
 
 ## 예시
 
@@ -293,7 +293,7 @@ $ sui client publish
 INCLUDING DEPENDENCY Sui
 INCLUDING DEPENDENCY MoveStdlib
 BUILDING my_first_package
-Successfully verified dependencies on-chain against source.
+Successfully verified dependencies onchain against source.
 Transaction Digest: GPSpH264CjQPaXQPpMHpkzyGidZnQFvd1yUH5s9ncesi
 ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ Transaction Data                                                                                             │
@@ -445,7 +445,7 @@ Transaction Digest: GPSpH264CjQPaXQPpMHpkzyGidZnQFvd1yUH5s9ncesi
 
 결과에는 업그레이드에 필요한 두 가지 정보인 `UpgradeCap` ID와 패키지 ID를 포함한 **Object changes** 섹션이 포함된다.
 
-응답에서 `Object.objectType` 값을 사용하여 서로 다른 object를 식별할 수 있다. `UpgradeCap` 항목은 `String("0x2::package::UpgradeCap")` 값을 가지며, 패키지에 대한 `objectType`은 `String("<PACKAGE-ID>::sui_package::<MODULE-NAME>")`로 표시된다.
+응답에서 `Object.objectType` 값을 사용하여 서로 다른 객체를 식별할 수 있다. `UpgradeCap` 항목은 `String("0x2::package::UpgradeCap")` 값을 가지며, 패키지에 대한 `objectType`은 `String("<PACKAGE-ID>::sui_package::<MODULE-NAME>")`로 표시된다.
 
 <Tabs>
 

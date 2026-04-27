@@ -584,13 +584,13 @@ Dynamic field operation은 이제 cache 상태에 따라 다른 비용을 청구
 - 같은 transaction 안에서 **작은 집합의 dynamic field를 반복해서 읽는 경우**
 - **dynamic field를 생성한 뒤** 같은 transaction 안에서 다시 접근하는 경우
 
-이제 이러한 경우는 cache를 인식하는 할인과 "transaction 내 생성" 할인 혜택을 받는다.
+이제 이 경우는 cache를 인식하는 할인과 "transaction 내 생성" 할인 혜택을 받는다.
 
 #### 2차 효과
 
 대부분의 다른 instruction 및 stack-metering 변경은 규모가 크지 않으며, compilation 최적화로 가는 길을 닦아준다.
 
-시간이 지나면 가능한 한 copy보다 local move를 선호하도록 compiler가 작업하면, compiler는 이러한 변경에서 도입된 `MoveLoc` 비용 감소의 이점을 활용할 수 있게 될 것이다.
+시간이 지나면 가능한 한 copy보다 local move를 선호하도록 compiler가 작업하면, compiler는 이 변경에서 도입된 `MoveLoc` 비용 감소의 이점을 활용할 수 있게 될 것이다.
 
 </details>
 
@@ -641,7 +641,7 @@ public fun cool(h: HotPotato) { ... }
 2: ex::m::spend(Input(0)); // Valid! Input(0) is not hot
 ```
 
-아래에서는 이러한 규칙이 왜 존재하는지와 규칙이 어떻게 정의되는지 더 깊이 살펴본다.
+아래에서는 이 규칙이 왜 존재하는지와 규칙이 어떻게 정의되는지 더 깊이 살펴본다.
 
 #### 새 규칙
 
@@ -693,7 +693,7 @@ public fun repay(bank: &mut Bank, loan: Loan, repayment: Balance<SUI>) {
 
 PTB에서 `issue`가 호출되면, 생성된 `Loan` hot potato가 `repay` 호출로 파괴되지 않는 한 transaction은 성공하지 않는다.
 
-non-public `entry` function에 대한 우리의 목표는 어떤 argument도 이러한 flash loan, 또는 유사한 hot potato 시나리오에 관여하지 않도록 보장하는 것이다.
+non-public `entry` function에 대한 우리의 목표는 어떤 argument도 이 flash loan, 또는 유사한 hot potato 시나리오에 관여하지 않도록 보장하는 것이다.
 
 다시 말해 non-public `entry` function의 argument는 `entry` function 호출 이후 PTB에서 동작을 강제하는 방식으로 얽힐 수 없다.
 
@@ -797,7 +797,7 @@ command `1`에서 생성된 `Coin`이 command `0`의 flash loan에 직접 관여
 
 즉 정적인 규칙 집합은 보통 동적인 규칙 집합보다 설명하고 따르기가 더 쉽다.
 
-하지만 [party objects](https://docs.sui.io/develop/objects/object-ownership/party)는 shared object보다 더 좁은 경우에만 이 제한을 받게 될 것이다.
+하지만 [party objects](https://docs.sui.io/guides/developer/objects/object-ownership/party)는 shared object보다 더 좁은 경우에만 이 제한을 받게 될 것이다.
 
 따라서 우리는 정적 시스템의 명확성을 희생하지 않고도 장기적으로 이 제한이 수용 가능하다고 본다.
 
@@ -822,8 +822,8 @@ command `1`에서 생성된 `Coin`이 command `0`의 flash loan에 직접 관여
 [#23737](https://github.com/MystenLabs/sui/pull/23737): 이 PR은 [[#24192](https://github.com/MystenLabs/sui/pull/24192)]([#2419](https://github.com/MystenLabs/sui/pull/2419)2)와 함께 indexer가 ingestion 시작 지점을 결정하는 방식을 통합하고 watermark로 게이트된 backfill task를 도입한다.
 
 1. `--skip-watermark`는 제거되며, concurrent pipeline에 대한 watermark safety check를 우회하던 이전 기능은 더 이상 지원되지 않는다.
-2. `--first-checkpoint`는 더 이상 indexer가 구성된 checkpoint에서 ingestion을 시작하도록 강제하지 않는다. 이제 indexer는 항상 모든 pipeline에서 다음 checkpoint의 최소값을 시작 ingestion 지점으로 결정해 처리를 재개한다. 이번 release부터 `--first-checkpoint`는 아직 committer watermark가 없는 pipeline에만 적용되며, 이러한 pipeline은 구성된 값에서 처리를 재개하고, 기존 watermark가 있는 pipeline은 항상 자신의 다음 checkpoint에서 처리를 재개한다.
-3. 새 메커니즘인 watermark task는 운영자가 이력 backfill을 위해 여러 indexer instance에서 같은 pipeline을 실행할 수 있게 한다. 새 플래그 `--task`와 `--reader-interval-ms`가 이 메커니즘을 활성화한다. 이 플래그는 checkpoint가 대응하는 main pipeline의 `reader_lo` watermark보다 낮지 않은 한 checkpoint 데이터를 커밋하는 tasked indexer를 생성하며, indexer는 `--reader-interval-ms`에 따라 이러한 tasked pipeline이 main pipeline의 watermark를 얼마나 자주 poll할지 제어한다.
+2. `--first-checkpoint`는 더 이상 indexer가 구성된 checkpoint에서 ingestion을 시작하도록 강제하지 않는다. 이제 indexer는 항상 모든 pipeline에서 다음 checkpoint의 최소값을 시작 ingestion 지점으로 결정해 처리를 재개한다. 이번 release부터 `--first-checkpoint`는 아직 committer watermark가 없는 pipeline에만 적용되며, 이 pipeline은 구성된 값에서 처리를 재개하고, 기존 watermark가 있는 pipeline은 항상 자신의 다음 checkpoint에서 처리를 재개한다.
+3. 새 메커니즘인 watermark task는 운영자가 이력 backfill을 위해 여러 indexer instance에서 같은 pipeline을 실행할 수 있게 한다. 새 플래그 `--task`와 `--reader-interval-ms`가 이 메커니즘을 활성화한다. 이 플래그는 checkpoint가 대응하는 main pipeline의 `reader_lo` watermark보다 낮지 않은 한 checkpoint 데이터를 커밋하는 tasked indexer를 생성하며, indexer는 `--reader-interval-ms`에 따라 이 tasked pipeline이 main pipeline의 watermark를 얼마나 자주 poll할지 제어한다.
 
 Migration guidance:
 1. `--first-checkpoint`를 새 pipeline의 _초기_ ingestion에만 사용한다면 추가 조치는 필요 없다.

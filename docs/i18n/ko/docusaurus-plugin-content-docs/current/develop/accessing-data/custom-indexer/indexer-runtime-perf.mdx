@@ -8,11 +8,11 @@ keywords: [ sui indexer performance, indexer optimization, tokio console debuggi
 
 적절한 구성과 리소스 모니터링은 가능한 가장 성능 좋은 custom indexer를 제공한다. 예를 들면:
 
-- 수집, 데이터베이스 connections, pipeline 선택을 위한 런타임 구성 옵션과 `tokio_console` 같은 디버깅 도구의 목적 있는 사용은 indexer 성능을 세밀하게 조정하는 데 도움이 된다. 
+- 수집, 데이터베이스 connections, pipeline 선택을 위한 런타임 구성 옵션과 `tokio_console` 같은 디버깅 도구의 목적 있는 사용은 indexer 성능을 세밀하게 조정하는 데 도움이 된다.
 
-- 테이블에 대한 효율적인 데이터 pruning을 목표로 한 합리적인 전략은 시간이 지나도 성능을 유지하게 한다. 
+- 테이블에 대한 효율적인 데이터 pruning을 목표로 한 합리적인 전략은 시간이 지나도 성능을 유지하게 한다.
 
-- Prometheus metrics를 노출하고 확장하는 best practices를 따르면 indexer 성능을 추적하는 데 도움이 된다. 
+- Prometheus metrics를 노출하고 확장하는 best practices를 따르면 indexer 성능을 추적하는 데 도움이 된다.
 
 이 기법들을 함께 사용하면 개발과 프로덕션 모두에서 빠르고, 리소스 효율적이며, 모니터링하기 쉬운 indexers를 운영할 수 있다.
 
@@ -28,12 +28,9 @@ checkpoint 데이터가 어떻게 가져와지고 분배되는지 제어한다:
 use sui_indexer_alt_framework::config::ConcurrencyConfig;
 
 let ingestion_config = IngestionConfig {
-    // Buffer size across all downstream workers (default: 5000)
-    checkpoint_buffer_size: 10000,
-
     // Concurrency for checkpoint fetches.
     // Adaptive by default: starts at 1 and scales up to 500 based on
-    // downstream channel pressure.
+    // the slowest subscriber's channel fill fraction.
     ingest_concurrency: ConcurrencyConfig::Adaptive {
         initial: 1,
         min: 1,
@@ -62,8 +59,8 @@ let ingestion_config = IngestionConfig {
 
 **Tuning guidelines:**
 
-- `checkpoint_buffer_size`: 높은 처리량 시나리오에서는 늘리고 메모리 사용량을 줄이려면 낮춘다.
-- `ingest_concurrency`: 동시에 실행되는 checkpoint fetch 수를 제어한다. 기본적으로 이는 adaptive이며 1에서 시작해 downstream broadcast channel이 얼마나 차 있는지에 따라 최대 500까지 확장된다. 컨트롤러는 진동을 피하기 위해 dead band(채움률 60%–85%)를 사용하며 channel이 빠르게 비워질 때는 concurrency를 늘리고 적체될 때는 줄인다. 정적 한도를 위해 `ConcurrencyConfig::Fixed`로 재정의하거나 adaptive bounds를 커스터마이즈할 수 있다. Adaptive controller는 채움 비율 임곗값을 재정의하기 위한 `dead_band` parameter도 노출하지만 기본값은 대부분의 워크로드에서 잘 동작한다.
+- `ingest_concurrency`: 높은 처리량 시나리오에서는 늘리고 메모리 사용량을 줄이려면 낮춘다.
+- `ConcurrencyConfig::Fixed`: 동시에 실행되는 checkpoint fetch 수를 제어한다. 기본적으로 이는 adaptive이며 1에서 시작해 downstream broadcast channel이 얼마나 차 있는지에 따라 최대 500까지 확장된다. 컨트롤러는 진동을 피하기 위해 dead band(채움률 60%–85%)를 사용하며 channel이 빠르게 비워질 때는 concurrency를 늘리고 적체될 때는 줄인다. 정적 한도를 위해 `dead_band`로 재정의하거나 adaptive bounds를 커스터마이즈할 수 있다. Adaptive controller는 채움 비율 임곗값을 재정의하기 위한 `{Sequential,Concurrent}Config::ingestion` parameter도 노출하지만 기본값은 대부분의 워크로드에서 잘 동작한다.
 - `retry_interval_ms`: 값이 낮을수록 실시간 데이터의 지연 시간이 줄고 값이 높을수록 불필요한 재시도가 줄어든다.
 - `streaming_backoff_initial_batch_size`: 초기 스트리밍 실패 후 polling을 통해 처리할 checkpoints 수이다. 값이 낮을수록 스트리밍 복구가 빨라지고 값이 높을수록 연결 시도가 줄어든다.
 - `streaming_backoff_max_batch_size`: 반복 실패 후 polling을 통해 처리할 최대 checkpoints 수이다. 배치 크기는 초기 크기에서 이 최대값까지 지수적으로 증가한다. 값이 높을수록 장시간 장애 동안 연결 시도가 줄어든다.
@@ -76,10 +73,10 @@ let ingestion_config = IngestionConfig {
 let db_args = DbArgs {
     // Connection pool size (default: 100)
     db_connection_pool_size: 200,
-    
+
     // Connection timeout in ms (default: 60,000)
     db_connection_timeout_ms: 30000,
-    
+
     // Statement timeout in ms (default: None)
     db_statement_timeout_ms: Some(120000),
 };
@@ -93,7 +90,7 @@ let db_args = DbArgs {
 
 ### command-line 인자
 
-처리를 집중하는 데 도움이 되도록 다음 명령줄 인수를 포함한다. 이 값들은 예시를 위한 것이다. 환경과 목표에 맞는 값을 사용하라. 
+처리를 집중하는 데 도움이 되도록 다음 명령줄 인수를 포함한다. 이 값들은 예시를 위한 것이다. 환경과 목표에 맞는 값을 사용하라.
 
 ```sh
 # Checkpoint range control
@@ -139,7 +136,7 @@ Tokio console은 특히 다음에 유용하다:
 
 1. Add dependencies
 
-    `Cargo.toml`에 `telemetry_subscribers` dependency를 추가한다:
+    `telemetry_subscribers`에 `Cargo.toml` dependency를 추가한다:
 
     ```rust
     [dependencies]
@@ -172,7 +169,7 @@ Tokio console은 특히 다음에 유용하다:
 
     **Flag explanations:**
 
-    - `TOKIO_CONSOLE=1`: `telemetry_subscribers`에서 `tokio-console` 통합을 활성화한다.
+    - `TOKIO_CONSOLE=1`: `tokio-console`에서 `telemetry_subscribers` 통합을 활성화한다.
     - `RUSTFLAGS="--cfg tokio_unstable"`: `tokio-console`이 task instrumentation 데이터를 수집하는 데 필요하다.
 
 1. Launch the console dashboard
@@ -203,18 +200,18 @@ console dashboard, 사용 가능한 views, warnings, diagnostic capabilities에 
 
 ### 내장 metrics
 
-프레임워크는 수집, pipeline 처리, 데이터베이스 작업, 워터마크 관리 전반에 걸친 광범위한 metrics를 추적한다. 사용 가능한 metrics의 전체 목록과 설명은 [`sui-indexer-alt-framework/src/metrics.rs`](https://github.com/MystenLabs/sui/blob/main/crates/sui-indexer-alt-framework/src/metrics.rs)의 `IndexerMetrics` struct를 참조하라.
+프레임워크는 수집, pipeline 처리, 데이터베이스 작업, 워터마크 관리 전반에 걸친 광범위한 metrics를 추적한다. 사용 가능한 metrics의 전체 목록과 설명은 [`IndexerMetrics`](https://github.com/MystenLabs/sui/blob/main/crates/sui-indexer-alt-framework/src/metrics.rs)의 `sui-indexer-alt-framework/src/metrics.rs` struct를 참조하라.
 
 주요 metric 범주는 다음을 포함한다:
 
-- **Ingestion metrics:** 전역 checkpoint 및 transaction 처리 통계.
+- **Ingestion metrics:** 전역 checkpoint 및 트랜잭션 처리 통계.
 - **Pipeline metrics:** pipeline 이름으로 라벨링된 pipeline별 처리 성능.
 - **Database metrics:** batch 처리, commit 지연 시간, 실패율.
 - **Watermark metrics:** 진행 상황 추적과 지연 측정.
 
 ### metrics 접근
 
-기본적으로 metrics는 [Prometheus format](https://prometheus.io/docs/concepts/data_model/)의 `0.0.0.0:9184/metrics`에서 제공된다. 다음 주소로 재정의할 수 있다:
+기본적으로 metrics는 [Prometheus format](https://prometheus.io/docs/develop/sui-architecture/object-model)의 `0.0.0.0:9184/metrics`에서 제공된다. 다음 주소로 재정의할 수 있다:
 
 - 명령줄을 통해:
 
@@ -280,7 +277,7 @@ Partition 크기는 핵심적인 절충점이다. 읽기 윈도우 밖으로 벗
 
 ### 구현
 
-Partition 관리를 단순화하기 위해 `pg_partman`을 사용할 수 있다. `create_parent`로 partitioned table을 구성한 다음 주기적으로 `run_maintenance`를 실행하는 cron job을 둔다. `run_maintenance`의 올바른 주기를 결정하려면 반복 조정이 필요할 수 있다. 
+Partition 관리를 단순화하기 위해 `pg_partman`을 사용할 수 있다. `create_parent`로 partitioned table을 구성한 다음 주기적으로 `run_maintenance`를 실행하는 cron job을 둔다. `run_maintenance`의 올바른 주기를 결정하려면 반복 조정이 필요할 수 있다.
 
 :::info
 
@@ -343,7 +340,7 @@ BEGIN
         -- Table is already managed
         result_message := 'EXISTS: Table ' || full_table_name || ' is already managed by pg_partman';
     END IF;
-    
+
     RETURN result_message;
 END;
 $$ LANGUAGE plpgsql;
@@ -371,7 +368,7 @@ FROM part_config
 ORDER BY parent_table;
 
 -- Check maintenance job is scheduled
-SELECT jobid, schedule, command, nodename, database, username 
+SELECT jobid, schedule, command, nodename, database, username
 FROM cron.job
 WHERE command = 'SELECT run_maintenance()';
 ```

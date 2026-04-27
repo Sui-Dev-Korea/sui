@@ -7,11 +7,11 @@ pagination_prev: null
 
 import React from 'react';
 
-Sui 개발에 사용할 수 있는 도구를 살펴본다. 각 도구에는 설명, 설치 명령, source 링크가 포함되어 있다.
+Sui 개발에 사용할 수 있는 도구를 살펴본다. 각 도구에는 설명, 설치 명령, 소스 링크가 포함되어 있다.
 
 :::caution
 
-커뮤니티 태그가 붙은 도구는 third-party 개발자가 유지 관리한다. Mysten Labs, Sui Foundation, Walrus Foundation은 해당 도구의 기능, 보안, 최신 platform update와의 호환성을 보장하지 않는다.
+커뮤니티 태그가 붙은 도구는 서드파티 개발자가 유지 관리한다. Mysten Labs, Sui Foundation, Walrus Foundation은 해당 도구의 기능, 보안, 최신 platform update와의 호환성을 보장하지 않는다.
 
 :::
 
@@ -301,7 +301,7 @@ export const ToolGrid = ({ children }) => (
 <ToolGrid>
 <ToolCard
   name="suiup"
-  description="Sui toolchain의 installer와 version manager이다. sui, mvr, move-analyzer, walrus 및 기타 Sui binary를 설치하고 관리한다."
+  description="Sui toolchain의 installer와 version manager이다. sui, mvr, move-analyzer, walrus 및 기타 Sui 바이너리를 설치하고 관리한다."
   github="https://github.com/MystenLabs/suiup"
   install="curl -sSfL https://raw.githubusercontent.com/MystenLabs/suiup/main/install.sh | sh"
   docs="/getting-started/onboarding/sui-install"
@@ -309,10 +309,10 @@ export const ToolGrid = ({ children }) => (
 
 <ToolCard
   name="Sui CLI"
-  description="핵심 Sui command-line interface이다. sui move, sui client, sui replay 및 기타 subcommand를 포함한다."
+  description="핵심 Sui command-line interface이다. sui move, sui client, sui replay 및 기타 하위 명령을 포함한다."
   github="https://github.com/MystenLabs/sui"
   install="suiup install sui@testnet or suiup install sui@mainnet"
-  notes="brew install sui 또는 cargo install로도 사용할 수 있다. version pinning에는 suiup을 사용한다."
+  notes="brew install sui 또는 cargo install로도 사용할 수 있다. 버전 pinning에는 suiup을 사용한다."
   docs="/references/cli"
 />
 
@@ -326,7 +326,7 @@ export const ToolGrid = ({ children }) => (
 
 ## Move 작성
 
-Move smart contracts를 작성하기 위한 IDE, editor extension, language tool이다.
+Move 스마트 계약을 작성하기 위한 IDE, editor extension, language tool이다.
 
 <ToolGrid>
 
@@ -342,7 +342,7 @@ Move smart contracts를 작성하기 위한 IDE, editor extension, language tool
 
 <ToolCard
   name="Prettier Move Plugin"
-  description="tree-sitter 기반 Prettier plugin을 사용하는 공식 Move code formatter이다."
+  description="tree-sitter 기반 Prettier plugin을 사용하는 공식 Move 코드 포매터이다."
   github="https://github.com/MystenLabs/sui/tree/main/external-crates/move/crates/move-analyzer/prettier-plugin"
   install="npm i -D prettier @mysten/prettier-plugin-move"
   notes="VS Code extension: mysten.prettier-move"
@@ -357,7 +357,7 @@ Move smart contracts를 작성하기 위한 IDE, editor extension, language tool
 
 <ToolCard
   name="Move Registry CLI (MVR)"
-  description="human-readable name, versioning, dependency resolution을 제공하는 Sui용 on-chain package manager이다."
+  description="사람이 읽기 쉬운 이름, 버전 관리, 의존성 해석을 제공하는 Sui용 온체인 패키지 관리자이다."
   github="https://github.com/MystenLabs/mvr"
   install="suiup install mvr"
   notes="사용법: mvr add @deepbook/core, mvr resolve. sui move build와 통합된다."
@@ -366,9 +366,9 @@ Move smart contracts를 작성하기 위한 IDE, editor extension, language tool
 
 <ToolCard
   name="Move Registry"
-  description="Move Registry용 web portal이다. Move package를 browse, search, manage할 수 있다."
+  description="Move Registry용 웹 포털이다. Move 패키지를 찾아보고, 검색하고, 관리할 수 있다."
   github="https://github.com/MystenLabs/mvr"
-  notes="package analytics, name registration, deployment management를 제공한다."
+  notes="패키지 분석, 이름 등록, 배포 관리를 제공한다."
   website="https://www.moveregistry.com/"
 />
 
@@ -382,7 +382,7 @@ Move smart contracts를 작성하기 위한 IDE, editor extension, language tool
 
 <ToolCard
   name="Emacs move-mode"
-  description="Move programming language로 작성된 smart contract를 편집하기 위한 Emacs major-mode이다."
+  description="Move programming language로 작성된 스마트 계약을 편집하기 위한 Emacs major-mode이다."
   github="https://github.com/amnn/move-mode"
   community
 />
@@ -419,7 +419,7 @@ Move smart contracts를 작성하기 위한 IDE, editor extension, language tool
 
 <ToolCard
   name="Sui Extension (zktx.io)"
-  description="editor 안에서 Sui smart contract를 직접 compile, deploy, test하는 VS Code extension이다."
+  description="editor 안에서 Sui 스마트 계약을 직접 compile, deploy, test하는 VS Code extension이다."
   github="https://github.com/zktx-io/sui-extension"
   docs="https://docs.zktx.io/vsce/sui/"
   website="https://marketplace.visualstudio.com/items?itemName=zktxio.sui-extension"
@@ -438,12 +438,12 @@ Move smart contracts를 작성하기 위한 IDE, editor extension, language tool
 
 ## 앱 빌드
 
-frontend toolkit, wallet integration, authentication, app scaffolding 도구이다.
+프런트엔드 toolkit, 지갑 통합, 인증, 앱 scaffolding 도구이다.
 
 <ToolGrid>
 <ToolCard
   name="@mysten/create-dapp"
-  description="Sui app을 생성하는 CLI tool이다."
+  description="Sui 앱을 생성하는 CLI tool이다."
   docs="https://sdk.mystenlabs.com/dapp-kit"
 />
 
@@ -456,36 +456,36 @@ frontend toolkit, wallet integration, authentication, app scaffolding 도구이�
 
 <ToolCard
   name="SuiLink"
-  description="다른 blockchain의 wallet address를 Sui wallet address에 안전하게 연결한다. ownership proof로 soulbound NFT를 받는다."
+  description="다른 블록체인의 지갑 주소를 Sui 지갑 주소에 안전하게 연결한다. 소유권 증명으로 soulbound NFT를 받는다."
   website="https://www.suilink.io/"
 />
 
 <ToolCard
   name="SAGAT"
-  description="multi-party transaction을 propose, sign, manage하기 위한 multisig wallet management platform이다."
+  description="multi-party 트랜잭션을 propose, sign, manage하기 위한 다중 서명 지갑 관리 platform이다."
   github="https://github.com/MystenLabs/sagat"
   install="Self-host (Bun + TypeScript + PostgreSQL)"
-  notes="API backend, React frontend, TypeScript SDK를 포함한다."
+  notes="API 백엔드, React 프런트엔드, TypeScript SDK를 포함한다."
   docs="/sui-stack/sagat"
   website="https://sagat.mystenlabs.com/"
 />
 
 <ToolCard
   name="@mysten/signers"
-  description="Sui KMS Signers package는 AWS KMS, GCP KMS 같은 Key Management Service(KMS)를 사용해 transaction에 안전하게 sign하는 도구 모음을 제공한다."
+  description="Sui KMS Signers 패키지는 AWS KMS, GCP KMS 같은 Key Management Service(KMS)를 사용해 트랜잭션에 안전하게 sign하는 도구 모음을 제공한다."
   docs="https://www.npmjs.com/package/@mysten/signers"
   install="npm i @mysten/signers"
 />
 
 <ToolCard
   name="YubiSui"
-  description="YubiKey 안에 Sui wallet을 만들고 이를 사용해 Sui transaction에 sign한다."
+  description="YubiKey 안에 Sui 지갑을 만들고 이를 사용해 Sui 트랜잭션에 sign한다."
   github="https://github.com/MystenLabs/yubigen"
 />
 
 <ToolCard
   name="Sui dApp Starter"
-  description="React로 Sui project를 scaffold하는 full-stack boilerplate이다."
+  description="React로 Sui 프로젝트를 scaffold하는 full-stack boilerplate이다."
   github="https://github.com/suiware/sui-dapp-starter"
   docs="https://sui-dapp-starter.dev/docs/"
   website="https://demo.sui-dapp-starter.dev/"
@@ -494,7 +494,7 @@ frontend toolkit, wallet integration, authentication, app scaffolding 도구이�
 
 <ToolCard
   name="Suiet Wallet Kit"
-  description="app이 Sui의 모든 wallet type과 쉽게 상호작용하도록 하는 React toolkit이다."
+  description="앱이 Sui의 모든 지갑 타입과 쉽게 상호작용하도록 하는 React toolkit이다."
   github="https://github.com/suiet/wallet-kit"
   docs="https://kit.suiet.app/docs/QuickStart"
   community
@@ -518,7 +518,7 @@ frontend toolkit, wallet integration, authentication, app scaffolding 도구이�
 
 <ToolCard
   name="Sui dApp Scaffold (Bucket Protocol)"
-  description="Sui 기반 decentralized app을 위한 frontend scaffold이다."
+  description="Sui 기반 탈중앙화 앱을 위한 프런트엔드 scaffold이다."
   github="https://github.com/Bucket-Protocol/sui-dapp-scaffold-v1"
   community
 />
@@ -532,7 +532,7 @@ frontend toolkit, wallet integration, authentication, app scaffolding 도구이�
 
 <ToolCard
   name="create-dubhe (Dubhe Engine)"
-  description="Sui에서 새 Dubhe project를 생성한다."
+  description="Sui에서 새 Dubhe 프로젝트를 생성한다."
   github="https://github.com/0xobelisk/dubhe/tree/main/packages/create-dubhe"
   community
 />
@@ -597,12 +597,12 @@ frontend toolkit, wallet integration, authentication, app scaffolding 도구이�
 
 ## 테스트 및 디버깅
 
-unit test, transaction replay, local Move execution debugging을 위한 도구이다.
+단위 테스트, 트랜잭션 replay, 로컬 Move 실행 디버깅을 위한 도구이다.
 
 <ToolGrid>
 <ToolCard
   name="sui replay"
-  description="과거 on-chain transaction을 local에서 다시 실행하고 effects를 비교한다."
+  description="과거 온체인 트랜잭션을 로컬에서 다시 실행하고 effects를 비교한다."
   github="https://github.com/MystenLabs/sui"
   notes="사용법: sui replay --digest <TX_DIGEST>. debugger input에는 --trace를 사용한다."
   docs="/references/cli/replay"
@@ -619,14 +619,14 @@ unit test, transaction replay, local Move execution debugging을 위한 도구�
 
 <ToolCard
   name="Object Display V2 Templates"
-  description="on-chain object용 Display template을 빌드하고 preview한다."
+  description="온체인 객체용 Display template을 빌드하고 preview한다."
   docs="https://docs.sui.io/develop/objects/display/display-preview"
   website="https://docs.sui.io/develop/objects/display/display-preview"
 />
 
 <ToolCard
   name="SuiBase"
-  description="network를 대상으로 하는 별도의 development environment를 정의하는 workdir를 생성한다."
+  description="network를 대상으로 하는 별도 개발 환경을 정의하는 workdir를 생성한다."
   github="https://github.com/chainmovers/suibase"
   docs="https://suibase.io/"
   community
@@ -634,7 +634,7 @@ unit test, transaction replay, local Move execution debugging을 위한 도구�
 
 <ToolCard
   name="Sentio Debugger"
-  description="transaction trace를 보여준다. Mainnet 전용이다."
+  description="트랜잭션 trace를 보여준다. Mainnet 전용이다."
   docs="https://docs.sentio.xyz/docs/debugger"
   website="https://app.sentio.xyz/explorer"
   community
@@ -644,25 +644,25 @@ unit test, transaction replay, local Move execution debugging을 위한 도구�
 
 ### Faucet
 
-Testnet 배포를 위한 test token을 받는다.
+Testnet 배포를 위한 테스트 토큰을 받는다.
 
 <ToolGrid>
 <ToolCard
   name="Sui Faucet"
-  description="개발과 테스트를 위해 Testnet 또는 Devnet SUI token을 요청한다."
+  description="개발과 테스트를 위해 Testnet 또는 Devnet SUI 토큰을 요청한다."
   website="https://faucet.sui.io/"
 />
 
 <ToolCard
   name="N1 Stake Faucet"
-  description="Testnet SUI token을 받기 위한 community-provided faucet이다."
+  description="Testnet SUI 토큰을 받기 위한 커뮤니티 제공 faucet이다."
   website="http://faucet.n1stake.com/"
   community
 />
 
 <ToolCard
   name="SuiLearn Faucet"
-  description="Testnet SUI token을 받기 위한 community-provided faucet이다."
+  description="Testnet SUI 토큰을 받기 위한 커뮤니티 제공 faucet이다."
   website="http://faucet.suilearn.io/"
   community
 />
@@ -670,7 +670,7 @@ Testnet 배포를 위한 test token을 받는다.
 
 ## 보안 및 감사
 
-formal verification, source verification, linting, phishing protection 도구이다.
+형식 검증, 소스 검증, linting, phishing protection 도구이다.
 
 <ToolGrid>
 <ToolCard
@@ -682,7 +682,7 @@ formal verification, source verification, linting, phishing protection 도구이
 
 <ToolCard
   name="Package Source Code Verification"
-  description="WELLDONE Studio와 Blockberry가 제공하는 Suiscan에서 package source code를 verify한다."
+  description="WELLDONE Studio와 Blockberry가 제공하는 Suiscan에서 패키지 소스 코드를 검증한다."
   docs="https://docs.blockberry.one/docs/contract-verification"
   website="https://suiscan.xyz/mainnet/package-verification"
   community
@@ -690,14 +690,14 @@ formal verification, source verification, linting, phishing protection 도구이
 
 <ToolCard
   name="SuiSecBlockList"
-  description="악성 website와 package를 block한다. phishing object를 식별하고 숨긴다."
+  description="악성 웹사이트와 패키지를 차단한다. 피싱 객체를 식별하고 숨긴다."
   github="https://github.com/SuiSec/SuiSecBlockList"
   community
 />
 
 <ToolCard
   name="Guardians"
-  description="Sui용 phishing website protection이다."
+  description="Sui용 피싱 웹사이트 보호 도구이다."
   github="https://github.com/suiet/guardians"
   community
 />
@@ -711,7 +711,7 @@ formal verification, source verification, linting, phishing protection 도구이
 
 <ToolCard
   name="Sui RPC Proxy"
-  description="wallet application과 Sui app이 만든 network request를 monitor하고 analyze한다."
+  description="지갑 애플리케이션과 Sui 앱이 만든 network request를 monitor하고 analyze한다."
   github="https://github.com/SuiSec/sui-rpc-proxy"
   community
 />
@@ -731,7 +731,7 @@ formal verification, source verification, linting, phishing protection 도구이
 
 <ToolCard
   name="ZettaBlock"
-  description="SQL query에서 custom GraphQL 또는 REST API를 생성하고 private off-chain data를 통합한다."
+  description="SQL query에서 custom GraphQL 또는 REST API를 생성하고 private off-chain 데이터를 통합한다."
   docs="https://docs.zettablock.com"
   website="https://zettablock.com/"
   community
@@ -747,7 +747,7 @@ formal verification, source verification, linting, phishing protection 도구이
 
 <ToolCard
   name="BlockVision"
-  description="token, NFT, DeFi를 포함한 Sui indexed data용 pre-built API이다."
+  description="토큰, NFT, DeFi를 포함한 Sui indexed data용 pre-built API이다."
   docs="https://docs.blockvision.org/reference/welcome-to-blockvision"
   website="https://blockvision.org/"
   community
@@ -755,7 +755,7 @@ formal verification, source verification, linting, phishing protection 도구이
 
 <ToolCard
   name="Blockberry (Suiscan)"
-  description="NFT, domain, collection, coin, market data 등 Sui의 주요 entity에 대한 endpoint를 제공하는 API이다."
+  description="NFT, domain, collection, coin, market data 등 Sui의 주요 entity endpoint를 제공하는 API이다."
   docs="https://docs.blockberry.one/reference/sui-quickstart"
   website="https://blockberry.one/"
   community
@@ -763,7 +763,7 @@ formal verification, source verification, linting, phishing protection 도구이
 
 <ToolCard
   name="Space and Time (SxT)"
-  description="AI와 blockchain을 위한 verifiable compute layer이다. sub-second ZK proof를 제공하는 decentralized data warehouse이다."
+  description="AI와 블록체인을 위한 verifiable compute layer이다. sub-second ZK 증명을 제공하는 탈중앙화 data warehouse이다."
   docs="https://docs.spaceandtime.io/"
   website="https://www.spaceandtime.io/"
   community
@@ -795,7 +795,7 @@ formal verification, source verification, linting, phishing protection 도구이
 
 <ToolCard
   name="Surflux"
-  description="Sui용 developer infrastructure이다. API, indexing, real-time data stream으로 production-ready app을 빌드한다."
+  description="Sui용 개발자 infrastructure이다. API, indexing, real-time data stream으로 production-ready 앱을 빌드한다."
   docs="https://docs.surflux.dev/"
   website="https://surflux.dev/"
   community
@@ -803,7 +803,7 @@ formal verification, source verification, linting, phishing protection 도구이
 
 <ToolCard
   name="Indexer Generator"
-  description="지정된 smart contract의 모든 event에 대한 indexer를 생성하는 code generator이다. TypeScript와 Prisma를 사용한다."
+  description="지정된 스마트 계약의 모든 event용 indexer를 생성하는 code generator이다. TypeScript와 Prisma를 사용한다."
   website="https://www.npmjs.com/package/sui-events-indexer"
   community
 />
@@ -823,7 +823,7 @@ block explorer와 network monitoring dashboard이다.
 <ToolGrid>
 <ToolCard
   name="SuiVision"
-  description="transaction, wallet, staking, validator를 다루는 data analytics이다."
+  description="트랜잭션, 지갑, staking, validator를 다루는 data analytics이다."
   docs="https://docs.blockvision.org/reference/integrate-suivision-into-your-dapp"
   website="https://suivision.xyz/"
   community
@@ -839,7 +839,7 @@ block explorer와 network monitoring dashboard이다.
 
 <ToolCard
   name="Polymedia Explorer"
-  description="중단된 Mysten Labs Sui Explorer의 community fork이다. local build 또는 online 사용이 가능하다."
+  description="중단된 Mysten Labs Sui Explorer의 커뮤니티 fork이다. 로컬 빌드 또는 온라인 사용이 가능하다."
   github="https://github.com/juzybits/polymedia-explorer"
   website="https://explorer.polymedia.app"
   community
@@ -870,12 +870,12 @@ block explorer와 network monitoring dashboard이다.
 
 ## 오라클
 
-on-chain contract를 위한 price feed와 off-chain data delivery 도구이다.
+온체인 contract를 위한 price feed와 오프체인 data delivery 도구이다.
 
 <ToolGrid>
 <ToolCard
   name="Pyth Network"
-  description="market data owner를 Sui를 포함한 여러 blockchain의 application과 연결하는 oracle protocol이다."
+  description="market data owner를 Sui를 포함한 여러 블록체인의 애플리케이션과 연결하는 oracle protocol이다."
   docs="https://docs.pyth.network/price-feeds/use-real-time-data/sui"
   website="https://www.pyth.network/"
   community
@@ -883,7 +883,7 @@ on-chain contract를 위한 price feed와 off-chain data delivery 도구이다.
 
 <ToolCard
   name="Supra Oracles"
-  description="pull 및 push model을 통해 reliable data feed를 제공하는 oracle protocol이다."
+  description="pull 및 push model로 reliable data feed를 제공하는 oracle protocol이다."
   docs="https://docs.supra.com/oracles/data-feeds/pull-oracle#sui"
   website="https://supra.com/"
   community
@@ -967,7 +967,7 @@ Walrus, Seal, Nautilus를 포함한 Sui Stack의 다른 구성 요소를 위한 
 
 <ToolCard
   name="Marlin Oyster and Nautilus"
-  description="Sui의 AI 및 blockchain workload를 위한 trusted execution environment(TEE) infrastructure이다."
+  description="Sui의 AI 및 블록체인 workload를 위한 trusted execution environment(TEE) infrastructure이다."
   docs="https://docs.marlin.org/oyster/build-cvm/guides/sui-oyster/"
 />
 
@@ -1012,7 +1012,7 @@ Sui에서 빌드하기 위한 SDK를 언어별로 묶었다. 언어 이름으로
 
 <ToolCard
   name="zkSend SDK"
-  description="Sui에서 zkSend를 통해 asset을 전송하기 위한 TypeScript SDK이다."
+  description="Sui에서 zkSend로 자산을 전송하기 위한 TypeScript SDK이다."
   docs="https://sdk.mystenlabs.com/zksend"
   language="TypeScript"
 />
@@ -1048,7 +1048,7 @@ Sui에서 빌드하기 위한 SDK를 언어별로 묶었다. 언어 이름으로
 
 <ToolCard
   name="PAS TypeScript SDK"
-  description="Programmable Asset Standard TypeScript package이다."
+  description="Programmable Asset Standard TypeScript 패키지이다."
   website="https://www.npmjs.com/package/@mysten/pas"
   github="https://github.com/MystenLabs/pas"
   language="TypeScript"
@@ -1056,7 +1056,7 @@ Sui에서 빌드하기 위한 SDK를 언어별로 묶었다. 언어 이름으로
 
 <ToolCard
   name="Sui Wallet Standard"
-  description="Wallet Standard 기반 wallet과 library를 구현하기 위한 standard TypeScript utility이다."
+  description="Wallet Standard 기반 지갑과 library를 구현하기 위한 standard TypeScript utility이다."
   github="https://github.com/MystenLabs/ts-sdks/tree/main/packages/wallet-standard"
   docs="/onchain-finance/asset-custody/wallets/wallet-standard"
   language="TypeScript"
@@ -1085,7 +1085,7 @@ Sui에서 빌드하기 위한 SDK를 언어별로 묶었다. 언어 이름으로
 
 <ToolCard
   name="Sui Kit (Scallop)"
-  description="TypeScript에서 Sui network와 상호작용하기 위한 toolkit이다."
+  description="TypeScript에서 Sui 네트워크와 상호작용하기 위한 toolkit이다."
   github="https://github.com/scallop-io/sui-kit"
   language="TypeScript"
   community
@@ -1093,7 +1093,7 @@ Sui에서 빌드하기 위한 SDK를 언어별로 묶었다. 언어 이름으로
 
 <ToolCard
   name="Sui Client Gen (Kuna Labs)"
-  description="Sui Move smart contract용 TypeScript SDK를 생성한다. source code와 on-chain package를 사용하며 IDL이나 ABI가 필요 없다."
+  description="Sui Move 스마트 계약용 TypeScript SDK를 생성한다. 소스 코드와 온체인 패키지를 사용하며 IDL이나 ABI가 필요 없다."
   github="https://github.com/kunalabs-io/sui-client-gen"
   language="TypeScript"
   community
@@ -1285,7 +1285,7 @@ Sui에서 빌드하기 위한 SDK를 언어별로 묶었다. 언어 이름으로
 <ToolGrid>
 <ToolCard
   name="Sui Unity SDK (OpenDive)"
-  description="offline transaction building을 지원하는 feature-complete Unity SDK이다."
+  description="오프라인 트랜잭션 building을 지원하는 feature-complete Unity SDK이다."
   github="https://github.com/OpenDive/Sui-Unity-SDK"
   language="C#"
   community
@@ -1390,7 +1390,7 @@ Sui에서 빌드하기 위한 SDK를 언어별로 묶었다. 언어 이름으로
 
 <ToolCard
   name="Enoki API"
-  description="zkLogin과 sponsored transaction용 REST API이다."
+  description="zkLogin과 스폰서드 트랜잭션용 REST API이다."
   docs="https://docs.enoki.mystenlabs.com/"
 />
 </ToolGrid>
@@ -1407,7 +1407,7 @@ Sui에서 빌드하기 위한 SDK를 언어별로 묶었다. 언어 이름으로
 
 <ToolCard
   name="Minting Server"
-  description="producer-consumer worker scheme을 사용해 여러 Sui transaction을 parallel로 처리하는 scalable system architecture이다."
+  description="producer-consumer worker scheme을 사용해 여러 Sui 트랜잭션을 parallel로 처리하는 scalable system architecture이다."
   github="https://github.com/MystenLabs/minting-server"
 />
 
@@ -1461,28 +1461,28 @@ Sui에서 빌드하기 위한 SDK를 언어별로 묶었다. 언어 이름으로
 
 <ToolCard
   name="SuiDouble Metadata"
-  description="dependency 없이 primitive data를 vector chunk로 store, retrieve, manage하는 Move library와 tool이다."
+  description="의존성 없이 primitive data를 vector chunk로 저장, 조회, 관리하는 Move 라이브러리와 도구이다."
   github="https://github.com/suidouble/suidouble_metadata"
   community
 />
 
 <ToolCard
   name="SuiGPT Decompiler"
-  description="generative AI를 사용해 Move bytecode를 source code로 다시 변환한다."
+  description="생성형 AI를 사용해 Move 바이트코드를 소스 코드로 다시 변환한다."
   website="https://suigpt.tools/decompile"
   community
 />
 
 <ToolCard
   name="Revela"
-  description="Sui smart contract를 decompile하여 Move source code를 복구한다."
+  description="Sui 스마트 계약을 디컴파일하여 Move 소스 코드를 복구한다."
   website="https://revela.verichains.io/"
   community
 />
 
 <ToolCard
   name="Sui Token CLI"
-  description="Sui token smart contract를 생성하고 verify하는 Rust 기반 CLI tool 및 RPC service이다."
+  description="Sui 토큰 스마트 계약을 생성하고 verify하는 Rust 기반 CLI tool 및 RPC service이다."
   github="https://github.com/otter-sec/sui-token-gen"
   community
 />
@@ -1497,7 +1497,7 @@ Sui에서 빌드하기 위한 SDK를 언어별로 묶었다. 언어 이름으로
 
 <ToolCard
   name="Dubhe CLI (Dubhe Engine)"
-  description="Sui에서 Dubhe Engine으로 빌드한 app을 build하고 manage하는 CLI이다."
+  description="Sui에서 Dubhe Engine으로 빌드한 앱을 빌드하고 관리하는 CLI이다."
   github="https://github.com/0xobelisk/dubhe/tree/main/packages/sui-cli"
   docs="https://dubhe-docs.obelisk.build/dubhe/sui/cli"
   community
@@ -1505,7 +1505,7 @@ Sui에서 빌드하기 위한 SDK를 언어별로 묶었다. 언어 이름으로
 
 <ToolCard
   name="Sui Protocol Config"
-  description="Sui의 transaction limit와 protocol configuration value이다."
+  description="Sui의 트랜잭션 limit와 protocol configuration value이다."
   github="https://github.com/MystenLabs/sui/blob/main/crates/sui-protocol-config/src/lib.rs"
 />
 

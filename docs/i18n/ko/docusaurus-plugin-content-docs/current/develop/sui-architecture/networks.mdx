@@ -7,15 +7,15 @@ keywords: [ networks, mainnet, testnet, devnet, localnet, sui networks, rpc endp
 
 Sui에는 각각 다른 목적을 수행하는 여러 네트워크가 있다. 각 네트워크는 nodes로 구성된다. Nodes는 네트워크에 리소스를 제공하고 [_consensus_](/develop/sui-architecture/consensus)라고 하는 과정을 통해 온체인 transactions를 검증하는 것과 같은 활동에 참여한다. 각 Sui 네트워크에는 2가지 유형의 nodes가 있다:
 
-- **Full node:** transactions, checkpoints, epoch 변경을 포함한 blockchain 활동을 검증할 수 있다. 
+- **Full node:** 트랜잭션, checkpoints, epoch 변경을 포함한 blockchain 활동을 검증할 수 있다.
 
-- **Validator node:** blockchain 활동 검증 외에도 transaction 서명, stake/staking, 참조 가스 가격, 집계 규칙을 담당한다.
+- **Validator node:** blockchain 활동 검증 외에도 트랜잭션 서명, stake/staking, 참조 가스 가격, 집계 규칙을 담당한다.
 
-Full nodes는 transactions에 서명할 수 없으며 네트워크 상태의 읽기 전용 뷰에만 접근할 수 있다. 이들은 체인의 전체 이력을 저장하고 유지할 수 있으며, 정족수의 validators가 transactions를 커밋한 뒤 이를 다시 실행하여 체인의 무결성을 검증할 수 있다. 
+Full nodes는 트랜잭션에 서명할 수 없으며 네트워크 상태의 읽기 전용 뷰에만 접근할 수 있다. 이들은 체인의 전체 이력을 저장하고 유지할 수 있으며, 정족수의 validators가 트랜잭션을 커밋한 뒤 이를 다시 실행하여 체인의 무결성을 검증할 수 있다.
 
-Validator nodes는 transactions에 서명할 수 있지만 최신 transactions만 저장한다.
+Validator nodes는 트랜잭션에 서명할 수 있지만 최신 트랜잭션만 저장한다.
 
-자세한 내용은 [운영자 가이드](/operators/)를 참조한다.
+자세한 내용은 [운영자 가이드](/operators)를 참조한다.
 
 ## Mainnet
 
@@ -51,7 +51,7 @@ Localnet은 로컬 컴퓨터에서 Sui 네트워크 인스턴스를 실행하는
 
 :::tip
 
-local faucet을 사용하면 개발 과정에 필요한 만큼 많은 Testnet tokens를 민트할 수 있어 Testnet용 public faucets에 부과되는 제한을 피할 수 있다. 
+local faucet을 사용하면 개발 과정에 필요한 만큼 많은 Testnet tokens를 민트할 수 있어 Testnet용 public faucets에 부과되는 제한을 피할 수 있다.
 
 :::
 

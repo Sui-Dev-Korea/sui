@@ -33,12 +33,12 @@ protocol upgrades의 과정은 다음 단계를 포함한다:
 
 Full node operators는 유사한 과정을 따르지만 투표에는 참여하지 않는다. 이들은 validators가 기록한 actions를 따른다.
 
-validators가 새 protocol version으로 전환할 때, 그들은 특별한 end-of-epoch transaction에 새 version number를 기록한다. Full nodes는 체인 history를 재생하면서 이 transaction을 실행하여 올바른 시점에 새 protocol version으로 전환할 수 있다.
+validators가 새 protocol version으로 전환할 때, 그들은 특별한 end-of-epoch 트랜잭션에 새 version number를 기록한다. Full nodes는 체인 history를 재생하면서 이 트랜잭션을 실행하여 올바른 시점에 새 protocol version으로 전환할 수 있다.
 
 ## Framework upgrades
 
-모든 새 Sui 기능이 validator code 변경에서 오는 것은 아니다. developers는 Sui framework도 확장한다. 예를 들어 smart contracts에 기능을 노출하기 위해 새 native functions를 추가할 수 있다. framework updates 과정은 protocol upgrades와 유사하다.
+모든 새 Sui 기능이 validator code 변경에서 오는 것은 아니다. developers는 Sui framework도 확장한다. 예를 들어 스마트 계약에 기능을 노출하기 위해 새 native 함수를 추가할 수 있다. framework updates 과정은 protocol upgrades와 유사하다.
 
-feature flags 대신 Sui objects가 framework 변경을 조정한다. Sui framework는 ID가 `0x2`인 특별한 object이다. framework의 Move source code는 validator binary에 내장되어 있다.
+feature flags 대신 Sui 객체가 framework 변경을 조정한다. Sui framework는 ID가 `0x2`인 특별한 객체이다. framework의 Move source code는 validator binary에 내장되어 있다.
 
-validator가 자신의 내장 framework가 object `0x2`의 framework와 다름을 감지하면, framework를 새 버전으로 업그레이드하고 싶다는 신호를 다른 validators에게 보낸다. `ProtocolConfig`와 마찬가지로 validators의 2/3 이상이 동의하면 새 framework object는 현재 epoch의 끝에 기록된다. 새 epoch에서 실행되는 transactions는 이후 framework의 새 버전을 사용한다.
+validator가 자신의 내장 framework가 객체 `0x2`의 framework와 다름을 감지하면, framework를 새 버전으로 업그레이드하고 싶다는 신호를 다른 validators에게 보낸다. `ProtocolConfig`와 마찬가지로 validators의 2/3 이상이 동의하면 새 framework 객체는 현재 epoch의 끝에 기록된다. 새 epoch에서 실행되는 트랜잭션는 이후 framework의 새 버전을 사용한다.

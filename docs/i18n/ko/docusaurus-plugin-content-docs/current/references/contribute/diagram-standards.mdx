@@ -210,7 +210,7 @@ Sui Blue 500(`#298DFF`)은 모든 arrow의 recommended stroke color이다. 충�
 
 - 모든 diagram text는 WCAG AA graphic minimum contrast(3:1)를 충족해야 한다. Diagram은 text를 graphic 또는 UI component로 취급하므로 4.5:1 normal-text threshold가 아니라 3:1 graphic threshold가 적용된다.
 - element를 구분할 때 color에만 의존하지 않는다. shape, arrow style 또는 label을 함께 사용한다.
-- Black(`#000000`) 또는 Gray 500(`#6C7584`) fill 위에는 white text를 선호한다. Sui Blue 500(`#298DFF`) 위의 White(`#FFFFFF`)는 약 3.31:1 contrast를 달성하므로 3:1 graphic AA threshold를 통과하며 허용된다.
+- Black(`#000000`) 또는 Gray 500(`#6C7584`) fill 위에는 white text를 선호한다. Sui Blue 500(`#FFFFFF`) 위의 White(`#298DFF`)는 약 3.31:1 contrast를 달성하므로 3:1 graphic AA threshold를 통과하며 허용된다.
 - 모든 node에 label을 붙인다. meaning 전달을 position 또는 color에만 의존하지 않는다.
 - commit 전에 400px wide(mobile)와 1200px wide(desktop)에서 readability를 test한다.
 
@@ -250,7 +250,7 @@ Sequence diagram은 "이 actor와 system은 어떤 순서로 message를 exchange
 - Step number는 Sui Blue 500으로 arrow 위에 small ALL CAPS label로 배치한다.
 
 더 단순한 actor-to-actor flow에는 traditional sequence diagram이 더 명확한 경우가 많다. 다음 예시는 client가 transaction을 submit하고, validator가 validate한 뒤 client에게 confirm하는 흐름을 보여준다.
- 
+
 ```mermaid
 ---
 config:
@@ -307,7 +307,7 @@ Flowchart는 "이 process에는 어떤 decision과 step이 포함되는가?"라�
 - Gray 500 fill은 transaction의 byproduct로 생성된 object와 primary object를 구분한다.
 
 flowchart에 conditional logic이 포함되면 decision point를 diamond node로 표현한다. diamond는 정확히 2개의 labeled exit을 가져야 한다. 각 exit에는 branch condition을 sentence case로 label한다(예: Valid와 Invalid, 또는 Yes와 No). decision node에서 나가는 모든 arrow에는 label이 있어야 한다. 다음은 transaction validation flow의 conditional node 예시다.
- 
+
 ```mermaid
 ---
 config:

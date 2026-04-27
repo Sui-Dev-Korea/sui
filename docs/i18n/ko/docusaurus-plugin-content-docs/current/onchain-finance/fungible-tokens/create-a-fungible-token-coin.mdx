@@ -1,22 +1,22 @@
 ---
 title: "대체 가능 토큰 만들기: Coin Standard"
-description: Sui network에서 currency를 만들고 coin 및 token을 mint하는 방법을 설명한다.
-keywords: [mint tokens, create tokens, use tokens, publish token, custom tokens, sui CLI, denylist, regulated coins, coin registry, currency registry]
+description: Sui network에서 currency를 만들고 코인 및 토큰을 민트하는 방법을 설명한다.
+keywords: [민트 tokens, create tokens, use tokens, publish token, custom tokens, sui CLI, denylist, regulated coins, coin registry, currency registry]
 ---
 
-Coin standard는 [`sui::coin`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/coin.md) module을 사용해 `key`와 `store` ability를 가진 coin이라는 fungible asset을 정의한다. coin은 wrapping과 public transfer functionality를 지원한다.
+Coin standard는 [`sui::coin`](https://github.com/MystenLabs/sui/blob/main/crates/sui-framework/docs/sui/coin.md) 모듈을 사용해 `key`와 `store` ability를 가진 코인이라는 대체 가능 자산을 정의한다. 코인은 wrapping과 public transfer 기능을 지원한다.
 
-`Coin<T>` type은 type parameter `T`로 denomination되는 open-loop fungible token을 나타내며, `T`는 모든 `Coin<T>` instance에 적용되는 metadata와도 연관된다. `sui::coin` module은 `Coin<T>`를 fungible로 취급하는 interface를 노출한다. 즉 전통적인 fiat currency와 유사하게, 한 `Coin<T>` instance가 보유한 `T` unit은 다른 어떤 `T` unit과도 interchangeable하다.
+`Coin<T>` 타입은 타입 파라미터 `T`로 표시되는 open-loop fungible 토큰을 나타내며, 이 파라미터는 모든 `Coin<T>` 인스턴스에 적용되는 메타데이터와도 연관된다. `sui::coin` 모듈은 `Coin<T>`를 fungible로 취급하는 interface를 노출한다. 즉 전통적인 fiat currency와 유사하게, 한 `T` 인스턴스가 보유한 `Coin<T>` 단위는 다른 어떤 `T` 단위와도 교환 가능하다.
 
-network native coin인 SUI는 Coin standard를 사용한다.
+network native 코인인 SUI는 Coin standard를 사용한다.
 
 ## Coin standard 사용
 
-coin을 만들려면 metadata를 정의하고, currency를 만들고, initial supply를 mint해야 한다.
+코인을 만들려면 메타데이터를 정의하고, currency를 만들고, initial supply를 민트해야 한다.
 
 ##### Step 1: metadata 정의
 
-coin의 name, description, symbol, icon URL, decimals를 포함한 metadata를 정의한다.
+코인의 name, description, symbol, icon URL, decimals를 포함한 메타데이터를 정의한다.
 
 <ImportContent
 	source="I1/silver/sources/silver.move"
@@ -27,11 +27,11 @@ coin의 name, description, symbol, icon URL, decimals를 포함한 metadata를 �
 	branch="solution"
 />
 
-이 예시는 decimals 9개, name Silver, description, symbol SILVER, Walrus에 저장된 asset용 icon URL을 가진 coin을 만든다.
+이 예시는 decimals 9개, name Silver, description, symbol SILVER, Walrus에 저장된 자산용 icon URL을 가진 코인을 만든다.
 
 ##### Step 2: currency 생성
 
-`coin::create_currency` function을 사용해 coin을 생성한다.
+`coin::create_currency` 함수를 사용해 코인을 생성한다.
 
 <ImportContent
 	source="I1/silver/sources/silver.move"
@@ -42,9 +42,9 @@ coin의 name, description, symbol, icon URL, decimals를 포함한 metadata를 �
 	branch="solution"
 />
 
-##### Step 3: initial supply mint
+##### Step 3: initial supply 민트
 
-coin의 initial supply를 mint한다.
+코인의 initial supply를 민트한다.
 
 <ImportContent
 	source="I1/silver/sources/silver.move"
@@ -57,56 +57,56 @@ coin의 initial supply를 mint한다.
 
 [전체 예시 보기](https://github.com/MystenLabs/sui-move-bootcamp/blob/main/I1) 또는 [Coin Standard](https://docs.sui.io/onchain-finance/fungible-tokens/coin)에 대해 더 알아본다.
 
-## coin 관리
+## 코인 관리
 
-Sui는 fungible asset을 보유하는 두 가지 방식을 지원한다: 주소 잔액과 coin object. 대부분의 use case에는 주소 잔액을 default로 권장한다. coin object는 explicit object-level control이 필요한 scenario에서 계속 사용할 수 있다.
+Sui는 대체 가능 자산을 보유하는 두 가지 방식을 지원한다: 주소 잔액과 코인 객체. 대부분의 사용 사례에는 주소 잔액을 기본적으로 권장한다. 코인 객체는 explicit 객체 수준 control이 필요한 시나리오에서 계속 사용할 수 있다.
 
 ## 주소 잔액
 
-주소 잔액은 각 coin type에 대해 Sui address에 직접 연결된 canonical balance를 제공한다. `send_funds`를 통해 전송된 funds는 object management 없이 coin type별 단일 balance로 자동 merge된다.
+주소 잔액은 각 코인 타입에 대해 Sui 주소에 직접 연결된 canonical balance를 제공한다. `send_funds`를 통해 전송된 자금은 객체 관리 없이 코인 타입별 단일 잔액으로 자동 병합된다.
 
 주소 잔액의 주요 이점:
 
-- coin selection 또는 merging logic이 필요 없다.
-- object state를 query하지 않는 stateless transaction construction.
-- SUI 주소 잔액에서 gas payment 직접 지불.
-- 여러 deposit이 자동으로 merge된다.
+- 코인 선택 또는 merging logic이 필요 없다.
+- 객체 상태를 조회하지 않는 stateless 트랜잭션 구성.
+- SUI 주소 잔액에서 가스 결제 직접 지불.
+- 여러 예치가 자동으로 병합된다.
 
-TypeScript SDK(v2+)는 기본적으로 주소 잔액을 사용한다. `coinWithBalance`를 사용하면 SDK는 먼저 주소 잔액에서 인출하고 필요할 때만 coin object로 fallback한다. gas payment의 경우 `setGasPayment`에 empty array를 전달해 주소 잔액에서 지불한다.
+TypeScript SDK(v2+)는 기본적으로 주소 잔액을 사용한다. `coinWithBalance`를 사용하면 SDK는 먼저 주소 잔액에서 인출하고 필요할 때만 코인 객체로 fallback한다. 가스 결제의 경우 `setGasPayment`에 빈 배열을 전달해 주소 잔액에서 지불한다.
 
-withdrawal pattern, gas payment, sponsored transaction, balance query를 포함해 주소 잔액 사용에 대한 전체 reference는 [주소 잔액 마이그레이션 가이드](/onchain-finance/asset-custody/address-balance-migration)를 참조한다.
+출금 pattern, 가스 결제, sponsored 트랜잭션, 잔액 쿼리를 포함해 주소 잔액 사용에 대한 전체 레퍼런스는 [주소 잔액 마이그레이션 가이드](/onchain-finance/asset-custody/address-balance-migration)를 참조한다.
 
-## Coin object
+## Coin 객체
 
-Coin object는 주어진 coin type의 특정 amount를 나타내는 address-owned object이다. 주소 잔액 이전에는 Sui의 모든 funds가 coin object로 보관되었다. coin object는 계속 완전히 동작하며 deprecated되지 않았다.
+Coin 객체는 주어진 코인 타입의 특정 amount를 나타내는 주소-소유 객체이다. 주소 잔액 이전에는 Sui의 모든 자금이 코인 객체로 보관되었다. 코인 객체는 계속 완전히 동작하며 deprecated되지 않았다.
 
-coin object는 다음 상황에서 유용하다.
+코인 객체는 다음 상황에서 유용하다.
 
-- `Coin<T>` 또는 `&mut Coin<T>`를 기대하는 Move function에 직접 전달해야 한다.
-- 다른 object 안에 funds를 보관해야 한다(예: shared escrow 또는 liquidity pool).
-- transaction에 사용되는 정확한 object set을 제어해야 한다.
+- `Coin<T>` 또는 `&mut Coin<T>`를 기대하는 Move 함수에 직접 전달해야 한다.
+- 다른 객체 안에 자금을 보관해야 한다(예: shared escrow 또는 유동성 풀).
+- 트랜잭션에 사용되는 정확한 객체 set을 제어해야 한다.
 
-coin object는 owned object이므로 highly parallel transaction execution을 가능하게 한다. 각 coin은 자체 version을 가진 independent object이므로 서로 다른 coin을 touch하는 transaction은 contention 없이 concurrently execute될 수 있다.
+코인 객체는 소유 객체이므로 highly parallel 트랜잭션 execution을 가능하게 한다. 각 코인은 자체 version을 가진 independent 객체이므로 서로 다른 코인을 touch하는 트랜잭션은 contention 없이 concurrently execute될 수 있다.
 
-PTB 안에서 explicit coin manipulation을 하려면 `mergeCoins` command로 여러 coin object를 하나로 combine하고, `splitCoins`로 coin을 더 작은 조각으로 나눈다. 이 operation은 inexpensive하지만 coin distribution과 transaction need를 알고 있어야 한다.
+PTB 안에서 explicit 코인 manipulation을 하려면 `mergeCoins` 명령으로 여러 코인 객체를 하나로 combine하고, `splitCoins`로 코인을 더 작은 조각으로 나눈다. 이 operation은 inexpensive하지만 코인 distribution과 트랜잭션 need를 알고 있어야 한다.
 
-### coin object accumulation
+### 코인 객체 accumulation
 
-시간이 지나며 많은 coin object가 accumulate되는 것은 흔하다. 특히 frequent transfer를 받는 경우 그렇다. 일부 scenario에서는 coin을 single object로 merge해야 한다. 예를 들어 transaction을 cover할 만큼 충분한 value를 가진 single coin이 없다면 먼저 coin을 merge해야 한다.
+시간이 지나며 많은 코인 객체가 accumulate되는 것은 흔하다. 특히 frequent 전송을 받는 경우 그렇다. 일부 시나리오에서는 코인을 single 객체로 병합해야 한다. 예를 들어 트랜잭션을 cover할 만큼 충분한 value를 가진 single 코인이 없다면 먼저 코인을 병합해야 한다.
 
-`coin::send_funds`를 자신의 address를 recipient로 하여 호출하면 언제든 coin object를 주소 잔액으로 변환할 수 있다. 지침은 [기존 Coin을 주소 잔액으로 변환](/onchain-finance/asset-custody/address-balance-migration#기존-coin을-address-balance로-변환하기)을 참조한다.
+`coin::send_funds`를 자신의 주소를 recipient로 하여 호출하면 언제든 코인 객체를 주소 잔액으로 변환할 수 있다. 지침은 [기존 Coin을 주소 잔액으로 변환](/onchain-finance/asset-custody/address-balance-migration#converting-existing-coins-to-address-balances)을 참조한다.
 
 ## Gas smashing
 
-transaction을 execute할 때 single coin이 아니라 여러 coin을 gas payment로 제공할 수 있다. gas smashing이라고 하는 이 feature는 제공된 coin을 payment vector의 첫 번째 coin으로 자동 merge한다. merge된 coin에서 gas budget을 뺀 나머지는 transaction 안에서 어떤 command에도 사용할 수 있다. 사용하지 않으면 sender에게 반환된다.
+트랜잭션을 execute할 때 single 코인이 아니라 여러 코인을 가스 결제로 제공할 수 있다. gas smashing이라고 하는 이 feature는 제공된 코인을 payment vector의 첫 번째 코인으로 자동 병합한다. 병합된 코인에서 가스 예산을 뺀 나머지는 트랜잭션 안에서 어떤 명령에도 사용할 수 있다. 사용하지 않으면 송신자에게 반환된다.
 
-Gas smashing은 `Coin<SUI>` object에만 적용된다. SUI가 gas payment로 accepted되는 유일한 coin type이기 때문이다.
+Gas smashing은 `Coin<SUI>` 객체에만 적용된다. SUI가 가스 결제로 accepted되는 유일한 코인 타입이기 때문이다.
 
-coin은 원하는 만큼 제공할 수 있다(protocol configuration에 정의된 maximum까지). Gas smashing은 transaction의 일부로 SUI coin을 consolidate해야 할 때 유용한 tool이다.
+코인은 원하는 만큼 제공할 수 있다(protocol configuration에 정의된 maximum까지). Gas smashing은 트랜잭션의 일부로 SUI 코인을 consolidate해야 할 때 유용한 tool이다.
 
 :::tip
 
-주소 잔액 gas payment를 사용한다면(empty gas payment array 전달) gas smashing이 필요 없다. 주소 잔액 gas payment는 gas coin을 select하거나 merge할 필요를 완전히 제거한다.
+주소 잔액 가스 결제를 사용한다면(empty 가스 결제 array 전달) gas smashing이 필요 없다. 주소 잔액 가스 결제는 가스 코인을 select하거나 병합할 필요를 완전히 제거한다.
 
 :::
 
@@ -114,14 +114,14 @@ coin은 원하는 만큼 제공할 수 있다(protocol configuration에 정의�
 
 ## Concurrency
 
-주소 잔액은 대부분의 use case에서 concurrency challenge를 크게 줄인다. 주소 잔액 gas payment는 owned object input을 필요로 하지 않으므로 object version conflict나 locking을 걱정하지 않고 여러 transaction을 build하고 sign할 수 있다.
+주소 잔액은 대부분의 사용 사례에서 concurrency challenge를 크게 줄인다. 주소 잔액 가스 결제는 소유 객체 입력을 필요로 하지 않으므로 객체 version conflict나 locking을 걱정하지 않고 여러 트랜잭션을 build하고 sign할 수 있다.
 
 ### concurrency가 여전히 중요한 경우
 
-transaction이 coin object(또는 다른 owned object)를 input으로 사용하면 기존 concurrency constraint가 적용된다. 각 owned object에는 version이 있으며, transaction에 sign하면 system이 이를 lock한다. 이 lock은 첫 번째 transaction이 execute될 때까지 같은 object를 다른 transaction에서 사용하는 것을 방지한다. 같은 owned object로 여러 transaction에 sign하려고 하면 equivocation이 발생할 수 있고, 그러면 epoch가 끝날 때까지 object를 사용할 수 없게 된다.
+트랜잭션이 코인 객체(또는 다른 소유 객체)를 입력으로 사용하면 기존 concurrency constraint가 적용된다. 각 소유 객체에는 version이 있으며, 트랜잭션에 sign하면 system이 이를 lock한다. 이 lock은 첫 번째 트랜잭션이 execute될 때까지 같은 객체를 다른 트랜잭션에서 사용하는 것을 방지한다. 같은 소유 객체로 여러 트랜잭션에 sign하려고 하면 equivocation이 발생할 수 있고, 그러면 epoch가 끝날 때까지 객체를 사용할 수 없게 된다.
 
-coin object로 heavy concurrency가 필요한 경우 concurrently execute할 transaction 수만큼 coin을 split한다. 또는 각 transaction에 서로 다른 coin을 제공한다(gas smashing을 통해). concurrent transaction 전반에서 사용되는 coin set은 overlap이 없어야 한다.
+코인 객체로 heavy concurrency가 필요한 경우 concurrently execute할 트랜잭션 수만큼 코인을 split한다. 또는 각 트랜잭션에 서로 다른 코인을 제공한다(gas smashing을 통해). concurrent 트랜잭션 전반에서 사용되는 코인 set은 overlap이 없어야 한다.
 
 ### 권장 approach
 
-대부분의 application에서는 gas payment와 fund transfer에 주소 잔액을 사용한다. Coin object management는 Move contract가 `Coin<T>` argument를 요구하거나 owned object를 명시적으로 제어해야 하는 경우에만 남겨둔다. 이 approach는 concurrency issue를 최소화하고 transaction construction을 단순화한다.
+대부분의 애플리케이션에서는 가스 결제와 fund transfer에 주소 잔액을 사용한다. Coin 객체 관리는 Move contract가 `Coin<T>` argument를 요구하거나 소유 객체를 명시적으로 제어해야 하는 경우에만 남겨둔다. 이 approach는 concurrency issue를 최소화하고 트랜잭션 구성을 단순화한다.

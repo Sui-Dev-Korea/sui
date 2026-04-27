@@ -31,11 +31,11 @@ SUI 통합을 구성하기 위한 요구 사항은 다음을 포함한다:
 
 최상의 결과를 위해 Linux에서 Sui 풀 노드를 실행한다. Sui는 Ubuntu 및 Debian 배포판을 지원한다. macOS에서도 풀 노드를 실행할 수 있다.
 
-## Sui full node 구성 {#configure-full-node}
+## Sui 풀 노드 구성 {#configure-full-node}
 
 Docker를 사용하거나 Sui GitHub 리포지토리의 소스 코드에서 직접 Sui 풀 노드를 설정하고 구성할 수 있다.
 
-### Docker로 Sui full node 설치 {#full-node-docker}
+### Docker로 Sui 풀 노드 설치 {#full-node-docker}
 
 이 섹션의 각 명령은 리포지토리의 동일한 branch를 사용하여 실행한다. `branch-name`을 사용하는 branch로 바꾼다. 예를 들어 Sui Devnet 네트워크를 사용하려면 `devnet`을 사용하고, Sui Testnet 네트워크를 사용하려면 `testnet`을 사용한다. 모든 파일을 동일한 폴더 위치로 다운로드해야 하며, 모든 명령을 동일한 폴더 위치에서 실행해야 한다.
 
@@ -83,7 +83,7 @@ Docker를 사용하거나 Sui GitHub 리포지토리의 소스 코드에서 직�
     $ docker-compose up -d
     ```
 
-## source에서 Sui full node 설치 {#install-full-node-source}
+## source에서 Sui 풀 노드 설치 {#install-full-node-source}
 
 이 섹션의 단계는 Sui GitHub 리포지토리에서 직접 Sui 풀 노드를 설치하고 구성한다. 이 단계는 Rust 패키지 매니저인 [Cargo](https://doc.rust-lang.org/cargo/)를 사용한다.
 
@@ -106,7 +106,7 @@ Docker를 사용하거나 Sui GitHub 리포지토리의 소스 코드에서 직�
     $ wget https://github.com/MystenLabs/sui-genesis/blob/main/mainnet/genesis.blob
     ```
     필요하다면 URL의 `mainnet`을 이전 명령에 사용한 동일한 branch로 변경한다.
-6. 선택 사항으로, 기본값이 아닌 다른 경로에 Sui를 설치한 경우 사용한 경로를 사용하도록 fullnode.yaml 파일을 수정한다. 적절하게 `db-path`와 `genesis-file-location`에 대해 sui-fullnode를 설치한 폴더의 경로로 업데이트한다: `db-path: “/db-files/sui-fullnode-folder”` `genesis-file-location: “/sui-fullnode-folder/genesis.blob”`
+6. 선택 사항으로, 기본값이 아닌 다른 경로에 Sui를 설치한 경우 사용한 경로를 사용하도록 fullnode.yaml 파일을 수정한다. 적절하게 `db-path`와 `genesis-file-location`에 대해 sui-fullnode를 설치한 폴더의 경로로 업데이트한다: `db-path: "/db-files/sui-fullnode-folder"` `genesis-file-location: "/sui-fullnode-folder/genesis.blob"`
 7. Sui 풀 노드를 시작한다:
     ```sh
     $ cargo run --release --bin sui-node -- --config-path fullnode.yaml
@@ -136,14 +136,14 @@ Sui는 0x prefix가 있는 address와 없는 address를 모두 지원한다. Sui
 
 ## address의 balance change 추적 {#track-balance-changes}
 
-미리 정의한 간격으로 `sui_getBalance`를 호출하여 balance 변화를 추적할 수 있다. 이 호출은 address의 총 balance를 반환한다. 총합에는 모든 coin 또는 token 타입이 포함되지만, 이 문서는 SUI에 초점을 맞춘다. 연속된 `sui_getBalance` 요청 사이에서 address의 총 balance 변화를 추적할 수 있다.
+미리 정의한 간격으로 `suix_getBalance`를 호출하여 balance 변화를 추적할 수 있다. 이 호출은 address의 총 balance를 반환한다. 총합에는 모든 coin 또는 token 타입이 포함되지만, 이 문서는 SUI에 초점을 맞춘다. 연속된 `suix_getBalance` 요청 사이에서 address의 총 balance 변화를 추적할 수 있다.
 
-다음 bash 예시는 address 0x849d63687330447431a2e76fecca4f3c10f6884ebaa9909674123c6c662612a3에 대해 `sui_getBalance`를 사용하는 방법을 보여준다. Devnet 이외의 네트워크를 사용하는 경우 `rpc` 값은 적절한 풀 노드의 URL로 바꾼다.
+다음 bash 예시는 address 0x849d63687330447431a2e76fecca4f3c10f6884ebaa9909674123c6c662612a3에 대해 `suix_getBalance`를 사용하는 방법을 보여준다. Devnet 이외의 네트워크를 사용하는 경우 `rpc` 값은 적절한 풀 노드의 URL로 바꾼다.
 
 ```sh
 rpc="https://fullnode.devnet.sui.io:443"
 address="0x849d63687330447431a2e76fecca4f3c10f6884ebaa9909674123c6c662612a3"
-data="{\"jsonrpc\": \"2.0\", \"method\": \"sui_getBalance\", \"id\": 1, \"params\": [\"$address\"]}"
+data="{\"jsonrpc\": \"2.0\", \"method\": \"suix_getBalance\", \"id\": 1, \"params\": {\"owner\": \"$owner\"}}"
 curl -X POST -H 'Content-type: application/json' --data-raw "$data" $rpc
 ```
 
@@ -162,7 +162,7 @@ curl -X POST -H 'Content-type: application/json' --data-raw "$data" $rpc
 }
 ```
 
-다음 예시는 Rust에서 sui_getBalance를 사용하는 방법을 보여준다:
+다음 예시는 Rust에서 suix_getBalance를 사용하는 방법을 보여준다:
 
 ```rust
 use std::str::FromStr;
@@ -252,7 +252,7 @@ Sui는 address 간 SUI 전송과 관련하여 다음 API operations를 지원한
 
     이 operation은 제공된 모든 token을 하나의 token object로 merge하고 가스 수수료를 정산한다. 그런 다음 amounts 배열의 amount에 따라 token을 split하고, 첫 번째 token은 첫 번째 수신자에게, 두 번째 token은 두 번째 수신자에게, 이런 식으로 전송한다. token에 남은 SUI는 source address에 남는다.
 
-    이 method의 이점은 다음을 포함한다: token을 merge하거나 split하는 가스 수수료가 없고, 추상화된 token merge와 split이다. sui_paySui operation은 네이티브 함수이므로 merge와 split operation은 Sui transaction으로 간주되지 않는다. 이들에 대한 가스 수수료는 일반적인 Sui transaction과 일치한다. 수신자를 자신의 address로 설정하여 자신의 address에서 코인을 split하는 데에도 이 operation을 사용할 수 있다. 전송할 amount들의 총합보다 input coin들의 총 가치가 커야 한다는 점에 유의한다.
+    이 method의 이점은 다음을 포함한다: token을 merge하거나 split하는 가스 수수료가 없고, 추상화된 token merge와 split이다. `sui_paySui` operation은 네이티브 함수이므로 merge와 split operation은 Sui transaction으로 간주되지 않는다. 이들에 대한 가스 수수료는 일반적인 Sui transaction과 일치한다. 수신자를 자신의 address로 설정하여 자신의 address에서 코인을 split하는 데에도 이 operation을 사용할 수 있다. 전송할 amount들의 총합보다 input coin들의 총 가치가 커야 한다는 점에 유의한다.
 
 - [sui_pay](/sui-api-ref#sui_pay) 이 method는 sui_paySui와 유사하지만, SUI만이 아니라 모든 종류의 coin 또는 token을 받는다. 가스 token을 포함해야 하며, 모든 coin 또는 token은 동일한 타입이어야 한다.
 
@@ -260,7 +260,7 @@ Sui는 address 간 SUI 전송과 관련하여 다음 API operations를 지원한
 
 ## transaction signing {#signing-transactions}
 
-서명 유효성 요구 사항에 대한 자세한 내용은 Sui Signatures를 참조한다.
+서명 유효성 요구 사항에 관한 자세한 내용은 Sui Signatures를 참조한다.
 
 ## SUI staking {#sui-staking}
 

@@ -7,7 +7,7 @@ keywords: [ walrus, indexer, custom indexer, custom indexer framework, blob, seq
 
 [Walrus](https://walrus.xyz)는 큰 binary file을 위해 특별히 설계된 분산 storage 및 data availability protocol이다. content-addressable storage protocol이므로 데이터는 blob이라고 하는 고유 식별자를 사용해 식별되고 검색된다. blob은 파일 경로나 위치가 아니라 콘텐츠 자체에서 파생된다. 따라서 서로 다른 사용자가 동일한 콘텐츠를 업로드하면 Walrus는 새 blob을 생성하지 않고 기존 blob을 재사용한다.
 
-고유성을 위해 Walrus에 업로드되는 각 blob은 고유 ID를 가진 대응 [`Blob` NFT object on Sui](https://docs.wal.app/dev-guide/sui-struct.html#blob-and-storage-objects)도 함께 생성한다. 또한 연관된 `Blob` object에는 선택적으로 `Metadata` [dynamic field](/develop/objects/dynamic-fields)가 있을 수 있다.
+고유성을 위해 Walrus에 업로드되는 각 blob은 고유 ID를 가진 대응 [`Blob` NFT object on Sui](https://docs.wal.app/dev-guide/sui-struct#blob-and-storage-objects)도 함께 생성한다. 또한 연관된 `Blob` object에는 선택적으로 `Metadata` [dynamic field](/develop/objects/dynamic-fields)가 있을 수 있다.
 
 `Metadata` dynamic field는 on-chain object의 데이터를 runtime에 확장할 수 있게 해 주는 key-value 확장이다. 설정된 경우 이 dynamic field는 [key-value attribute pairs의 mapping](https://docs.wal.app/usage/client-cli.html?highlight=attribute#blob-attributes)으로 동작한다.
 
@@ -21,7 +21,7 @@ Walrus Foundation이 Walrus를 운영하고 관리한다. Walrus protocol에 대
 
 ## Blog platform using Walrus
 
-시스템은 dynamic field의 ID를 해당 field의 타입과 parent object의 ID에서 도출한다. 각 `Metadata` dynamic field ID 역시 고유하다. 이러한 고유한 특성과 `Metadata` attribute pair를 활용하면 사용자가 다음을 수행할 수 있는 blog platform을 구축할 수 있다:
+시스템은 dynamic field의 ID를 해당 field의 타입과 parent object의 ID에서 도출한다. 각 `Metadata` dynamic field ID 역시 고유하다. 이 고유한 특성과 `Metadata` attribute pair를 활용하면 사용자가 다음을 수행할 수 있는 blog platform을 구축할 수 있다:
 
 - 제목이 있는 blog post를 업로드한다.
 - 자신의 post와 metric을 조회한다.
@@ -29,9 +29,9 @@ Walrus Foundation이 Walrus를 운영하고 관리한다. Walrus protocol에 대
 - post 제목을 수정한다.
 - 다른 publisher가 작성한 post를 탐색한다.
 
-Walrus로의 업로드를 처리하는 blog platform 서비스가 이미 존재한다고 가정한다. 이 서비스가 Walrus에 blob과 그에 연관된 NFT object를 생성할 때 `publisher`(blob을 업로드한 Sui Address), `view_count`, `title`에 대한 key-value pair를 담은 `Metadata` dynamic field도 함께 부착한다. 서비스는 사용자가 `publisher`와 `view_count` pair를 수정하지 못하게 막지만 `publisher`가 `title `값은 업데이트할 수 있도록 허용한다.
+Walrus로의 업로드를 처리하는 blog platform 서비스가 이미 존재한다고 가정한다. 이 서비스가 Walrus에 blob과 그에 연관된 NFT object를 생성할 때 `Metadata`(blob을 업로드한 Sui Address), `publisher`, `view_count`에 대한 key-value pair를 담은 `title` dynamic field도 함께 부착한다. 서비스는 사용자가 `publisher`와 `view_count` pair를 수정하지 못하게 막지만 `publisher`가 `title `값은 업데이트할 수 있도록 허용한다.
 
-사용자가 post를 조회할 때 서비스는 index된 데이터베이스에서 해당 blog post의 `Metadata`를 가져온다. 그런 다음 `Owner` field를 사용해 full node에서 blob을 가져온다. Sui 상의 `Blob` object가 live 상태인지 여부를 통해 blog post가 사용 가능한지를 표현한다. `Blob` object가 wrapped되거나 삭제된 경우 Walrus에 해당 콘텐츠가 여전히 존재하더라도 서비스에서는 해당 blog post에 접근할 수 없다.
+사용자가 post를 조회할 때 서비스는 index된 데이터베이스에서 해당 blog post의 `Metadata`를 가져온다. 그런 다음 `Owner` field를 사용해 풀 노드에서 blob을 가져온다. Sui 상의 `Blob` object가 live 상태인지 여부를 통해 blog post가 사용 가능한지를 표현한다. `Blob` object가 wrapped되거나 삭제된 경우 Walrus에 해당 콘텐츠가 여전히 존재하더라도 서비스에서는 해당 blog post에 접근할 수 없다.
 
 ## Data modeling
 
@@ -55,9 +55,9 @@ LIMIT $2;
 
 ## Custom indexer implementation
 
-이 예제는 [sequential pipeline](/develop/accessing-data/custom-indexer/pipeline-architecture#sequential-pipeline-architecture)을 사용하며 각 checkpoint가 엄격한 순서로 한 번씩만 commit되고 단일 atomic operation으로 처리되도록 보장한다. sequential pipeline 아키텍처는 이 프로젝트에 필수는 아니지만 concurrent 아키텍처를 구현하는 것보다 더 단순한 선택지이다. 프로젝트가 필요로 하는 시점에는 언제든지 [concurrent pipeline으로 확장](/develop/accessing-data/custom-indexer/pipeline-architecture#결정-framework)할 수 있다.
+이 예제는 [sequential pipeline](/develop/accessing-data/custom-indexer/pipeline-architecture#sequential-pipeline-architecture)을 사용하며 각 checkpoint가 엄격한 순서로 한 번씩만 commit되고 단일 atomic operation으로 처리되도록 보장한다. sequential pipeline 아키텍처는 이 프로젝트에 필수는 아니지만 concurrent 아키텍처를 구현하는 것보다 더 단순한 선택지이다. 프로젝트가 필요로 하는 시점에는 언제든지 [concurrent pipeline으로 확장](/develop/accessing-data/custom-indexer/pipeline-architecture#decision-framework)할 수 있다.
 
-이 구현은 checkpoint 경계에서 최신 object 상태를 추적한다. `Metadata` dynamic field가 생성, 변경, wrapped, 삭제 또는 unwrap될 때 해당 field는 object changes 아래의 transaction output에 나타난다. 이 field를 생성하는 [example transaction](https://suivision.xyz/txblock/3Qcuo2FaTZL5wfdi7JzPELcmkuZm7hVfdNrkLrdkKioN?tab=Changes)을 Testnet에서 확인할 수 있다. 이러한 dynamic field의 타입은 `0x2::dynamic_field::Field<vector<u8>, 0xabc...123::metadata::Metadata>`이다.
+이 구현은 checkpoint 경계에서 최신 object 상태를 추적한다. `Metadata` dynamic field가 생성, 변경, wrapped, 삭제 또는 unwrap될 때 해당 field는 object changes 아래의 transaction output에 나타난다. 이 field를 생성하는 [example transaction](https://suivision.xyz/txblock/3Qcuo2FaTZL5wfdi7JzPELcmkuZm7hVfdNrkLrdkKioN?tab=Changes)을 Testnet에서 확인할 수 있다. 이 dynamic field의 타입은 `0x2::dynamic_field::Field<vector<u8>, 0xabc...123::metadata::Metadata>`이다.
 
 | `Metadata` dynamic field에 대한 object 변경 | input object에 포함됨 | live output object에 포함됨 | index 방법 |
 | --- | --- | --- | --- |
@@ -71,7 +71,7 @@ LIMIT $2;
 
 #### `process` function
 
-`process` 함수는 checkpoint에 진입하고 빠져나가는 object의 상태를 포착하기 위해 `checkpoint_input_objects` 집합과 `latest_live_output_objects` 집합을 계산한다. `checkpoint_input_objects`에는 있지만 `latest_live_output_objects`에는 없는 `Metadata` dynamic field는 해당 field가 wrapped되었거나 삭제되었음을 의미한다. 이러한 경우에는 commit 함수가 나중에 삭제를 처리할 수 있도록 dynamic field ID만 기록하면 된다. 생성, 변경, unwrap operation의 경우 object는 항상 최소한 `latest_live_output_objects` 집합에는 나타난다.
+`process` 함수는 checkpoint에 진입하고 빠져나가는 object의 상태를 포착하기 위해 `checkpoint_input_objects` 집합과 `latest_live_output_objects` 집합을 계산한다. `Metadata`에는 있지만 `checkpoint_input_objects`에는 없는 `latest_live_output_objects` dynamic field는 해당 field가 wrapped되었거나 삭제되었음을 의미한다. 이 경우에는 commit 함수가 나중에 삭제를 처리할 수 있도록 dynamic field ID만 기록하면 된다. 생성, 변경, unwrap operation의 경우 object는 항상 최소한 `latest_live_output_objects` 집합에는 나타난다.
 
 <ImportContent source="examples/rust/walrus-attributes-indexer/src/handlers/blog_post.rs" mode="code" fun="process" />
 
@@ -107,7 +107,7 @@ publisher가 작성한 post 목록을 사용자에게 제공하려면 서비스�
 
 ## Additional considerations
 
-모든 Walrus blob에는 관련된 lifetime이 있으므로 만료 변경 사항을 추적해야 한다. `Metadata` dynamic field가 변경될 때마다 parent Sui `Blob` object도 output changes에 나타나야 한다. blob의 lifetime은 `Blob` object의 내용에서 직접 읽을 수 있다. 그러나 lifetime 변경은 보통 `Blob` object 자체에서 발생한다. parent object에 대한 업데이트는 child dynamic field에 영향을 주지 않기 때문에 child를 직접 수정하지 않는 한 이러한 lifetime 변경은 현재 indexing 설정에서는 드러나지 않은 상태로 남는다. 이 문제는 여러 가지 방식으로 해결할 수 있다:
+모든 Walrus blob에는 관련된 lifetime이 있으므로 만료 변경 사항을 추적해야 한다. `Metadata` dynamic field가 변경될 때마다 parent Sui `Blob` object도 output changes에 나타나야 한다. blob의 lifetime은 `Blob` object의 내용에서 직접 읽을 수 있다. 그러나 lifetime 변경은 보통 `Blob` object 자체에서 발생한다. parent object에 대한 업데이트는 child dynamic field에 영향을 주지 않기 때문에 child를 직접 수정하지 않는 한 이 lifetime 변경은 현재 indexing 설정에서는 드러나지 않은 상태로 남는다. 이 문제는 여러 가지 방식으로 해결할 수 있다:
 
 - `Blob` object의 모든 변경을 감시한다.
 - 모든 `BlobCertified` event를 감시한다.

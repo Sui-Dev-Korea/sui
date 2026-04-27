@@ -1,6 +1,6 @@
 ---
 title: DeepBookV3
-description: Sui 위의 marketplaces를 위한 features와 functionality를 제공하는 central limit order book이다. 이 layer를 활용하는 token exchanges는 transparency, full range of trading options, customer privacy를 제공할 수 있다.
+description: Sui 위의 marketplaces를 위한 features와 기능을 제공하는 central limit 오더북이다. 이 layer를 활용하는 토큰 exchanges는 transparency, full range of trading options, customer privacy를 제공할 수 있다.
 keywords:
   [
     deepbook,
@@ -21,11 +21,11 @@ keywords:
 pagination_prev: null
 ---
 
-DeepBookV3는 Sui 위에 구축된 next-generation decentralized central limit order book(CLOB)이다. DeepBookV3는 Sui의 parallel execution과 낮은 transaction fees를 활용하여 high-performance, low-latency exchange를 onchain으로 제공한다.
+DeepBookV3는 Sui 위에 구축된 next-generation decentralized central limit 오더북(CLOB)이다. DeepBookV3는 Sui의 parallel execution과 낮은 트랜잭션 fees를 활용하여 high-performance, low-latency exchange를 onchain으로 제공한다.
 
-최신 버전은 flash loans, governance, improved account abstraction, 기존 matching engine enhancements를 포함한 새로운 features를 제공한다. 이 버전은 [DEEP token](https://suivision.xyz/coin/0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP)을 사용하는 자체 tokenomics도 도입하며, 추가 benefits를 위해 stake할 수 있다.
+최신 버전은 flash loans, governance, improved 계정 abstraction, 기존 matching engine enhancements를 포함한 새로운 features를 제공한다. 이 버전은 [DEEP 토큰](https://suivision.xyz/coin/0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP)을 사용하는 자체 tokenomics도 도입하며, 추가 benefits를 위해 stake할 수 있다.
 
-DeepBookV3는 token trading을 위한 end-user interface를 포함하지 않는다. 대신 decentralized exchanges, wallets 또는 기타 apps에서 token trades를 지원할 수 있는 built-in trading functionality를 제공한다. 사용 가능한 SDK는 chain과 상호작용하고 programmable transaction blocks를 구축하는 복잡성을 많이 추상화하여 active market making의 entry barrier를 낮춘다.
+DeepBookV3는 토큰 trading을 위한 end-user interface를 포함하지 않는다. 대신 decentralized exchanges, 지갑 또는 기타 apps에서 토큰 trades를 지원할 수 있는 built-in trading 기능을 제공한다. 사용 가능한 SDK는 chain과 상호작용하고 programmable 트랜잭션 blocks를 구축하는 복잡성을 많이 추상화하여 active market making의 entry barrier를 낮춘다.
 
 :::info
 
@@ -35,27 +35,27 @@ DeepBookV3는 token trading을 위한 end-user interface를 포함하지 않는�
 
 ## DeepBookV3 tokenomics
 
-DEEP token은 exchange의 trading fees를 지불한다. 사용자는 DEEP tokens 또는 input tokens로 trading fees를 지불할 수 있지만, DEEP의 ownership, usage, staking은 Sui network의 active DeepBookV3 traders에게 계속 가장 많은 benefits를 제공한다.
+DEEP 토큰은 exchange의 거래 수수료를 지불한다. 사용자는 DEEP 토큰 또는 입력 토큰으로 거래 수수료를 지불할 수 있지만, DEEP의 ownership, usage, staking은 Sui network의 active DeepBookV3 traders에게 계속 가장 많은 benefits를 제공한다.
 
-예를 들어 governance는 DEEP tokens로 지불할 때의 fee를 결정하며, 이는 input tokens를 사용할 때의 fee보다 20% 낮다.
+예를 들어 governance는 DEEP 토큰으로 지불할 때의 fee를 결정하며, 이는 입력 토큰을 사용할 때의 fee보다 20% 낮다.
 
-DEEP을 stake한 사용자는 taker와 maker incentives를 받을 수 있다. Taker incentives는 trading fees를 절반으로 줄여 stable pairs에서는 최저 0.25 basis points(bps), volatile pairs에서는 2.5 bps까지 낮출 수 있다. Maker incentives는 maker volume generated에 따라 얻는 rebates이다.
+DEEP을 stake한 사용자는 taker와 maker incentives를 받을 수 있다. Taker incentives는 거래 수수료를 절반으로 줄여 stable pairs에서는 최저 0.25 basis points(bps), volatile pairs에서는 2.5 bps까지 낮출 수 있다. Maker incentives는 maker volume generated에 따라 얻는 rebates이다.
 
 ## Liquidity support
 
-다른 marketplaces의 order books와 유사하게, DeepBookV3의 CLOB architecture는 market orders와 limit orders를 입력할 수 있게 한다. SUI tokens를 sell하는 것은 ask라고 하며, price를 설정하는 limit order를 사용할 수도 있고 market의 current rate로 sell할 수도 있다. SUI를 buy하려는 경우 bid라고 하며, current market price를 지불하거나 limit price를 설정할 수 있다. Limit orders는 CLOB가 buyer와 seller 사이의 match를 찾는 경우에만 fulfill된다.
+다른 marketplaces의 주문 books와 유사하게, DeepBookV3의 CLOB architecture는 market 주문와 limit 주문을 입력할 수 있게 한다. SUI 토큰을 sell하는 것은 ask라고 하며, price를 설정하는 지정가 주문을 사용할 수도 있고 market의 current rate로 sell할 수도 있다. SUI를 buy하려는 경우 bid라고 하며, current market price를 지불하거나 limit price를 설정할 수 있다. Limit 주문은 CLOB가 buyer와 seller 사이의 match를 찾는 경우에만 fulfill된다.
 
-1,000 SUI에 대한 limit order를 넣었는데 현재 그 quantity를 제공하는 single seller가 없다면, DeepBookV3는 current asks를 자동으로 pool하여 bid quantity를 충족한다.
+1,000 SUI에 대한 지정가 주문을 넣었는데 현재 그 quantity를 제공하는 single seller가 없다면, DeepBookV3는 current asks를 자동으로 풀하여 bid quantity를 충족한다.
 
 ## Transparency and privacy
 
-CLOB인 DeepBookV3는 digital ledger처럼 동작하여 bids와 asks를 chronological order로 기록하고 양쪽 사이의 matches를 자동으로 찾는다. Trades의 prices 같은 user parameters를 고려한다.
+CLOB인 DeepBookV3는 digital ledger처럼 동작하여 bids와 asks를 chronological 주문로 기록하고 양쪽 사이의 matches를 자동으로 찾는다. Trades의 prices 같은 user 파라미터를 고려한다.
 
-Digital ledger는 공개되어 있으므로 누구나 trades와 prices를 볼 수 있어 fairness에 대한 명확한 proof를 제공한다. 이 transparency를 사용해 trading activity를 monitor하는 metrics와 dashboards를 만들 수 있다.
+Digital ledger는 공개되어 있으므로 누구나 trades와 prices를 볼 수 있어 fairness에 대한 명확한 proof를 제공한다. 이 transparency를 사용해 거래 활동를 monitor하는 metrics와 dashboards를 만들 수 있다.
 
 ## Documentation
 
-이 문서는 DeepBookV3의 design과 public endpoints를 개괄하고 integrations를 위한 guidance를 제공한다. SDK는 chain과 상호작용하고 programmable transaction blocks를 구축하는 복잡성을 많이 추상화하여 active market making의 entry barrier를 낮춘다.
+이 문서는 DeepBookV3의 design과 public endpoints를 개괄하고 integrations를 위한 guidance를 제공한다. SDK는 chain과 상호작용하고 programmable 트랜잭션 blocks를 구축하는 복잡성을 많이 추상화하여 active market making의 entry barrier를 낮춘다.
 
 ## Open source
 

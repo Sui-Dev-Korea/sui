@@ -188,23 +188,25 @@ keywords:
 	</thead>
 	<tbody>
 		<tr>
-			<td class="w-2/3">`sui client call \`<br />  `--package PACKAGE \`<br />  `--module MODULE \`<br />  `--function FUNCTION`</td>
+			<td class="w-2/3">`sui client call \`<br/>&nbsp;&nbsp;`--package PACKAGE \`<br/>&nbsp;&nbsp;`--module MODULE \`<br/>&nbsp;&nbsp;`--function FUNCTION`</td>
 			<td class="w-1/3">Move 패키지를 호출한다</td>
 		</tr>
 		<tr>
-			<td class="w-2/3">`sui client merge-coin \`<br />  `--primary-coin COIN_ID \`<br />  `--coin-to-merge COIN_ID`</td>
+			<td class="w-2/3">`sui client merge-coin \`<br/>&nbsp;&nbsp;`--primary-coin COIN_ID \`<br/>&nbsp;&nbsp;`--coin-to-merge COIN_ID`</td>
 			<td class="w-1/3">두 코인을 merge한다.</td>
 		</tr>
 		<tr>
-			<td class="w-2/3">`sui client split-coin \`<br />  `--coin-id COIN_ID \`<br />  `--amounts 1000`</td>
+			<td class="w-2/3">`sui client split-coin \`<br/>&nbsp;&nbsp;`--coin-id COIN_ID \`<br/>&nbsp;&nbsp;`--amounts 1000`</td>
 			<td class="w-1/3">코인을 두 개로 나눈다. 하나는 1000 MIST가 들어있고 나머지는 다른 하나에 있다</td>
 		</tr>
 		<tr>
-			<td class="w-2/3"> 				`sui client pay-sui \`<br />  `--input-coins COIN_ID \`<br />  `--recipients ADDRESS \`<br />  `--amounts 100000000`</td>
+			<td class="w-2/3">
+				`sui client pay-sui \`<br/>&nbsp;&nbsp;`--input-coins COIN_ID \`<br/>&nbsp;&nbsp;`--recipients ADDRESS \`<br/>&nbsp;&nbsp;`--amounts 100000000`
+			</td>
 			<td class="w-1/3">0.1 SUI를 주소로 전송하고 동일한 코인을 가스로 사용한다.</td>
 		</tr>
 		<tr>
-			<td class="w-2/3">`sui client transfer-sui \`<br />  `--sui-coin-object-id COIN_ID \`<br />  `--to ADDRESS`</td>
+			<td class="w-2/3">`sui client transfer-sui \`<br/>&nbsp;&nbsp;`--sui-coin-object-id COIN_ID \`<br/>&nbsp;&nbsp;`--to ADDRESS`</td>
 			<td class="w-1/3">SUI object를 주소로 전송하고 동일한 코인을 가스에 사용한다.</td>
 		</tr>
 	</tbody>
@@ -225,13 +227,13 @@ keywords:
       <td class="w-1/3">패키지 및 모듈에서 Move 함수 호출</td>
     </tr>
     <tr>
-      <td class="w-2/3">`sui client ptb --make-move-vec "<u>" "[1000,2000]"`</td>
+      <td class="w-2/3">`sui client ptb --make-move-vec "<u64>" "[1000,2000]"`</td>
       <td class="w-1/3">u64 유형의 두 요소를 사용하여 Move 벡터를 만든다.</td>
     </tr>
     <tr>
       <td class="w-2/3">
-        `sui client ptb \`<br />  `--split-coins gas "[1000]" \`<br />  `--assign
-        new_coins \`<br />  `--transfer-objects "[new_coins]" ADDRESS`
+        `sui client ptb \`<br/>&nbsp;&nbsp;`--split-coins gas "[1000]" \`<br/>&nbsp;&nbsp;`--assign new_coins \`<br/>&nbsp;&nbsp;`--transfer-objects
+        "[new_coins]" ADDRESS`
       </td>
       <td class="w-1/3">가스 코인을 나눠서 주소로 이체한다</td>
     </tr>
@@ -243,11 +245,28 @@ keywords:
     </tr>
     <tr>
       <td class="w-2/3">
-        `sui client ptb \`<br />  `--move-call sui::tx_context::sender \`<br />  `--assign
-        sender \`<br />  `--publish "." \`<br />  `--assign upgrade_cap \`<br />  `--transfer-objects
-        "[upgrade_cap]" sender`
+        `sui client ptb \`<br/>&nbsp;&nbsp;`--move-call sui::tx_context::sender \`<br/>&nbsp;&nbsp;`--assign sender \`<br/>&nbsp;&nbsp;`--publish "." \`<br/>&nbsp;&nbsp;`--assign
+        upgrade_cap \`<br/>&nbsp;&nbsp;`--transfer-objects "[upgrade_cap]" sender`
       </td>
       <td class="w-1/3">Move 패키지를 게시하고 upgrade capability를 전송자에게 전송한다.</td>
+    </tr>
+    <tr>
+      <td class="w-2/3">`sui client ptb --move-call p::m::f "<type>" args --dry-run`</td>
+      <td class="w-1/3">트랜잭션을 커밋하지 않고 PTB 실행을 시뮬레이션한다</td>
+    </tr>
+    <tr>
+      <td class="w-2/3">`sui client ptb --move-call p::m::f "<type>" args --preview`</td>
+      <td class="w-1/3">트랜잭션을 실행하는 대신 PTB 명령을 미리 본다</td>
+    </tr>
+    <tr>
+      <td class="w-2/3">`sui client ptb --move-call p::m::f "<type>" args --summary`</td>
+      <td class="w-1/3">PTB의 짧은 요약(digest, 상태, 가스 비용)을 표시한다</td>
+    </tr>
+    <tr>
+      <td class="w-2/3">
+        `sui client ptb \`<br/>&nbsp;&nbsp;`--move-call p::m::f "<type>" args \`<br/>&nbsp;&nbsp;`--serialize-unsigned-transaction`
+      </td>
+      <td class="w-1/3">실행하지 않고 unsigned PTB를 base64로 직렬화한다</td>
     </tr>
   </tbody>
 </table>

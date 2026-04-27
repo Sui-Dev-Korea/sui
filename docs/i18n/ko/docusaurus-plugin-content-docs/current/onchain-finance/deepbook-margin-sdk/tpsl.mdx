@@ -1,7 +1,7 @@
 ---
 title: 이익 실현 및 손실 제한 SDK
 sidebar_label: 이익 실현 및 손실 제한 SDK
-description: DeepBook Margin SDK를 사용해 자동화된 trading을 위한 conditional order를 관리하는 방법을 설명한다.
+description: DeepBook Margin SDK를 사용해 자동화된 trading을 위한 conditional 주문을 관리하는 방법을 설명한다.
 keywords:
   [
     take profit,
@@ -16,40 +16,40 @@ keywords:
 ---
 
 
-TPSL(Take Profit Stop Loss) SDK는 특정 가격 조건이 충족될 때 자동으로 실행되는 conditional order를 관리하기 위한 함수를 제공한다.
+TPSL(Take Profit Stop Loss) SDK는 특정 가격 조건이 충족될 때 자동으로 실행되는 conditional 주문을 관리하기 위한 함수를 제공한다.
 
-## TPSL function
+## TPSL 함수
 
-DeepBook Margin SDK는 conditional order를 관리하기 위한 다음 함수를 제공한다.
+DeepBook Margin SDK는 conditional 주문을 관리하기 위한 다음 함수를 제공한다.
 
 ### `addConditionalOrder`
 
-가격 조건이 충족될 때 실행되는 conditional order를 추가하려면 `addConditionalOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+가격 조건이 충족될 때 실행되는 conditional 주문을 추가하려면 `addConditionalOrder`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
 - `marginManagerKey`: margin manager를 식별하는 String이다.
-- `conditionalOrderId`: 이 conditional order에 대한 고유 ID를 나타내는 Number이다.
+- `conditionalOrderId`: 이 conditional 주문에 대한 고유 ID를 나타내는 Number이다.
 - `triggerBelowPrice`: 가격이 trigger price 아래로 떨어질 때 trigger할지 여부를 나타내는 Boolean이다.
-- `triggerPrice`: order가 trigger되는 price를 나타내는 Number이다.
-- `pendingOrder`: order 세부 정보를 포함하는 Object이다(`PendingLimitOrderParams` 또는 `PendingMarketOrderParams` 중 하나).
+- `triggerPrice`: 주문이 trigger되는 price를 나타내는 Number이다.
+- `pendingOrder`: 주문 세부 정보를 포함하는 Object이다(`PendingLimitOrderParams` 또는 `PendingMarketOrderParams` 중 하나).
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="addConditionalOrder" signatureOnly />
 
 ### `cancelConditionalOrder`
 
-특정 conditional order를 취소하려면 `cancelConditionalOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+특정 conditional 주문을 취소하려면 `cancelConditionalOrder`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
 - `marginManagerKey`: margin manager를 식별하는 String이다.
-- `conditionalOrderId`: 취소할 conditional order의 ID를 나타내는 String이다.
+- `conditionalOrderId`: 취소할 conditional 주문의 ID를 나타내는 String이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="cancelConditionalOrder" signatureOnly />
 
 ### `cancelAllConditionalOrders`
 
-margin manager에 대한 모든 conditional order를 취소하려면 `cancelAllConditionalOrders`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+margin manager에 대한 모든 conditional 주문을 취소하려면 `cancelAllConditionalOrders`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
@@ -59,26 +59,27 @@ margin manager에 대한 모든 conditional order를 취소하려면 `cancelAllC
 
 ### `executeConditionalOrders`
 
-trigger된 conditional order를 실행하려면 `executeConditionalOrders`를 사용한다. 이는 누구나 호출할 수 있는 permissionless 함수이다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+trigger된 conditional 주문을 실행하려면 `executeConditionalOrders`를 사용한다. 이는 누구나 호출할 수 있는 permissionless 함수가다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `marginManagerKey`: margin manager를 식별하는 String이다.
-- `maxOrdersToExecute`: 이 호출에서 실행할 최대 order 수를 나타내는 Number이다.
+- `managerAddress`: 실행할 주문을 가진 margin manager의 주소를 나타내는 String이다.
+- `poolKey`: DeepBook 풀을 식별하는 String이다.
+- `maxOrdersToExecute`: 이 호출에서 실행할 최대 주문 수를 나타내는 Number이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="executeConditionalOrders" signatureOnly />
 
-## helper function
+## helper 함수
 
-이 helper 함수들은 conditional order에 대한 condition과 pending order를 생성한다.
+이 helper 함수들은 conditional 주문에 대한 condition과 pending 주문을 생성한다.
 
 ### `newCondition`
 
-conditional order를 위한 trigger condition을 생성하려면 `newCondition`을 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+conditional 주문을 위한 trigger condition을 생성하려면 `newCondition`을 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `poolKey`: pool을 식별하는 String이다.
+- `poolKey`: 풀을 식별하는 String이다.
 - `triggerBelowPrice`: 가격이 trigger price 아래로 떨어질 때 trigger할지 여부를 나타내는 Boolean이다.
 - `triggerPrice`: trigger되는 price를 나타내는 Number이다.
 
@@ -86,111 +87,111 @@ conditional order를 위한 trigger condition을 생성하려면 `newCondition`�
 
 ### `newPendingLimitOrder`
 
-conditional order에서 사용할 pending limit order를 생성하려면 `newPendingLimitOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+conditional 주문에서 사용할 pending 지정가 주문을 생성하려면 `newPendingLimitOrder`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `poolKey`: pool을 식별하는 String이다.
-- `params`: 다음을 포함하는 `PendingLimitOrderParams` object이다:
-  - `clientOrderId`: client tracking을 위한 Number이다.
-  - `orderType`: optional order type이다(default: `NO_RESTRICTION`).
-  - `selfMatchingOption`: optional self-matching option이다(default: `SELF_MATCHING_ALLOWED`).
+- `poolKey`: 풀을 식별하는 String이다.
+- `params`: 다음을 포함하는 `PendingLimitOrderParams` 객체이다:
+  - `clientOrderId`: 클라이언트 tracking을 위한 Number이다.
+  - `orderType`: optional 주문 type이다(기본값: `NO_RESTRICTION`).
+  - `selfMatchingOption`: optional self-matching option이다(기본값: `SELF_MATCHING_ALLOWED`).
   - `price`: limit price를 나타내는 Number이다.
-  - `quantity`: order quantity를 나타내는 Number이다.
-  - `isBid`: buy order인지 여부를 나타내는 Boolean이다.
-  - `payWithDeep`: fee payment를 위한 optional boolean이다(default: `true`).
-  - `expireTimestamp`: optional expiration timestamp이다.
+  - `quantity`: 주문 quantity를 나타내는 Number이다.
+  - `isBid`: buy 주문인지 여부를 나타내는 Boolean이다.
+  - `payWithDeep`: fee payment를 위한 optional boolean이다(기본값: `true`).
+  - `expireTimestamp`: optional expiration 타임스탬프이다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="newPendingLimitOrder" signatureOnly />
 
 ### `newPendingMarketOrder`
 
-conditional order에서 사용할 pending market order를 생성하려면 `newPendingMarketOrder`를 사용한다. 이 호출은 `Transaction` object를 받는 함수를 반환한다.
+conditional 주문에서 사용할 pending 시장가 주문을 생성하려면 `newPendingMarketOrder`를 사용한다. 이 호출은 `Transaction` 객체를 받는 함수를 반환한다.
 
 **매개변수**
 
-- `poolKey`: pool을 식별하는 String이다.
-- `params`: 다음을 포함하는 `PendingMarketOrderParams` object이다:
-  - `clientOrderId`: client tracking을 위한 Number이다.
-  - `selfMatchingOption`: optional self-matching option이다(default: `SELF_MATCHING_ALLOWED`).
-  - `quantity`: order quantity를 나타내는 Number이다.
-  - `isBid`: buy order인지 여부를 나타내는 Boolean이다.
-  - `payWithDeep`: fee payment를 위한 optional boolean이다(default: `true`).
+- `poolKey`: 풀을 식별하는 String이다.
+- `params`: 다음을 포함하는 `PendingMarketOrderParams` 객체이다:
+  - `clientOrderId`: 클라이언트 tracking을 위한 Number이다.
+  - `selfMatchingOption`: optional self-matching option이다(기본값: `SELF_MATCHING_ALLOWED`).
+  - `quantity`: 주문 quantity를 나타내는 Number이다.
+  - `isBid`: buy 주문인지 여부를 나타내는 Boolean이다.
+  - `payWithDeep`: fee payment를 위한 optional boolean이다(기본값: `true`).
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="newPendingMarketOrder" signatureOnly />
 
-## read-only function
+## read-only 함수
 
 ### `conditionalOrderIds`
 
-margin manager에 대한 모든 conditional order ID를 쿼리한다.
+margin manager에 대한 모든 conditional 주문 ID를 쿼리한다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="conditionalOrderIds" signatureOnly />
 
 ### `conditionalOrder`
 
-ID로 특정 conditional order를 쿼리한다.
+ID로 특정 conditional 주문을 쿼리한다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="conditionalOrder" signatureOnly />
 
 ### `lowestTriggerAbovePrice`, `highestTriggerBelowPrice`
 
-conditional order의 trigger price를 쿼리한다. `lowestTriggerAbovePrice`는 trigger-above orders 중 가장 낮은 trigger price를 반환하며, 없으면 `max_u64`를 반환한다. `highestTriggerBelowPrice`는 trigger-below orders 중 가장 높은 trigger price를 반환하며, 없으면 `0`을 반환한다.
+conditional 주문의 trigger price를 쿼리한다. `lowestTriggerAbovePrice`는 trigger-above 주문 중 가장 낮은 trigger price를 반환하며, 없으면 `max_u64`를 반환한다. `highestTriggerBelowPrice`는 trigger-below 주문 중 가장 높은 trigger price를 반환하며, 없으면 `0`을 반환한다.
 
 <ImportContent source="packages/deepbook-v3/src/transactions/marginTPSL.ts" mode="code" org="MystenLabs" repo="ts-sdks" fun="lowestTriggerAbovePrice,highestTriggerBelowPrice" signatureOnly />
 
 ## 예시
 
-### stop loss order 설정
+### stop loss 주문 설정
 
 ```tsx
-// 예시: 가격이 2.0 아래로 떨어지면 매도하는 stop loss order를 생성한다
+// Example: Create a stop loss order that sells when price drops below 2.0
 const setStopLoss = (tx: Transaction) => {
 	const managerKey = 'MARGIN_MANAGER_1';
 	traderClient.marginTPSL.addConditionalOrder({
 		marginManagerKey: managerKey,
 		conditionalOrderId: 1,
-		triggerBelowPrice: true, // 가격이 아래로 내려가면 트리거한다
+		triggerBelowPrice: true, // Trigger when price falls below
 		triggerPrice: 2.0,
 		pendingOrder: {
 			clientOrderId: 100,
 			quantity: 50,
-			isBid: false, // 매도 order
+			isBid: false, // Sell order
 			payWithDeep: true,
 		},
 	})(tx);
 };
 ```
 
-### take profit order 설정
+### take profit 주문 설정
 
 ```tsx
-// 예시: 가격이 5.0 위로 오르면 매도하는 take profit order를 생성한다
+// Example: Create a take profit order that sells when price rises above 5.0
 const setTakeProfit = (tx: Transaction) => {
 	const managerKey = 'MARGIN_MANAGER_1';
 	traderClient.marginTPSL.addConditionalOrder({
 		marginManagerKey: managerKey,
 		conditionalOrderId: 2,
-		triggerBelowPrice: false, // 가격이 위로 올라가면 트리거한다
+		triggerBelowPrice: false, // Trigger when price rises above
 		triggerPrice: 5.0,
 		pendingOrder: {
 			clientOrderId: 101,
-			price: 5.0, // 5.0의 limit order
+			price: 5.0, // Limit order at 5.0
 			quantity: 50,
-			isBid: false, // 매도 order
+			isBid: false, // Sell order
 			payWithDeep: true,
 		},
 	})(tx);
 };
 ```
 
-### trigger된 order 실행(keeper)
+### trigger된 주문 실행(keeper)
 
 ```tsx
-// 예시: keeper로 conditional orders를 실행한다
+// Example: Execute conditional orders as a keeper
 const executeOrders = (tx: Transaction) => {
-	const managerKey = 'MARGIN_MANAGER_1';
-	// 최대 10개의 triggered order를 실행한다
-	traderClient.marginTPSL.executeConditionalOrders(managerKey, 10)(tx);
+	const managerAddress = '0x...'; // Address of margin manager
+	// Execute up to 10 triggered orders
+	traderClient.marginTPSL.executeConditionalOrders(managerAddress, 'SUI_USDC', 10)(tx);
 };
 ```

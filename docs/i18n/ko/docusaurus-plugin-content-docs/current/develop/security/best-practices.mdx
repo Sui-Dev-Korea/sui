@@ -12,7 +12,7 @@ draft: true
 
 #### 컨트랙트 감사
 
-transaction이 신뢰하고 audit한 smart contract에서 동작하는지 확인한다. Sui smart contract는 수정을 방지하기 위해 immutable object로 정의된다.
+트랜잭션이 신뢰하고 audit한 스마트 계약에서 동작하는지 확인한다. Sui 스마트 계약는 수정을 방지하기 위해 불변 객체로 정의된다.
 
 #### random call은 PTB에서 마지막이어야 한다
 
@@ -20,7 +20,7 @@ transaction이 신뢰하고 audit한 smart contract에서 동작하는지 확인
 
 #### 함수를 entry로 표시
 
-다른 Move module이 randomness-consuming function을 예기치 않게 호출하지 못하도록 한다.
+다른 Move 모듈이 randomness-consuming 함수를 예기치 않게 호출하지 못하도록 한다.
 
 #### `RandomGenerator`를 parameter로 받지 않기
 
@@ -28,9 +28,9 @@ manipulation을 방지하기 위해 generator는 항상 내부에서 생성한�
 
 #### outcome path 간 가스 균형 맞추기
 
-모든 outcome이 비슷한 gas를 소비하도록 function을 설계해, attacker가 유리한 outcome에서만 성공하는 gas budget을 설정하지 못하도록 한다.
+모든 outcome이 비슷한 gas를 소비하도록 함수를 설계해, attacker가 유리한 outcome에서만 성공하는 가스 예산을 설정하지 못하도록 한다.
 
-#### high-stakes application에는 two-transaction commit-reveal pattern을 고려한다.
+#### high-stakes application에는 two-트랜잭션 commit-reveal pattern을 고려한다.
 
 ## Seal (암호화 및 접근 제어)
 
@@ -42,7 +42,7 @@ sensitive 또는 large data에는 envelope encryption을 사용한다. 자체 sy
 
 #### 올바른 access policy 보장
 
-`seal_approve*` function의 Move code는 의도한 access rule을 정확히 표현해야 한다. upgradeable package는 언제든 policy change를 허용한다.
+`seal_approve*` 함수의 Move code는 의도한 access rule을 정확히 표현해야 한다. upgradeable 패키지는 언제든 policy change를 허용한다.
 
 ## Nautilus
 
@@ -72,11 +72,11 @@ replay attack window를 줄인다.
 
 #### MetadataCap 보호
 
-이는 coin branding을 제어한다.
+이는 코인 branding을 제어한다.
 
 #### DenyCapV2 보호
 
-이는 coin usage를 제한할 수 있다.
+이는 코인 usage를 제한할 수 있다.
 
 #### supply model을 일찍 설정하고 fixed, burn-only, flexible supply의 의미를 이해한다.
 
@@ -88,4 +88,4 @@ replay attack window를 줄인다.
 
 #### recipient address를 주의 깊게 verify한다.
 
-object를 잘못된 address로 보내면 되돌릴 수 없는 영향을 줄 수 있다.
+객체를 잘못된 address로 보내면 되돌릴 수 없는 영향을 줄 수 있다.

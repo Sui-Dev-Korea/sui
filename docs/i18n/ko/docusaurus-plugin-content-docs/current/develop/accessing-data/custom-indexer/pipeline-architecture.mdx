@@ -134,7 +134,7 @@ Pruning은 retention policy로 구성된 pipelines에 대해 활성화된다. �
        reader_lo = 1000       checkpoint_hi_inclusive = 1003
 
 🗑️ = Pruned (deleted)
-✓ = Committed  
+✓ = Committed
 ✗ = Not Committed
 ```
 
@@ -159,7 +159,7 @@ Clear safe zones:
 [998] [999] [1000] [1001] [1002] [1003] [1004] [1005] [1006]
  🗑️    🗑️     ✓      ✓      ✓      ✓      ✗      ✗      ✓
 
-[--PRUNED--][--- Safe Reading Zone ---] [--- Processing ---]             
+[--PRUNED--][--- Safe Reading Zone ---] [--- Processing ---]
 ```
 
 ### Watermark가 시간에 따라 진행되는 방식
@@ -337,11 +337,11 @@ Concurrent pipelines는 shared [Processor](#processor) 외에 다섯 개의 pipe
 `Collector`는 여러 `Processor` workers로부터 out-of-order로 처리된 data를 받는다. 그런 다음 최적의 batch size(`MIN_EAGER_ROWS`)에 도달하거나 timeout이 만족될 때까지 data를 buffer한다(조용한 pipelines에서도 forward progress를 보존하기 위함이다).
 
 <ImportContent mode="code" source="crates/sui-indexer-alt-framework/src/pipeline/concurrent/mod.rs" variable="MIN_EAGER_ROWS" />
-    
+
 `Collector`는 여러 checkpoints의 data를 하나의 database write batch로 결합하고, pending data가 너무 많을 때(`MAX_PENDING_ROWS`) backpressure를 적용한다.
 
 <ImportContent mode="code" source="crates/sui-indexer-alt-framework/src/pipeline/concurrent/mod.rs" variable="MAX_PENDING_ROWS" />
-    
+
 Database writes는 비용이 크므로 batching은 database round trips 수를 줄여 throughput을 크게 향상시킨다.
 
 #### `Committer` {#con-committer}
@@ -366,7 +366,7 @@ Database writes는 비용이 크므로 batching은 database round trips 수를 �
 `CommitterWatermark`는 성공적인 `Committer` writes로부터 `WatermarkParts`를 받는다.
 
 <ImportContent mode="code" source="crates/sui-indexer-alt-framework/src/pipeline/mod.rs" struct="WatermarkPart"/>
-    
+
 `CommitterWatermark`는 checkpoint completion status의 in-memory map을 유지하며, sequence에 gaps가 없을 때만 `checkpoint_hi_inclusive`를 advance한다. 주기적으로 새로운 `checkpoint_hi_inclusive`를 `Watermark` database에 쓴다.
 
 이 component는 해당 지점까지의 모든 data가 gaps 없이 commit되었을 때만 `checkpoint_hi_inclusive`가 advance할 수 있다는 중요한 규칙을 강제한다. 이것이 safe out-of-order processing을 가능하게 하는 방식에 대한 자세한 내용은 [watermark system](#watermark-system)을 참조한다.
@@ -390,11 +390,11 @@ Polling을 사용하므로 updates는 즉시 일어나는 대신 구성 가능�
 `Pruner`는 `reader_lo`가 업데이트된 후 safety delay(`delay_ms`)를 기다린다.
 
 <ImportContent mode="code" source="crates/sui-indexer-alt-framework/src/pipeline/concurrent/mod.rs" struct="PrunerConfig" highlight="delay_ms" />
-    
+
 그런 다음 `Pruner`는 어떤 checkpoints를 안전하게 삭제할 수 있는지 계산하고 최대 `prune_concurrency`개의 parallel cleanup tasks를 생성한다.
 
 <ImportContent mode="code" source="crates/sui-indexer-alt-framework/src/pipeline/concurrent/mod.rs" struct="PrunerConfig" highlight="prune_concurrency" />
-    
+
 각 task는 특정 checkpoint ranges에 대해 사용자의 `Handler::prune()` method를 호출하고 cleanup이 완료되면 `pruner_hi`를 업데이트한다.
 
 :::important
@@ -415,10 +415,10 @@ trait Processor {
     async fn process(&self, checkpoint: &Arc<Checkpoint>) -> anyhow::Result<Vec<Self::Value>>;
 }
 
-trait Handler { 
-    // Called by Committer workers  
+trait Handler {
+    // Called by Committer workers
     async fn commit(&[Self::Value], &mut Connection) -> Result<usize>;
-    
+
     // Called by Pruner workers
     async fn prune(&self, from: u64, to: u64, &mut Connection) -> Result<usize>;
 }
@@ -457,7 +457,7 @@ Component architecture를 살펴봤으므로, 이제 inter-component channels를
 **`Processor` to `Collector`**: `processor_channel_size` slots (`num_cpus / 2`가 기본값) → 모든 workers가 `send()`에서 block된다.
 
 <ImportContent mode="code" source="crates/sui-indexer-alt-framework/src/pipeline/concurrent/mod.rs" variable="processor_tx" />
-    
+
 **`Collector` to `Committer`**: `collector_channel_size` slots (`num_cpus / 2`가 기본값) → `Collector`가 수락을 중단한다.
 
 <ImportContent mode="code" source="crates/sui-indexer-alt-framework/src/pipeline/concurrent/mod.rs" tag="buff" />
@@ -468,8 +468,8 @@ Component architecture를 살펴봤으므로, 이제 inter-component channels를
 
 Component 수준에서 `Collector`는 memory limits를 준수하며 `pending_rows ≥ MAX_PENDING_ROWS`일 때 수락을 중단한다.
 
-<ImportContent mode="code" source="crates/sui-indexer-alt-framework/src/pipeline/concurrent/collector.rs" tag="collector" /> 
-    
+<ImportContent mode="code" source="crates/sui-indexer-alt-framework/src/pipeline/concurrent/collector.rs" tag="collector" />
+
 Database connection limits도 존재한다. `Committer`는 모든 connections가 사용 중일 때 block된다.
 
 #### 실제 backpressure 동작
@@ -483,7 +483,7 @@ Database connection limits도 존재한다. `Committer`는 모든 connections가
     - `Collector`가 `Committer`로 보내기를 멈춘다(channel full).
     - `Processor` channel이 가득 차고, adaptive `fanout` controller가 processor concurrency를 minimum 쪽으로 줄인다.
     - `Broadcaster`는 subscriber channel이 차는 것을 보고 adaptive `ingest_concurrency` controller로 fetch concurrency를 minimum 쪽으로 줄인다. Channel이 capacity에 도달하면 ingest tasks가 `send`에서 block되고 channel이 비워질 때까지 checkpoint ingestion이 멈춘다.
-1. **End result**:
+1. **End 결과**:
     - Indexer가 자동으로 초당 50 checkpoints로 느려져 database capacity에 맞춰진다.
     - Memory는 bounded 상태를 유지하고 runaway growth가 없다.
     - 모든 것이 단지 더 느리게 처리될 뿐이므로 data loss가 없다.
@@ -601,16 +601,16 @@ Data retention과 pruning performance를 구성한다:
 let pruner_config = PrunerConfig {
     // Check interval for pruning opportunities in ms (default: 300,000 = 5 min)
     interval_ms: 600_000, // 10 minutes for less frequent checks
-    
-    // Safety delay after reader watermark update in ms (default: 120,000 = 2 min)  
+
+    // Safety delay after reader watermark update in ms (default: 120,000 = 2 min)
     delay_ms: 300_000, // 5 minutes for conservative pruning
-    
+
     // How many checkpoints to retain (default: 4,000,000)
     retention: 10_000_000, // Keep more data for analytics
-    
+
     // Max checkpoints to prune per operation (default: 2,000)
     max_chunk_size: 5_000, // Larger chunks for faster pruning
-    
+
     // Parallel pruning tasks (default: 1)
     prune_concurrency: 3, // More parallelism for faster pruning
 };
@@ -619,6 +619,6 @@ let pruner_config = PrunerConfig {
 Tuning guidelines:
 
 - **`retention`:** storage costs와 data availability needs 사이의 균형을 맞춘다.
-- **`max_chunk_size`:** 값이 클수록 pruning은 빨라지지만 database transactions는 더 길어진다.
+- **`max_chunk_size`:** 값이 클수록 pruning은 빨라지지만 database 트랜잭션는 더 길어진다.
 - **`prune_concurrency`:** database connection limits를 초과하지 않도록 한다.
 - **`delay_ms`:** safety를 위해 늘리고 aggressive storage optimization을 위해 줄인다.

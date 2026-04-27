@@ -1,7 +1,7 @@
 ---
 title: 컨트랙트 정보
 sidebar_position: 2
-description: Sui Mainnet에서 DeepBook Margin의 contract address, 지원되는 코인, margin pool, 그리고 risk parameter를 설명한다.
+description: Sui Mainnet에서 DeepBook Margin의 contract 주소, 지원되는 코인, 마진 풀, 그리고 리스크 파라미터를 설명한다.
 keywords:
   [
     deepbook margin,
@@ -18,7 +18,7 @@ keywords:
 ---
 
 
-이 페이지에는 Sui Mainnet에서 DeepBook Margin의 contract address, 지원되는 코인, margin pool, 그리고 risk parameter가 포함된다.
+이 페이지에는 Sui Mainnet에서 DeepBook Margin의 contract 주소, 지원되는 코인, 마진 풀, 그리고 리스크 파라미터가 포함된다.
 
 ## 컨트랙트 버전
 
@@ -36,11 +36,11 @@ DeepBook Margin은 upgradeable contract를 사용한다. contract가 업그레�
 
 | Version | Date | Package ID | Changes | Status |
 |---------|------|------------|---------|--------|
-| 3 | Feb 10, 2026 | `0xfbd322126f1452fd4c89aedbaeb9fd0c44df9b5cedbe70d76bf80dc086031377` | market order function의 버그 수정 | 활성 |
+| 3 | Feb 10, 2026 | `0xfbd322126f1452fd4c89aedbaeb9fd0c44df9b5cedbe70d76bf80dc086031377` | 시장가 주문 함수의 버그 수정 | 활성 |
 | 2 | Feb 10, 2026 | `0xcb4fc91921494ebe6979e201fdb2d67388ffdf6a1b1eb4952526259074de8d0b` | margin manager에 대한 Oracle slippage 방지 | 비활성 |
 | 1 | Jan 13, 2026 | `0x97d9473771b01f77b0940c589484184b49f6444627ec121314fae6a6d36fb86b` | 최초 배포 | 비활성 |
 
-## Supported coins
+## Supported 코인
 
 <details>
 <summary>SUI Token</summary>
@@ -92,9 +92,9 @@ DeepBook Margin은 upgradeable contract를 사용한다. contract가 업그레�
 
 </details>
 
-## Margin pools
+## 마진 풀
 
-Margin pool은 margin trader가 차입할 수 있는 liquidity를 제공한다. Supplier는 asset을 deposit하여 borrower로부터 interest를 얻을 수 있다.
+마진 풀은 margin trader가 차입할 수 있는 유동성을 제공한다. Supplier는 자산을 예치하여 차입자로부터 interest를 얻을 수 있다.
 
 <details>
 <summary>SUI Margin Pool</summary>
@@ -163,7 +163,7 @@ Margin pool은 margin trader가 차입할 수 있는 liquidity를 제공한다. 
 
 ## 리스크 매개변수
 
-Risk parameter는 각 trading pair에 대한 leverage limit과 liquidation threshold를 결정한다. 이 parameter가 작동하는 방식에 대한 자세한 설명은 [리스크 비율](./contract-information/risk-ratio)를 참조한다.
+Risk 파라미터는 각 trading pair에 대한 leverage limit과 liquidation threshold를 결정한다. 이 파라미터가 작동하는 방식에 대한 자세한 설명은 [리스크 비율](/onchain-finance/deepbook-margin/contract-information/risk-ratio)를 참조한다.
 
 ### SUI/USDC (5x leverage)
 
@@ -171,10 +171,10 @@ Risk parameter는 각 trading pair에 대한 leverage limit과 liquidation thres
 |-----------|-------|-------------|
 | 최소 인출 리스크 비율 | 2.0 | 담보를 인출하기 위해 필요한 최소 비율 |
 | 최소 차입 리스크 비율 | 1.25 | 차입하기 위해 필요한 최소 비율 |
-| 청산 리스크 비율 | 1.1 | position이 liquidatable 상태가 되는 비율 |
+| 청산 리스크 비율 | 1.1 | 포지션이 liquidatable 상태가 되는 비율 |
 | 목표 청산 리스크 비율 | 1.25 | liquidation 후 목표 비율 |
 | 사용자 청산 보상 | 2% | liquidator에 대한 보상 |
-| Pool 청산 보상 | 3% | pool에 대한 보상 |
+| Pool 청산 보상 | 3% | 풀에 대한 보상 |
 
 ### WAL/USDC (3x leverage)
 
@@ -182,10 +182,10 @@ Risk parameter는 각 trading pair에 대한 leverage limit과 liquidation thres
 |-----------|-------|-------------|
 | 최소 인출 리스크 비율 | 2.0 | 담보를 인출하기 위해 필요한 최소 비율 |
 | 최소 차입 리스크 비율 | 1.5 | 차입하기 위해 필요한 최소 비율 |
-| 청산 리스크 비율 | 1.2 | position이 liquidatable 상태가 되는 비율 |
+| 청산 리스크 비율 | 1.2 | 포지션이 liquidatable 상태가 되는 비율 |
 | 목표 청산 리스크 비율 | 1.5 | liquidation 후 목표 비율 |
 | 사용자 청산 보상 | 2% | liquidator에 대한 보상 |
-| Pool 청산 보상 | 3% | pool에 대한 보상 |
+| Pool 청산 보상 | 3% | 풀에 대한 보상 |
 
 ### DEEP/USDC (3x leverage)
 
@@ -193,7 +193,7 @@ Risk parameter는 각 trading pair에 대한 leverage limit과 liquidation thres
 |-----------|-------|-------------|
 | 최소 인출 리스크 비율 | 2.0 | 담보를 인출하기 위해 필요한 최소 비율 |
 | 최소 차입 리스크 비율 | 1.5 | 차입하기 위해 필요한 최소 비율 |
-| 청산 리스크 비율 | 1.2 | position이 liquidatable 상태가 되는 비율 |
+| 청산 리스크 비율 | 1.2 | 포지션이 liquidatable 상태가 되는 비율 |
 | 목표 청산 리스크 비율 | 1.5 | liquidation 후 목표 비율 |
 | 사용자 청산 보상 | 2% | liquidator에 대한 보상 |
-| Pool 청산 보상 | 3% | pool에 대한 보상 |
+| Pool 청산 보상 | 3% | 풀에 대한 보상 |

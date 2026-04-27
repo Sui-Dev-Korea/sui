@@ -10,7 +10,7 @@ Move 함수는 `RandomGenerator`의 새 instance를 만들고 이를 사용해 �
 
 ```move
 entry fun roll_dice(r: &Random, ctx: &mut TxContext): Dice {
-  let mut generator = new_generator(r, ctx); // generator는 PRG이다
+  let mut generator = new_generator(r, ctx); // generator is a PRG
   Dice { value: random::generate_u8_in_range(&mut generator, 1, 6) }
 }
 ```
@@ -116,14 +116,14 @@ module games::dice {
     }
   }
 
-  /// 출력을 맞히면 GuessedCorrectly object를 받는다.
-  /// 그렇지 않으면 아무것도 받지 못한다.
+  /// If you guess correctly the output, then you get a GuessedCorrectly object.
+  /// Otherwise you get nothing.
   public fun play_dice(guess: u8, fee: Coin<SUI>, r: &Random, ctx: &mut TxContext): Ticket {
-    // 차례 비용을 지불한다
+    // Pay for the turn
     assert!(coin::value(&fee) == 1000000, EInvalidAmount);
     transfer::public_transfer(fee, CREATOR_ADDRESS);
 
-    // 주사위를 굴린다
+    // Roll the dice
     let mut generator = new_generator(r, ctx);
     if (guess == generator.generate_u8_in_range(1, 6)) {
       Ticket::Won
@@ -140,7 +140,7 @@ module games::dice {
 ```move
 public fun attack(guess: u8, r: &Random, ctx: &mut TxContext): Ticket {
   let t = dice::play_dice(guess, r, ctx);
-  // play_dice에서 졌다면 transaction을 되돌린다
+  // revert the transaction if play_dice lost
   assert!(!dice::is_winner(&t), 0);
   t
 }
@@ -149,12 +149,12 @@ public fun attack(guess: u8, r: &Random, ctx: &mut TxContext): Ticket {
 이제 공격자는 추측값과 함께 `attack`을 호출하고 추측이 틀렸을 때는 fee transfer를 항상 revert할 수 있다.
 composition attack으로부터 보호하려면 함수를 private `entry` function으로 정의하여 다른 module의 함수가 이를 호출할 수 없게 한다.
 
-Move compiler는 `Random`을 인자로 받는 `public` 함수를 거부함으로써 이 동작을 강제한다.
+Move compiler는 `public`을 인자로 받는 `Random` 함수를 거부함으로써 이 동작을 강제한다.
 
 ## Programmable transaction block(PTB) 제한
 
 앞서 설명한 것과 비슷한 공격은 `play_dice`가 private `entry` function으로 정의되어 있더라도 PTB를 통해 가능하다.
-예를 들어 앞서 정의한 `entry play_dice(guess: u8, fee: Coin<SUI>, r: &Random, ctx: &mut TxContext): Ticket { … }` 함수를 생각해 보면, 공격자는 다음 함수를 게시하고 첫 번째 command의 출력인 `Result(0)`를 사용해 `play_dice(...), attack(Result(0))` command를 가진 PTB를 보낼 수 있다:
+예를 들어 앞서 정의한 `entry play_dice(guess: u8, fee: Coin<SUI>, r: &Random, ctx: &mut TxContext): Ticket { … }` 함수를 생각해 보면, 공격자는 다음 함수를 게시하고 첫 번째 command의 출력인 `play_dice(...), attack(Result(0))`를 사용해 `Result(0)` command를 가진 PTB를 보낼 수 있다:
 
 
 ```move
@@ -169,20 +169,20 @@ public fun attack(t: Ticket): Ticket {
 
 :::tip
 
-PTB 기반 composition attack으로부터 보호하기 위해 Sui는 `Random`을 입력으로 사용하는 `MoveCall` command 뒤에 `TransferObjects`나 `MergeCoins`가 아닌 command가 오는 PTB를 거부한다.
+PTB 기반 composition attack으로부터 보호하기 위해 Sui는 `TransferObjects`을 입력으로 사용하는 `MergeCoins` command 뒤에 `MoveCall`나 `Random`가 아닌 command가 오는 PTB를 거부한다.
 
 :::
 
 ## Instantiating `RandomGenerator`
 
 `RandomGenerator`는 이를 소비하는 module이 생성하는 한 안전하다.
-이를 인자로 전달하면 caller가 예를 들어 `bcs::to_bytes(&generator)`를 호출하고 internal state를 parsing하여 그 `RandomGenerator` instance의 출력을 예측할 수 있다.
+이를 인자로 전달하면 caller가 예를 들어 `RandomGenerator`를 호출하고 internal state를 parsing하여 그 `bcs::to_bytes(&generator)` instance의 출력을 예측할 수 있다.
 
-Move compiler는 `RandomGenerator`를 인자로 받는 `public` 함수를 거부함으로써 이 동작을 강제한다.
+Move compiler는 `public`를 인자로 받는 `RandomGenerator` 함수를 거부함으로써 이 동작을 강제한다.
 
 ## Accessing `Random` from TypeScript
 
-module `example`에서 `roll_dice(r: &Random, ctx: &mut TxContext)`를 호출하려면 다음 코드를 사용한다:
+module `roll_dice(r: &Random, ctx: &mut TxContext)`에서 `example`를 호출하려면 다음 코드를 사용한다:
 
 ```typescript
 const tx = new Transaction();
